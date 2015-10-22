@@ -258,6 +258,27 @@ public:
       TS_ASSERT_EQUALS(a, "zBzBZZ");
    }
 
+
+   struct testConverter {
+      bool operator()(const char* const src, Uint& dest) const {
+         convT<Uint>(src, dest);
+         dest += 10;
+         return true;
+      }
+   };
+
+   void testSplitWithConverter() {
+      Uint dest[6];
+      bzero(dest, 6*sizeof(Uint));
+      TS_ASSERT_EQUALS(split("0 1 2 43", dest, testConverter()), 4);
+      TS_ASSERT_EQUALS(dest[0], 10);
+      TS_ASSERT_EQUALS(dest[1], 11);
+      TS_ASSERT_EQUALS(dest[2], 12);
+      TS_ASSERT_EQUALS(dest[3], 53);
+      TS_ASSERT_EQUALS(dest[4], 0);
+      TS_ASSERT_EQUALS(dest[5], 0);
+   }
+
 }; // TestStrUtils
 
 } // Portage

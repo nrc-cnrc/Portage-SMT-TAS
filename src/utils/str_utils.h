@@ -441,7 +441,7 @@ extern string decodeRFC2396(const string& s);
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param converter  a mapper from a string to desire T type (Applied to every token found)
- *                   definition: Converter(const char* src, T dest)
+ *                   definition: Converter(const char* src, T& dest)
  * @param sep        the set of characters that are considered to be whitespace
  * @param max_toks   the maximum number of tokens to extract; if > 0, then
  *                   only the 1st max_toks-1 delimited tokens will be
@@ -462,12 +462,12 @@ Uint split(const char* s, T* dest, Converter converter, const char* sep = " \t\n
    char* strtok_state;
    const char* tok = strtok_r(work, sep, &strtok_state);
    while (tok != NULL && (!max_toks || init_size < max_toks)) {
-      conv(tok, dest[init_size++]);
+      converter(tok, dest[init_size++]);
       tok = strtok_r(NULL, sep, &strtok_state);
    }
    // Last token will contain the remainder of the string
    if (max_toks && tok != NULL && init_size < max_toks) {
-      conv(&s[tok-work], dest[init_size++]);
+      converter(&s[tok-work], dest[init_size++]);
    }
 
    return init_size;
