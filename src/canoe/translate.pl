@@ -842,7 +842,7 @@ TRANS:{
       $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce or $xtags);
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
-      my $decoder_log = $verbose ? "2> '${dir}/log.decode'" : "";
+      my $decoder_log = ($verbose > 1) ? "2> '${dir}/log.decode'" : "";
       my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
 
