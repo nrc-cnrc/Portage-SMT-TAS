@@ -76,12 +76,12 @@ sub format_time_mem($$$$$$$$) {
    my $ct_fmt = $dhms ? "%s" : "%.3fs";
    my $out_fmt = "%s\tWALL TIME: " . $wt_fmt . "\tCPU TIME: " . $ct_fmt . "%s\tVSZ: %.3fG\tRSS: %.3fG%s\n";
    my $out_fmt_uss = "\tUSS: %.3fG+";
-   my $out_fmt_pcpu = "\tPCPU: %.1f%%";
+   my $out_fmt_pcpu = "\tPCPU: %.0f%%";
    
    my $cpu_plus_wait = $cpu + $wait;
    return sprintf($out_fmt, $name, $dhms ? seconds2DHMS($wall) : $wall, 
                   $dhms ? seconds2DHMS($cpu) : $cpu, 
-                  $pcpu && $cpu_plus_wait ? sprintf($out_fmt_pcpu, $cpu / $cpu_plus_wait) : "", 
+                  $pcpu && $cpu_plus_wait ? sprintf($out_fmt_pcpu, 100 * $cpu / $cpu_plus_wait) : "\t", 
                   $vss, $rss, $uss ? sprintf($out_fmt_uss, $uss) : "");
 }
 
