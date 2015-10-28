@@ -295,6 +295,8 @@ Mandatory dependencies for all distributions:
       ./compile.sh
       # Edit transfer.sh to set the scp destination to $PORTAGE/third-party/bin.
       ./transfer.sh
+      # The default transfer.sh script is missing plain2snt-hasvcb.py:
+      cp ../scripts/plain2snt-hasvcb.py $PORTAGE/third-party/bin
 
    If you have an old download of version 0.6.3 or 0.7.2, or a current one,
    they are all equivalent for our purposes.  If it works, keep what you have.
