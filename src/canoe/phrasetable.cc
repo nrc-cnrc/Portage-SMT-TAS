@@ -1051,14 +1051,15 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       TScore &tscore(it->second);
       assert(numTransModels >= tscore.backward.size());
       tscore.backward.resize(numTransModels, log_almost_0);
+      if (forwardsProbsAvailable) {
+         assert(numTransModels >= tscore.forward.size());
+         tscore.forward.resize(numTransModels, log_almost_0);
+      }
       tscore.adir.resize(numAdirTransModels, log_almost_0); //boxing
 
       double pruningScore = 0;
       if (pruningType != EXTERNAL_PRUNING) {
          if (forwardsProbsAvailable) {
-            assert(numTransModels >= tscore.forward.size());
-            tscore.forward.resize(numTransModels, log_almost_0);
-
             if (forward_weights && pruningType == FORWARD_WEIGHTS) {
                pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
             } else if (forward_weights && pruningType == COMBINED_SCORE) {
@@ -1074,6 +1075,7 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
 
       if (verbosity >= 4 && pruningType != EXTERNAL_PRUNING) {
          cerr << "\tConsidering " << src_words.toString()
+
               << " " << getStringPhrase(it->first) << " " << pruningScore;
       }
       if (pruningScore > logPruneThreshold || pruningType == EXTERNAL_PRUNING)

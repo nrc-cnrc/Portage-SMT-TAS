@@ -30,25 +30,25 @@ cmp_%: %
 	textpt2tppt.sh -v $< >& log.$@
 
 cpt_cpt: canoe.ini.cpt_cpt
-	echo a b c d | canoe -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 cpt_tppt: cpt2.tppt canoe.ini.cpt_tppt
-	echo a b c d | canoe -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 tppt_cpt: cpt1.tppt canoe.ini.tppt_cpt
-	echo a b c d | canoe -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 tppt_tppt: cpt1.tppt cpt2.tppt canoe.ini.tppt_tppt
-	echo a b c d | canoe -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 cpt5_cpt6: canoe.ini.cpt5_cpt6
-	echo a b c d | canoe -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 cpt5_tppt6: canoe.ini.cpt5_tppt6 cpt6.tppt
-	echo a b c d | canoe -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 tppt5_tppt6: canoe.ini.tppt5_tppt6 cpt5.tppt cpt6.tppt
-	echo a b c d | canoe -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
+	echo a b c d | canoe ${EXTRA_CANOE_ARGS} -v 1 -f canoe.ini.$@ -ffvals -nbest $@:10 >& log.$@
 
 cpt%.dump: cpt%.tppt
 	tppt.dump $< > $@
