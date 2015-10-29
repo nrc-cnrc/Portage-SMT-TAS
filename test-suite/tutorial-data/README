@@ -1,9 +1,8 @@
-Technologies langagieres interactives / Interactive Language Technologies
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Traitement multilingue de textes / Multilingual Text Processing
+Tech. de l'information et des communications / Information and Communications Tech.
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2008-2013, Sa Majeste la Reine du Chef du Canada
-Copyright 2008-2013, Her Majesty in Right of Canada
+Copyright 2008-2015, Sa Majeste la Reine du Chef du Canada
+Copyright 2008-2015, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -14,7 +13,7 @@ license agreement for details.
 This directory the data for running the tutorial experiment using our
 experiment framework.  See framework/tutorial.pdf for details.
 
-The *.al files come from three days of preprocessed Canadian Hansard
+The *.raw files come from three days of preprocessed Canadian Hansard
 proceedings: House of Commons Debates, Oct 8, 9 and 20, 2003.  These were
 originally downloaded from the website of the Parliament of Canada,
 http://www.parl.gc.ca/.
