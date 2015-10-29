@@ -25,8 +25,8 @@
 # Some behaviours can be turned on and off here, although you can also do
 # more advanced configuration by modifying the rest of the script below.
 
-# Uncomment the following line to separate slash-separated words, e.g., or comment it
-# out to leave them together:
+# Uncomment the following line to separate slash-separated words, e.g.,
+# inside/outside, or comment it out to leave them together:
 FIX_SLASHES=1
 
 # ######################################################## #
