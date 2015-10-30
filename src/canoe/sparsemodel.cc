@@ -31,15 +31,16 @@ using namespace Portage;
 SparseModel::ClusterMap::ClusterMap(SparseModel& m, const string& filename)
 {
    uint max_clust_id = 0;
+   // TODO: WHY? are we creating wl and not using map instead?
    unordered_map<Uint,Uint>* wl = &(this->map);
-   string fullname =  adjustRelativePath(m.path, filename);
+   const string fullname =  adjustRelativePath(m.path, filename);
    iSafeMagicStream is(fullname);
    string line;
    vector<string> toks;
    while (getline(is, line)) {
       if(splitZ(line,toks)!=2)
          error(ETFatal, "mkcls file " + filename + " poorly formatted");
-      Uint voc_id = m.voc->add(toks[0].c_str());
+      const Uint voc_id = m.voc->add(toks[0].c_str());
       Uint clus_id = 0;
       stringstream ss(toks[1]);
       ss >> clus_id;
@@ -151,7 +152,7 @@ DistortionMaster* DistortionMaster::instance() {
 Uint DistortionMaster::add(SparseModel::Distortion* dist)
 {
    m_activeDistortions.push_back(dist);
-   Uint toRet = m_sigIndex;
+   const Uint toRet = m_sigIndex;
    m_sigIndex += dist->sigSize();
    return toRet;
 }
@@ -241,7 +242,7 @@ Uint FwdHierDistortion::sig(const Range& shift,
 
 const vector<Uint>& FwdHierDistortion::type(const Range& shift,
                                             const ShiftReducer* stack) const {
-   Uint u = this->sig(shift,stack) - offset;
+   const Uint u = this->sig(shift,stack) - offset;
    if(u==0) return m;
    else if(u==1) return s;
    else if(u==2) return d;
@@ -349,7 +350,7 @@ Uint FwdLRSplitHierDistortion::sig(const PartialTranslation& pt) const {
 
 const vector<Uint>& FwdLRSplitHierDistortion::type(const Range& shift,
                                                    const ShiftReducer* stack) const {
-   Uint u = this->sig(shift,stack) - offset;
+   const Uint u = this->sig(shift,stack) - offset;
    if(u==0) return m;
    else if(u==1) return s;
    else if(u==2) return dl;
@@ -381,13 +382,13 @@ string FwdLRSplitHierDistortion::typeString(Uint type) const {
 
 map<Uint,Uint>* SparseModel::readSubVoc(const string& filename)
 {
-   map<Uint,Uint>* wl = new map<Uint,Uint>();
-   string fullname =  adjustRelativePath(path, filename);
+   map<Uint,Uint>* const wl = new map<Uint,Uint>();
+   const string fullname =  adjustRelativePath(path, filename);
    iSafeMagicStream is(fullname);
    string line;
    Uint id = 0;
    while (getline(is, line)) {
-      Uint voc_id = voc->add(line.c_str());
+      const Uint voc_id = voc->add(line.c_str());
       assert(wl->find(voc_id) == wl->end());
       (*wl)[voc_id] = id++;
    }
@@ -522,7 +523,7 @@ void SparseModel::createEventTemplates(const string& spec)
    }
    // create event_template_implies matrix
 
-   Uint n = event_templates.size();
+   const Uint n = event_templates.size();
    event_template_implies.resize(n);
    for (Uint i = 0; i < n; ++i) {
       event_template_implies[i].resize(n);
@@ -816,7 +817,7 @@ double SparseModel::tallyFeatures(const PartialTranslation& context,
       event_templates[event_template_id]->addEvents(context, eids);
       if (verbose > 2) dump(event_template_id, eids);
       for (Uint j = 0; j < eids.size(); ++j) {
-         Event e(event_template_id, eids[j]);
+         const Event e(event_template_id, eids[j]);
          active_events.push_back(e);
          EventMap::iterator p = event_map.find(e);
          if (p != event_map.end()) {
@@ -866,7 +867,7 @@ void SparseModel::getFeatures(const PartialTranslation& context,
       event_templates[i]->addEvents(context, eids);
       if (verbose > 2) dump(i, eids);
       for (Uint j = 0; j < eids.size(); ++j) {
-         Event e(i, eids[j]);
+         const Event e(i, eids[j]);
          active_events.push_back(e);
          EventMap::iterator p = events.find(e);
          if (new_atoms && p == events.end() && event_templates[i]->isDirect()) {
@@ -903,7 +904,7 @@ void SparseModel::getFeatures(const PartialTranslation& context,
 
    // Create new conjunctive features if permissible.
 
-   Uint nf = features.size();
+   const Uint nf = features.size();
    if (new_conj && fset.size() < max_features_for_conjoin)
       for (set<Uint>::iterator p = fset.begin(); p != fset.end(); ++p)
          if (feature_freqs[*p] >= min_freq_for_conjoin)
@@ -935,7 +936,7 @@ void SparseModel::getPartialFeatures(const PartialTranslation& context,
       vector<Uint> eids;
       event_templates[i]->addContextEvents(context, eids);
       for (Uint j = 0; j < eids.size(); ++j) {
-         Event e(i, eids[j]);
+         const Event e(i, eids[j]);
          EventMap::iterator p = partial_events.find(e);
          if (p != partial_events.end())
             for (Uint j = 0; j < p->second.size(); ++j) {
@@ -961,7 +962,7 @@ void SparseModel::populate()
       vector<Uint> eids;
       event_templates[i]->populate(eids);
       for (Uint j = 0; j < eids.size(); ++j) {
-         Event e(i, eids[j]);
+         const Event e(i, eids[j]);
          EventMap::iterator p = events.find(e);
          if (p == events.end() && event_templates[i]->isDirect()) {
             p = events.insert(make_pair(e, vector<Uint>(1, features.size()))).first;
@@ -978,7 +979,7 @@ void SparseModel::populate()
 void SparseModel::learnInit()
 {
    exno = 0;
-   Uint nf = features.size();
+   const Uint nf = features.size();
    feature_freqs.assign(nf, 0);
    feature_lastex.assign(nf, 0);
    feature_wtsums.assign(nf, 0.0);
@@ -987,7 +988,7 @@ void SparseModel::learnInit()
 Uint SparseModel::learn(const PartialTranslation* ref, const PartialTranslation* mbest)
 {
    ++exno;
-   Uint nf = features.size();
+   const Uint nf = features.size();
    
    if (verbose > 1) dump(*ref, mbest ? mbest->lastPhrase : NULL);
 
@@ -1016,8 +1017,8 @@ Uint SparseModel::learn(const PartialTranslation* ref, const PartialTranslation*
                 fset_mbest.begin(), fset_mbest.end(), res.begin());
    for (vector<Uint>::iterator p = res.begin(); p != e; ++p) {
       ++feature_freqs[*p];
-      bool in_ref = fset_ref.find(*p) != fset_ref.end();
-      bool in_model = fset_mbest.find(*p) != fset_mbest.end();
+      const bool in_ref = fset_ref.find(*p) != fset_ref.end();
+      const bool in_model = fset_mbest.find(*p) != fset_mbest.end();
       if (in_ref && !in_model) incrWeight(*p, 1.0);
       else if (in_model && !in_ref) incrWeight(*p, -1.0);
       else ++intersect_size;
@@ -1054,8 +1055,8 @@ void SparseModel::save(const string& file, bool prune_templates)
    
    // save features and weights, re-mapping template ids if appropriate
 
-   string fname(file + feats_exten);
-   string wname(file + wts_exten);
+   const string fname(file + feats_exten);
+   const string wname(file + wts_exten);
    oSafeMagicStream osf(fname);
    oSafeMagicStream osw(wname);
    for (Uint i = 0; i < features.size(); ++i) {
@@ -1080,7 +1081,7 @@ void SparseModel::save(const string& file, bool prune_templates)
    }
    // save templates, voc, and numex
    
-   string tname(file + templ_exten);
+   const string tname(file + templ_exten);
    oSafeMagicStream ost(tname);
    for (Uint i = 0; i < event_templates.size(); ++i)
       if (active_templates[i])
@@ -1132,8 +1133,9 @@ void SparseModel::add(const vector<string>& files, double prune)
                feature_wtsums.push_back(m.feature_wtsums[j]);
                ++new_feat_count;
             }
-         } else {
-            Uint ind = p->second;
+         }
+         else {
+            const Uint ind = p->second;
             features[ind].weight += m.features[j].weight;
             feature_freqs[ind] += m.feature_freqs[j];
             feature_wtsums[ind] += m.feature_wtsums[j];
@@ -1170,8 +1172,8 @@ void SparseModel::add2(const string& file)
 
       Uint cur_orig_numfeats = cur_feats.size();
       for (Uint i = 0; i < m_feats.size(); ++i) {
-         Uint mf = m_feats[i];  // current m feature index
-         Uint cf = curf[mf]; // corresp cur feature index if > 0
+         const Uint mf = m_feats[i];  // current m feature index
+         const Uint cf = curf[mf]; // corresp cur feature index if > 0
 
          // try to find the m feature in current list
 
@@ -1350,7 +1352,7 @@ void SparseModel::readWeights(const string& oname, const string& relative_to,
       vector<float>& weights, bool allow_non_local)
 {
    string fireflag, tag;
-   string name = stripSuffixFlags(oname, NULL, NULL, &fireflag, &tag);
+   const string name = stripSuffixFlags(oname, NULL, NULL, &fireflag, &tag);
    fireflag += tag;
    weights.clear();
    string wtsfile = localWtsFilename(name, relative_to, fireflag);
@@ -1371,16 +1373,16 @@ Uint SparseModel::writeWeights(const string& oname, const string& relative_to,
                                vector<float>& weights, Uint os)
 {
    string fireflag, tag;
-   string name = stripSuffixFlags(oname, NULL, NULL, &fireflag, &tag);
+   const string name = stripSuffixFlags(oname, NULL, NULL, &fireflag, &tag);
    fireflag += tag;
-   string origwts = name + wts_exten;
-   string newwts = localWtsFilename(name, relative_to, fireflag);
+   const string origwts = name + wts_exten;
+   const string newwts = localWtsFilename(name, relative_to, fireflag);
 
    // backup existing weights file if this needs doing
 
    if (origwts == newwts) {
       error(ETWarn, "overwriting model weights; producing backup copy");
-      string backupwts = name + ".bak" + wts_exten;
+      const string backupwts = name + ".bak" + wts_exten;
       if (!check_if_exists(backupwts))
          boost::filesystem::copy_file(origwts, backupwts);
    }
@@ -1388,7 +1390,7 @@ Uint SparseModel::writeWeights(const string& oname, const string& relative_to,
    // count weights in original file, and write that number from <weights> to
    // <newwts> 
 
-   Uint numwts = countFileLines(origwts.c_str());
+   const Uint numwts = countFileLines(origwts.c_str());
    assert(os + numwts <= weights.size());
    oSafeMagicStream ostr(newwts);
    for (Uint i = 0; i < numwts; ++i)
@@ -1412,7 +1414,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
    // get values of suffix #flags, and process
 
    string fireval, tag;
-   string partial_file = stripSuffixFlags(ofile, &precompute_future_score, &idname, &fireval, &tag);
+   const string partial_file = stripSuffixFlags(ofile, &precompute_future_score, &idname, &fireval, &tag);
    string file;
    if (relative_to.empty() || partial_file[0] == '/') {
       file = partial_file;
@@ -1431,7 +1433,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
       Uint col = conv<Uint>(toks[0].substr(fire_flag.length()));
       assert(col > 0);
       col--;
-      string tag = toks[1];
+      const string tag = toks[1];
       iSafeMagicStream idfile(idname);
       string line;
       bool gotone = false;
@@ -1451,7 +1453,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
 
    // read structure file and saved voc
 
-   string tname(file + templ_exten);
+   const string tname(file + templ_exten);
    string spec;
    gulpFile(tname.c_str(), spec);
    createEventTemplates(spec);
@@ -1463,7 +1465,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
 
    string wtsfile = file + wts_exten;
    if (local_wts) {
-      string localwts = localWtsFilename(partial_file, relative_to, fireval);
+      const string localwts = localWtsFilename(partial_file, relative_to, fireval);
       if (check_if_exists(localwts)) {
          wtsfile = localwts;
          if (verbose) cerr << "local SparseModel weights file found at " << wtsfile << endl;
@@ -1490,7 +1492,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
       for (Uint i = 0; i < toks.size(); ++i) {
          inds.clear();
          assert(split(toks[i], inds, ",") == 2);
-         Uint newid = event_templates[inds[0]]->remapEvent(inds[1], newvoc);
+         const Uint newid = event_templates[inds[0]]->remapEvent(inds[1], newvoc);
          features.back().events.push_back(Event(inds[0], newid));
       }
       sort(features.back().events.begin(), features.back().events.end());
@@ -1593,7 +1595,7 @@ void SparseModel::buildDecodingEventMaps()
    for (Uint i = 0; i < features.size(); ++i) {
       bool isPure(true), isPureDistortion(true);
       for (Uint j = 0; j < features[i].events.size(); ++j) {
-         EventTemplate* t = event_templates[features[i].events[j].tid];
+         EventTemplate* const t = event_templates[features[i].events[j].tid];
          isPure = isPure && t->isPure();
          // pure distortion features can consist of conjunctions of pure and pure-distortion events.
          isPureDistortion = isPureDistortion && (t->isPure() || t->isPureDistortion());
@@ -1660,8 +1662,8 @@ void SparseModel::prune(Uint num_features, bool by_freq, bool conj_only)
       newfeature_lastex[i] = feature_lastex[indexes[i]];
       newfeature_wtsums[i] = feature_wtsums[indexes[i]];
    }
-   Uint old_nf = features.size();
-   Uint old_ne = events.size();
+   const Uint old_nf = features.size();
+   const Uint old_ne = events.size();
    features = newfeatures;
    feature_freqs = newfeature_freqs;
    feature_lastex = newfeature_lastex;
@@ -1690,7 +1692,7 @@ void SparseModel::pruneZeroWeightFeatures(Uint start_index)
                assert(events.erase(features[i].events[j]) == 1);
          }
       } else {   // re-index feature if necessary
-         Uint fi = start_index + num_retained++;  // new index
+         const Uint fi = start_index + num_retained++;  // new index
          if (fi != i) {
             for (Uint j = 0; j < features[i].events.size(); ++j) {
                vector<Uint>& flist = events[features[i].events[j]];
@@ -1784,10 +1786,10 @@ double SparseModel::score(const PartialTranslation& hyp) {
    if (!active) return 0.0;
 
    bool cache_is_new;
-   SparseCache* cache = SparseCache::getOrCreate(hyp.lastPhrase->annotations, &cache_is_new);
+   SparseCache* const cache = SparseCache::getOrCreate(hyp.lastPhrase->annotations, &cache_is_new);
    if (cache_is_new)
       cache->pure_score = tallyFeatures(hyp, pure_event_template_ids, pure_events);
-   double pure_r = cache->pure_score;
+   const double pure_r = cache->pure_score;
    //double pure_r = tallyFeatures(hyp, pure_event_template_ids, pure_events);
 
    double pure_distortion_r = 0;
@@ -1799,8 +1801,8 @@ double SparseModel::score(const PartialTranslation& hyp) {
             cache->distortion_scores.assign(dmaster->maxSig(), 0);
             cache->dist_score_init.assign(dmaster->maxSig(), false);
          }
-         SparseModel::Distortion* sparseDist = dmaster->active().front();
-         Uint dist_sig = sparseDist->sig(hyp);
+         SparseModel::Distortion* const sparseDist = dmaster->active().front();
+         const Uint dist_sig = sparseDist->sig(hyp);
          assert(dist_sig < cache->dist_score_init.size());
          if (!cache->dist_score_init[dist_sig]) {
             cache->distortion_scores[dist_sig] =
@@ -1815,9 +1817,9 @@ double SparseModel::score(const PartialTranslation& hyp) {
       pure_distortion_r =
          tallyFeatures(hyp, pure_distortion_event_template_ids, pure_distortion_events);
 
-   double other_r = tallyFeatures(hyp, other_event_template_ids, other_events);
+   const double other_r = tallyFeatures(hyp, other_event_template_ids, other_events);
 
-   double r = pure_r + pure_distortion_r + other_r;
+   const double r = pure_r + pure_distortion_r + other_r;
 
    if (debug_score_with_caching) {
       assert(pure_r == tallyFeatures(hyp, pure_event_template_ids, pure_events));
@@ -1886,7 +1888,7 @@ double SparseModel::precomputeFutureScore(const PhraseInfo& phrase_info)
    set<Uint> fset;
    getFeatures(pt, fset, false, false);
    for (set<Uint>::iterator p = fset.begin(); p != fset.end(); ++p) {
-      Feature& f = features[*p];
+      const Feature& f = features[*p];
       bool pure = true;
       for (Uint i = 0; i < f.events.size(); ++i) {
          pure = pure && event_templates[f.events[i].tid]->isPure();
@@ -1907,7 +1909,7 @@ TgtContextWordAtPos::TgtContextWordAtPos(SparseModel& m, const string& args) :
    EventTemplate(m, args)
 {
    string a(args);
-   int p = conv<int>(trim(a));
+   const int p = conv<int>(trim(a));
    if (p >= 0) 
       error(ETFatal, "%s: position argument must be < 0", name().c_str());
    pos = Uint(-p);
@@ -1994,7 +1996,7 @@ TgtNgramCountBin::TgtNgramCountBin(SparseModel& m, const string& args) :
    if (m.ngcounts_map.find(toks[0]) != m.ngcounts_map.end())
       ngcounts = m.ngcounts_map[toks[0]];
    else {
-      string fullname = adjustRelativePath(m.path, toks[0]);
+      const string fullname = adjustRelativePath(m.path, toks[0]);
       ngcounts = m.ngcounts_map[toks[0]] = new NgramCounts(m.voc, fullname);
    }
 
@@ -2039,7 +2041,7 @@ void TgtNgramCountBin::addEvents(const PartialTranslation& context,
 
    // look up ngram to see if its count matches what we're interested in
    if (ngram.size() == n + extra) {
-      Uint c = ngcounts->count(&ngram[0], n);
+      const Uint c = ngcounts->count(&ngram[0], n);
       if (c >= low && (high == 0 || c <= high))
          event_ids.push_back(0); // fire
    }
@@ -2089,7 +2091,7 @@ void LexUnalTgtAny::addEvents(const PartialTranslation& hyp,
    assert(fbpi);
    const Uint src_len = fbpi->src_words.size();
    const Uint tgt_len = fbpi->phrase.size();
-   AlignmentAnnotation* a_ann = AlignmentAnnotation::get(fbpi->annotations);
+   const AlignmentAnnotation* const a_ann = AlignmentAnnotation::get(fbpi->annotations);
    const Uint alignment = AlignmentAnnotation::getID(a_ann);
 
 
@@ -2130,7 +2132,7 @@ void LexUnalTgtAny::addEvents(const PartialTranslation& hyp,
 
    vector<Uint>& unals = res->second;
 
-   Uint ne = events.size();
+   const Uint ne = events.size();
    for (Uint i = 0; i < unals.size(); ++i) {
        map<Uint,Uint>::iterator r = lex->find(fbpi->phrase[unals[i]]);
        if (r != lex->end() &&
@@ -2148,7 +2150,7 @@ void LexUnalSrcAny::addEvents(const PartialTranslation& hyp,
    assert(fbpi);
    const Uint src_len = fbpi->src_words.size();
    const Uint tgt_len = fbpi->phrase.size();
-   AlignmentAnnotation* a_ann = AlignmentAnnotation::get(fbpi->annotations);
+   const AlignmentAnnotation* const a_ann = AlignmentAnnotation::get(fbpi->annotations);
    const Uint alignment = AlignmentAnnotation::getID(a_ann);
 
    Cache::iterator res = cache.find(CacheKey(src_len, tgt_len, alignment));
@@ -2175,9 +2177,9 @@ void LexUnalSrcAny::addEvents(const PartialTranslation& hyp,
    // list of unal positions -> event vector
 
    vector<Uint>& unals = res->second;
-   Uint ne = events.size();
+   const Uint ne = events.size();
    for (Uint i = 0; i < unals.size(); ++i) {
-      Uint id = m.subVocId(lex, m.srcsent[fbpi->src_words.start + unals[i]]);
+      const Uint id = m.subVocId(lex, m.srcsent[fbpi->src_words.start + unals[i]]);
       if (id < lex->size())
          events.push_back(id);
    }
@@ -2214,7 +2216,7 @@ void AlignedWordPair::addEvents(const PartialTranslation& hyp,
    assert(fbpi);
    const Uint src_len = fbpi->src_words.size();
    const Uint tgt_len = fbpi->phrase.size();
-   AlignmentAnnotation* a_ann = AlignmentAnnotation::get(fbpi->annotations);
+   const AlignmentAnnotation* const a_ann = AlignmentAnnotation::get(fbpi->annotations);
    const Uint alignment = AlignmentAnnotation::getID(a_ann);
 
    Cache::iterator res = cache.find(CacheKey(src_len, tgt_len, alignment));
@@ -2236,7 +2238,7 @@ void AlignedWordPair::addEvents(const PartialTranslation& hyp,
       tgt_connections.resize(tgt_len, src_len); // src_len means no 1-1 link
       for (Uint i = 0; i < sets->size(); ++i)
          if ((*sets)[i].size() == 1 && (*sets)[i][0] < tgt_len) {
-            Uint tpos = (*sets)[i][0];
+            const Uint tpos = (*sets)[i][0];
             if (tgt_connections[tpos] == src_len) 
                tgt_connections[tpos] = i; // potential 1-1 connection
             else if (tgt_connections[tpos] < src_len)
@@ -2250,14 +2252,14 @@ void AlignedWordPair::addEvents(const PartialTranslation& hyp,
    // add events for all 1-1 connections as well as tgt words in subvoc but
    // without 1-1 connections
 
-   Uint ne = events.size();
+   const Uint ne = events.size();
    vector<bool> src_connections(src_len, false);
    for (Uint i = 0; i < tgt_connections.size(); ++i) {
-      Uint tid = m.subVocId(tgt_lex, fbpi->phrase[i]);
+      const Uint tid = m.subVocId(tgt_lex, fbpi->phrase[i]);
       if (tgt_connections[i] < src_len) { // have 1-1 connection
          src_connections[tgt_connections[i]] = true;
-         Uint spos = fbpi->src_words.start + tgt_connections[i];
-         Uint sid = m.subVocId(src_lex, m.srcsent[spos]);
+         const Uint spos = fbpi->src_words.start + tgt_connections[i];
+         const Uint sid = m.subVocId(src_lex, m.srcsent[spos]);
          if (tid < tgt_lex->size() || sid < src_lex->size())
             events.push_back(sid * (tgt_lex->size()+2) + tid);
       } else                    // no 1-1 connection for this tgt word
@@ -2268,7 +2270,7 @@ void AlignedWordPair::addEvents(const PartialTranslation& hyp,
 
    for (Uint i = 0; i < src_connections.size(); ++i)
       if (!src_connections[i]) {  // no 1-1 connection
-         Uint sid = m.subVocId(src_lex, m.srcsent[fbpi->src_words.start + i]);
+         const Uint sid = m.subVocId(src_lex, m.srcsent[fbpi->src_words.start + i]);
          if (sid < src_lex->size())
             events.push_back(sid * (tgt_lex->size()+2) + tgt_lex->size() + 1);
       }
@@ -2283,11 +2285,11 @@ void AlignedWordPair::addEvents(const PartialTranslation& hyp,
 
 string AlignedWordPair::eventDesc(Uint e) 
 {
-   Uint sid = e / (tgt_lex->size()+2);
-   Uint tid = e % (tgt_lex->size()+2);
-   string src = sid < src_lex->size() ? m.voc->word(m.vocId(src_lex, sid)) :
+   const Uint sid = e / (tgt_lex->size()+2);
+   const Uint tid = e % (tgt_lex->size()+2);
+   const string src = sid < src_lex->size() ? m.voc->word(m.vocId(src_lex, sid)) :
       sid == src_lex->size() ? "OTHER" : "NOT_1-1";
-   string tgt = tid < tgt_lex->size() ? m.voc->word(m.vocId(tgt_lex, tid)) :
+   const string tgt = tid < tgt_lex->size() ? m.voc->word(m.vocId(tgt_lex, tid)) :
       tid == tgt_lex->size() ? "OTHER" : "NOT_1-1";
    return src + ":" + tgt;
 }
@@ -2315,7 +2317,7 @@ PhrasePairCountBin::PhrasePairCountBin(SparseModel& m, const string& args) :
 void PhrasePairCountBin::addEvents(const PartialTranslation& hyp, 
                                    vector<Uint>& event_ids)
 {
-   CountAnnotation* count = CountAnnotation::get(hyp.lastPhrase->annotations);
+   const CountAnnotation* const count = CountAnnotation::get(hyp.lastPhrase->annotations);
    if (!count || count->joint_counts.empty())  // allow this, since it could have come from a rule
       return;
    if (count->joint_counts[0] >= minfreq && (maxfreq == 0 || count->joint_counts[0] <= maxfreq))
@@ -2329,7 +2331,7 @@ PhrasePairCountMultiBin::PhrasePairCountMultiBin(SparseModel& m, const string& a
    vector<string> toks;
    split(args, toks);   // use 1st token as filename, as favour to derived classes
 
-   string fullname = adjustRelativePath(m.path, toks[0]);
+   const string fullname = adjustRelativePath(m.path, toks[0]);
    iSafeMagicStream is(fullname);   // read bins file
    string line;
    Uint minfreq, maxfreq;
@@ -2360,7 +2362,7 @@ PhrasePairCountMultiBin::PhrasePairCountMultiBin(SparseModel& m, const string& a
 void PhrasePairCountMultiBin::addEvents(const PartialTranslation& hyp, 
                                         vector<Uint>& event_ids)
 {
-   CountAnnotation* count = CountAnnotation::get(hyp.lastPhrase->annotations);
+   const CountAnnotation* const count = CountAnnotation::get(hyp.lastPhrase->annotations);
    if (!count || count->joint_counts.empty())  // allow this, since it could have come from a rule
       return;
    if (freqmap.find(count->joint_counts[0]) != freqmap.end())
@@ -2379,7 +2381,7 @@ string PhrasePairCountMultiBin::eventDesc(Uint e)
 {
    ostringstream tmpstr;
    tmpstr << e;
-   string ret = "freq bin " + tmpstr.str();
+   const string ret = "freq bin " + tmpstr.str();
    return ret;
 }
 
@@ -2400,14 +2402,14 @@ PhrasePairCountsMultiBin::PhrasePairCountsMultiBin(SparseModel& m, const string&
 
 void PhrasePairCountsMultiBin::addEvents(const PartialTranslation& hyp, vector<Uint>& event_ids)
 {
-   CountAnnotation* count = CountAnnotation::get(hyp.lastPhrase->annotations);
+   const CountAnnotation* const count = CountAnnotation::get(hyp.lastPhrase->annotations);
    if (!count || count->joint_counts.empty())  // allow this, since it could have come from a rule
       return;
 
    Uint col_base = beg_col * PhrasePairCountMultiBin::num_bins;
    for (Uint i = beg_col; i <= end_col; ++i) {
       if (i >= count->joint_counts.size()) continue;  // what the heck
-      Uint c = Uint(count->joint_counts[i]);
+      const Uint c = Uint(count->joint_counts[i]);
       if (freqmap.find(c) != freqmap.end())
          event_ids.push_back(col_base + freqmap[c]);
       else if (have_high_bin && c >= high_bin_threshold)
@@ -2424,8 +2426,8 @@ void PhrasePairCountsMultiBin::populate(vector<Uint>& event_ids)
 
 string PhrasePairCountsMultiBin::eventDesc(Uint e)
 {
-   Uint col = e / PhrasePairCountMultiBin::num_bins;
-   Uint bin = e % PhrasePairCountMultiBin::num_bins;
+   const Uint col = e / PhrasePairCountMultiBin::num_bins;
+   const Uint bin = e % PhrasePairCountMultiBin::num_bins;
    ostringstream tmpstr;
    tmpstr << "col=" << col+1 << " bin=" << bin;
    return tmpstr.str();
@@ -2462,7 +2464,7 @@ RarestTgtWordCountBin::RarestTgtWordCountBin(SparseModel& m, const string& args)
       if (splitZ(line, toks) != 2)
          error(ETFatal, "RarestTgtWordCountBin format error in voc file line:\n%s",
                line.c_str());
-      Uint count = conv<Uint>(toks[1]);
+      const Uint count = conv<Uint>(toks[1]);
       for (Uint i = 0; i < bins.size(); ++i)
          if (count >= bins[i].first && (bins[i].second == 0 || count <= bins[i].second)) {
             binmap[m.voc->add(toks[0].c_str())] = i;
@@ -2503,7 +2505,7 @@ string RarestTgtWordCountBin::eventDesc(Uint e)
 {
    ostringstream tmpstr;
    tmpstr << e;
-   string ret = "freq bin " + tmpstr.str();
+   const string ret = "freq bin " + tmpstr.str();
    return ret;
 }
 
@@ -2523,13 +2525,13 @@ AvgTgtWordScoreBin::AvgTgtWordScoreBin(SparseModel& m, const string& args) :
    double maxscore = -numeric_limits<double>::max();
    minscore = numeric_limits<double>::max();
    string line;
-   string fullname = adjustRelativePath(m.path, toks[0]);
+   const string fullname = adjustRelativePath(m.path, toks[0]);
    iSafeMagicStream vocfile(fullname);
    while (getline(vocfile, line)) {
       if (splitZ(line, toks) != 2)
          error(ETFatal, "AvgTgtWordScoreBin format error in voc file line:\n%s",
                line.c_str());
-      float score = conv<float>(toks[1]);
+      const float score = conv<float>(toks[1]);
       binmap[m.voc->add(toks[0].c_str())] = score;
       if (!linear_bins && score < 0.0)
          error(ETFatal, "AvgTgtWordScoreBin scores must be > 0 for log binning");
@@ -2546,7 +2548,7 @@ AvgTgtWordScoreBin::AvgTgtWordScoreBin(SparseModel& m, const string& args) :
 
 void AvgTgtWordScoreBin::addEvents(const PartialTranslation& hyp, vector<Uint>& events)
 {
-   const PhraseInfo *p = hyp.lastPhrase;
+   const PhraseInfo* const p = hyp.lastPhrase;
    double avg = 0.0;
    Uint nwords = 0;
    for (Uint i = 0; i < p->phrase.size(); ++i) {
@@ -2559,7 +2561,7 @@ void AvgTgtWordScoreBin::addEvents(const PartialTranslation& hyp, vector<Uint>& 
    if (nwords) {
       avg /= nwords;
       if (!linear_bins) avg = log(avg);
-      Uint bin = floor(num_bins * (avg - minscore)/range);
+      const Uint bin = floor(num_bins * (avg - minscore)/range);
       assert(bin < num_bins);
       events.push_back(bin);
    }
@@ -2584,13 +2586,13 @@ string AvgTgtWordScoreBin::eventDesc(Uint e)
 {
    ostringstream tmpstr;
    tmpstr << e;
-   string ret = "freq bin " + tmpstr.str();
+   const string ret = "freq bin " + tmpstr.str();
    return ret;
 }
 
 void MinTgtWordScoreBin::addEvents(const PartialTranslation& hyp, vector<Uint>& events)
 {
-   const PhraseInfo *p = hyp.lastPhrase;
+   const PhraseInfo* const p = hyp.lastPhrase;
    double ms = 0.0;
    Uint nwords = 0;
    for (Uint i = 0; i < p->phrase.size(); ++i) {
@@ -2602,7 +2604,7 @@ void MinTgtWordScoreBin::addEvents(const PartialTranslation& hyp, vector<Uint>& 
    }
    if (nwords) {
       if (!linear_bins) ms = log(ms);
-      Uint bin = floor(num_bins * (ms - minscore)/range);
+      const Uint bin = floor(num_bins * (ms - minscore)/range);
       assert(bin < num_bins);
       events.push_back(bin);
    }
@@ -2660,7 +2662,7 @@ void DistCurrentSrcPhrase::addEvents(const PartialTranslation& pt,
    const PhraseInfo *p = pt.lastPhrase;
    assert(p!=NULL);
    const Range r = p->src_words;
-   Uint phrase = clusters->phraseId(m.srcsent[r.start],
+   const Uint phrase = clusters->phraseId(m.srcsent[r.start],
                                     m.srcsent[r.end-1],
                                     r.end-r.start);
 
@@ -2680,10 +2682,10 @@ Uint DistCurrentSrcPhrase::numEvents()
 
 string DistCurrentSrcPhrase::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numPhraseIds();
-   Uint phrase = e % clusters->numPhraseIds();
+   const Uint type = e / clusters->numPhraseIds();
+   const Uint phrase = e % clusters->numPhraseIds();
 
-   string sType = dist->typeString(type);   
+   const string sType = dist->typeString(type);   
    return "dhdm src " + sType + " : " + clusters->phraseStr(phrase);
 }
 
@@ -2699,10 +2701,10 @@ Uint DistCurrentSrcFirstWord::numEvents()
 
 void DistCurrentSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   const PhraseInfo *p = pt.lastPhrase;
+   const PhraseInfo* const p = pt.lastPhrase;
    assert(p!=NULL);
    const Range r = p->src_words;
-   Uint word = clusters->clusterId(m.srcsent[r.start]);
+   const Uint word = clusters->clusterId(m.srcsent[r.start]);
 
    const vector<Uint>& type_ids = dist->type(pt);
    for(vector<Uint>::const_iterator type=type_ids.begin();
@@ -2715,9 +2717,9 @@ void DistCurrentSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uin
 
 string DistCurrentSrcFirstWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm src " + sType + " : [" + tmpstr.str() + "..]";
@@ -2735,10 +2737,10 @@ Uint DistCurrentSrcLastWord::numEvents()
 
 void DistCurrentSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   const PhraseInfo *p = pt.lastPhrase;
+   const PhraseInfo* const p = pt.lastPhrase;
    assert(p!=NULL);
    const Range r = p->src_words;
-   Uint word = clusters->clusterId(m.srcsent[r.end-1]);
+   const Uint word = clusters->clusterId(m.srcsent[r.end-1]);
 
    const vector<Uint>& type_ids = dist->type(pt);
    for(vector<Uint>::const_iterator type=type_ids.begin();
@@ -2751,9 +2753,9 @@ void DistCurrentSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint
 
 string DistCurrentSrcLastWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm src " + sType + " : [.." + tmpstr.str() + "]";
@@ -2771,10 +2773,10 @@ Uint DistCurrentTgtFirstWord::numEvents()
 
 void DistCurrentTgtFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   const PhraseInfo *p = pt.lastPhrase;
+   const PhraseInfo* const p = pt.lastPhrase;
    assert(p!=NULL);
    const Phrase phrase = p->phrase;
-   Uint word = clusters->clusterId(phrase.front());
+   const Uint word = clusters->clusterId(phrase.front());
 
    const vector<Uint>& type_ids = dist->type(pt);
    for(vector<Uint>::const_iterator type=type_ids.begin();
@@ -2787,9 +2789,9 @@ void DistCurrentTgtFirstWord::addEvents(const PartialTranslation& pt, vector<Uin
 
 string DistCurrentTgtFirstWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm tgt " + sType + " : [" + tmpstr.str() + "..]";
@@ -2807,10 +2809,10 @@ Uint DistCurrentTgtLastWord::numEvents()
 
 void DistCurrentTgtLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   const PhraseInfo *p = pt.lastPhrase;
+   const PhraseInfo* const p = pt.lastPhrase;
    assert(p!=NULL);
    const Phrase phrase = p->phrase;
-   Uint word = clusters->clusterId(phrase.back());
+   const Uint word = clusters->clusterId(phrase.back());
 
    const vector<Uint>& type_ids = dist->type(pt);
    for(vector<Uint>::const_iterator type=type_ids.begin();
@@ -2823,9 +2825,9 @@ void DistCurrentTgtLastWord::addEvents(const PartialTranslation& pt, vector<Uint
 
 string DistCurrentTgtLastWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm tgt " + sType + " : [.." + tmpstr.str() + "]";
@@ -2844,7 +2846,7 @@ Uint DistReducedSrcFirstWord::numEvents()
 void DistReducedSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
    // Input
-   Uint ne = event_ids.size();
+   const Uint ne = event_ids.size();
    Range iTop(pt.lastPhrase->src_words.start,
               pt.lastPhrase->src_words.end);
    ShiftReducer* iTail=pt.back->shiftReduce;
@@ -2856,7 +2858,7 @@ void DistReducedSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uin
    while(iTop!=oTop)
    {
       // Generate the features
-      Uint word = clusters->clusterId(m.srcsent[oTop.start]);
+      const Uint word = clusters->clusterId(m.srcsent[oTop.start]);
       const vector<Uint>& type_ids = dist->type(oTop,oTail);
       for(vector<Uint>::const_iterator type=type_ids.begin();
           type!=type_ids.end();
@@ -2878,9 +2880,9 @@ void DistReducedSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uin
 
 string DistReducedSrcFirstWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm red src " + sType + " : [" + tmpstr.str() + "..]";
@@ -2899,7 +2901,7 @@ Uint DistReducedSrcLastWord::numEvents()
 void DistReducedSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
    // Input
-   Uint ne = event_ids.size();
+   const Uint ne = event_ids.size();
    Range iTop(pt.lastPhrase->src_words.start,
               pt.lastPhrase->src_words.end);
    ShiftReducer* iTail=pt.back->shiftReduce;
@@ -2911,7 +2913,7 @@ void DistReducedSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint
    while(iTop!=oTop)
    {
       // Generate the features
-      Uint word = clusters->clusterId(m.srcsent[oTop.end-1]);
+      const Uint word = clusters->clusterId(m.srcsent[oTop.end-1]);
       const vector<Uint>& type_ids = dist->type(oTop,oTail);
       for(vector<Uint>::const_iterator type=type_ids.begin();
           type!=type_ids.end();
@@ -2933,9 +2935,9 @@ void DistReducedSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint
 
 string DistReducedSrcLastWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm red src " + sType + " : [.." + tmpstr.str() + "]";
@@ -2953,9 +2955,9 @@ Uint DistReducedTgtLastWord::numEvents()
 
 void DistReducedTgtLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   Uint ne = event_ids.size();
+   const Uint ne = event_ids.size();
    // No matter how big the block gets, it always has the same final tgt word
-   Uint word = clusters->clusterId(pt.lastPhrase->phrase.back());
+   const Uint word = clusters->clusterId(pt.lastPhrase->phrase.back());
 
    // Input
    Range iTop(pt.lastPhrase->src_words.start,
@@ -2990,9 +2992,9 @@ void DistReducedTgtLastWord::addEvents(const PartialTranslation& pt, vector<Uint
 
 string DistReducedTgtLastWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm red tgt " + sType + " : [.." + tmpstr.str() + "]";
@@ -3035,11 +3037,11 @@ void DistGapSrcWord::addEvents(const PartialTranslation& pt, vector<Uint>& event
    }
 
    // Disjoint at all
-   Uint ne = event_ids.size();
+   const Uint ne = event_ids.size();
    if(iLeft < iRight) {
       assert(iCode < 2);
       for(Uint iSrc = iLeft; iSrc < iRight; iSrc++) {
-         Uint word = clusters->clusterId(m.srcsent[iSrc]);
+         const Uint word = clusters->clusterId(m.srcsent[iSrc]);
          event_ids.push_back( word + iCode * clusters->numClustIds() );
       }
    }
@@ -3052,9 +3054,9 @@ void DistGapSrcWord::addEvents(const PartialTranslation& pt, vector<Uint>& event
 
 string DistGapSrcWord::eventDesc(Uint e)
 {
-   Uint code = e / clusters->numClustIds();
+   const Uint code = e / clusters->numClustIds();
    assert(code < 2);
-   Uint word = e % clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
    ostringstream tmpstr;
    tmpstr << word;
    if(code==0)
@@ -3076,8 +3078,10 @@ Uint DistTopSrcFirstWord::numEvents()
 void DistTopSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
    assert(pt.back->shiftReduce!=NULL);
-   Uint word = 1; // Default to Beginning of Sentence
+   const Uint word = 1; // Default to Beginning of Sentence
    if(pt.back->shiftReduce->end()!=0)
+      // TODO: Why to we get the clusterid if we don't use it?
+      // clusterId has no set effect.
       clusters->clusterId(m.srcsent[pt.back->shiftReduce->start()]);
 
    const vector<Uint>& type_ids = dist->type(pt);
@@ -3091,9 +3095,9 @@ void DistTopSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& 
 
 string DistTopSrcFirstWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm top src " + sType + " : [" + tmpstr.str() + "..]";
@@ -3112,8 +3116,9 @@ Uint DistTopSrcLastWord::numEvents()
 void DistTopSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
    assert(pt.back->shiftReduce!=NULL);
-   Uint word = 1; // Default to Beginning of Sentence
+   const Uint word = 1; // Default to Beginning of Sentence
    if(pt.back->shiftReduce->end()!=0)
+      // TODO: Why call clusterId?
       clusters->clusterId(m.srcsent[pt.back->shiftReduce->end()-1]);
 
    const vector<Uint>& type_ids = dist->type(pt);
@@ -3127,9 +3132,9 @@ void DistTopSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& e
 
 string DistTopSrcLastWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm top src " + sType + " : [.." + tmpstr.str() + "]";
@@ -3152,6 +3157,7 @@ void DistPrevTgtWord::addEvents(const PartialTranslation& pt, vector<Uint>& even
    assert(unigram.size()<=1);
    Uint word = 1; // Default to beginning of sentence
    if(unigram.size()==1)
+      // TODO: are we supposed to do this word = at the other similar places.
       word = clusters->clusterId(unigram.front());
 
    const vector<Uint>& type_ids = dist->type(pt);
@@ -3165,9 +3171,9 @@ void DistPrevTgtWord::addEvents(const PartialTranslation& pt, vector<Uint>& even
 
 string DistPrevTgtWord::eventDesc(Uint e)
 {
-   Uint type = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
-   string sType = dist->typeString(type);
+   const Uint type = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
+   const string sType = dist->typeString(type);
    ostringstream tmpstr;
    tmpstr << word;
    return "dhdm prev tgt " + sType + " : " + tmpstr.str();
@@ -3186,13 +3192,13 @@ Uint LmUnigram::numEvents()
 void LmUnigram::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
    // Walk through target phrase
-   Uint ne = event_ids.size();
+   const Uint ne = event_ids.size();
    const PhraseInfo *pi = pt.lastPhrase;
    assert(pi!=NULL);
    const Phrase phrase = pi->phrase;
    for(vector<Uint>::const_iterator it = phrase.begin();it!=phrase.end();it++)
    {
-      Uint word = clusters->clusterId(*it);
+      const Uint word = clusters->clusterId(*it);
       event_ids.push_back( word );
    }
 
@@ -3205,7 +3211,7 @@ void LmUnigram::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 string LmUnigram::eventDesc(Uint e)
 {
    assert(e<clusters->numClustIds());
-   Uint word = e;
+   const Uint word = e;
    ostringstream tmpstr;
    tmpstr << word;
    return "dlm uni: " + tmpstr.str();
@@ -3232,13 +3238,13 @@ void LmBigram::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
       prevWord = clusters->clusterId(prev.front());
    
    // Walk through target phrase
-   Uint ne = event_ids.size();
-   const PhraseInfo *pi = pt.lastPhrase;
+   const Uint ne = event_ids.size();
+   const PhraseInfo* const pi = pt.lastPhrase;
    assert(pi!=NULL);
    const Phrase phrase = pi->phrase;
    for(vector<Uint>::const_iterator it = phrase.begin();it!=phrase.end();it++)
    {
-      Uint word = clusters->clusterId(*it);
+      const Uint word = clusters->clusterId(*it);
       event_ids.push_back( word + clusters->numClustIds() * prevWord );
       prevWord = word;
    }
@@ -3251,8 +3257,8 @@ void LmBigram::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 
 string LmBigram::eventDesc(Uint e)
 {
-   Uint prevWord = e / clusters->numClustIds();
-   Uint word = e % clusters->numClustIds();
+   const Uint prevWord = e / clusters->numClustIds();
+   const Uint word = e % clusters->numClustIds();
    assert(prevWord < clusters->numClustIds());
    ostringstream tmpstr;
    tmpstr << prevWord << " " << word;
@@ -3279,8 +3285,8 @@ PhrasePairAllBiLengthBins::PhrasePairAllBiLengthBins(SparseModel& m, const strin
 void PhrasePairAllBiLengthBins::addEvents(const PartialTranslation& hyp, vector<Uint>& event_ids)
 {
    if (hyp.lastPhrase) {
-      Uint slen = (hyp.lastPhrase->src_words.end - hyp.lastPhrase->src_words.start)-1;
-      Uint tlen = hyp.lastPhrase->phrase.size()-1;
+      const Uint slen = (hyp.lastPhrase->src_words.end - hyp.lastPhrase->src_words.start)-1;
+      const Uint tlen = hyp.lastPhrase->phrase.size()-1;
       if (slen < srcmax && tlen < tgtmax)
          event_ids.push_back(tlen + slen * tgtmax);
    }
@@ -3293,8 +3299,8 @@ void PhrasePairAllBiLengthBins::populate(vector<Uint>& event_ids)
 
 string PhrasePairAllBiLengthBins::eventDesc(Uint e)
 {
-   Uint slen = (e / tgtmax)+1;
-   Uint tlen = (e % tgtmax)+1;
+   const Uint slen = (e / tgtmax)+1;
+   const Uint tlen = (e % tgtmax)+1;
    assert(slen <= srcmax);
    ostringstream srcstr;
    srcstr << slen;
@@ -3322,7 +3328,7 @@ PhrasePairAllTgtLengthBins::PhrasePairAllTgtLengthBins(SparseModel& m, const str
 void PhrasePairAllTgtLengthBins::addEvents(const PartialTranslation& hyp, vector<Uint>& event_ids)
 {
    if (hyp.lastPhrase) {
-      Uint tlen = hyp.lastPhrase->phrase.size()-1;
+      const Uint tlen = hyp.lastPhrase->phrase.size()-1;
       if (tlen < tgtmax)
          event_ids.push_back(tlen);
    }
@@ -3335,7 +3341,7 @@ void PhrasePairAllTgtLengthBins::populate(vector<Uint>& event_ids)
 
 string PhrasePairAllTgtLengthBins::eventDesc(Uint e)
 {
-   Uint tlen = e+1;
+   const Uint tlen = e+1;
    assert(tlen <= tgtmax);
    ostringstream tgtstr;
    tgtstr << tlen;
@@ -3360,7 +3366,7 @@ PhrasePairAllSrcLengthBins::PhrasePairAllSrcLengthBins(SparseModel& m, const str
 void PhrasePairAllSrcLengthBins::addEvents(const PartialTranslation& hyp, vector<Uint>& event_ids)
 {
    if (hyp.lastPhrase) {
-      Uint slen = (hyp.lastPhrase->src_words.end - hyp.lastPhrase->src_words.start)-1;
+      const Uint slen = (hyp.lastPhrase->src_words.end - hyp.lastPhrase->src_words.start)-1;
       if (slen < srcmax)
          event_ids.push_back(slen);
    }
@@ -3373,7 +3379,7 @@ void PhrasePairAllSrcLengthBins::populate(vector<Uint>& event_ids)
 
 string PhrasePairAllSrcLengthBins::eventDesc(Uint e)
 {
-   Uint slen = e + 1;
+   const Uint slen = e + 1;
    assert(slen <= srcmax);
    ostringstream srcstr;
    srcstr << slen;
@@ -3403,12 +3409,12 @@ void InQuotePos::addEvents(const PartialTranslation& hyp, vector<Uint>& events)
       
       // annotate each source word with sptype index
       for (Uint i = 0; i < srcsent.size(); ++i) {
-         string w(m.voc->word(srcsent[i]));
+         const string w(m.voc->word(srcsent[i]));
          if (w == "\"") {       // assume 1st quote is a left quote
             bool got_stop = false;
             Uint j = i+1;
             for (; j < srcsent.size(); ++j) {
-               string v(m.voc->word(srcsent[j]));
+               const string v(m.voc->word(srcsent[j]));
                if (v == "." || v == "?" || v == "!")
                   got_stop = true;
                if (v == "\"")
@@ -3428,20 +3434,20 @@ void InQuotePos::addEvents(const PartialTranslation& hyp, vector<Uint>& events)
       }
    }
 
-   Uint len = hyp.getLength();
+   const Uint len = hyp.getLength();
    const Phrase& ph = hyp.getPhrase();
    assert(len >= ph.size());
    assert(len == hyp.numSourceWordsCovered);  // truecasing is 1-1
    assert(len <= srcsent.size());
 
-   Uint ne = events.size();
+   const Uint ne = events.size();
    Uint spos = len - ph.size();
    for (Uint i = 0; i < ph.size(); ++i, ++spos) {
       assert(spos < srcsent.size());
       if (src_events[spos] == num_sptypes) continue; // not in a quote
-      string s(m.voc->word(ph[i]));
-      string l = cms.toLower(s);
-      Uint cap = s == l ? 1 : s == cms.capitalize(l) ? 1 : 2;
+      const string s(m.voc->word(ph[i]));
+      const string l = cms.toLower(s);
+      const Uint cap = s == l ? 1 : s == cms.capitalize(l) ? 1 : 2;
       events.push_back(cap * num_sptypes + src_events[spos]);
       assert(events.back() < num_events);
    }
@@ -3460,12 +3466,12 @@ void InQuotePos::populate(vector<Uint>& event_ids)
 
 string InQuotePos::eventDesc(Uint e) 
 {
-   Uint cap_pattern = e / num_sptypes;
-   Uint sptype = e % num_sptypes;
+   const Uint cap_pattern = e / num_sptypes;
+   const Uint sptype = e % num_sptypes;
    
-   Uint is_first = sptype / num_bins / 2;
-   Uint has_stop = sptype / num_bins % 2;
-   Uint len_bin = sptype % num_bins;
+   const Uint is_first = sptype / num_bins / 2;
+   const Uint has_stop = sptype / num_bins % 2;
+   const Uint len_bin = sptype % num_bins;
 
    string r;
    r = string("cap = ") + (cap_pattern == 0 ? "lc" : cap_pattern == 1 ? "c1" : "o");
@@ -3486,8 +3492,8 @@ PhrasePairContextMatch::PhrasePairContextMatch(SparseModel& m, const string& arg
    vector<string> toks;
    if (split(args, toks) != 5)
       error(ETFatal, "expecting 5 arguments for PhrasePairContextMatch feature");
-   string tagfile = toks[0];
-   string idfile = m.idname;   // used to be an argument, now comes in from m
+   const string tagfile = toks[0];
+   const string idfile = m.idname;   // used to be an argument, now comes in from m
    idcol = conv<Uint>(toks[1]);
    assert(idcol > 0);
    idcol--;                     // convert to 0-based
@@ -3509,14 +3515,14 @@ PhrasePairContextMatch::PhrasePairContextMatch(SparseModel& m, const string& arg
    
    // read tagfile into tag_voc and tag_freqs
 
-   string fullname = adjustRelativePath(m.path, tagfile);
+   const string fullname = adjustRelativePath(m.path, tagfile);
    iSafeMagicStream tagstr(fullname);
    string line;
    while (getline(tagstr, line)) {
       if (splitZ(line, toks) != 2)
          error(ETFatal, "expecting 2 tokens per line in tagfile: %s", 
                tagfile.c_str());
-      Uint s = tag_voc.size();
+      const Uint s = tag_voc.size();
       if (tag_voc.add(toks[0].c_str()) != s)
          error(ETFatal, "duplicate tag in tagfile: %s", toks[0].c_str());
       tag_freqs.push_back(conv<Uint>(toks[1]));
@@ -3585,7 +3591,7 @@ void PhrasePairContextMatch::addEvents(const PartialTranslation& hyp, vector<Uin
       return;
 
    bool pill_is_new;
-   SparsePill* pill = SparsePill::getOrCreate(hyp.lastPhrase->annotations, &pill_is_new);
+   SparsePill* const pill = SparsePill::getOrCreate(hyp.lastPhrase->annotations, &pill_is_new);
 
    // if this field,tag pair is already in pill, return the relevant event
 
@@ -3602,12 +3608,12 @@ void PhrasePairContextMatch::addEvents(const PartialTranslation& hyp, vector<Uin
       
    // find field boundaries in joint_counts vector
 
-   CountAnnotation* count = CountAnnotation::get(hyp.lastPhrase->annotations);
+   const CountAnnotation* const count = CountAnnotation::get(hyp.lastPhrase->annotations);
    const Uint joint_counts_size(count ? count->joint_counts.size() : 0);
    Uint b = joint_counts_size;  // beg of field
    Uint e = joint_counts_size;  // end+1 of field
    for (Uint i = 0; i < joint_counts_size; ++i) {
-      float v = count->joint_counts[i];
+      const float v = count->joint_counts[i];
       if (v < 0) {
          if (static_cast<Uint>(-v) == field) b = i;
          else if (static_cast<Uint>(-v) > field) {e = i; break;}
@@ -3622,7 +3628,7 @@ void PhrasePairContextMatch::addEvents(const PartialTranslation& hyp, vector<Uin
       assert((e-b) % 2 == 0);
       float tot = 0.0, tagfreq = 0.0;
       for (Uint i = b; i < e; i += 2) {
-         Uint t = static_cast<Uint>(count->joint_counts[i]-1);  // 1-based
+         const Uint t = static_cast<Uint>(count->joint_counts[i]-1);  // 1-based
          assert(t < tag_voc.size());
          if (t == sent_tags[sid]) tagfreq = count->joint_counts[i+1];
          tot += count->joint_counts[i+1];
@@ -3683,7 +3689,7 @@ PhrasePairSubCorpRank::PhrasePairSubCorpRank(SparseModel& m, const string& args)
 
 void PhrasePairSubCorpRank::addEvents(const PartialTranslation& hyp, vector<Uint>& event_ids)
 {
-   CountAnnotation* count = CountAnnotation::get(hyp.lastPhrase->annotations);
+   const CountAnnotation* const count = CountAnnotation::get(hyp.lastPhrase->annotations);
 
    // Allow for un-annotated phrase pairs. Some pairs wind up with the
    // equivalent of c=0, not sure why.
@@ -3703,7 +3709,7 @@ void PhrasePairSubCorpRank::addEvents(const PartialTranslation& hyp, vector<Uint
 
    // fire events
    for (Uint i = b+low-1; i < min(e,b+high); ++i) {
-      Uint id = count->joint_counts[i];
+      const Uint id = count->joint_counts[i];
       assert(id > 0 && id <= ncpts);
       event_ids.push_back(id-1);
    }
