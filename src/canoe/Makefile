@@ -66,7 +66,6 @@ OBJECTS= \
     translationProb.o \
     unal_feature.o \
     walls_zones.o \
-    wordClass.o \
     wordgraph.o
 
 LIBRARY=libportage_canoe
@@ -78,7 +77,6 @@ TESTPROGS= \
 
 PROGRAMS=$(TESTPROGS) \
 	canoe \
-	wordClass2bin \
 	configtool \
 	count_multi_prob_columns \
 	filter_models \

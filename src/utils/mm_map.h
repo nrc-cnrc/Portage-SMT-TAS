@@ -1,36 +1,27 @@
-// This file is derivative work from Ulrich Germann's Tightly Packed Tries
-// package (TPTs and related software).
-//
-// Original Copyright:
-// Copyright 2005-2009 Ulrich Germann; all rights reserved.
-// Under licence to NRC.
-//
-// Copyright for modifications:
-// Technologies langagieres interactives / Interactive Language Technologies
-// Inst. de technologie de l'information / Institute for Information Technology
-// Conseil national de recherches Canada / National Research Council Canada
-// Copyright 2008-2010, Sa Majeste la Reine du Chef du Canada /
-// Copyright 2008-2010, Her Majesty in Right of Canada
+/**
+ * @author Samuel Larkin
+ * @file mm_map.h
+ * @brief A Memory mapped map.
+ *
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Inst. de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2015, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2015, Her Majesty in Right of Canada
+ */
 
 
-
-// (c) 2007,2008 Ulrich Germann
-#ifndef __ugTokenIndex_map_hh
-#define __ugTokenIndex_map_hh
+#ifndef __MEMORY_MAPPED__MAP_H__
+#define __MEMORY_MAPPED__MAP_H__
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/iostreams/stream.hpp>
-#include "tpt_typedefs.h"
-#include "tpt_constants.h"
-#include <vector>
-#include <tr1/unordered_map>
 
 using namespace std;
 namespace bio=boost::iostreams;
 
-namespace ugdiss
+namespace Portage
 {
   class MMMap
   {
@@ -264,4 +255,4 @@ namespace ugdiss
 
 }
 
-#endif  // ends __ugTokenIndex_map_hh
+#endif  // ends __MEMORY_MAPPED__MAP_H__

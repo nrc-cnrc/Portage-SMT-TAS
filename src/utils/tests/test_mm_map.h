@@ -12,6 +12,7 @@
 #include <cxxtest/TestSuite.h>
 #include "portage_defs.h"
 #include "mm_map.h"
+#include <fstream>
 
 using namespace Portage;
 
@@ -20,13 +21,13 @@ namespace Portage {
 class TestMemoryMappedMap : public CxxTest::TestSuite 
 {
 private:
-   const string tokenIndexMapFilename;
+   const string memory_map_filename;
 public:
    TestMemoryMappedMap()
-   : tokenIndexMapFilename("tests/test_mm_map.mmMap")
+   : memory_map_filename("tests/test_mm_map.mmMap")
    {}
 
-   void testCreatingTpClass() {
+   void testCreatingMemoryMappedMap() {
       ostringstream input;
       input << "DDD" << ' ' << 'd' << endl;
       input << "A" << '\t' << '1' << endl;
@@ -36,67 +37,67 @@ public:
 
       istringstream is(input.str());
       ostringstream os;
-      ugdiss::mkMemoryMappedMap(is, os);
-      ofstream out(tokenIndexMapFilename.c_str());
+      mkMemoryMappedMap(is, os);
+      ofstream out(memory_map_filename.c_str());
       out << os.str();
    }
 
-   void testTokenIndexMap() {
-      ugdiss::MMMap tim(tokenIndexMapFilename);
+   void testMMmapFind() {
+      MMMap tim(memory_map_filename);
 
       TS_ASSERT(!tim.empty());
 
       TS_ASSERT_EQUALS(tim.size(), 5u);
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find("BB");
+         MMMap::const_iterator it = tim.find("BB");
          TS_ASSERT(it != tim.end());
          TS_ASSERT_SAME_DATA(it.getKey(), "BB", 2);
          TS_ASSERT_SAME_DATA(it.getValue(), "1", 1);
       }
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find(string("C"));
+         MMMap::const_iterator it = tim.find(string("C"));
          TS_ASSERT(it != tim.end());
          TS_ASSERT_SAME_DATA(it.getKey(), "C", 1);
          TS_ASSERT_SAME_DATA(it.getValue(), "cc", 2);
       }
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find("A");
+         MMMap::const_iterator it = tim.find("A");
          TS_ASSERT(it != tim.end());
          TS_ASSERT_SAME_DATA(it.getKey(), "A", 1);
          TS_ASSERT_SAME_DATA(it.getValue(), "1", 1);
       }
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find("DDD");
+         MMMap::const_iterator it = tim.find("DDD");
          TS_ASSERT(it != tim.end());
          TS_ASSERT_SAME_DATA(it.getKey(), "DDD", 3);
          TS_ASSERT_SAME_DATA(it.getValue(), "d", 1);
       }
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find("E");
+         MMMap::const_iterator it = tim.find("E");
          TS_ASSERT(it != tim.end());
          TS_ASSERT_SAME_DATA(it.getKey(), "E", 1);
          TS_ASSERT_SAME_DATA(it.getValue(), "1", 1);
       }
 
       {
-         ugdiss::MMMap::const_iterator it = tim.find("D");
+         MMMap::const_iterator it = tim.find("D");
          TS_ASSERT(it == tim.end());
       }
    }
 
    void testTraversal() {
-      ugdiss::MMMap tim(tokenIndexMapFilename);
+      MMMap tim(memory_map_filename);
 
       TS_ASSERT(!tim.empty());
 
       TS_ASSERT_EQUALS(tim.size(), 5u);
 
-      typedef ugdiss::MMMap::const_iterator IT;
+      typedef MMMap::const_iterator IT;
 
       IT it(tim.begin());
       TS_ASSERT(it != tim.end());
@@ -133,7 +134,7 @@ public:
    }
 
    void testAccessor() {
-      ugdiss::MMMap tim(tokenIndexMapFilename);
+      MMMap tim(memory_map_filename);
 
       TS_ASSERT(!tim.empty());
 

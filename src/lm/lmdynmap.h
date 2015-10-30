@@ -35,7 +35,7 @@
 #include "casemap_strings.h"
 #include "lm.h"
 #include "number_mapper.h"
-#include "word_classes.h"
+#include "mapper.h"
 #include <stdio.h>
 
 namespace Portage
@@ -44,17 +44,16 @@ namespace Portage
 class LMDynMap : public PLM
 {
    // Define the available mappings
-
-   struct Mapping {
-      virtual ~Mapping() {}
+   struct IMapping {
+      virtual ~IMapping() {}
       virtual const string& operator()(string& in) = 0;
    };
 
-   struct IdentMap : public Mapping {
+   struct IdentMap : public IMapping {
       virtual const string& operator()(string& in) {return in;}
    };
 
-   struct LowerCaseMap : public Mapping {
+   struct LowerCaseMap : public IMapping {
       CaseMapStrings cms;
       string out;
       virtual const string& operator()(string& in) {return cms.toLower(in, out);}
@@ -65,7 +64,7 @@ class LMDynMap : public PLM
     * Replaces any digits in a word by @.
     * This is a class to handle all number mapping scheme in a uniform way.
     */
-   struct Number : public Mapping, private NonCopyable {
+   struct Number : public IMapping, private NonCopyable {
       NumberMapper::baseNumberMapper* mapper;  ///< Object to map digits
       string out;   ///< workspace which is NOT reentrant
 
@@ -98,10 +97,9 @@ class LMDynMap : public PLM
    /**
     * Map words to word classes.
     */
-   struct WordClassesMap : public Mapping, private NonCopyable {
-      string classesFile;       ///< Word classes file name
-      WordClasses word_classes; ///< Word to class mapping
-      vector<string> class_str; ///< strings for class numbers
+   struct WordClassesMap : public IMapping, private NonCopyable {
+      const string classesFile; ///< Word classes file name
+      IMapper*  mapper;
 
       static const string UNK_Symbol;   ///< "<unk>";
       static const string SentStart;    ///< "<s>";
@@ -116,21 +114,12 @@ class LMDynMap : public PLM
 
       /**
        * Makes this class a proper functor for VocabFilter.
-       * @param in  the input word.
+       * @param word  the input word.
        * @return Returns the class for the input word as a string.
        */
-      virtual const string& operator()(string& in);
-
-      /**
-       * Map a class number to its string representation; "<unk>" is returned
-       * for unknown classes.
-       * @param cls class number
-       * @return Returns the string representation of a class number.
-       */
-      const string& getClassString(Uint cls) {
-         return cls < class_str.size() ? class_str[cls] : UNK_Symbol;
-      }
+      virtual const string& operator()(string& word);
    };
+
 
    // contents
 
@@ -139,7 +128,7 @@ class LMDynMap : public PLM
    VocabFilter* local_voc;      ///< local voc for base model
    vector<Uint> index_map;      ///< global id -> local id
 
-   Mapping *mapping;            ///< functor for current mapping
+   IMapping *mapping;            ///< functor for current mapping
 
    Uint getGramOrder() {return m->getOrder();}
    void resyncLocalVoc();       ///< map new global words to local ones
