@@ -29,29 +29,9 @@ using namespace Portage;
   ClusterMap
   ---------------------------------------------------------------------------*/
 SparseModel::ClusterMap::ClusterMap(SparseModel& m, const string& filename)
+: word2class_map(loadWordClassesMapper(adjustRelativePath(m.path, filename), *(m.voc)))
 {
-   uint max_clust_id = 0;
-   // TODO: WHY? are we creating wl and not using map instead?
-   unordered_map<Uint,Uint>* wl = &(this->word2class_map);
-   const string fullname =  adjustRelativePath(m.path, filename);
-   iSafeMagicStream is(fullname);
-   string line;
-   vector<string> toks;
-   while (getline(is, line)) {
-      if(splitZ(line,toks)!=2)
-         error(ETFatal, "mkcls file " + filename + " poorly formatted");
-      const Uint voc_id = m.voc->add(toks[0].c_str());
-      Uint clus_id = 0;
-      stringstream ss(toks[1]);
-      ss >> clus_id;
-      //assert(clus_id!=(Uint)0); // CAC: Opting to fail silently; happens when
-                                  // the text includes '1$','2$','3$' or '4$'
-                                  // May want to include a warning.
-      assert(wl->find(voc_id) == wl->end());
-      (*wl)[voc_id] = clus_id;
-      if(clus_id > max_clust_id) max_clust_id = clus_id;
-   }
-   num_clust_id = max_clust_id + 1; // Max is actually one more than the max
+   assert(word2class_map != NULL);
 }
 
 Uint SparseModel::ClusterMap::phraseId(Uint startLex, Uint endLex, Uint len)
@@ -59,7 +39,7 @@ Uint SparseModel::ClusterMap::phraseId(Uint startLex, Uint endLex, Uint len)
    // 0..max                          : [sw]
    // max..max+(max*max)              : [sw fw]
    // max+(max*max)..max+2(max*max)   : [sw .. fw]
-   const Uint max = this->num_clust_id;
+   const Uint max = this->numClustIds();
    const Uint start = this->clusterId(startLex);
    if(len==1)
       return start;
@@ -73,26 +53,28 @@ Uint SparseModel::ClusterMap::phraseId(Uint startLex, Uint endLex, Uint len)
 
 Uint SparseModel::ClusterMap::clusterId(Uint voc_id)
 {
-   unordered_map<Uint,Uint>::const_iterator p = word2class_map.find(voc_id);
-   return p == word2class_map.end() ? 0 : p->second;
+   // This function is called often during decoding.
+   assert(word2class_map != NULL);
+   return (*word2class_map)(voc_id);
 }
 
 
 Uint SparseModel::ClusterMap::numClustIds()
 {
-   return num_clust_id;
+   assert(word2class_map != NULL);
+   return word2class_map->numClustIds();
 }
 
 Uint SparseModel::ClusterMap::numPhraseIds()
 {
-   const Uint max = this->num_clust_id;
+   const Uint max = this->numClustIds();
    return max + 2 * (max * max);
 }
 
 string SparseModel::ClusterMap::phraseStr(Uint phraseId)
 {
    Uint event = phraseId;
-   const Uint max = this->num_clust_id;
+   const Uint max = this->numClustIds();
    ostringstream tmpstr;
    tmpstr << "[";
    if(event < max) {
@@ -114,10 +96,13 @@ string SparseModel::ClusterMap::phraseStr(Uint phraseId)
 
 void SparseModel::ClusterMap::replaceVoc(Voc* oldvoc, Voc* newvoc)
 {
-   unordered_map<Uint,Uint> old_map(word2class_map);
+   assert(false);
+   /*
+   Word2ClassMap old_map(word2class_map);
    word2class_map.clear();
    for (Uint i = 0; i < oldvoc->size(); ++i)
       word2class_map[newvoc->add(oldvoc->word(i))] = old_map[i];
+   */
 }
 
 /*-----------------------------------------------------------------------------
