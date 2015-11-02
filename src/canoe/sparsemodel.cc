@@ -32,7 +32,7 @@ SparseModel::ClusterMap::ClusterMap(SparseModel& m, const string& filename)
 {
    uint max_clust_id = 0;
    // TODO: WHY? are we creating wl and not using map instead?
-   unordered_map<Uint,Uint>* wl = &(this->map);
+   unordered_map<Uint,Uint>* wl = &(this->word2class_map);
    const string fullname =  adjustRelativePath(m.path, filename);
    iSafeMagicStream is(fullname);
    string line;
@@ -73,8 +73,8 @@ Uint SparseModel::ClusterMap::phraseId(Uint startLex, Uint endLex, Uint len)
 
 Uint SparseModel::ClusterMap::clusterId(Uint voc_id)
 {
-   unordered_map<Uint,Uint>::const_iterator p = map.find(voc_id);
-   return p == map.end() ? 0 : p->second;
+   unordered_map<Uint,Uint>::const_iterator p = word2class_map.find(voc_id);
+   return p == word2class_map.end() ? 0 : p->second;
 }
 
 
@@ -114,10 +114,10 @@ string SparseModel::ClusterMap::phraseStr(Uint phraseId)
 
 void SparseModel::ClusterMap::replaceVoc(Voc* oldvoc, Voc* newvoc)
 {
-   unordered_map<Uint,Uint> old_map(map);
-   map.clear();
+   unordered_map<Uint,Uint> old_map(word2class_map);
+   word2class_map.clear();
    for (Uint i = 0; i < oldvoc->size(); ++i)
-      map[newvoc->add(oldvoc->word(i))] = old_map[i];
+      word2class_map[newvoc->add(oldvoc->word(i))] = old_map[i];
 }
 
 /*-----------------------------------------------------------------------------

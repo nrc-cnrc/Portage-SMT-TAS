@@ -196,7 +196,7 @@ public:
 
    // Data structure to map voc ids to clusters
    class ClusterMap {
-      unordered_map<Uint,Uint> map;
+      unordered_map<Uint,Uint> word2class_map;
       Uint num_clust_id;            // number of cluster IDs
    public:
       // Constructor: Read many word\tcluster entries from a file, entering the 
