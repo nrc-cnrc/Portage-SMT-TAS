@@ -169,7 +169,7 @@ class countStats {
 
       /// DummyConverter for calling split to simply count tokens.
       struct DummyConverter {
-         bool operator()(const char* src, char& dest) { dest = 1; return true; }
+         bool operator()(const char* src, char& dest) const { dest = 1; return true; }
       };
 
       /**
@@ -186,7 +186,8 @@ class countStats {
          // convert them to dummy indicators instead of real strings.  This
          // change made the program run about 2.5x faster (i.e., a typical run
          // takes 40% of the time it used to take).
-         const Uint num_token = split(line.c_str(), tokens, DummyConverter());
+         DummyConverter dummy;
+         const Uint num_token = split(line.c_str(), tokens, dummy);
          shortest_line_words = min(shortest_line_words, num_token);
          longest_line_words  = max(longest_line_words, num_token);
          const Uint num_chars = line.size();

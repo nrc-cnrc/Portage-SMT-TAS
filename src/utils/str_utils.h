@@ -450,7 +450,7 @@ extern string decodeRFC2396(const string& s);
  * @return the number of tokens found
  */
 template<class T, class Converter>
-Uint split(const char* s, T* dest, Converter converter, const char* sep = " \t\n", Uint max_toks = 0)
+Uint split(const char* s, T* dest, Converter& converter, const char* sep = " \t\n", Uint max_toks = 0)
 {
    Uint init_size(0);
    // Make a copy to work on
@@ -492,7 +492,7 @@ Uint split(const char* s, T* dest, Converter converter, const char* sep = " \t\n
  * @return the number of tokens found
  */
 template<class T, class Converter>
-Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep = " \t\n", Uint max_toks = 0)
+Uint split(const char* s, vector<T>& dest, Converter& converter, const char* sep = " \t\n", Uint max_toks = 0)
 {
    const Uint init_size(dest.size());
    // Make a copy to work on

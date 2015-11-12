@@ -76,9 +76,10 @@ int main(int argc, char* argv[])
           and (!inid.is_open() or getline(inid, id)) 
           and (!infid.is_open() or getline(infid, fid))) {
       tokens.clear();
-      const Uint num_src_token = split(src.c_str(), tokens, DummyConverter());
+      DummyConverter converter;
+      const Uint num_src_token = split(src.c_str(), tokens, converter);
       tokens.clear();
-      const Uint num_tgt_token = split(tgt.c_str(), tokens, DummyConverter());
+      const Uint num_tgt_token = split(tgt.c_str(), tokens, converter);
       if (num_src_token == 0 or
           num_tgt_token == 0 or
           num_src_token > 100 or
