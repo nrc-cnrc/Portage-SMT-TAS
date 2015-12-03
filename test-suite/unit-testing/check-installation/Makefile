@@ -50,7 +50,7 @@ perl_version:
 
 .PHONY: perl_modules
 perl_modules:
-	@rc=0; for module in XML::Twig JSON File::Spec File::Temp List::Util Time::gmtime FindBin; do \
+	@rc=0; for module in XML::Twig JSON File::Spec File::Temp List::Util Time::gmtime FindBin Env; do \
 		perldoc -l $$module > /dev/null || rc=1; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing." >&2
 
