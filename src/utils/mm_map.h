@@ -28,6 +28,7 @@ namespace Portage
   public:
     /// First version's token.
     static const char* const version1;
+    static const char* const version2;
 
     typedef const char* Key;   //< Key type.
     typedef const char* Value;  //< Value type.
@@ -108,6 +109,60 @@ namespace Portage
         }
     };
 
+    class const_value_iterator {
+      private:
+        const uint32_t* value;  //< What key/value is this iterator pointing at.
+        const MMMap& map;  //< A reference to the map to be able to retrieve the key/value.
+      public:
+        /**
+         * Default constructor.
+         *
+         * @param e  the entry that the iterator is pointing at.
+         * @param map the map that the e points into.
+         */
+        const_value_iterator(const uint32_t* v, const MMMap& map)
+        : value(v)
+        , map(map)
+        {
+          assert(value != NULL);
+        }
+
+        const char* const operator*() const {
+           return map.getValue(*value);
+        }
+
+        /**
+         * The prefix increment operator.
+         */
+        const_value_iterator& operator++() {       // Prefix increment operator.
+          ++value;
+          return *this;
+        }
+        /**
+         * The postfix increment operator.
+         */
+        const_value_iterator operator++(int) {     // Postfix increment operator.
+          return const_value_iterator(++value, map);
+        }
+
+        /**
+         * The equality operator.
+         * @param other the other iterator to compare to.
+         * @return true if the iterators point to the same entry.
+         */
+        bool operator==(const const_value_iterator& other) const {
+          return value == other.value and &map == &(other.map);
+        }
+        /**
+         * The inequality operator.
+         * @param other the other iterator to compare to.
+         * @return true if the iterators do not point to the same entry.
+         */
+        bool operator!=(const const_value_iterator& other) const {
+          return !(*this).operator==(other);
+        }
+    };
+
   private:
     /** Comparison function object used for Entry instances */
     class CompFunc
@@ -122,12 +177,15 @@ namespace Portage
       bool operator()(Entry const& A, char const* w);
     };
 
-    uint32_t numTokens;  //< the number of entries in the map aka map size.
+    uint32_t numberKeys;  //< the number of entries in the map aka map size.
+    uint32_t numberValues;  //< the number of values in the map.
 
     bio::mapped_file_source file;  //< the memory mapped map file.
 
     Entry const* startIdx;  //< the start address for the indices.
     Entry const* endIdx;  //< the end address for the indices.
+
+    const uint32_t* startValues;  //< Where can we find the value offsets.
 
     Key keyStart;  //< the start address of the keys.
     Value valueStart;  //< the start address of the values.
@@ -170,7 +228,7 @@ namespace Portage
      * @return the number of elements in the map.
      */
     uint32_t size() const {
-       return numTokens;
+       return numberKeys;
     }
 
     /**
@@ -191,6 +249,19 @@ namespace Portage
      */
     const_iterator end() const {
        return const_iterator(endIdx, *this);
+    }
+
+    /**
+     * @return constant iterator at the beginning of the map.
+     */
+    const_value_iterator vbegin() const {
+       return const_value_iterator(startValues, *this);
+    }
+    /**
+     * @return constant iterator at the end of the map.
+     */
+    const_value_iterator vend() const {
+       return const_value_iterator(startValues + numberValues, *this);
     }
 
     /**

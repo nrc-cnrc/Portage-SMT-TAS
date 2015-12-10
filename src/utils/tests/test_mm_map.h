@@ -42,6 +42,31 @@ public:
       out << os.str();
    }
 
+   void testValueIterator() {
+      MMMap tim(memory_map_filename);
+
+      TS_ASSERT(!tim.empty());
+
+      TS_ASSERT_EQUALS(tim.size(), 5u);
+
+      typedef MMMap::const_value_iterator IT;
+      /*
+      for (IT it(tim.vbegin()); it!=tim.vend(); ++it)
+         cerr << *it << endl;
+      */
+      IT it = tim.vbegin();
+      TS_ASSERT_EQUALS(string(*it), string("1"));
+
+      ++it;
+      TS_ASSERT_EQUALS(string(*it), string("cc"));
+
+      ++it;
+      TS_ASSERT_EQUALS(string(*it), string("d"));
+
+      ++it;
+      TS_ASSERT(it == tim.vend());
+   }
+
    void testMMmapFind() {
       MMMap tim(memory_map_filename);
 

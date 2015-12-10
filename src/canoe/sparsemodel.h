@@ -27,6 +27,7 @@
 #include "ngram_counts.h"
 #include "unal_feature.h"
 #include "casemap_strings.h"
+#include "mm_map.h"
 
 using namespace std;
 
@@ -38,6 +39,113 @@ namespace Portage
  */
 class SparseModel : public DecoderFeature
 {
+public:
+   struct IMapper {
+      Uint num_clust_id;            // number of cluster IDs
+      Uint unknown;
+
+      IMapper(Uint unknown)
+      : num_clust_id(0)
+      , unknown(unknown)
+      {}
+      virtual ~IMapper() {}
+      virtual Uint operator()(Uint in) const = 0;
+      virtual Uint numClustIds() const {
+         return num_clust_id;
+      }
+   };
+
+   struct WordClassesMapper : public IMapper {
+      typedef unordered_map<Uint,Uint> Word2ClassMap;
+
+      Word2ClassMap word2class_map;
+
+      WordClassesMapper(const string& filename, Voc& voc, Uint unknown = 0)
+      : IMapper(unknown)
+      {
+         uint max_clust_id = 0;
+         // TODO: WHY? are we creating wl and not using map instead?
+         Word2ClassMap* wl = &(this->word2class_map);
+         iSafeMagicStream is(filename);
+         string line;
+         vector<string> toks;
+         while (getline(is, line)) {
+            if(splitZ(line,toks)!=2)
+               error(ETFatal, "mkcls file " + filename + " poorly formatted");
+            // TODO: do we really need to add all words from the map to the voc?
+            // ANSWER: in load-first mode we are missing the target sentence vocabulary.
+            const Uint voc_id = voc.add(toks[0].c_str());
+            //const Uint voc_id = voc.index(toks[0].c_str());
+            Uint clus_id = 0;
+            stringstream ss(toks[1]);
+            ss >> clus_id;
+            //assert(clus_id!=(Uint)0); // CAC: Opting to fail silently; happens when
+                                        // the text includes '1$','2$','3$' or '4$'
+                                        // May want to include a warning.
+            assert(wl->find(voc_id) == wl->end());
+            (*wl)[voc_id] = clus_id;
+            if(clus_id > max_clust_id) max_clust_id = clus_id;
+         }
+         num_clust_id = max_clust_id + 1; // Max is actually one more than the max
+      }
+
+      virtual Uint operator()(Uint voc_id) const
+      {
+         Word2ClassMap::const_iterator p = word2class_map.find(voc_id);
+         return p == word2class_map.end() ? unknown : p->second;
+      }
+   };
+
+   struct WordClassesMapper_MemoryMapped : public IMapper {
+      MMMap  word2class_map;
+      const Voc& voc;
+
+      WordClassesMapper_MemoryMapped(const string& filename, const Voc& voc, Uint unknown = 0)
+      : IMapper(unknown)
+      , word2class_map(filename)
+      , voc(voc)
+      {
+         // TODO:
+         // - load MMMap
+         // - find the high class id.
+         num_clust_id = 0;
+         for (MMMap::const_value_iterator it(word2class_map.vbegin()); it!=word2class_map.vend(); ++it) {
+            const Uint classId = conv<Uint>(*it);
+            if (classId > num_clust_id)
+               num_clust_id = classId;
+         }
+         num_clust_id += 1;
+      }
+
+      virtual Uint operator()(Uint voc_id) const
+      {
+         // TODO: Using the mapper<const char*, const char*> that was created for coarse model
+         MMMap::const_iterator it = word2class_map.find(voc.word(voc_id));
+         if (it == word2class_map.end())
+            return unknown;
+
+         return conv<Uint>(it.getValue());
+      }
+   };
+
+   static IMapper* loadWordClassesMapper(const string& filename, Voc& voc) {
+      string magicNumber;
+      iSafeMagicStream is(filename);
+      if (!getline(is, magicNumber))
+         error(ETFatal, "Empty classfile %s", filename.c_str());
+
+      IMapper* mapper = NULL;
+      if (magicNumber == MMMap::version1)
+         error(ETFatal, "SparseModels require MMmap >= 2.0.");
+      else if (magicNumber == MMMap::version2)
+         mapper = new WordClassesMapper_MemoryMapped(filename, voc);
+      else
+         mapper = new WordClassesMapper(filename, voc);
+
+      assert(mapper != NULL);
+      return mapper;
+   }
+
 public:
    /**
     * Interface for event templates. To add a new template:
@@ -196,13 +304,12 @@ public:
 
    // Data structure to map voc ids to clusters
    class ClusterMap {
-      unordered_map<Uint,Uint> map;
-      Uint num_clust_id;            // number of cluster IDs
+      IMapper* word2class_map;
    public:
       // Constructor: Read many word\tcluster entries from a file, entering the 
       // mapping from vocid to cluster into a common map
       ClusterMap(SparseModel& m, const string& filename);
-   
+
       // Find the cluster id that corresponds to a given voc id. Returns 0
       // if not found (mkcls starts at 2: 0 is UNK, 1 is Beginning of Sentence)
       Uint clusterId(Uint voc_id);
