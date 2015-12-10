@@ -1,0 +1,36 @@
+# balzac:/home/portage/models/generic-model/v2.0/gc.ca.models/framelab.en2fr/models/decode.new_tuning.test/gc.ca.lm22345.hdm.sparse.ibm4_hmm3_ibm2.sig120.test
+[ttable-multi-prob] --
+[lex-dist-model-file] 
+   dm.all.en2fr.tpldm
+[ttable-tppt]
+  cpt.all.en2fr.tppt
+[lmodel-file] 
+   all.tplm
+[minimize-lm-context-size]
+[weight-l] 1
+[weight-t] 0.3453067498:0.1189234306
+[weight-f] 0.4561387888:-0.005425065179
+[ttable-limit] 30
+[ttable-threshold] 0
+[ttable-prune-type] full
+[stack] 2000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-simple]
+[dist-phrase-swap]
+[no-bypass-marked]
+[cube-pruning]
+[use-ftm]
+[weight-d] 0.2161108593:0.2271927705:0.2203657093:0.3404922356:0.1780911134:0.1960212036:0.6866136093
+[weight-w] -0.4838608437
+[weight-sparse] 1
+[distortion-model] 
+   WordDisplacement
+   back-hlex#m#0
+   back-hlex#s#0
+   back-hlex#d#0
+   fwd-hlex#m#0
+   fwd-hlex#s#0
+   fwd-hlex#d#0
+[sparse-model] 
+   sparse/model
