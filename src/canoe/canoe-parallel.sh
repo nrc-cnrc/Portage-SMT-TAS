@@ -321,7 +321,7 @@ function full_translation
    # Calculate the number of jobs/workers to use if user hasn't specified it,
    min () { if [ $1 -lt $2 ]; then echo $1; else echo $2; fi }
    if [ ! $NUM ]; then
-      if which-test.sh qsub; then
+      if on-cluster.sh; then
          NUM=$(( ($INPUT_LINES + $HIGH_SENT_PER_BLOCK - 1) / $HIGH_SENT_PER_BLOCK ))
          if [ $NUM -lt $MIN_DEFAULT_NUM ]; then
                NUM=$(min $MIN_DEFAULT_NUM $(( ($INPUT_LINES + $LOW_SENT_PER_BLOCK - 1) / $LOW_SENT_PER_BLOCK )) )
