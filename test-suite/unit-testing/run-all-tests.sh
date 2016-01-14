@@ -16,8 +16,9 @@ usage() {
    as exit status if the suite passes, non-zero otherwise.
 
 Option:
-   -j N      Run the tests N-ways parallel [1]
-   -local L  Run L parallel workers locally [calculated by run-parallel.sh]
+   -j N       Run the tests N-ways parallel [1]
+   -local L   Run L parallel workers locally [calculated by run-parallel.sh]
+   -v(erbose) Increase verbosity
 " >&2
    exit
 }
@@ -26,6 +27,7 @@ while [ $# -gt 0 ]; do
    case "$1" in
    -j)      PARALLEL_MODE=1; PARALLEL_LEVEL=$2; shift;;
    -local)  LOCAL="-local $2"; shift;;
+   -v|-verbose) VERBOSE=1;;
    -*)      usage;;
    *)       break;;
    esac
@@ -46,10 +48,14 @@ if [[ $PARALLEL_MODE ]]; then
    for suite in $TEST_SUITES; do
       echo $0 $suite
    done |
-      run-parallel.sh -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
-      tee $LOG |
-      grep --line-buffered '^\[' |
-      egrep --line-buffered --color '.*\*.*|$'
+      if [[ $VERBOSE ]]; then
+         run-parallel.sh -v -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL
+      else
+         run-parallel.sh -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
+         tee $LOG |
+         grep --line-buffered '^\[' |
+         egrep --line-buffered --color '.*\*.*|$'
+      fi
    grep PASSED $LOG | grep -v 'test suites' | sort -u
    grep FAILED $LOG | grep -v 'test suites' | sort -u
 
