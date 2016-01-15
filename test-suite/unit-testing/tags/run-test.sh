@@ -30,9 +30,8 @@ make -B xtags.baseline.ss.cmp
 
 if which-test.sh chinese_segmenter.pl; then
    ZH_SEG=chinese_segmenter.pl
-elif [[ -x ../../../third-party/chinese-segmentation/chinese_segmenter.pl ]]; then
-   seg_path=`readlink -f ../../../third-party/chinese-segmentation`
-   ZH_SEG="$seg_path/chinese_segmenter.pl -dic $seg_path/manseg.fre"
+elif [[ -x ../../../third-party/chinese-segmentation/bin/chinese_segmenter.pl ]]; then
+   ZH_SEG="../../../third-party/chinese-segmentation/bin/chinese_segmenter.pl"
 else
    echo 'Cannot find chinese_segmenter.pl'
    exit 1
