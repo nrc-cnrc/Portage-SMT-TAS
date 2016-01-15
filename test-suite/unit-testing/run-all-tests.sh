@@ -49,22 +49,26 @@ if [[ $PARALLEL_MODE ]]; then
       echo $0 $suite
    done |
       if [[ $VERBOSE ]]; then
-         run-parallel.sh -v -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL
+         run-parallel.sh -v -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL
       else
-         run-parallel.sh -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
+         run-parallel.sh -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
          tee $LOG |
-         grep --line-buffered '^\[' |
-         egrep --line-buffered --color '.*\*.*|$'
+         egrep -i --line-buffered '^\[|error' |
+         egrep -i --line-buffered --color '.*\*.*|$|error'
       fi
    grep PASSED $LOG | grep -v 'test suites' | sort -u
    grep FAILED $LOG | grep -v 'test suites' | sort -u
 
    if grep -q FAILED $LOG; then
       exit 1
+   elif perl -e 'while (<>) { if (m# (\d+)/\1 DONE #) { exit(0); } } exit(1)' $LOG; then
+      echo ""
+      echo PASSED all test suites.
+      exit
    else
       echo ""
-      echo PASSED all test suites
-      exit
+      echo Test suite not completed.
+      exit 1
    fi
 fi
 
