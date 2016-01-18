@@ -15,8 +15,13 @@ set -e   # Exit when an error occurs.
 
 make gitignore
 
+# If we're already in a run-parallel instance,
+#{ ps -o pid,ppid,tty,time,args | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
+
 # Start run-parallel.sh and have the watch dog thread to verify for run-parallel.sh every 30 seconds.
-R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 run-parallel.sh -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug & 
+# EJJ 2016: we now use setsid so that the run-parallel.sh instance and all its children
+# can be found using ps -g $MASTER_PID
+R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 setsid run-parallel.sh -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug &
 MASTER_PID=$!
 echo PID $MASTER_PID
 
@@ -28,19 +33,24 @@ echo PID $MASTER_PID
 # - wait for for the watch dog to do its job;
 # - check again to see if r-parallel-d.pl which should be gone at this point;
 # - for user, print a status message about the process.
+
+#sleep 5; ps fjx
+
 EXIT_STATUS=0
-echo sleep 20 && 
+echo sleep 20 &&
      sleep 20 &&
-echo kill -9 $MASTER_PID && 
+echo ps before kill &&
+     ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID &&
+echo kill -9 $MASTER_PID &&
      kill -9 $MASTER_PID &&
-echo First ps && 
-     ps -o pid,ppid,tty,time,args && 
-     { ps -o pid,ppid,tty,time,args | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
+echo ps just after kill &&
+     ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID &&
+     { ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
 echo sleep 8 &&
      sleep 8 &&
-echo Second ps &&
-     ps -o pid,ppid,tty,time,args && 
-! { ps -o pid,ppid,tty,time,args | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
+echo ps 8 seconds later &&
+     { ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID || : ; } &&
+! { ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
 echo "SUCCESS" || { echo "FAILED" ; EXIT_STATUS=1; }
 
 # Clean-up
