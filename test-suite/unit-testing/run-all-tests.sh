@@ -49,7 +49,8 @@ if [[ $PARALLEL_MODE ]]; then
       echo $0 $suite
    done |
       if [[ $VERBOSE ]]; then
-         run-parallel.sh -v -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL
+         run-parallel.sh -v -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
+         tee $LOG
       else
          run-parallel.sh -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
          tee $LOG |
