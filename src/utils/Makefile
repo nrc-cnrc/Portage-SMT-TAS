@@ -78,8 +78,11 @@ BINSCRIPTS = \
         diff-round.pl \
         fast_align_glue_corpora.py \
         fast_align_normalize_ttable.py \
+        jobsig.pl \
+        jobtree \
         load-balancing.pl \
         monitor-process.sh \
+        on-cluster.sh \
         parallelize.pl \
         parse-monitor.pl \
         plog.pl \
@@ -144,4 +147,15 @@ test: check_make381
 .PHONY: check_make381
 check_make381:
 	@perl -e 'if ( '`make --version | egrep -o -m 1 '[0-9]+\.[0-9]+'`' < 3.81 ) { print "Portage requires GNU make 3.81\n"; exit 1; }'
+
+# jobtree has some Perl dependencies
+test: check_perl_dependencies
+
+# Term::ANSIColor 3.00 is needed for the bright_ colours; otherwise Term::ANSIColor 2.02 is needed for colorvalid.
+.PHONY: check_perl_dependencies
+check_perl_dependencies:
+	perldoc -l Data::TreeDumper
+	perldoc -l Tree::Simple
+	perldoc -l Time::Piece
+	perl -e 'use Term::ANSIColor 3.00;'
 

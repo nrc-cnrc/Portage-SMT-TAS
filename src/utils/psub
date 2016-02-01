@@ -13,11 +13,11 @@
 #
 # @author Eric Joanis / Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2008, Her Majesty in Right of Canada
+# Copyright 2006 - 2008, 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2008, 2015, Her Majesty in Right of Canada
 
 usage() {
    for msg in "$@"; do
@@ -36,12 +36,27 @@ Options:
   -h(elp)        print this help message
   -v(erbose)     print the qsub script before submitting it
   -N JOB_NAME    specify job name
-  -#             use # CPUs on a node (nodes with # CPUs must exist)
-                 thus getting access to more memory.
+
+  -#             use # CPUs on a node thus getting access to more memory.
+                 (Deprecated: use -cpus and -mem instead.)
+  -cpus C        Specify the required number of cpus. [1]
+  -mem M         Specify the required amount of memory.  By default, GB are
+                 assumed but user can specify G for GB or M for MB. [6G]
   -memmap SIZE   request SIZE GB extra virtual memory, to accomodate memory
                  mapped IO.  Important: use a value less than or equal to the
                  total size of files you will open using memory mapped IO,
-                 otherwise you risk bringing down a node.
+                 otherwise you risk bringing down a node. [0]
+  -j J           use -j J if you intend to run J processes in the same job, each
+                 needing C cpus, M RAM and SIZE GB of shared memory-mapped data.
+                 Your job will have J*M+SIZE RAM and J*C cpus, but a ulimit of
+                 M+SIZE VMEM and OMP_NUM_THREADS=C for each process. [1]
+  Scripts run by psub can find out the values of the above four options in
+  variables PSUB_OPT_{CPUS,MEM,MEMMAP_GB,J}
+
+  -i RES_IMAGE   Change the container's image [\$ENV{PSUB_RES_IMAGE}]
+  -pe ENVIRONMENT Change the parallel environment [dev]
+  -pepp          Change parallel processes [1]
+  -rt RUN_TIME   Specify the job's run time in minutes [1440 (one day)]
   -e ERR_FILE    stderr destination
   -o OUT_FILE    stdout destination
   -noscript      don't write out the script
@@ -59,8 +74,10 @@ Options:
   -f             force submission even if errors are detected
   -I             enter interactive mode thus getting a prompt to a node
   -P PERIOD      Log memory usage of process tree every PERIOD minutes. [6]
-  -require       Returns, without executing, how much vmem is required to run
-                 the jobs.
+  -require       Displays, without executing, how much vmem is required to run
+                 the jobs (in GB on Balzac, in MB on the GPSC).
+  -require-cpus  Displays, without executing, how many CPUs are required, if
+                 specified explicitely; otherwise, has not output.
 
 ==EOF==
 
@@ -93,42 +110,127 @@ arg_check() {
    fi
 }
 
+normalizeMemoryRequirement() {
+   local MEM_AMOUNT=$1
+   # Convert the resquested memory to MegaBytes for the scheduler.
+   if [[ $MEM_AMOUNT ]]; then
+      if [[ $MEM_AMOUNT =~ G$ ]]; then
+         MEM_AMOUNT=${MEM_AMOUNT%%G};
+         MEM_AMOUNT=$(($MEM_AMOUNT * 1024));
+      elif [[ $MEM_AMOUNT =~ M$ ]]; then
+         MEM_AMOUNT=${MEM_AMOUNT%%M};
+      else
+         MEM_AMOUNT=$(($MEM_AMOUNT * 1024));
+      fi
+   fi
+   echo $MEM_AMOUNT
+}
+
+
+### Balzac
 # Set some virtual memory constant per cpu.
 VMEM_LIMIT_GB_PER_CPU=7
 VMEM_HARD_LIMIT_GB_PER_CPU=6
 
+### GPSC
+# Note: a be node has 100000M of ram and 16 cores thus ~6GB of ram per core
+VMEM_LIMIT_MB_PER_CPU=6144   # 6 GB
+
 PSUB_CMD=`echo "$0 $*" | perl -pe 'print "# " if $. > 1'`
 CPU_COUNT=
+VMEM_LIMIT_MB=
 MEMORY_POLLING_DELAY=6
+PRIORITY=
+JOB_ARRAY=
+OPT_J=1
 
-NODES=notest
+PSUB_OPT_MEM=
+PSUB_OPT_MEMMAP=
+PSUB_OPT_J=
+PSUB_OPT_CPUS=
+
+### GPSC
+PARALLEL_ENVIRONMENT=dev
+# NOTE, PE_PARALLEL_PROCESSES should always be 1.
+PE_PARALLEL_PROCESSES=1
+RUNTIME_MINUTES=1440 # one day in minutes (24 x 60).
+
+NODES=
 while [ $# -gt 0 ]; do
    case "$1" in
    -h|-help)        usage;;
    -v|-verbose)     VERBOSE=1;;
-   -N)              arg_check 1 $# $!; NAME=$2; shift;;
-   -[1-9]|-[1-9][0-9]) CPU_COUNT=$((0 - $1));;
-   -I)              INTMODE=1; NOSCRIPT=1; [[ $CPU_COUNT ]] || CPU_COUNT=4;;
-   -memmap)         arg_check 1 $# $!; arg_check_pos_int $2 $1
-                    MEMMAP=$2; shift;;
-   -e)              arg_check 1 $# $!; ERR_FILE=$2; shift;;
-   -o)              arg_check 1 $# $!; OUT_FILE=$2; shift;;
-   -P)              arg_check 1 $# $!; MEMORY_POLLING_DELAY=$2; shift;;
+   -N)              arg_check 1 $# $!;
+                    NAME=$2;
+                    shift;;
+   -[1-9]|-[1-9][0-9]) echo "Warning: -# is deprecated on gpsc: use -cpus and -mem instead." >&2;
+                    [[ $CPU_COUNT ]] || CPU_COUNT=$((0 - $1))
+                    [[ $VMEM_LIMIT_MB ]] || VMEM_LIMIT_MB=$((VMEM_LIMIT_MB_PER_CPU * $((0 - $1))))
+                    PSUB_OPT_CPUS="$PSUB_OPT_CPUS $1";;
+   -cpus)           arg_check 1 $# $!
+                    CPU_COUNT=$2
+                    PSUB_OPT_CPUS="$PSUB_OPT_CPUS $1 $2"
+                    shift;;
+   -mem)            arg_check 1 $# $!
+                    VMEM_LIMIT_MB=`normalizeMemoryRequirement "$2"`
+                    PSUB_OPT_MEM=$2
+                    shift;;
+   -memmap)         arg_check 1 $# $!
+                    arg_check_pos_int $2 $1
+                    MEMMAP_GB=$2
+                    PSUB_OPT_MEMMAP_GB=$2
+                    shift;;
+   -j)              arg_check 1 $# $!
+                    arg_check_pos_int $2 $1
+                    OPT_J=$2
+                    PSUB_OPT_J=$2
+                    shift;;
+   -I)              INTMODE=1;
+                    NOSCRIPT=1;
+                    [[ $CPU_COUNT ]] || CPU_COUNT=4;;
+   -i)              arg_check 1 $# $!;
+                    PSUB_RES_IMAGE=$2;
+                    shift;;
+   -pe)             arg_check 1 $# $!;
+                    PARALLEL_ENVIRONMENT=$2;
+                    shift;;
+   -pepp)           arg_check 1 $# $!;
+                    PE_PARALLEL_PROCESSES=$2;
+                    shift;;
+   -rt)             arg_check 1 $# $!;
+                    RUNTIME_MINUTES=$2;
+                    shift;;
+   -e)              arg_check 1 $# $!;
+                    ERR_FILE=$2;
+                    shift;;
+   -o)              arg_check 1 $# $!;
+                    OUT_FILE=$2;
+                    shift;;
+   -P)              arg_check 1 $# $!;
+                    MEMORY_POLLING_DELAY=$2;
+                    shift;;
    -noscript)       NOSCRIPT=1;;
-   -l)              arg_check 1 $# $!
-                    if [ -n "$RESOURCES" ]; then RESOURCES="$RESOURCES,$2"
-                                            else RESOURCES="$2"; fi
+   -l)              arg_check 1 $# $!;
+                    RESOURCES="${RESOURCES:+$RESOURCES,}$2";
                     shift;;
-   -nodes)          arg_check 1 $# $!
-                    if [[ $NODES ]]; then NODES="$NODES:$2"
-                                     else NODES=$2; fi
-                    EXPLICIT_NODES=1
+   -nodes)          arg_check 1 $# $!;
+                    NODES="${NODES:+$NODES,}$2";
                     shift;;
-   -qsparams)       arg_check 1 $# $!; QSPARAMS=$2; shift;;
-   -p|-t)           arg_check 1 $# $!; QSUB_OPTS="$QSUB_OPTS $1 $2"; shift;;
+   -qsparams)       arg_check 1 $# $!;
+                    QSPARAMS=$2;
+                    shift;;
+   -p)              arg_check 1 $# $!;
+                    QSUB_OPTS="$QSUB_OPTS $1 $2";
+                    PRIORITY="$1 $2";
+                    shift;;
+   -t)              arg_check 1 $# $!;
+                    QSUB_OPTS="$QSUB_OPTS $1 $2";
+                    JOB_ARRAY="$1 $2";
+                    shift;;
    -n)              NOT_REALLY=1;;
    -f)              FORCE=1;;
    -require)        REQUIREMENTS=1;;
+   -require-cpus)   CPU_REQUIREMENTS=1;;
    --)              shift; break;;
    -*)              error_exit "Unknown options $1.";;
    *)               break;;
@@ -136,42 +238,281 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-# If, at this point there still no CPU_COUNT defined, we'll define the default value.
-[[ $CPU_COUNT ]] || CPU_COUNT=1
+if [[ ! $CPU_COUNT ]]; then
+   USING_DEFAULT_CPU_COUNT=1
+   CPU_COUNT=1
+fi
+
+[[ $VMEM_LIMIT_MB ]] || VMEM_LIMIT_MB=$((VMEM_LIMIT_MB_PER_CPU * 1))  # 6GB
 
 COMMAND="$*"
 
+function requirements {
+   # Must be done before any qsub dependency
+   if [[ $REQUIREMENTS ]]; then
+      if [[ $BALZAC ]]; then
+         VMEM_HARD_LIMIT_GB=$(($VMEM_HARD_LIMIT_GB_PER_CPU * $CPU_COUNT))
+         # -memmap adds extra virtual memory
+         if [[ $MEMMAP_GB ]]; then
+            VMEM_HARD_LIMIT_GB=$((VMEM_HARD_LIMIT_GB + MEMMAP_GB))
+         fi
+         echo $VMEM_HARD_LIMIT_GB
+      elif [[ $GPSC ]]; then
+         echo $VMEM_LIMIT_MB
+      else
+         echo 0
+      fi
+      exit
+   elif [[ $CPU_REQUIREMENTS ]]; then
+      if [[ ! $USING_DEFAULT_CPU_COUNT ]]; then
+         echo $CPU_COUNT
+      fi
+      exit
+   fi
+}
+
+
+function script2Command {
+   local PROG_NAME=$1
+   local FORCE=$2
+
+   # If the command is a script but doesn't have its x permission bit set,
+   # call it with its interpreter
+   if [ -f "$PROG_NAME" -a ! -x "$PROG_NAME" -a ! "$FORCE" ]; then
+      if file $PROG_NAME | grep -q "script text"; then
+         # file is a script
+         local HASH_BANG_LINE=`head -1 $PROG_NAME`
+         local INTERPRETER=${HASH_BANG_LINE/#\#\!}
+         INTERPRETER=${INTERPRETER%% *}
+         if which-test.sh "$INTERPRETER"; then
+            echo Calling your script with "$INTERPRETER"
+            COMMAND="$INTERPRETER $COMMAND"
+         else
+            echo "\"$PROG_NAME\" seems to be a $INTERPRETER script, but \"which\" can't find $INTERPRETER."
+            echo "Make your script executable, fix it, or use -f to submit your command as is"
+            exit 1
+         fi
+      else
+         echo "\"$PROG_NAME\" is neither executable nor a script."
+         echo "Use -f if you really mean to submit your command as is."
+         exit 1
+      fi
+   fi
+}
+
+
+###############################################################################
+###########################   GPSC SPECIFIC STUFF   ###########################
+###############################################################################
+function gpsc {
+   requirements
+
+   # PSUB_RES_IMAGE is set in profile.d/portage in order to have
+   # control of the image at the project-level.
+   local RES_IMAGE=${PSUB_RES_IMAGE:-nrc_all_default_centos-6.7-amd64_latest}
+
+   if [ -z "$COMMAND" -a ! -n "$INTMODE" ]; then
+      error_exit "Missing command, nothing to run!"
+   fi
+
+   local TMPSCRIPT=/tmp/psub.`whoami`.`date +%s`.$$
+   trap "rm -f $TMPSCRIPT $TMPSCRIPT.jobid; exit" 0 2 3 13 14 15
+
+   # Guess the executable program or script name
+   local PROG_NAME=`echo "$COMMAND" | perl -e '
+      $_ = <>;
+      chomp;
+      # Use STDIN if the job name of the command seems empty
+      $_ or $_ = "STDIN";
+      @tokens = split;
+      print $tokens[0];
+   '`
+
+   # The following call modifies COMMAND.
+   script2Command "$PROG_NAME" "$FORCE"
+
+   # Determine the default job name if -N is not specified on the command line.
+   if [[ ! $NAME ]]; then
+      NAME=`basename $PROG_NAME`
+   fi
+
+   # TODO:  is there a limit on job name's length?
+   # Make sure $NAME is not longer that 15 characters, and starts with a letter
+
+   # Calculate the total required value of res_mem
+   TOTAL_RES_MEM_MB=$((VMEM_LIMIT_MB * OPT_J + MEMMAP_GB * 1024))
+
+   # The job's actual number of CPUs requested is $
+   TOTAL_CPU_COUNT=$((OPT_J * CPU_COUNT))
+
+   # Runtime is in seconds.
+   local RUNTIME_SECONDS=$((RUNTIME_MINUTES * 60))
+
+   local HERE=`pwd`
+   ERR_FILE=${ERR_FILE:-$HERE}
+   OUT_FILE=${OUT_FILE:-$HERE}
+
+   # We set the ulimit -v 10MB lower than res_mem because it applies per process, not
+   # globally. Those 10MB are for manager scripts and such
+   # Known limitation: this won't catch memory problems when the user has multiple memory
+   # consuming processes in one job. Those will still most likely get bus errors.
+   # Also, the ulimit is not increased by -j, only by -mem and -memmap.
+   VMEM_ULIMIT_KB=$(( ( VMEM_LIMIT_MB - 10 + MEMMAP_GB * 1024 ) * 1024))
+
+cat <<==EOF== > $TMPSCRIPT
+#!/bin/bash
+#
+#$ -N $NAME
+#
+# Combines STDERR & STDOUT to STDOUT
+#####$ -j y
+
+## Simply output the jobid.
+#$ -terse
+
+## Identifies the ability of a job to be rerun or not.
+#$ -r no
+
+## Run exactly one process under dev.
+#$ -pe $PARALLEL_ENVIRONMENT  $PE_PARALLEL_PROCESSES
+#$ -l res_cpus=$TOTAL_CPU_COUNT
+#$ -l res_mem=$TOTAL_RES_MEM_MB
+#$ -l h_rt=$RUNTIME_SECONDS
+#$ -l res_image=$RES_IMAGE
+#$ -o $OUT_FILE
+#$ -e $ERR_FILE
+#$ -S /bin/bash
+#$ -M $USER
+#$ -notify
+
+## User provided from the command line.
+## Job Array:
+#$ $JOB_ARRAY
+## Priority:
+#$ $PRIORITY
+## Resources:
+#$ ${RESOURCES:+-l $RESOURCES}
+## Nodes:
+#$ ${NODES:+-l nodes=$NODES}
+## Additional user-specified qsub parameters
+#$ $QSPARAMS
+
+# User's environment.
+`env | egrep '^PORTAGE' | sed -e 's/^/export /'`
+`env | egrep '^(LD_LIBRARY_PATH|PERL5LIB|PYTHONPATH|MANPATH|TMPDIR|PATH|MADA_HOME)=' | sed -e 's/^/export /'`
+
+export OMP_NUM_THREADS=$CPU_COUNT
+export PSUB_OPT_J=$PSUB_OPT_J
+export PSUB_OPT_MEM=$PSUB_OPT_MEM
+export PSUB_OPT_CPUS=$PSUB_OPT_CPUS
+export PSUB_OPT_MEMMAP_GB=$PSUB_OPT_MEMMAP_GB
+
+# TODO: redefine TMPDIR to use SSDs.
+
+# TODO: we shouldn't source portage's profile !!?
+#source /space/project/portage/main/profile
+
+# On the GPSC, we set a ulimit -v to the memory requested, because otherwise the process
+# just dies with a bus error when it exceeds its memory allocation.
+ulimit -v $VMEM_ULIMIT_KB
+
+######################
+# DEBUGGING
+if [[ ! \$PSUB_NO_DEBUG ]]; then
+   echo DEBUGGING
+   env
+   whoami
+   id
+   pwd
+   ls -l /space/project/portage
+   ls -l /space/group/nrc_ict/pkgs/
+   echo
+   lscpu
+   head -25 /proc/cpuinfo | grep "model name"
+   echo END DEBUGGING
+   echo; echo; echo; echo
+fi >&2
+# DEBUGGING
+
+# Preserve the calling working directory
+cd $HERE || { ! echo "Error: Cannot change directory to $HERE" >&2; exit; }
+
+#process-memory-usage.pl $(($MEMORY_POLLING_DELAY*60)) \$\$ >&2 &
+
+# Display the exact start time
+echo ============ Starting job \$GECOSHEP_JOB_ID on \`date\` on node \`hostname\` >&2
+
+# Trap kill signals
+trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caught SIGINT, aborting." >&2; exit 2' 2
+trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caught SIGQUIT, aborting." >&2; exit 3' 3
+trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caught SIGUSR1, aborting." >&2; exit 10' 10
+trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caught SIGUSR2, aborting." >&2; exit 12' 12
+trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caught SIGTERM, aborting." >&2; exit 15' 15
+
+# User command
+$COMMAND
+RC=\$?
+
+# Display the exact end time
+echo ============ Finished \$GECOSHEP_JOB_ID on \`date\` with rc=\$RC >&2
+
+# Display resources used on stderr when the user command has completed
+jobst -j \$GECOSHEP_JOB_ID >&2
+
+# TODO:  Is this still pertinent on the gpsc since all that
+#        informatin/parameters are available as comments in the header of the
+#        job file?
+# qsub command executed
+# qsub  -N $NAME  -terse  -r no  -pe $PARALLEL_ENVIRONMENT $PE_PARALLEL_PROCESSES  -l res_cpus=$TOTAL_CPU_COUNT  -l res_mem=$TOTAL_RES_MEM_MB  -l h_rt=$RUNTIME_SECONDS  -l res_image=$RES_IMAGE  -o $OUT_FILE  -e $ERR_FILE  $JOB_ARRAY  $PRIORITY  ${RESOURCES:+-l $RESOURCES}  ${NODES:+-l $NODES}  $TMPSCRIPT
+
+# original psub command given by user (with quotes and \\ removed)
+# $PSUB_CMD
+==EOF==
+
+   if [[ $VERBOSE ]]; then
+      cat $TMPSCRIPT
+      echo ""
+   fi
+   
+   if [[ $NOT_REALLY ]]; then
+      ls -l $TMPSCRIPT >&2
+      cat $TMPSCRIPT
+      echo ""
+      exit
+   fi
+
+   JOBID=`jobsub $TMPSCRIPT`
+   echo $JOBID
+
+   if [[ ! $NOSCRIPT ]]; then
+      cp $TMPSCRIPT $NAME.j${JOBID:-0}
+   fi
+}
+
+
+if [[ ! on-cluster.sh && ! $NOT_REALLY ]]; then
+   error_exit "We don't seem to be running on a cluster."
+fi
+
 if uname -n | egrep -q 'balzac|blz'; then
+   NODES=notest
    BALZAC=1
 elif uname -n | egrep -q 'venus|vns'; then
    VENUS=1
+elif [[ `on-cluster.sh -type` == jobsub ]]; then
+   GPSC=1
+   gpsc
+   exit
 else
    # CUSTOMIZE HERE if you want to tune psub to your own cluster.
    true
 fi
 
-# Must be done before any qsub dependency
-if [ $REQUIREMENTS ]; then
-   VMEM_HARD_LIMIT_GB=0
-   if [ $BALZAC ]; then
-      VMEM_HARD_LIMIT_GB=$(($VMEM_HARD_LIMIT_GB_PER_CPU * $CPU_COUNT))
-      # -memmap adds extra virtual memory
-      if [ $MEMMAP ]; then
-         VMEM_HARD_LIMIT_GB=$((VMEM_HARD_LIMIT_GB + MEMMAP))
-      fi
-   fi
-   echo $VMEM_HARD_LIMIT_GB
-   exit
-fi
+###############################################################################
+#################   NOT APPLICABLE FOR GPSC PAST THIS POINT   #################
+###############################################################################
 
-
-if which qsub >& /dev/null; then
-   true # qsub found - we're running on a cluster
-else
-   if [[ ! $NOT_REALLY ]]; then
-      error_exit "Can't find qsub, we don't seem to be running on a cluster."
-   fi
-fi
+requirements
 
 # In interactive mode we need to reserve an entire node
 if [ -n "$INTMODE" ]; then
@@ -201,8 +542,8 @@ if [ -z "$COMMAND" -a ! -n "$INTMODE" ]; then
 fi
 
 # -memmap is only implemented for Balzac, warn if used elsewhere
-if [ -n "$MEMMAP" -a -z "$BALZAC" ]; then
-   echo Warning: -memmap option only implemented for Balzac at this point.
+if [ -n "$MEMMAP_GB" -a -z "$BALZAC" ]; then
+   echo Warning: -memmap option only implemented for Balzac and GPSC at this point.
 fi
 
 if [ $INTMODE ]; then
@@ -219,28 +560,7 @@ else
    '`
 fi
 
-# If the command is a script but doesn't have its x permission bit set,
-# call it with its interpreter
-if [ -f $PROG_NAME -a ! -x $PROG_NAME -a ! "$FORCE" ]; then
-   if file $PROG_NAME | grep -q "script text"; then
-      # file is a script
-      HASH_BANG_LINE=`head -1 $PROG_NAME`
-      INTERPRETER=${HASH_BANG_LINE/#\#\!}
-      INTERPRETER=${INTERPRETER%% *}
-      if which "$INTERPRETER" >& /dev/null; then
-         echo Calling your script with "$INTERPRETER"
-         COMMAND="$INTERPRETER $COMMAND"
-      else
-         echo "\"$PROG_NAME\" seems to be a $INTERPRETER script, but \"which\" can't find $INTERPRETER."
-         echo "Make your script executable, fix it, or use -f to submit your command as is"
-         exit 1
-      fi
-   else
-      echo "\"$PROG_NAME\" is neither executable nor a script."
-      echo "Use -f if you really mean to submit your command as is."
-      exit 1
-   fi
-fi
+script2Command
 
 # Determine the default job name if -N is not specified on the command line.
 if [ ! $NAME ]; then
@@ -269,9 +589,9 @@ if [ $BALZAC ]; then
    VMEM_LIMIT_GB=$(($VMEM_LIMIT_GB_PER_CPU * $CPU_COUNT))
    VMEM_HARD_LIMIT_GB=$(($VMEM_HARD_LIMIT_GB_PER_CPU * $CPU_COUNT))
    # -memmap adds extra virtual memory
-   if [ $MEMMAP ]; then
-      VMEM_LIMIT_GB=$((VMEM_LIMIT_GB + MEMMAP))
-      VMEM_HARD_LIMIT_GB=$((VMEM_HARD_LIMIT_GB + MEMMAP))
+   if [ $MEMMAP_GB ]; then
+      VMEM_LIMIT_GB=$((VMEM_LIMIT_GB + MEMMAP_GB))
+      VMEM_HARD_LIMIT_GB=$((VMEM_HARD_LIMIT_GB + MEMMAP_GB))
    fi
    VMEM_HARD_LIMIT_KB=$((VMEM_HARD_LIMIT_GB * 1024 * 1024))
 
@@ -419,9 +739,10 @@ trap 'echo psub-generated script \`basename \$0\` caught SIGTERM, aborting. >&2;
 
 # User command
 $COMMAND
+RC=\$?
 
 # Display the exact end time
-echo ============ Finished $PBS_JOBID on \`date\` >&2
+echo ============ Finished $PBS_JOBID on \`date\` with rc=\$RC >&2
 
 # Display resources used on stderr when the user command has completed
 ==EOF==
@@ -464,3 +785,6 @@ echo $JOBID
 if [ ! $NOSCRIPT ]; then
    cp $TMPSCRIPT $NAME.j${SHORTJOBID:-0}
 fi
+
+
+
