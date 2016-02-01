@@ -45,10 +45,10 @@ long-nopar: input-long canoe.ini
 	time-mem canoe -f canoe.ini -input $< > $@ 2> log.$@
 
 long-parbaseline: input-long canoe.ini
-	time-mem canoe-parallel.sh -v -v -d -no-lb -n 4 canoe -f canoe.ini < $< > $@ 2> log.$@
+	time-mem canoe-parallel.sh -rp-j 2 -v -v -d -no-lb -n 4 canoe -f canoe.ini < $< > $@ 2> log.$@
 
 long-bysent: input-long canoe.ini
-	time-mem canoe-parallel.sh -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini < $< > $@ 2> log.$@
+	time-mem canoe-parallel.sh -rp-j 2 -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini < $< > $@ 2> log.$@
 
 diff-%: %
 	sort $* | diff ref/$*-sort -
