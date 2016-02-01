@@ -118,6 +118,8 @@ Cluster mode options (ignored on non-clustered machines):
                 multiple options, put them together in quotes, or repeat
                 this option.
 
+  -rp-j J       Use run-parallel.sh's -j option to run J workers per cluster job
+
 ==EOF==
 
    exit 1
@@ -161,11 +163,14 @@ while [ $# -gt 0 ]; do
    -cleanup)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-   -local)         arg_check 1 $# $1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -local $2"; shift;;
+   -local)         arg_check 1 $# $1; arg_check_int $2 $1
+                   RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -local $2"; shift;;
    -psub|-psub-opts|-psub-options)
                    arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
    -qsub|-qsub-opts|-qsub-options)
                    arg_check 1 $# $1; QSUBOPTS="$QSUBOPTS $2"; shift;;
+   -rp-j)          arg_check 1 $# $1; arg_check_pos_int $2 $1
+                   RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -j $2"; shift;;
    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ))
                    RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -q|-quiet)      VERBOSE=0
