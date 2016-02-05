@@ -55,6 +55,7 @@ if [[ $PARALLEL_MODE ]]; then
          run-parallel.sh -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
          tee $LOG |
          egrep -i --line-buffered '^\[|error' |
+         egrep -v -i --line-buffered '^(Test suites to run:|Running|PASSED|\*\*\* FAILED) ' |
          egrep -i --line-buffered --color '.*\*.*|$|error'
       fi
    grep PASSED $LOG | grep -v 'test suites' | sort -u
