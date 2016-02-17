@@ -1,0 +1,73 @@
+Loaded data structures in 0 seconds.
+SparseModel learning parameters: 
+   not learning conjunctions
+   max features for conjoin = 2000
+   min freq for conjoin = 2
+   not pruning 0-wt features
+SparseModel active templates:
+[TgtNgramCountBin] ../data/ngrams.en 2 5 10 -2
+[PhrasePairAllBiLengthBins] 7 7
+[PhrasePairAllSrcLengthBins] 7
+[PhrasePairAllTgtLengthBins] 7
+[LexUnalTgtAny] ../data/freq-unal-words.en
+[LexUnalSrcAny] ../data/freq-unal-words.fr
+[AlignedWordPair] ../data/freq-words.fr ../data/freq-words.en
+[PhrasePairCountMultiBin] ../data/bins11
+[RarestTgtWordCountBin] ../data/voc-counts.en ../data/bins11
+[DistCurrentSrcPhrase] ../data/classes.fr.MMmap
+[DistCurrentSrcFirstWord] ../data/classes.fr.MMmap
+[DistCurrentSrcLastWord] ../data/classes.fr.MMmap
+[DistCurrentTgtFirstWord] ../data/classes.en.MMmap
+[DistCurrentTgtLastWord] ../data/classes.en.MMmap
+[DistReducedSrcFirstWord] ../data/classes.fr.MMmap
+[DistReducedSrcLastWord] ../data/classes.fr.MMmap
+[DistReducedTgtLastWord] ../data/classes.en.MMmap
+[DistGapSrcWord] ../data/classes.fr.MMmap
+[DistTopSrcFirstWord] ../data/classes.fr.MMmap
+[DistTopSrcLastWord] ../data/classes.fr.MMmap
+[DistPrevTgtWord] ../data/classes.en.MMmap
+[DistCurrentSrcPhrase] ../data/freq-word-classes.fr.MMmap
+[DistCurrentSrcFirstWord] ../data/freq-word-classes.fr.MMmap
+[DistCurrentSrcLastWord] ../data/freq-word-classes.fr.MMmap
+[DistCurrentTgtFirstWord] ../data/freq-word-classes.en.MMmap
+[DistCurrentTgtLastWord] ../data/freq-word-classes.en.MMmap
+[DistReducedSrcFirstWord] ../data/freq-word-classes.fr.MMmap
+[DistReducedSrcLastWord] ../data/freq-word-classes.fr.MMmap
+[DistReducedTgtLastWord] ../data/freq-word-classes.en.MMmap
+[DistGapSrcWord] ../data/freq-word-classes.fr.MMmap
+[DistTopSrcFirstWord] ../data/freq-word-classes.fr.MMmap
+[DistTopSrcLastWord] ../data/freq-word-classes.fr.MMmap
+[DistPrevTgtWord] ../data/freq-word-classes.en.MMmap
+[DistCurrentSrcPhrase] ../data/classes.fr.MMmap LR
+[DistCurrentSrcFirstWord] ../data/classes.fr.MMmap LR
+[DistCurrentSrcLastWord] ../data/classes.fr.MMmap LR
+[DistCurrentTgtFirstWord] ../data/classes.en.MMmap LR
+[DistCurrentTgtLastWord] ../data/classes.en.MMmap LR
+[DistReducedSrcFirstWord] ../data/classes.fr.MMmap LR
+[DistReducedSrcLastWord] ../data/classes.fr.MMmap LR
+[DistReducedTgtLastWord] ../data/classes.en.MMmap LR
+[DistGapSrcWord] ../data/classes.fr.MMmap LR
+[DistTopSrcFirstWord] ../data/classes.fr.MMmap LR
+[DistTopSrcLastWord] ../data/classes.fr.MMmap LR
+[DistPrevTgtWord] ../data/classes.en.MMmap LR
+[DistCurrentSrcPhrase] ../data/freq-word-classes.fr.MMmap LR
+[DistCurrentSrcFirstWord] ../data/freq-word-classes.fr.MMmap LR
+[DistCurrentSrcLastWord] ../data/freq-word-classes.fr.MMmap LR
+[DistCurrentTgtFirstWord] ../data/freq-word-classes.en.MMmap LR
+[DistCurrentTgtLastWord] ../data/freq-word-classes.en.MMmap LR
+[DistReducedSrcFirstWord] ../data/freq-word-classes.fr.MMmap LR
+[DistReducedSrcLastWord] ../data/freq-word-classes.fr.MMmap LR
+[DistReducedTgtLastWord] ../data/freq-word-classes.en.MMmap LR
+[DistGapSrcWord] ../data/freq-word-classes.fr.MMmap LR
+[DistTopSrcFirstWord] ../data/freq-word-classes.fr.MMmap LR
+[DistTopSrcLastWord] ../data/freq-word-classes.fr.MMmap LR
+[DistPrevTgtWord] ../data/freq-word-classes.en.MMmap LR
+[LmUnigram] ../data/classes.en.MMmap
+[LmBigram] ../data/classes.en.MMmap
+
+
+set weights to average values across 0 examples
+saved SparseModel to out7/sparsemodel
+
+SparseModel contains 132276 features and 132276 events
+Learned from 0 examples

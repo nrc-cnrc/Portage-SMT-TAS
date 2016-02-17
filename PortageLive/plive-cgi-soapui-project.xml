@@ -4021,6 +4021,163 @@ return &lt;A>{$i}&lt;/A>}
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate Plain Text \x1E and without CE - TestCase" searchProperties="true" id="6ba0a464-b330-40ab-80ac-74d2b799fdc3">
+      <con:settings/>
+      <con:testStep type="httprequest" name="Submit translation" id="8feb0129-3637-49d3-9633-6840fd73d84a">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@follow-redirects">true</con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+            <con:configuration>
+              <scriptText>log.info(messageExchange.getRequestContent())
+log.info(messageExchange.getEndpoint())
+context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:attachment>
+            <con:name>2010-385-source-CCI_272(OR)_fr.short.txt</con:name>
+            <con:contentType>text/plain</con:contentType>
+            <con:size>5113</con:size>
+            <con:contentId>filename</con:contentId>
+            <con:url>c:/temp/2010-385-source-CCI_272(OR)_fr.short.txt</con:url>
+            <con:data>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</con:data>
+            <con:id>7f91e3b2-167c-48fb-9de8-27f4584955ca</con:id>
+          </con:attachment>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestCase#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_file</con:name>
+              <con:value>Translate File</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for the translation to be finished" id="2947e285-195c-4abf-b1be-39d6417c71d3">
+        <con:settings/>
+        <con:config>
+          <delay>1000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Inspect the monitoring page" id="ec45f84c-34dc-48a3-b7ad-77952ac4c0a0">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Conditional Goto" id="23616aab-f6a5-41fe-85c4-0e0929a9f70c">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Need some more time</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
+(: As long as the page says to reload, we will wait. :)
+exists(//head/meta[@http-equiv = "refresh"])</con:expression>
+            <con:targetStep>Wait for the translation to be finished</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get the translation URL" id="eed1a25d-b6f1-450f-ab9c-39ba06e844d2">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get URL</con:name>
+            <con:sourceType>ResponseAsXml</con:sourceType>
+            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
+            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
+            <con:targetType>translationURL</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translations" id="64d9beb6-556c-465b-9061-479ca8b18d2e">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="We should get a translation file.">
+            <con:configuration>
+              <scriptText>// Reference: http://forum.loadui.org/viewtopic.php?f=13&amp;t=8399
+assert messageExchange.hasResponse() == true
+assert messageExchange.getResponseContent().length() > 0</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>monitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>translationURL</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
     <con:properties>
       <con:property>
         <con:name>endpoint</con:name>

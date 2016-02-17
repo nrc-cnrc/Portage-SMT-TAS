@@ -1,0 +1,116 @@
+
+
+Reading input sentences.
+Warning: Cannot find local SparseModel weights file; using remote one, which might not be tuned.
+loaded 132276 SparseModel features from data/../out7/sparsemodel.feats.gz
+loaded 132276 SparseModel weights from data/../out7/sparsemodel.wts.gz -- all weights are 0
+created 132276 SparseModel events
+compiled 125382 partial features
+loading phrase table from data/../data/cpt.all.fr2en.gz: 
+92440 lines read, 4028 entries kept.
+
+opening text lexicalized distortion data/../data/dm.all.fr2en.gz
+loading lexicalized distortion model from data/../data/dm.all.fr2en.gz: 
+79861 lines read, 3017 entries kept.
+
+loading language model from data/../data/all.lm.gz
+Reading 9352 1-grams. ... kept: 9352 in 
+Reading 62173 2-grams. ... kept: 20739 in 
+Reading 17927 3-grams. ... kept: 7843 in 
+
+
+
+Log-linear model used:
+index	weight	feature description
+1	0.207254	DistortionModel:WordDisplacement
+2	-0.0251657	DistortionModel:back-hlex#m#data/../data/dm.all.fr2en.gz
+3	0.119905	DistortionModel:back-hlex#s#data/../data/dm.all.fr2en.gz
+4	0.188054	DistortionModel:back-hlex#d#data/../data/dm.all.fr2en.gz
+5	0.0419859	DistortionModel:fwd-hlex#m#data/../data/dm.all.fr2en.gz
+6	0.129292	DistortionModel:fwd-hlex#s#data/../data/dm.all.fr2en.gz
+7	-0.0785739	DistortionModel:fwd-hlex#d#data/../data/dm.all.fr2en.gz
+8	-0.378918	LengthFeature
+9	1	SparseModel:data/../out7/sparsemodel
+10	1	LanguageModel:data/../data/all.lm.gz;SimpleAutoVoc
+11	0.0955649	TranslationModel:data/../data/cpt.all.fr2en.gz(col=0)
+12	0.202645	TranslationModel:data/../data/cpt.all.fr2en.gz(col=1)
+13	0.140673	ForwardTranslationModel:data/../data/cpt.all.fr2en.gz(col=2)
+14	0.058664	ForwardTranslationModel:data/../data/cpt.all.fr2en.gz(col=3)
+15	0	SparseModel:TgtNgramCountBin:../data/ngrams.en 2 5 10 -2
+16-64	0	SparseModel:PhrasePairAllBiLengthBins:7 7
+65-71	0	SparseModel:PhrasePairAllSrcLengthBins:7
+72-78	0	SparseModel:PhrasePairAllTgtLengthBins:7
+79-92	0	SparseModel:LexUnalTgtAny:../data/freq-unal-words.en
+93-142	0	SparseModel:LexUnalSrcAny:../data/freq-unal-words.fr
+143-6866	0	SparseModel:AlignedWordPair:../data/freq-words.fr ../data/freq-words.en
+6867-6877	0	SparseModel:PhrasePairCountMultiBin:../data/bins11
+6878-6888	0	SparseModel:RarestTgtWordCountBin:../data/voc-counts.en ../data/bins11
+6889-9858	0	SparseModel:DistCurrentSrcPhrase:../data/classes.fr
+9859-9924	0	SparseModel:DistCurrentSrcFirstWord:../data/classes.fr
+9925-9990	0	SparseModel:DistCurrentSrcLastWord:../data/classes.fr
+9991-10056	0	SparseModel:DistCurrentTgtFirstWord:../data/classes.en
+10057-10122	0	SparseModel:DistCurrentTgtLastWord:../data/classes.en
+10123-10188	0	SparseModel:DistReducedSrcFirstWord:../data/classes.fr
+10189-10254	0	SparseModel:DistReducedSrcLastWord:../data/classes.fr
+10255-10320	0	SparseModel:DistReducedTgtLastWord:../data/classes.en
+10321-10364	0	SparseModel:DistGapSrcWord:../data/classes.fr
+10365-10430	0	SparseModel:DistTopSrcFirstWord:../data/classes.fr
+10431-10496	0	SparseModel:DistTopSrcLastWord:../data/classes.fr
+10497-10562	0	SparseModel:DistPrevTgtWord:../data/classes.en
+10563-51152	0	SparseModel:DistCurrentSrcPhrase:../data/freq-word-classes.fr
+51153-51398	0	SparseModel:DistCurrentSrcFirstWord:../data/freq-word-classes.fr
+51399-51644	0	SparseModel:DistCurrentSrcLastWord:../data/freq-word-classes.fr
+51645-51890	0	SparseModel:DistCurrentTgtFirstWord:../data/freq-word-classes.en
+51891-52136	0	SparseModel:DistCurrentTgtLastWord:../data/freq-word-classes.en
+52137-52382	0	SparseModel:DistReducedSrcFirstWord:../data/freq-word-classes.fr
+52383-52628	0	SparseModel:DistReducedSrcLastWord:../data/freq-word-classes.fr
+52629-52874	0	SparseModel:DistReducedTgtLastWord:../data/freq-word-classes.en
+52875-53038	0	SparseModel:DistGapSrcWord:../data/freq-word-classes.fr
+53039-53284	0	SparseModel:DistTopSrcFirstWord:../data/freq-word-classes.fr
+53285-53530	0	SparseModel:DistTopSrcLastWord:../data/freq-word-classes.fr
+53531-53776	0	SparseModel:DistPrevTgtWord:../data/freq-word-classes.en
+53777-58726	0	SparseModel:DistCurrentSrcPhrase:../data/classes.fr LR
+58727-58836	0	SparseModel:DistCurrentSrcFirstWord:../data/classes.fr LR
+58837-58946	0	SparseModel:DistCurrentSrcLastWord:../data/classes.fr LR
+58947-59056	0	SparseModel:DistCurrentTgtFirstWord:../data/classes.en LR
+59057-59166	0	SparseModel:DistCurrentTgtLastWord:../data/classes.en LR
+59167-59276	0	SparseModel:DistReducedSrcFirstWord:../data/classes.fr LR
+59277-59386	0	SparseModel:DistReducedSrcLastWord:../data/classes.fr LR
+59387-59496	0	SparseModel:DistReducedTgtLastWord:../data/classes.en LR
+59497-59540	0	SparseModel:DistGapSrcWord:../data/classes.fr LR
+59541-59650	0	SparseModel:DistTopSrcFirstWord:../data/classes.fr LR
+59651-59760	0	SparseModel:DistTopSrcLastWord:../data/classes.fr LR
+59761-59870	0	SparseModel:DistPrevTgtWord:../data/classes.en LR
+59871-127520	0	SparseModel:DistCurrentSrcPhrase:../data/freq-word-classes.fr LR
+127521-127930	0	SparseModel:DistCurrentSrcFirstWord:../data/freq-word-classes.fr LR
+127931-128340	0	SparseModel:DistCurrentSrcLastWord:../data/freq-word-classes.fr LR
+128341-128750	0	SparseModel:DistCurrentTgtFirstWord:../data/freq-word-classes.en LR
+128751-129160	0	SparseModel:DistCurrentTgtLastWord:../data/freq-word-classes.en LR
+129161-129570	0	SparseModel:DistReducedSrcFirstWord:../data/freq-word-classes.fr LR
+129571-129980	0	SparseModel:DistReducedSrcLastWord:../data/freq-word-classes.fr LR
+129981-130390	0	SparseModel:DistReducedTgtLastWord:../data/freq-word-classes.en LR
+130391-130554	0	SparseModel:DistGapSrcWord:../data/freq-word-classes.fr LR
+130555-130964	0	SparseModel:DistTopSrcFirstWord:../data/freq-word-classes.fr LR
+130965-131374	0	SparseModel:DistTopSrcLastWord:../data/freq-word-classes.fr LR
+131375-131784	0	SparseModel:DistPrevTgtWord:../data/freq-word-classes.en LR
+131785-131806	0	SparseModel:LmUnigram:../data/classes.en
+131807-132290	0	SparseModel:LmBigram:../data/classes.en
+
+Translating 10 sentences.
+..........
+
+TimingStats over per-sentence model creation, decoding, and output times, in seconds:
+
+
+
+
+
+
+
+
+
+Overall LM hits:
+Found k-grams: 0:1746( 2%) 1:34106(46%) 2:31494(43%) 3:6206( 8%) Total: 73552
+Used 399 non-ITG reductions, left 0 incomplete stacks
+
+

@@ -69,7 +69,7 @@ IWordClassesMapper* loadClasses(const string& fname, const string& unknown, Voc*
       error(ETFatal, "Empty classfile %s", fname.c_str());
 
    IWordClassesMapper* mapper(NULL);
-   if (magicNumber == MMMap::version1)
+   if (magicNumber == MMMap::version2)
       mapper = new WordClassesMapper_MemoryMappedMap(fname, unknown);
    else
       mapper = new WordClassesMapper(fname, unknown, vocab);
