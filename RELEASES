@@ -4,8 +4,8 @@ Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2015, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2015, Her Majesty in Right of Canada
+Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2016, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -23,11 +23,11 @@ PortageII cur
  Work in progress
 
  Changes:
-  - New RestCostLMs give better LM heuristic during decoding.
   - Added sparse features, including the discriminative reordering model, a
     significant improvement over previous reordering models.
   - New coarse BiLM features take into account source word classes in the
     context and give good empirical results, improving translation quality.
+  - New RestCostLMs give better LM heuristic during decoding.
   - Arabic is now supported as a source language.
 
  Minor changes:
@@ -59,6 +59,7 @@ PortageII cur
        there are too many to hold in one directory.
      - canoe-parallel.sh now supports sentence-level load balancing, helping
        parallel decoding finish faster.
+     - new coarse LM models.
   - Many design improvements to the decoder (canoe module), with clean up of
     code in many places, more flexibility for future extensions, etc.
     To mention just a few examples:
