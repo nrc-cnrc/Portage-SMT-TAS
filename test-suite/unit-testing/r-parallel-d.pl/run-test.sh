@@ -13,6 +13,7 @@
 
 set -e   # Exit when an error occurs.
 
+make clean
 make gitignore
 
 # If we're already in a run-parallel instance,
@@ -52,8 +53,5 @@ echo ps 8 seconds later &&
      { ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID || : ; } &&
 ! { ps -o pid,ppid,pgid,sid,tty,time,args -g $MASTER_PID | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
 echo "SUCCESS" || { echo "FAILED" ; EXIT_STATUS=1; }
-
-# Clean-up
-{ find -type d -name run-p.\* | xargs rm -r; } || true
 
 exit $EXIT_STATUS
