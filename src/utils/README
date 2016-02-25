@@ -17,7 +17,6 @@ bloater (.cc)                 GF  Allocate memory until death occurs.
 bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
 build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
-cvs-status-summary.pl         EJ  Compact summary of cvs status making stuff stand out.
 diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
 docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
