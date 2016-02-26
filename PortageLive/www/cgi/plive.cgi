@@ -120,6 +120,8 @@ $ENV{LD_LIBRARY_PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$LD_LIBRARY_P
 $ENV{PYTHONPATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PYTHONPATH`;
 # disable cluster usage.
 $ENV{PORTAGE_NOCLUSTER} = 1;
+# Disable Portage's copyright notice.
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
 push @INC, $PORTAGE_LIB;
 
 # We used to hard-code the environment variables here, but now we use
@@ -528,7 +530,7 @@ sub checkFile {
     # Binary files are identified as "application/octet-stream" with these
     # extra spaces, so although their correct mime type is lost, the result
     # still works for our purposes here.
-    my $file_type = `{ echo '                     '; cat \"$src_file\"; } | clean-utf8-text.pl | file --brief --mime -`;
+    my $file_type = `{ echo '                     '; clean-utf8-text.pl < \"$src_file\"; } |  file --brief --mime -`;
     my ($mimetype, undef) = split(/[\s;]+/, $file_type, 2);
     problem("Please submit a plain text file (your file seems to be $mimetype)")
         unless ($mimetype =~ /text\/.*/);
