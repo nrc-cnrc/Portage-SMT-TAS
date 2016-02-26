@@ -118,6 +118,8 @@ $ENV{PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PATH`;
 $ENV{PERL5LIB} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PERL5LIB`;
 $ENV{LD_LIBRARY_PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$LD_LIBRARY_PATH`;
 $ENV{PYTHONPATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PYTHONPATH`;
+# disable cluster usage.
+$ENV{PORTAGE_NOCLUSTER} = 1;
 push @INC, $PORTAGE_LIB;
 
 # We used to hard-code the environment variables here, but now we use
