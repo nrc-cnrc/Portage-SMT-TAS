@@ -665,13 +665,13 @@ if [[ $CLUSTER ]]; then
 
       JOB_VMEM=`psub -require $PSUBOPTS`
       PARENT_VMEM=`psub -require $PSUB_RESOURCE_OPTIONS`
-      [[ $PSUB_OPT_J ]] && PARENT_VMEM=$((PARENT_VMEM * PSUB_OPT_J))
       if [[ ! $NOLOCAL ]]; then
          if (( $JOB_VMEM > $PARENT_VMEM )); then
             echo "Requested more VMEM for workers ($JOB_VMEM) than master has ($PARENT_VMEM), setting -nolocal." >&2
             NOLOCAL=1
          else
             # Let's find out how many jobs can actually fit in local memory
+            [[ $PSUB_OPT_J ]] && PARENT_VMEM=$((PARENT_VMEM * PSUB_OPT_J))
             if (( $LOCAL_JOBS * $JOB_VMEM > $PARENT_VMEM )); then
                LOCAL_JOBS=$(($PARENT_VMEM / $JOB_VMEM))
                echo "Parent has only enough VMEM ($PARENT_VMEM) for $LOCAL_JOBS local workers (at $JOB_VMEM VMEM each)." >&2
