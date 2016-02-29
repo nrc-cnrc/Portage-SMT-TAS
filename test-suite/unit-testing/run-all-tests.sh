@@ -6,8 +6,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2008, Her Majesty in Right of Canada
+# Copyright 2008-2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008-2016, Her Majesty in Right of Canada
 
 usage() {
    echo "Usage: $0 [test-suite [test-suite2 [...]]]
@@ -49,14 +49,14 @@ if [[ $PARALLEL_MODE ]]; then
       echo $0 $suite
    done |
       if [[ $VERBOSE ]]; then
-         run-parallel.sh -v -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
+         run-parallel.sh -j 4 -v -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
          tee $LOG
       else
-         run-parallel.sh -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
+         run-parallel.sh -j 4 -psub -1 -on-error continue $LOCAL -unordered-cat - $PARALLEL_LEVEL 2>&1 |
          tee $LOG |
          egrep -i --line-buffered '^\[|error' |
          egrep -v -i --line-buffered '^(Test suites to run:|Running|PASSED|\*\*\* FAILED) ' |
-         egrep -i --line-buffered --color '.*\*.*|$|error'
+         egrep -i --line-buffered --color '.*\*.*|$|(^|[^-])error'
       fi
    grep PASSED $LOG | grep -v 'test suites' | sort -u
    grep FAILED $LOG | grep -v 'test suites' | sort -u
