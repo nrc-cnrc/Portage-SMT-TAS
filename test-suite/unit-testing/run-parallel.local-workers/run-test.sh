@@ -25,9 +25,17 @@ while true; do
       fi
    done
    if [[ $ALL_EXIST ]]; then
-      echo "Got all output files, waiting a bit more to make sure they're fully written"
-      # 5 seconds is sometimes not enough on the GPSC; crank up to 10.
-      sleep 10
+      for FILENO in `seq -w 01 14`; do
+         if ! grep -q FIRST_PSUB out.$FILENO; then
+            echo "Waiting for full contents in output file(s), starting with out.$FILENO"
+            ALL_EXIST=
+            break
+         fi
+      done
+   fi
+   if [[ $ALL_EXIST ]]; then
+      echo "Got all output files, with full contents"
+      sleep 1
       break
    fi
    if [[ $COUNTER -gt 100 ]]; then
@@ -47,6 +55,7 @@ if [[ $? = 0 ]]; then
    exit 0
 else
    echo Test FAILED
+   wc out.[01][0-9]
    exit 1
 fi
 
