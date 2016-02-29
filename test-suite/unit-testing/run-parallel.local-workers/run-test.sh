@@ -26,7 +26,8 @@ while true; do
    done
    if [[ $ALL_EXIST ]]; then
       echo "Got all output files, waiting a bit more to make sure they're fully written"
-      sleep 5
+      # 5 seconds is sometimes not enough on the GPSC; crank up to 10.
+      sleep 10
       break
    fi
    if [[ $COUNTER -gt 100 ]]; then
