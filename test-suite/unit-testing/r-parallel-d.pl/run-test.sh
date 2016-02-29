@@ -22,7 +22,7 @@ make gitignore
 # Start run-parallel.sh and have the watch dog thread to verify for run-parallel.sh every 30 seconds.
 # EJJ 2016: we now use setsid so that the run-parallel.sh instance and all its children
 # can be found using ps -g $MASTER_PID
-R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 setsid run-parallel.sh -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug &
+R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 setsid run-parallel.sh -nocluster -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug &
 MASTER_PID=$!
 echo PID $MASTER_PID
 
@@ -34,9 +34,6 @@ echo PID $MASTER_PID
 # - wait for for the watch dog to do its job;
 # - check again to see if r-parallel-d.pl which should be gone at this point;
 # - for user, print a status message about the process.
-
-#sleep 5; ps fjx
-
 EXIT_STATUS=0
 echo sleep 20 &&
      sleep 20 &&
