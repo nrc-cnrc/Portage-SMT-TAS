@@ -23,7 +23,7 @@ TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
            coarse*train_bilm coarse*train_bilm.raw \
            en.cls* fr.cls* bitoken*.cls* bilm.coarse*.gz bilm.*gram.gz
-TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm
+TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm *.tplm.tmp.???
 include ../Makefile.incl
 
 init-lm:

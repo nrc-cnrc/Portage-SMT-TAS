@@ -26,7 +26,7 @@ vpath %.gz src/
 all:  testsuite
 
 
-TEMP_FILES=unittest*.out
+TEMP_FILES=unittest*.out lm-filter.??????
 include ../Makefile.incl
 
 
