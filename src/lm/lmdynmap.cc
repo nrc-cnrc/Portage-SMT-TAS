@@ -147,7 +147,7 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
       else
          error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
 
-      mapping = new WordClassesMap(classesFile, limit_vocab ? vocab : NULL);
+      mapping = getWord2ClassesMapper(classesFile, limit_vocab ? vocab : NULL);
    }
    else
       error(ETFatal, "unknown LMDynMap map type: %s\n%s",
@@ -246,20 +246,70 @@ string LMDynMap::fix_relative_path(const string& path, string file)
    return file;
 }
 
-const string LMDynMap::WordClassesMap::UNK_Symbol(PLM::UNK_Symbol);
-const string LMDynMap::WordClassesMap::SentStart(PLM::SentStart);
-const string LMDynMap::WordClassesMap::SentEnd(PLM::SentEnd);
 
-LMDynMap::WordClassesMap::WordClassesMap(const string& classesFile, Voc *vocab)
-: classesFile(classesFile)
-, mapper(loadClasses(classesFile, UNK_Symbol, vocab))
-{
+
+LMDynMap::IWordClassesMapping* LMDynMap::getWord2ClassesMapper(const string& fname, Voc* vocab) {
+   string magicNumber;
+   iSafeMagicStream is(fname);
+   if (!getline(is, magicNumber))
+      error(ETFatal, "Empty classfile %s", fname.c_str());
+
+   IWordClassesMapping* mapper(NULL);
+   if (magicNumber == MMMap::version2)
+      mapper = new WordClassesMemoryMappedMapper(fname);
+   else
+      mapper = new WordClassesTextMapper(fname, vocab);
    assert(mapper != NULL);
+
+   return mapper;
 }
 
-const string& LMDynMap::WordClassesMap::operator()(string& word) {
+
+const string LMDynMap::IWordClassesMapping::UNK_Symbol(PLM::UNK_Symbol);
+const string LMDynMap::IWordClassesMapping::SentStart(PLM::SentStart);
+const string LMDynMap::IWordClassesMapping::SentEnd(PLM::SentEnd);
+
+
+
+LMDynMap::WordClassesTextMapper::WordClassesTextMapper(const string& classesFile, Voc *vocab)
+: classesFile(classesFile)
+{
+   word_classes.read(classesFile, vocab, true);
+   class_str.reserve(word_classes.getHighestClassId()+1);
+   char buf[24];
+   for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
+      sprintf(buf, "%d", i);
+      class_str.push_back(buf);
+   }
+}
+
+const string& LMDynMap::WordClassesTextMapper::operator()(string& word) {
    if (word == SentStart || word == SentEnd || word == UNK_Symbol)
       return word;
-   return (*mapper)(word);
+
+   const Uint cls = word_classes.classOf(word.c_str());
+
+   return cls < class_str.size() ? class_str[cls] : UNK_Symbol;
+}
+
+
+
+LMDynMap::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& classesFile)
+: word2class(classesFile)
+{
+   className.reserve(100);
+}
+
+const string& LMDynMap::WordClassesMemoryMappedMapper::operator()(string& word) {
+   if (word == SentStart || word == SentEnd || word == UNK_Symbol)
+      return word;
+
+   // TODO: Should we return UNK_Symbol if word is not in Voc* vocab?
+   MMMap::const_iterator it = word2class.find(word.c_str());
+   if (it == word2class.end())
+      return UNK_Symbol;
+
+   className = it.getValue();
+   return className;
 }
 

@@ -35,7 +35,8 @@
 #include "casemap_strings.h"
 #include "lm.h"
 #include "number_mapper.h"
-#include "mapper.h"
+#include "word_classes.h"
+#include "mm_map.h"
 #include <stdio.h>
 
 namespace Portage
@@ -43,6 +44,7 @@ namespace Portage
 
 class LMDynMap : public PLM
 {
+protected:
    // Define the available mappings
    struct IMapping {
       virtual ~IMapping() {}
@@ -97,20 +99,37 @@ class LMDynMap : public PLM
    /**
     * Map words to word classes.
     */
-   struct WordClassesMap : public IMapping, private NonCopyable {
-      const string classesFile; ///< Word classes file name
-      IMapper*  mapper;
-
+   struct IWordClassesMapping : public IMapping, private NonCopyable {
       static const string UNK_Symbol;   ///< "<unk>";
       static const string SentStart;    ///< "<s>";
       static const string SentEnd;      ///< "</s>";
+
+      /// Destructor.
+      virtual ~IWordClassesMapping() {}
+
+      /**
+       * Makes this class a proper functor for VocabFilter.
+       * @param word  the input word.
+       * @return Returns the class for the input word as a string.
+       */
+      virtual const string& operator()(string& word) = 0;
+   };
+
+   /**
+    * Map words to word classes.
+    * Reads into memory a text file containing the WordClasses.
+    */
+   struct WordClassesTextMapper : public IWordClassesMapping {
+      string classesFile;       ///< Word classes file name
+      WordClasses word_classes; ///< Word to class mapping
+      vector<string> class_str; ///< strings for class numbers
 
       /**
        * Default constructor.
        * @param classesFile name of the classes file mapping words to class numbers.
        * @param vocab       if non-NULL, add entries only for words also in vocab
        */
-      WordClassesMap(const string& classesFile, Voc *vocab);
+      WordClassesTextMapper(const string& classesFile, Voc *vocab);
 
       /**
        * Makes this class a proper functor for VocabFilter.
@@ -120,7 +139,42 @@ class LMDynMap : public PLM
       virtual const string& operator()(string& word);
    };
 
+   /**
+    * Map words to word classes.
+    * Uses a memory mapped map for its WordClasses.
+    */
+   struct WordClassesMemoryMappedMapper : public IWordClassesMapping {
+      MMMap word2class;          ///< Memory Mapped Map of Word to Classes mapping.
+      mutable string className;  ///< Placeholder for the word's class name.
 
+      /**
+       * Default constructor.
+       * @param classesFile name of the classes file mapping words to class numbers.
+       * @param vocab       if non-NULL, add entries only for words also in vocab
+       */
+      WordClassesMemoryMappedMapper(const string& classesFile);
+
+      /**
+       * Makes this class a proper functor for VocabFilter.
+       * @param word  the input word.
+       * @return Returns the class for the input word as a string.
+       */
+      virtual const string& operator()(string& word);
+   };
+
+   /**
+    * Factory that either loads a text or memory mapped map word to classes file.
+    * @param fname  word classes filename either text or memory mapped map.
+    * @param vocab  shared vocab object for all models.
+    */
+   static IWordClassesMapping* getWord2ClassesMapper(const string& fname, Voc* vocab);
+
+   /// For cxxtest.
+   LMDynMap() {}
+
+
+
+private:
    // contents
 
    bool limit_vocab;            ///< remember value on construction
