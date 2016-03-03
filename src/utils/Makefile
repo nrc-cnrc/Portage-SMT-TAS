@@ -24,7 +24,6 @@ OBJECTS = \
         line_indexed_file.o \
         ls_poly_fit.o \
         MagicStream.o \
-	mapper.o \
         matrix_solver.o \
         mm_map.o \
         multi_voc.o \
