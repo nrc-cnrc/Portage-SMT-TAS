@@ -26,10 +26,110 @@ using namespace std;
 using namespace Portage;
 
 /*-----------------------------------------------------------------------------
+  SparseModel
+  ---------------------------------------------------------------------------*/
+SparseModel::IWordClassesMapping::IWordClassesMapping(Uint unknown)
+: num_clust_id(0)
+, unknown(unknown)
+{ }
+
+SparseModel::IWordClassesMapping::~IWordClassesMapping()
+{ }
+
+Uint SparseModel::IWordClassesMapping::numClustIds() const {
+   return num_clust_id;
+}
+
+
+SparseModel::WordClassesTextMapper::WordClassesTextMapper(const string& filename, Voc& voc, Uint unknown)
+: IWordClassesMapping(unknown)
+{
+   uint max_clust_id = 0;
+   // TODO: WHY? are we creating wl and not using map instead?
+   Word2ClassMap* wl = &(this->word2class_map);
+   iSafeMagicStream is(filename);
+   string line;
+   vector<string> toks;
+   while (getline(is, line)) {
+      if(splitZ(line,toks)!=2)
+         error(ETFatal, "mkcls file " + filename + " poorly formatted");
+      // TODO: do we really need to add all words from the map to the voc?
+      // ANSWER: in load-first mode we are missing the target sentence vocabulary.
+      const Uint voc_id = voc.add(toks[0].c_str());
+      //const Uint voc_id = voc.index(toks[0].c_str());
+      Uint clus_id = 0;
+      stringstream ss(toks[1]);
+      ss >> clus_id;
+      //assert(clus_id!=(Uint)0); // CAC: Opting to fail silently; happens when
+                                  // the text includes '1$','2$','3$' or '4$'
+                                  // May want to include a warning.
+      assert(wl->find(voc_id) == wl->end());
+      (*wl)[voc_id] = clus_id;
+      if(clus_id > max_clust_id) max_clust_id = clus_id;
+   }
+   num_clust_id = max_clust_id + 1; // Max is actually one more than the max
+}
+
+Uint SparseModel::WordClassesTextMapper::operator()(Uint voc_id) const
+{
+   Word2ClassMap::const_iterator p = word2class_map.find(voc_id);
+   return p == word2class_map.end() ? unknown : p->second;
+}
+
+
+SparseModel::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& filename, const Voc& voc, Uint unknown)
+: IWordClassesMapping(unknown)
+, word2class_map(filename)
+, voc(voc)
+{
+   // TODO:
+   // - load MMMap
+   // - find the high class id.
+   num_clust_id = 0;
+   for (MMMap::const_value_iterator it(word2class_map.vbegin()); it!=word2class_map.vend(); ++it) {
+      const Uint classId = conv<Uint>(*it);
+      if (classId > num_clust_id)
+         num_clust_id = classId;
+   }
+   num_clust_id += 1;
+}
+
+Uint SparseModel::WordClassesMemoryMappedMapper::operator()(Uint voc_id) const
+{
+   // TODO: what to do if the word is not in the vocabulary?
+   if (voc_id >= voc.size()) return unknown;
+
+   MMMap::const_iterator it = word2class_map.find(voc.word(voc_id));
+   if (it == word2class_map.end()) return unknown;
+
+   return conv<Uint>(it.getValue());
+}
+
+
+SparseModel::IWordClassesMapping* SparseModel::getWordClassesMapper(const string& filename, Voc& voc, Uint unknown) {
+   string magicNumber;
+   iSafeMagicStream is(filename);
+   if (!getline(is, magicNumber))
+      error(ETFatal, "Empty classfile %s", filename.c_str());
+
+   IWordClassesMapping* mapper = NULL;
+   if (magicNumber == MMMap::version1)
+      error(ETFatal, "SparseModels require MMmap >= 2.0.");
+   else if (magicNumber == MMMap::version2)
+      mapper = new WordClassesMemoryMappedMapper(filename, voc, unknown);
+   else
+      mapper = new WordClassesTextMapper(filename, voc, unknown);
+
+   assert(mapper != NULL);
+   return mapper;
+}
+
+
+/*-----------------------------------------------------------------------------
   ClusterMap
   ---------------------------------------------------------------------------*/
 SparseModel::ClusterMap::ClusterMap(SparseModel& m, const string& filename)
-: word2class_map(loadWordClassesMapper(adjustRelativePath(m.path, filename), *(m.voc)))
+: word2class_map(getWordClassesMapper(adjustRelativePath(m.path, filename), *(m.voc)))
 {
    assert(word2class_map != NULL);
 }
