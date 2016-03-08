@@ -124,21 +124,3 @@ nowa.tok:
 	${TOKENIZE_PLUGIN} ar <<< "ويطيب الحب في تلك الربا مثلما السيف إذا مست يطيب #سوريا"  > $@
 
 
-# Validate escaping the entities.
-.PHONY:  entities.validate
-all:  entities.validate
-# Weird entries in the word2morpho map.
-# tail -n 1 tokenize/Arabic/Data.pm | jq '.["<"]'
-# "A"
-# tail -n 1 tokenize/Arabic/Data.pm | jq '.[">"]'
-# "A"
-# This test used to intentionally fail, as a reminder to fix the problem someday.
-# Now systematically ignores the error - Jira ticket PTGSH-192 is now the reminder to fix it.
-entities.validate:  entities.tok
-	[[ `\wc -l < $<` -eq 1 ]]
-	-diff $< <(echo "A &amp; A") --brief
-	echo "There is an error in the map.  We shouldn't be mapping < and > to A." >&2
-entities.tok:
-	${TOKENIZE_PLUGIN} ar <<< "<&>"  > $@
-
-
