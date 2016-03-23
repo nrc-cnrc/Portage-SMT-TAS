@@ -7,8 +7,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2015, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2015, Her Majesty in Right of Canada
+# Copyright 2006 - 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2016, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -46,7 +46,7 @@ setenv PORTAGE $HOME/PortageII-cur
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2015, Her Majesty in Right of Canada' > /dev/stderr
+echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada' > /dev/stderr
 
 # Setup third-party software in the default location
 # Setup architecture-specific binaries last, so they come ahead of everything else
