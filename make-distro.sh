@@ -13,7 +13,16 @@
 
 echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2013, Her Majesty in Right of Canada'
 
-GIT_PATH=balzac.iit.nrc.ca:/home/git
+GIT_PATH=$PORTAGE_GIT_ROOT
+if [[ -d /space/project/portage ]]; then
+   # Green:
+   REF_PORTAGE_DIR=gpsc-in:/space/project/portage
+   LIZZY_ROOT=gpsc-in:/space/project/portage/PORTAGEshared/Lizzy
+else
+   # Black:
+   REF_PORTAGE_DIR=balzac.iit.nrc.ca:/home/portage
+   LIZZY_ROOT=wiki-ilt:/export/projets/Lizzy
+fi
 
 usage() {
    for msg in "$@"; do
@@ -74,7 +83,8 @@ Options:
                 .iso file.  PREREQ_TOKEN must be a word that exists in the old
                 INSTALL but in no other distributed versions of INSTALL, past
                 or future.
-  -framework    Include framework from Git repository FRAMEWORK.
+  -framework    Include framework from Git repository FRAMEWORK
+                [portage.framework]
 
 Canned options for specific licensees:
 
@@ -164,6 +174,7 @@ done
 
 ICU=yes
 ICU_ROOT=$PORTAGE
+FRAMEWORK=portage.framework
 while [ $# -gt 0 ]; do
    case "$1" in
    -d)                  arg_check 1 $# $1; GIT_PATH="$2"; shift;;
@@ -290,7 +301,7 @@ get_test_systems() {
    # Some test suites rely on data in $PORTAGE/test-suite/systems
    print_header get_test_systems
    r pushd ./$OUTPUT_DIR
-      r rsync -arz balzac.iit.nrc.ca:/home/portage/test-suite/systems/ PORTAGEshared/test-suite/systems
+      r rsync -arz $REF_PORTAGE_DIR/test-suite/systems/ PORTAGEshared/test-suite/systems
    r popd
 }
 
@@ -299,7 +310,7 @@ get_user_manual() {
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual
    r pushd ./$OUTPUT_DIR
-      r rsync -arz wiki-ilt:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      r rsync -arz $LIZZY_ROOT/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       r find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       r find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
@@ -452,7 +463,7 @@ make_iso_and_tar() {
       else
          PATCH_FILES=
       fi
-      r r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+      r r -no-error mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '>&' iso.log
       r mv PORTAGEshared PortageII-cur
       r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-cur '>&' tar.log
