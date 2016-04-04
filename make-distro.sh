@@ -100,7 +100,7 @@ Distro creation check list:
   - Tag the PORTAGEshared, portage.framework and tmx-prepro Git repos with the
     current version, e.g., git tag -a PortageII-4.0 master; git push --tags
   - Change the year in src/utils/portage_info.cc, SETUP.{bash,tcsh}, the
-    INSTALL file, all the README files
+    INSTALL file, all the README files, PortageLive/www/html/portage_notices.php
   - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
     printCopyright.h
   - Update the API version in PortageLiveAPI.php's getVersion() method.
