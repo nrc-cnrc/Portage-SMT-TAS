@@ -2454,16 +2454,24 @@ log.info(messageExchange.getEndpoint())
 context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
             </con:configuration>
           </con:assertion>
+          <con:assertion type="XQuery Match" name="There shouldn't be an error submitting the translation.">
+            <con:configuration>
+              <path>exists(//div[@id = "problemDescription"])</path>
+              <content>false</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
           <con:credentials>
             <con:authType>No Authorization</con:authType>
           </con:credentials>
           <con:attachment>
-            <con:name>soapui.sdlxliff</con:name>
+            <con:name>soapui.tmx.utf8</con:name>
             <con:contentType>application/octet-stream</con:contentType>
-            <con:size>4068</con:size>
+            <con:size>2033</con:size>
             <con:contentId>filename</con:contentId>
-            <con:data>UEsDBBQACAgIAMl4R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICADJeEdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
-            <con:id>c61def18-8150-4edf-8c6e-e3d5cfdaaeb7</con:id>
+            <con:url>C:/temp/sopaui.examples/soapui.tmx.utf8</con:url>
+            <con:data>UEsDBBQACAgIAON4WkgAAAAAAAAAAAAAAAAPAAAAc29hcHVpLnRteC51dGY4xVVLb9tGED7XgP/DlAefIot07BSOJAcBIyUGWjUwFQQpdFmRQ3Jh7i67D8VC4P/emWUkOI0T9FRfyJ337Dcfh9NXd6qDLVonjZ4l2WmawKur46Ppr2/+zFef3s/BqzsoPhWr+R+Q0Dk7P618lbALWx5Enkdli6JCe3z0C5QWhSebN6abJVupkn9rD8F7o8PG73qcJQ61R11i1JqRV/UsWX08/yg1nJ2msDBWCR+NolJSd0I3s2S+HH0ohjy2PKjy11FVCS+G3NbX33RCFtKepdlF+lt28Y1JVrOkECpgR2q+XW9ND0Oam9ViQddYiU2HfPMv65pEv+kgnjNY18oQFHpd9/ZvFstWWIc+hdwEK9HCEj9P7o+P7qdjzvt9/sLvOixaRD8UcCw7lmONwsPapcCHJSwZku7+h+mWQlGbzog+SHBC9R0+6pebfmdl01JJhgSWN/kop8ejzm/QlVb2DFVyNaeRWXiggndoHxQZD9SgIwkbU+0ihwIEJxosTdCeWJQAoaQbPAzleUpjWWVnF9nzy7/2Vp5Lvnp3vVi8/vD7aiBj2AJR+eXDubOeKEWdbaU1WhGpIBdaVAJGkHeSOISQx4ykWMaRiw6u9ZY8jd3BDfbGesguL9MR9ZK9hLcWUbcmOIS3wkFBkyzRgdAVFFLfOiCGHkrM77AMXm4RiqCUsLvpmNthLKjdr+8Bj/8Fh2nwV1/WpXtB9FyX9Ys1O2Xp2TnAdEy2k85PXC/0SeMn7HsftYX0+F8ix9+HAkEenvjSRY+l5BF5uJHuFt6HTSdLGm0jnX/ykQxcORG9cRP3GAWLsFHS8ZoE6cC3SFzTgVxKo1TQsowhZLAmNC18bmXZ7hmoaFMQI73bx9jIZ6kbMARCE0MdBE2fZUydm1iXEzKjHdotI/e1bvCtsZLWKDNa6oprGxs9N8JRd6bmrnphpaMMJOn9fXq0NS8oWumnT4z4tWcgBbj46XKXFjvJW/wZVOiF7LCi28V2IxJ0GgCVgsAixS3uAPdD8RZ15aKTY6bVxK0htXtGAJaE0LAeLBGO0J5EgXbiVlaMLSFmkRw9d8I/qSEV+jgmwpWa03ioN+Sqg6WJMPSi2xHyP8F0vN+0Y/pd0/sfUEsHCOe01GxIAwAA8QcAAFBLAQIUABQACAgIAON4WkjntNRsSAMAAPEHAAAPAAAAAAAAAAAAAAAAAAAAAABzb2FwdWkudG14LnV0ZjhQSwUGAAAAAAEAAQA9AAAAhQMAAAAA</con:data>
+            <con:id>69eb7cd8-fa4f-441e-a34e-165c481b0c5e</con:id>
           </con:attachment>
           <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
           <con:jmsPropertyConfig/>
@@ -2638,12 +2646,13 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:authType>No Authorization</con:authType>
           </con:credentials>
           <con:attachment>
-            <con:name>soapui.sdlxliff</con:name>
+            <con:name>soapui.tmx.utf8</con:name>
             <con:contentType>application/octet-stream</con:contentType>
-            <con:size>4068</con:size>
+            <con:size>2033</con:size>
             <con:contentId>filename</con:contentId>
-            <con:data>UEsDBBQACAgIAMl4R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICADJeEdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
-            <con:id>c61def18-8150-4edf-8c6e-e3d5cfdaaeb7</con:id>
+            <con:url>C:/temp/sopaui.examples/soapui.tmx.utf8</con:url>
+            <con:data>UEsDBBQACAgIABF5WkgAAAAAAAAAAAAAAAAPAAAAc29hcHVpLnRteC51dGY4xVVLb9tGED7XgP/DlAefIot07BSOJAcBIyUGWjUwFQQpdFmRQ3Jh7i67D8VC4P/emWUkOI0T9FRfyJ337Dcfh9NXd6qDLVonjZ4l2WmawKur46Ppr2/+zFef3s/BqzsoPhWr+R+Q0Dk7P618lbALWx5Enkdli6JCe3z0C5QWhSebN6abJVupkn9rD8F7o8PG73qcJQ61R11i1JqRV/UsWX08/yg1nJ2msDBWCR+NolJSd0I3s2S+HH0ohjy2PKjy11FVCS+G3NbX33RCFtKepdlF+lt28Y1JVrOkECpgR2q+XW9ND0Oam9ViQddYiU2HfPMv65pEv+kgnjNY18oQFHpd9/ZvFstWWIc+hdwEK9HCEj9P7o+P7qdjzvt9/sLvOixaRD8UcCw7lmONwsPapcCHJSwZku7+h+mWQlGbzog+SHBC9R0+6pebfmdl01JJhgSWN/kop8ejzm/QlVb2DFVyNaeRWXiggndoHxQZD9SgIwkbU+0ihwIEJxosTdCeWJQAoaQbPAzleUpjWWVnF9nzy7/2Vp5Lvnp3vVi8/vD7aiBj2AJR+eXDubOeKEWdbaU1WhGpIBdaVAJGkHeSOISQx4ykWMaRiw6u9ZY8jd3BDfbGesguL9MR9ZK9hLcWUbcmOIS3wkFBkyzRgdAVFFLfOiCGHkrM77AMXm4RiqCUsLvpmNthLKjdr+8Bj/8Fh2nwV1/WpXtB9FyX9Ys1O2Xp2TnAdEy2k85PXC/0SeMn7HsftYX0+F8ix9+HAkEenvjSRY+l5BF5uJHuFt6HTSdLGm0jnX/ykQxcORG9cRP3GAWLsFHS8ZoE6cC3SFzTgVxKo1TQsowhZLAmNC18bmXZ7hmoaFMQI73bx9jIZ6kbMARCE0MdBE2fZUydm1iXEzKjHdotI/e1bvCtsZLWKDNa6oprGxs9N8JRd6bmrnphpaMMJOn9fXq0NS8oWumnT4z4tWcgBbj46XKXFjvJW/wZVOiF7LCi28V2IxJ0GgCVgsAixS3uAPdD8RZ15aKTY6bVxK0htXtGAJaE0LAeLBGO0J5EgXbiVlaMLSFmkRw9d8I/qSEV+jgmwpWa03ioN+Sqg6WJMPSi2xHyP8F0vN+0Y/pd0/sfUEsHCOe01GxIAwAA8QcAAFBLAQIUABQACAgIABF5WkjntNRsSAMAAPEHAAAPAAAAAAAAAAAAAAAAAAAAAABzb2FwdWkudG14LnV0ZjhQSwUGAAAAAAEAAQA9AAAAhQMAAAAA</con:data>
+            <con:id>119c8da2-c77a-4fcd-9f52-5eb7b7fb8e54</con:id>
           </con:attachment>
           <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
           <con:jmsPropertyConfig/>
@@ -2823,12 +2832,13 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:authType>No Authorization</con:authType>
           </con:credentials>
           <con:attachment>
-            <con:name>soapui.sdlxliff</con:name>
+            <con:name>soapui.tmx.utf8</con:name>
             <con:contentType>application/octet-stream</con:contentType>
-            <con:size>4068</con:size>
+            <con:size>2033</con:size>
             <con:contentId>filename</con:contentId>
-            <con:data>UEsDBBQACAgIAMl4R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICADJeEdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
-            <con:id>c61def18-8150-4edf-8c6e-e3d5cfdaaeb7</con:id>
+            <con:url>C:/temp/sopaui.examples/soapui.tmx.utf8</con:url>
+            <con:data>UEsDBBQACAgIAC95WkgAAAAAAAAAAAAAAAAPAAAAc29hcHVpLnRteC51dGY4xVVLb9tGED7XgP/DlAefIot07BSOJAcBIyUGWjUwFQQpdFmRQ3Jh7i67D8VC4P/emWUkOI0T9FRfyJ337Dcfh9NXd6qDLVonjZ4l2WmawKur46Ppr2/+zFef3s/BqzsoPhWr+R+Q0Dk7P618lbALWx5Enkdli6JCe3z0C5QWhSebN6abJVupkn9rD8F7o8PG73qcJQ61R11i1JqRV/UsWX08/yg1nJ2msDBWCR+NolJSd0I3s2S+HH0ohjy2PKjy11FVCS+G3NbX33RCFtKepdlF+lt28Y1JVrOkECpgR2q+XW9ND0Oam9ViQddYiU2HfPMv65pEv+kgnjNY18oQFHpd9/ZvFstWWIc+hdwEK9HCEj9P7o+P7qdjzvt9/sLvOixaRD8UcCw7lmONwsPapcCHJSwZku7+h+mWQlGbzog+SHBC9R0+6pebfmdl01JJhgSWN/kop8ejzm/QlVb2DFVyNaeRWXiggndoHxQZD9SgIwkbU+0ihwIEJxosTdCeWJQAoaQbPAzleUpjWWVnF9nzy7/2Vp5Lvnp3vVi8/vD7aiBj2AJR+eXDubOeKEWdbaU1WhGpIBdaVAJGkHeSOISQx4ykWMaRiw6u9ZY8jd3BDfbGesguL9MR9ZK9hLcWUbcmOIS3wkFBkyzRgdAVFFLfOiCGHkrM77AMXm4RiqCUsLvpmNthLKjdr+8Bj/8Fh2nwV1/WpXtB9FyX9Ys1O2Xp2TnAdEy2k85PXC/0SeMn7HsftYX0+F8ix9+HAkEenvjSRY+l5BF5uJHuFt6HTSdLGm0jnX/ykQxcORG9cRP3GAWLsFHS8ZoE6cC3SFzTgVxKo1TQsowhZLAmNC18bmXZ7hmoaFMQI73bx9jIZ6kbMARCE0MdBE2fZUydm1iXEzKjHdotI/e1bvCtsZLWKDNa6oprGxs9N8JRd6bmrnphpaMMJOn9fXq0NS8oWumnT4z4tWcgBbj46XKXFjvJW/wZVOiF7LCi28V2IxJ0GgCVgsAixS3uAPdD8RZ15aKTY6bVxK0htXtGAJaE0LAeLBGO0J5EgXbiVlaMLSFmkRw9d8I/qSEV+jgmwpWa03ioN+Sqg6WJMPSi2xHyP8F0vN+0Y/pd0/sfUEsHCOe01GxIAwAA8QcAAFBLAQIUABQACAgIAC95WkjntNRsSAMAAPEHAAAPAAAAAAAAAAAAAAAAAAAAAABzb2FwdWkudG14LnV0ZjhQSwUGAAAAAAEAAQA9AAAAhQMAAAAA</con:data>
+            <con:id>3dbe1ea7-616b-40ea-815f-27e44a8a2f9b</con:id>
           </con:attachment>
           <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
           <con:jmsPropertyConfig/>
@@ -3003,12 +3013,13 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:authType>No Authorization</con:authType>
           </con:credentials>
           <con:attachment>
-            <con:name>soapui.tmx</con:name>
+            <con:name>soapui.tmx.utf8</con:name>
             <con:contentType>application/octet-stream</con:contentType>
-            <con:size>4068</con:size>
+            <con:size>2033</con:size>
             <con:contentId>filename</con:contentId>
-            <con:data>UEsDBBQACAgIAEZ5R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICABGeUdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
-            <con:id>8b80dca4-aae3-4bf3-a2fd-9a45065ba57e</con:id>
+            <con:url>C:/temp/sopaui.examples/soapui.tmx.utf8</con:url>
+            <con:data>UEsDBBQACAgIAEt5WkgAAAAAAAAAAAAAAAAPAAAAc29hcHVpLnRteC51dGY4xVVLb9tGED7XgP/DlAefIot07BSOJAcBIyUGWjUwFQQpdFmRQ3Jh7i67D8VC4P/emWUkOI0T9FRfyJ337Dcfh9NXd6qDLVonjZ4l2WmawKur46Ppr2/+zFef3s/BqzsoPhWr+R+Q0Dk7P618lbALWx5Enkdli6JCe3z0C5QWhSebN6abJVupkn9rD8F7o8PG73qcJQ61R11i1JqRV/UsWX08/yg1nJ2msDBWCR+NolJSd0I3s2S+HH0ohjy2PKjy11FVCS+G3NbX33RCFtKepdlF+lt28Y1JVrOkECpgR2q+XW9ND0Oam9ViQddYiU2HfPMv65pEv+kgnjNY18oQFHpd9/ZvFstWWIc+hdwEK9HCEj9P7o+P7qdjzvt9/sLvOixaRD8UcCw7lmONwsPapcCHJSwZku7+h+mWQlGbzog+SHBC9R0+6pebfmdl01JJhgSWN/kop8ejzm/QlVb2DFVyNaeRWXiggndoHxQZD9SgIwkbU+0ihwIEJxosTdCeWJQAoaQbPAzleUpjWWVnF9nzy7/2Vp5Lvnp3vVi8/vD7aiBj2AJR+eXDubOeKEWdbaU1WhGpIBdaVAJGkHeSOISQx4ykWMaRiw6u9ZY8jd3BDfbGesguL9MR9ZK9hLcWUbcmOIS3wkFBkyzRgdAVFFLfOiCGHkrM77AMXm4RiqCUsLvpmNthLKjdr+8Bj/8Fh2nwV1/WpXtB9FyX9Ys1O2Xp2TnAdEy2k85PXC/0SeMn7HsftYX0+F8ix9+HAkEenvjSRY+l5BF5uJHuFt6HTSdLGm0jnX/ykQxcORG9cRP3GAWLsFHS8ZoE6cC3SFzTgVxKo1TQsowhZLAmNC18bmXZ7hmoaFMQI73bx9jIZ6kbMARCE0MdBE2fZUydm1iXEzKjHdotI/e1bvCtsZLWKDNa6oprGxs9N8JRd6bmrnphpaMMJOn9fXq0NS8oWumnT4z4tWcgBbj46XKXFjvJW/wZVOiF7LCi28V2IxJ0GgCVgsAixS3uAPdD8RZ15aKTY6bVxK0htXtGAJaE0LAeLBGO0J5EgXbiVlaMLSFmkRw9d8I/qSEV+jgmwpWa03ioN+Sqg6WJMPSi2xHyP8F0vN+0Y/pd0/sfUEsHCOe01GxIAwAA8QcAAFBLAQIUABQACAgIAEt5WkjntNRsSAMAAPEHAAAPAAAAAAAAAAAAAAAAAAAAAABzb2FwdWkudG14LnV0ZjhQSwUGAAAAAAEAAQA9AAAAhQMAAAAA</con:data>
+            <con:id>7afc3b22-5ce8-4316-b59e-dc0c452c2eb6</con:id>
           </con:attachment>
           <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
           <con:jmsPropertyConfig/>
@@ -3376,6 +3387,13 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
               <scriptText>log.info(messageExchange.getRequestContent())
 log.info(messageExchange.getEndpoint())
 context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There shouldn't be an error submitting the translation request">
+            <con:configuration>
+              <path>exists(//div[@id = "problemDescription"])</path>
+              <content>false</content>
+              <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
           <con:credentials>
@@ -3862,7 +3880,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
           <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
             <con:configuration>
               <scriptText>log.info(messageExchange.getRequestContent())
-log.info(messageExchange.getEndpoint())
+log.info('monitoringToken: ' + messageExchange.getEndpoint())
 context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
             </con:configuration>
           </con:assertion>
@@ -4053,7 +4071,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>text/plain</con:contentType>
             <con:size>5113</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>c:/temp/2010-385-source-CCI_272(OR)_fr.short.txt</con:url>
             <con:data>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</con:data>
             <con:id>7f91e3b2-167c-48fb-9de8-27f4584955ca</con:id>
           </con:attachment>

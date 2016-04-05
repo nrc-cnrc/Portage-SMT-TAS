@@ -1,0 +1,13 @@
+[ttable-multi-prob] 
+   ../data/phrases.fr2en
+[lmodel-file] 
+   ../data/train_en.lm
+[weight-l] 0.01502795238
+[weight-t] 0
+[ttable-limit] 30
+[ttable-threshold] 0.001
+[regular-stack] 70
+[beam-threshold] 0.01
+[distortion-limit] 7
+[weight-d] 1
+[weight-w] 0.06156108901

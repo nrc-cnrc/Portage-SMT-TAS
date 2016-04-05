@@ -78,6 +78,7 @@ ICU ?= $(PORTAGE)# AT NRC
 
 #CXXTEST ?= NONE
 CXXTEST ?= $(PORTAGE)/third-party/cxxtest
+CXXTEST:=${CXXTEST_HOME}  # AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP

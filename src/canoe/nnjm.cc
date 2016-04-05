@@ -146,11 +146,11 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
       } else if (toks[i] == "[srcclasses]") {
          checkArg(toks, i++, 1);
 	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         srctags = loadClasses(adjustRelativePath(dir, toks[i]), "<unk>");
+         srctags = getWord2ClassesMapper(adjustRelativePath(dir, toks[i]), keywords[UNK]);
       } else if (toks[i] == "[tgtclasses]") {
          checkArg(toks, i++, 1);
 	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         tgttags = loadClasses(adjustRelativePath(dir, toks[i]), "<unk>");
+         tgttags = getWord2ClassesMapper(adjustRelativePath(dir, toks[i]), keywords[UNK]);
       } else if (toks[i] == "[file]") {
          checkArg(toks, i++, 1);
          vector<string> hashsplit;
@@ -454,3 +454,74 @@ void NNJM::dumpContext(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uin
    if (nnjm_wrap && caching) cerr << " (misses=" << cache_misses << ")";
    cerr << endl;
 }
+
+
+
+NNJM::IWordClassesMapping* NNJM::getWord2ClassesMapper(const string& fname, const string& unknown) {
+   string magicNumber;
+   iSafeMagicStream is(fname);
+   if (!getline(is, magicNumber))
+      error(ETFatal, "Empty classfile %s", fname.c_str());
+
+   IWordClassesMapping* mapper(NULL);
+   if (magicNumber == MMMap::version2)
+      mapper = new WordClassesMemoryMappedMapper(fname, unknown);
+   else
+      mapper = new WordClassesTextMapper(fname, unknown);
+   assert(mapper != NULL);
+
+   return mapper;
+}
+
+
+
+NNJM::WordClassesTextMapper::WordClassesTextMapper(const string& fname, const string& unknown)
+: IWordClassesMapping(unknown)
+{
+   //cerr << "Loading text classes " << fname << endl;
+   iSafeMagicStream is(fname);
+   string line;
+   const char* sep = " \t";
+   while (getline(is, line)) {
+      const Uint len = strlen(line.c_str());
+      char work[len+1];
+      strcpy(work, line.c_str());
+      assert(work[len] == '\0');
+
+      char* strtok_state;
+      const char* word = strtok_r(work, sep, &strtok_state);
+      if (word == NULL)
+         error(ETFatal, "expected 'word\ttag' entries in <%s>", fname.c_str());
+      const char* tag = strtok_r(NULL, sep, &strtok_state);
+      if (tag == NULL)
+         error(ETFatal, "expected 'word\ttag' entries in <%s>", fname.c_str());
+
+      word2class[word] = tag;
+   }
+}
+
+
+const string& NNJM::WordClassesTextMapper::operator()(const string& word) const {
+   Word2class::const_iterator it = word2class.find(word);
+   if (it == word2class.end()) return unknown;
+   return it->second;
+}
+
+
+
+NNJM::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& fname, const string& unknown)
+: IWordClassesMapping(unknown)
+, word2class(fname)
+{
+}
+
+
+const string& NNJM::WordClassesMemoryMappedMapper::operator()(const string& word) const {
+   MMMap::const_iterator it = word2class.find(word.c_str());
+   if (it == word2class.end())
+      return unknown;
+
+   className = it.getValue();
+   return className;
+}
+

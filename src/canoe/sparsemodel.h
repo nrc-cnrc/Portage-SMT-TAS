@@ -39,112 +39,97 @@ namespace Portage
  */
 class SparseModel : public DecoderFeature
 {
-public:
-   struct IMapper {
-      Uint num_clust_id;            // number of cluster IDs
-      Uint unknown;
+protected:
+   /**
+    * Interface to map words to their classes in SparseModel's context.
+    */
+   struct IWordClassesMapping {
+      Uint num_clust_id;            ///< number of cluster IDs
+      const Uint unknown;   ///< What to map to if the word is not in the map.
 
-      IMapper(Uint unknown)
-      : num_clust_id(0)
-      , unknown(unknown)
-      {}
-      virtual ~IMapper() {}
-      virtual Uint operator()(Uint in) const = 0;
-      virtual Uint numClustIds() const {
-         return num_clust_id;
-      }
+      /**
+       * Default constructor.
+       * @param  unknown  What will be returned if the word is not part of the map.
+       */
+      IWordClassesMapping(Uint unknown);
+
+      /// Destructor.
+      virtual ~IWordClassesMapping();
+
+      /**
+       * Maps a word to its class.
+       * @param  word  word you want to get its class.
+       * @return  word's class.
+       */
+      virtual Uint operator()(Uint word) const = 0;
+
+      /**
+       * Get the highest cluster value.
+       * @return  highest cluster value.
+       */
+      virtual Uint numClustIds() const;
    };
 
-   struct WordClassesMapper : public IMapper {
-      typedef unordered_map<Uint,Uint> Word2ClassMap;
+   /**
+    * Map words to word classes.
+    * Reads into memory a text file containing the WordClasses.
+    */
+   struct WordClassesTextMapper : public IWordClassesMapping {
+      typedef unordered_map<Uint, Uint> Word2ClassMap;   ///< maps word -> class.
 
-      Word2ClassMap word2class_map;
+      Word2ClassMap word2class_map;   ///< word -> class.
 
-      WordClassesMapper(const string& filename, Voc& voc, Uint unknown = 0)
-      : IMapper(unknown)
-      {
-         uint max_clust_id = 0;
-         // TODO: WHY? are we creating wl and not using map instead?
-         Word2ClassMap* wl = &(this->word2class_map);
-         iSafeMagicStream is(filename);
-         string line;
-         vector<string> toks;
-         while (getline(is, line)) {
-            if(splitZ(line,toks)!=2)
-               error(ETFatal, "mkcls file " + filename + " poorly formatted");
-            // TODO: do we really need to add all words from the map to the voc?
-            // ANSWER: in load-first mode we are missing the target sentence vocabulary.
-            const Uint voc_id = voc.add(toks[0].c_str());
-            //const Uint voc_id = voc.index(toks[0].c_str());
-            Uint clus_id = 0;
-            stringstream ss(toks[1]);
-            ss >> clus_id;
-            //assert(clus_id!=(Uint)0); // CAC: Opting to fail silently; happens when
-                                        // the text includes '1$','2$','3$' or '4$'
-                                        // May want to include a warning.
-            assert(wl->find(voc_id) == wl->end());
-            (*wl)[voc_id] = clus_id;
-            if(clus_id > max_clust_id) max_clust_id = clus_id;
-         }
-         num_clust_id = max_clust_id + 1; // Max is actually one more than the max
-      }
+      /**
+       * Default constructor.
+       * @param  filename  word to class text file.
+       * @param  voc  shared vocab object for all models.
+       * @param  unknown  What should we return if the word is not in the map.
+       */
+      WordClassesTextMapper(const string& filename, Voc& voc, Uint unknown = 0);
 
-      virtual Uint operator()(Uint voc_id) const
-      {
-         Word2ClassMap::const_iterator p = word2class_map.find(voc_id);
-         return p == word2class_map.end() ? unknown : p->second;
-      }
+      /**
+       * Maps a word to its class.
+       * @param  word  word you want to get its class.
+       * @return  word's class.
+       */
+      virtual Uint operator()(Uint voc_id) const;
    };
 
-   struct WordClassesMapper_MemoryMapped : public IMapper {
-      MMMap  word2class_map;
-      const Voc& voc;
+   /**
+    * Map words to word classes.
+    * Uses a memory mapped map for its WordClasses.
+    */
+   struct WordClassesMemoryMappedMapper : public IWordClassesMapping {
+      MMMap  word2class_map;  ///> Memory Mapped map word -> class.
+      const Voc& voc;   ///< shared vocab object for all models.
 
-      WordClassesMapper_MemoryMapped(const string& filename, const Voc& voc, Uint unknown = 0)
-      : IMapper(unknown)
-      , word2class_map(filename)
-      , voc(voc)
-      {
-         // TODO:
-         // - load MMMap
-         // - find the high class id.
-         num_clust_id = 0;
-         for (MMMap::const_value_iterator it(word2class_map.vbegin()); it!=word2class_map.vend(); ++it) {
-            const Uint classId = conv<Uint>(*it);
-            if (classId > num_clust_id)
-               num_clust_id = classId;
-         }
-         num_clust_id += 1;
-      }
+      /**
+       * Default constructor.
+       * @param  filename  word to class Memory Mapped map file.
+       * @param  voc  shared vocab object for all models.
+       * @param  unknown  What should we return if the word is not in the map.
+       */
+      WordClassesMemoryMappedMapper(const string& filename, const Voc& voc, Uint unknown = 0);
 
-      virtual Uint operator()(Uint voc_id) const
-      {
-         // TODO: Using the mapper<const char*, const char*> that was created for coarse model
-         MMMap::const_iterator it = word2class_map.find(voc.word(voc_id));
-         if (it == word2class_map.end())
-            return unknown;
-
-         return conv<Uint>(it.getValue());
-      }
+      /**
+       * Maps a word to its class.
+       * @param  word  word you want to get its class.
+       * @return  word's class.
+       */
+      virtual Uint operator()(Uint voc_id) const;
    };
 
-   static IMapper* loadWordClassesMapper(const string& filename, Voc& voc) {
-      string magicNumber;
-      iSafeMagicStream is(filename);
-      if (!getline(is, magicNumber))
-         error(ETFatal, "Empty classfile %s", filename.c_str());
+   /**
+    * Factory that either loads a text or memory mapped map word to classes file.
+    * @param fname  word classes filename either text or memory mapped map.
+    * @param unknown  What will be returned if the word is not part of the map.
+    */
+   static IWordClassesMapping* getWordClassesMapper(const string& filename, Voc& voc, Uint unknown = 0);
 
-      IMapper* mapper = NULL;
-      if (magicNumber == MMMap::version1)
-         error(ETFatal, "SparseModels require MMmap >= 2.0.");
-      else if (magicNumber == MMMap::version2)
-         mapper = new WordClassesMapper_MemoryMapped(filename, voc);
-      else
-         mapper = new WordClassesMapper(filename, voc);
+   // For cxxtest
+   SparseModel() {}
 
-      assert(mapper != NULL);
-      return mapper;
-   }
+
 
 public:
    /**
@@ -304,7 +289,7 @@ public:
 
    // Data structure to map voc ids to clusters
    class ClusterMap {
-      IMapper* word2class_map;
+      IWordClassesMapping* word2class_map;
    public:
       // Constructor: Read many word\tcluster entries from a file, entering the 
       // mapping from vocid to cluster into a common map

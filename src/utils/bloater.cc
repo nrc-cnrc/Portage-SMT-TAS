@@ -42,6 +42,7 @@ Options:\n\
 -open    After each iteration, open and close a gzip file.  This is done to\n\
          test the memory duplication of fork used by popen used by\n\
          MagicStream.gz. [don't]\n\
+-pipe    Like -open, but opens a pipe which does not have a lib fallback.\n\
 -bind PID  Binds your program to the presence of the running PID;\n\
 ";
 
@@ -52,6 +53,7 @@ static bool verbose = false;
 static Uint64 blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
 static bool do_open = false;
+static bool do_pipe = false;
 static void getArgs(int argc, const char* const argv[]);
 
 // main
@@ -86,11 +88,21 @@ int MAIN(argc, argv)
          oSafeMagicStream* out = new oSafeMagicStream(filename);
          assert(out != NULL);
          if (verbose) {
-            out = NULL; // to quiet compiler warning
             cerr << endl << endl << "Showing the memory usage again after open gzip stream:" << endl;
             showMemoryUsage();
          }
+         delete out;
       }
+      if (do_pipe) {
+         oSafeMagicStream* out = new oSafeMagicStream("| cat > /dev/null");
+         assert(out != NULL);
+         if (verbose) {
+            cerr << endl << endl << "Showing the memory usage again after open pipe:" << endl;
+            showMemoryUsage();
+         }
+         delete out;
+      }
+
       sleep(1);
    } while (++round < maxIter);
 
@@ -101,13 +113,14 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "maxiter:", "open", "bind:"};
+   const char* switches[] = {"v", "maxiter:", "open", "pipe", "bind:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("maxiter", maxIter);
    arg_reader.testAndSet("open", do_open);
+   arg_reader.testAndSet("pipe", do_pipe);
    arg_reader.testAndSet("bind:", pid);
 
    // Open requires verbose.

@@ -31,5 +31,5 @@ rt.%: dev2_fr.al 100best.gz dev2_en.al
 		>& log.$*
 
 diff.%: rt.%
-	diff rescore-model.$* ref/rescore-model.$* -q
-	diff-round.pl -sort -p 5 scores.$* ref/scores.$* -q
+	diff rescore-model.$* ref/rescore-model.$* -q -s || diff rescore-model.$* ref-alt/rescore-model.$* -q -s
+	diff-round.pl -sort -p 5 scores.$* ref/scores.$* -q || diff-round.pl -sort -p 5 scores.$* ref-alt/scores.$* -q

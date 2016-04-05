@@ -175,6 +175,10 @@ GetOptions(
    "resume"    => sub {die "Error: Not implemented yet"},
 ) or usage "Error: Invalid option(s).";
 
+
+my %READERS = ( 'text/plain' => 'cat', 'application/x-gzip' => 'gzip -cqdf', 'application/x-xz' => 'xz -cqdf' );
+my %WRITERS = ( '.gz' => 'gzip', '.xz' => 'xz' );
+
 sub debug {
    print STDERR "<D> @_\n" if ($debug);
 }
@@ -327,17 +331,20 @@ unless ($use_stripe_splitting) {
    # Split all SPLITS
    foreach my $s (@SPLITS) {
       my $dir = "$workdir/" . $basename{$s};
+      my $mimeType=`file --dereference --brief --mime-type $s`;
+      chomp($mimeType);
+      my $reader=$READERS{$mimeType} || 'cat';
 
       my $NUM_LINE = $W;
       # Did the user specified a number of line to split into?
       if (defined($N)) {
-         $NUM_LINE = `gzip -cqfd $s | wc -l`;
+         $NUM_LINE = `$reader $s | wc -l`;
          $NUM_LINE = ceil($NUM_LINE / $N);
          $NUM_LINE = $W if (defined($W) and $W > $NUM_LINE);
       }
 
       verbose(1, "Splitting $s in $N chunks of ~$NUM_LINE lines in $dir");
-      my $rc = system("$debug_cmd gzip -cqfd $s | split -a 4 -d -l $NUM_LINE - $dir/");
+      my $rc = system("$debug_cmd $reader $s | split -a 4 -d -l $NUM_LINE - $dir/");
       die "Error: Error splitting $s\n" unless($rc eq 0);
 
       # Calculates the total number of jobs to create which can be different from
@@ -376,10 +383,13 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
    if ($use_stripe_splitting) {
       my $done = "$workdir/" . $basename{$SPLITS[0]} . "/$index.done";
       foreach my $s (@SPLITS) {
+         my $mimeType=`file --dereference --brief --mime-type $s`;
+         chomp($mimeType);
+         my $reader=$READERS{$mimeType} || 'cat';
          # NOTE: doing zcat file.gz | stripe.py is much much faster than
          # stripe.py file.gz.  Seems like the python's implementation of gzip is
          # quite slow.
-         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s|\))/$1<(zcat -f $s | stripe.py -i $i -m $N)$2/) {
+         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s|\))/$1<($reader $s | stripe.py -i $i -m $N)$2/) {
             die "Error: Unable to match $s";
          }
       }
@@ -388,11 +398,11 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
       print(CMD_FILE "set -o pipefail; test -f $done || { { $debug_cmd $SUB_CMD; } && touch $done; }\n");
    }
    else {
-      my @delete = ();
+      my @done = ();
       # For each occurence of a file to split, replace it by a chunk.
       foreach my $s (@SPLITS) {
          my $file = "$workdir/" . $basename{$s} . "/$index";
-         push(@delete, $file);
+         push(@done, $file);
          unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s|\))/$1$file$2/) {
             die "Error: Unable to match $s and $file";
          }
@@ -401,7 +411,7 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
       verbose(1, "\tAdding to the command list: $SUB_CMD");
       # By deleting the input chunks we say this block was properly process in
       # case of a resume is needed.
-      print(CMD_FILE "set -o pipefail; test ! -f $delete[0] || { { $debug_cmd $SUB_CMD; } && mv $delete[0] $delete[0].done; }\n");
+      print(CMD_FILE "set -o pipefail; test ! -f $done[0] || { { $debug_cmd $SUB_CMD; } && mv $done[0] $done[0].done; }\n");
    }
 }
 close(CMD_FILE) or die "Error: Unable to close command file!";
@@ -414,20 +424,17 @@ foreach my $m (@MERGES) {
    my $dir = "$workdir/" . $basename{$m};
    my $sub_cmd;
    my $find_files = "set -o pipefail; find $dir -maxdepth 1 -type f | sort | xargs";
-   if ($m =~ /.gz$/) {
-      $sub_cmd = "$MERGE_PGM | gzip > $m";
+   if ($m =~ m#/dev/stdout#) {
+      $sub_cmd = "$MERGE_PGM";
    }
-   else {   
-      if ($m =~ m#/dev/stdout#) {
-         $sub_cmd = "$MERGE_PGM";
-      }
-      elsif ($m =~ m#/dev/stderr#) {
-         # MERGE_PGM never applies to stderr
-         $sub_cmd = "cat 1>&2";
-      }
-      else {
-         $sub_cmd = "$MERGE_PGM > $m";
-      }
+   elsif ($m =~ m#/dev/stderr#) {
+      # MERGE_PGM never applies to stderr
+      $sub_cmd = "cat 1>&2";
+   }
+   else {
+      $m =~ m/(\.[^.]+)$/;
+      my $writer = $WRITERS{$1} || "cat";
+      $sub_cmd = "$MERGE_PGM | $writer > $m";
    }
    print MERGE_CMD_FILE "test ! -d $dir || { { $debug_cmd $find_files $sub_cmd; } && mv $dir $dir.done; }\n";
 }

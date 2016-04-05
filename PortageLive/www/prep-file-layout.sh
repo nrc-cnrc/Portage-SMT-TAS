@@ -121,6 +121,9 @@ ln -s ../favicon.ico ${HTML_DIR}/secure/
 # Copy the phrase alignment visualization page.
 cp phraseAlignmentVisualization.html ${HTML_DIR}/
 
+# Copy notices
+cp html/portage_notices.php ${HTML_DIR}/
+
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST
 # Copy them into secure/ as well, for use with ssl/https.

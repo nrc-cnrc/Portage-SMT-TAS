@@ -5,8 +5,6 @@
 #
 # @author Eric Joanis
 #
-# COMMENTS:
-#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -24,8 +22,6 @@ source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exi
 
 print_nrc_copyright canoe-parallel.sh 2005
 export PORTAGE_INTERNAL_CALL=1
-
-PATH="$PATH:/usr/local/bin"
 
 TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 CANOE=canoe
@@ -229,11 +225,18 @@ if [[ $NUMBER_OF_JOBS -ne 1 && $LOAD_BALANCING != byblock ]]; then
    warn "-j(ob) option is only available for regular load-balancing (-lb)"
 fi
 
-
 # Make sure the path to self is on the PATH variable: if an explicit path to
 # canoe-parallel.sh is given, we want to look for canoe and other programs in
-# the same directory, rather than find it on the path.
-export PATH=`dirname "$0"`:$PATH
+# the same directory, but we don't want to mess with PATH if not necessary.
+# Warn about changes to PATH.
+BIN=$(dirname "$0")
+if [[ $(cd $BIN; pwd -P) != $(dirname $(which canoe 2> /dev/null) 2> /dev/null) ]]; then
+   debug "BIN: $(cd $BIN; pwd -P)"
+   debug "Found canoe in: $(dirname $(which canoe 2> /dev/null) 2> /dev/null)"
+   export PATH=$BIN:$PATH
+   warn "Added '$BIN' at the front of PATH, to look for canoe and other programs in the same directory as canoe-parallel.sh."
+   debug "PATH is now: $PATH"
+fi
 
 if [[ $VERBOSE -gt 0 ]]; then
    echo "" >&2
@@ -321,7 +324,7 @@ function full_translation
    # Calculate the number of jobs/workers to use if user hasn't specified it,
    min () { if [ $1 -lt $2 ]; then echo $1; else echo $2; fi }
    if [ ! $NUM ]; then
-      if which-test.sh qsub; then
+      if on-cluster.sh; then
          NUM=$(( ($INPUT_LINES + $HIGH_SENT_PER_BLOCK - 1) / $HIGH_SENT_PER_BLOCK ))
          if [ $NUM -lt $MIN_DEFAULT_NUM ]; then
                NUM=$(min $MIN_DEFAULT_NUM $(( ($INPUT_LINES + $LOW_SENT_PER_BLOCK - 1) / $LOW_SENT_PER_BLOCK )) )

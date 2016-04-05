@@ -13,7 +13,16 @@
 
 echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2013, Her Majesty in Right of Canada'
 
-GIT_PATH=balzac.iit.nrc.ca:/home/git
+GIT_PATH=$PORTAGE_GIT_ROOT
+if [[ -d /space/project/portage ]]; then
+   # Green:
+   REF_PORTAGE_DIR=gpsc-in:/space/project/portage
+   LIZZY_ROOT=gpsc-in:/space/project/portage/PORTAGEshared/Lizzy
+else
+   # Black:
+   REF_PORTAGE_DIR=balzac.iit.nrc.ca:/home/portage
+   LIZZY_ROOT=wiki-ilt:/export/projets/Lizzy
+fi
 
 usage() {
    for msg in "$@"; do
@@ -22,28 +31,31 @@ usage() {
    cat <<==EOF==
 
 Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-n]
-       [-compile-only] [-compile-host HOST] [-r GIT_TAG]
+       [-compile-only] [-compile-host HOST]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-src] [-bin2013]
        [-d GIT_PATH] [-framework FRAMEWORK]
-       -dir OUTPUT_DIR
+       -r GIT_TAG -dir OUTPUT_DIR -cur VERSION
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
   remote site as is.
 
 Arguments:
 
-  -r            What source to use for this distro, as a valid argument to git
+  -r GIT_TAG    What source to use for this distro, as a valid argument to git
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag PortageII-cur master
+                   git tag -a PortageII-3.0 master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
 
-  -dir          The distro will be created in OUTPUT_DIR, which must not
+  -dir OUTPUT_DIR  The distro will be created in OUTPUT_DIR, which must not
                 already exist.
+
+  -cur VERSION  Gives the number of the version begin created, e.g., 3.0
+                Changes all PortageII{-,_, }cur to PortageII{-,_, }VERSION
 
 Options:
 
@@ -74,7 +86,8 @@ Options:
                 .iso file.  PREREQ_TOKEN must be a word that exists in the old
                 INSTALL but in no other distributed versions of INSTALL, past
                 or future.
-  -framework    Include framework from Git repository FRAMEWORK.
+  -framework    Include framework from Git repository FRAMEWORK
+                [portage.framework]
 
 Canned options for specific licensees:
 
@@ -85,16 +98,24 @@ Canned options for specific licensees:
   -bin2013      Same as: -bin -nosrc -archive-name bin
 
 Distro creation check list:
-  - Substitute PortageII-cur for PortageII-2.3
-  - Substitute PortageII cur for PortageII 2.3
-  - Change src/build/Doxyfile PROJECT_NUMBER = 2.2 for PROJECT_NUMBER = 2.3
-  - Change the version number and year in src/utils/portage_info.cc,
-    SETUP.{bash,tcsh}, the Wiki, the INSTALL file, all the README files
-  - Change the value of current_year in portage_utils.{pm,py} and printCopyright.h
-  - Change the year on the Wiki in /export/projets/Lizzy/PORTAGEshared/resources/layout/LayoutSnapshotFrench.html
+  - Tag the PORTAGEshared and portage.framework Git repos with the current
+    version, e.g., git tag -a PortageII-3.0 master ; git push --tags
+  - Change the year in src/utils/portage_info.cc, SETUP.{bash,tcsh}, the
+    INSTALL file, all the README files
+  - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
+    printCopyright.h
   - Update the RELEASES file
+  - Change the version number on the Wiki
+  - Change the year on the Wiki in /export/projets/Lizzy/PORTAGEshared/resources/layout/LayoutSnapshotFrench.html
   - Make a fresh snapshot of the wiki by loading this link:
     http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
+
+Old check list items, now automated via the -cur VERSION switch:
+  - Substitute PortageII-cur for PortageII-2.3
+  - Substitute PortageII cur for PortageII 2.3
+  - Change the version number in src/utils/portage_info.cc, SETUP.{bash,tcsh},
+    the INSTALL file, all the README files
+  - Change src/build/Doxyfile PROJECT_NUMBER = 2.2 for PROJECT_NUMBER = 2.3
 
 ==EOF==
 
@@ -164,6 +185,10 @@ done
 
 ICU=yes
 ICU_ROOT=$PORTAGE
+FRAMEWORK=portage.framework
+CUR_VERSION=
+VERSION_TAG=
+OUTPUT_DIR=
 while [ $# -gt 0 ]; do
    case "$1" in
    -d)                  arg_check 1 $# $1; GIT_PATH="$2"; shift;;
@@ -175,6 +200,7 @@ while [ $# -gt 0 ]; do
    -nosrc)              NO_SOURCE=1;;
    -r)                  arg_check 1 $# $1; VERSION_TAG="$2"; shift;;
    -dir)                arg_check 1 $# $1; OUTPUT_DIR=$2; shift;;
+   -cur)                arg_check 1 $# $1; CUR_VERSION="$2"; shift;;
    -patch-from)         arg_check 1 $# $1; PATCH_FROM="$PATCH_FROM $2"; shift;;
    -archive-name)       arg_check 1 $# $1; ARCHIVE_NAME=$2; shift;;
    -src)                ARCHIVE_NAME=src;;
@@ -234,6 +260,22 @@ check_reliable_host() {
    echo Using `hostname`.  Should be OK.
 }
 
+# Usage: set_cur dir
+# Change all instances of PortageII{-,_, }cur PortageII{-,_, }$CUR_VERSION,
+# e.g., PortageII-3.0, PortageII_3.0, PortageII 3.0.
+set_cur() {
+   local dir=$1
+   if [[ $CUR_VERSION ]]; then
+      echo Renaming PortageII?cur to PortageII?$CUR_VERSION in $dir
+      grep -R -l PortageII.cur $dir |
+         xargs -r sed -i -e "s/PortageII_cur/PortageII_$CUR_VERSION/g" \
+                         -e "s/PortageII-cur/PortageII-$CUR_VERSION/g" \
+                         -e "s/PortageII cur/PortageII $CUR_VERSION/g"
+      find $dir -name Doxyfile |
+         xargs -r sed -i -e 's/\(PROJECT_NUMBER *= *\)cur/\1'"$CUR_VERSION"'/'
+   fi
+}
+
 do_checkout() {
    print_header do_checkout
    if [[ ! $NOT_REALLY ]]; then
@@ -268,6 +310,8 @@ do_checkout() {
       r 'find PORTAGEshared -name .git\* | xargs rm -rf'
       r 'rm PORTAGEshared/.[a-z]*'
 
+      r set_cur PORTAGEshared
+
       echo Removing -Werror from src/build/Makefile.incl.
       if [[ ! $NOT_REALLY ]]; then
          perl -e 'print "%s/ -Werror / /\nw\nq\n"' |
@@ -290,7 +334,7 @@ get_test_systems() {
    # Some test suites rely on data in $PORTAGE/test-suite/systems
    print_header get_test_systems
    r pushd ./$OUTPUT_DIR
-      r rsync -arz balzac.iit.nrc.ca:/home/portage/test-suite/systems/ PORTAGEshared/test-suite/systems
+      r rsync -arz $REF_PORTAGE_DIR/test-suite/systems/ PORTAGEshared/test-suite/systems
    r popd
 }
 
@@ -299,7 +343,7 @@ get_user_manual() {
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual
    r pushd ./$OUTPUT_DIR
-      r rsync -arz wiki-ilt:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      r rsync -arz $LIZZY_ROOT/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       r find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       r find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
@@ -379,6 +423,7 @@ make_usage() {
          r r git checkout $VERSION_TAG '>>' ../../git.for_usage.log '2>&1'
       r popd
       r mv FOR_USAGE/src SRC_FOR_USAGE
+      r set_cur SRC_FOR_USAGE
       r pushd ./SRC_FOR_USAGE
          r r make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
       r popd
@@ -452,10 +497,10 @@ make_iso_and_tar() {
       else
          PATCH_FILES=
       fi
-      r r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+      r r -no-error mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '>&' iso.log
-      r mv PORTAGEshared PortageII-cur
-      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-cur '>&' tar.log
+      r mv PORTAGEshared PortageII-$CUR_VERSION
+      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-$CUR_VERSION '>&' tar.log
       r md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    r popd
 }
@@ -463,7 +508,9 @@ make_iso_and_tar() {
 
 check_reliable_host
 
-test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
+[[ $CUR_VERSION ]] || error_exit "Missing mandaroty -cur VERSION argument"
+[[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
+[[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
 
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.
@@ -476,10 +523,6 @@ if
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
-   if [[ ! $VERSION_TAG ]]; then
-      error_exit "Missing mandatory -r GIT_TAG argument"
-   fi
-
    do_checkout
    get_test_systems
    get_user_manual

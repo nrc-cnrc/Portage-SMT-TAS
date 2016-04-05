@@ -1,3 +1,21 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+<title>PortageLive 3rd Party Copyright Notices</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+</head>
+<body>
+<p align="center"><img src="/images/NRC_banner_e.jpg" /></p><h1>PortageLive 3rd Party Copyright Notices</h1>
+<pre>
+
+<?php
+  $PORTAGE = "/opt/PortageII/bin";
+  $cmd = "PORTAGE=$PORTAGE $PORTAGE/portage_info -notice";
+  print `$cmd 2>&1 | sed 's/$/<br\/>/'`;
+?>
+
 </pre>
 <hr />
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -10,7 +28,7 @@
           Traitement multilingue de textes / Multilingual Text Processing <br />
           Technologies de l'information et des communications / Information and Communications Technologies <br />
           Conseil national de recherches Canada / National Research Council Canada <br />
-          Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada
+          Copyright 2004&ndash;2016, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada
        </small></td></tr></table>
 </body>
 </html>

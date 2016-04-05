@@ -616,6 +616,9 @@ sub timeStamp {
 sub fileizeName {
     my ($name) = @_;
 
+    #"File:/home/sam037/work/autobuild/plive/httpd/var/www/html/plive/CE_toy-regress-en2fr_2010-385-source-CCI_272OR_fr.short.txt_20160225T172037Z_IuBucc/Q.in; Context:/home/sam037/work/autobuild/plive/opt/PortageII/models/toy-regress-en2fr"
+    # Keep the filename not too long.
+    $name =~ s/^File:.*?(.{1,50}); Context:.*?(.{1,50})$/File:$1; Context:$2/;
     $name =~ s/[^-_\.0-9a-z]//gi;# remove all non-alphanum from job name
 
     return $name;

@@ -41,5 +41,5 @@ cow.%: dev1_fr.al dev1_en.al
 	mv canoe.ini.cow canoe.ini.cow.$*
 
 diff.%: cow.%
-	diff ref/rescore-results.$* rescore-results.$* -q || diff ref/rescore-results.$*-alt rescore-results.$*
-	diff ref/canoe.ini.cow.$* canoe.ini.cow.$* -q
+	diff ref/rescore-results.$* rescore-results.$* -q -s || diff ref/rescore-results.$*-alt rescore-results.$* -q -s || diff ref/rescore-results.$*-alt2 rescore-results.$* -q -s
+	diff ref/canoe.ini.cow.$* canoe.ini.cow.$* -q -s || diff ref/canoe.ini.cow.$*-alt canoe.ini.cow.$* -q -s

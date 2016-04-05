@@ -10,6 +10,8 @@
 # Copyright 2009, Her Majesty in Right of Canada
 
 
+export -n RUNPARALLEL_WORKER_NCPUS
+export -n RUNPARALLEL_WORKER_VMEM
 export PATH=.:$PATH
 export BALZAC=1
 PBS_JOBID=1 run-parallel.sh -unit-test -d <(seq 1 10) 4

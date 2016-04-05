@@ -26,7 +26,6 @@ TARBALL ?= portagelive.bin.tgz
 # package it into a rpm.
 ROOT_DIR ?= rpm.build.root
 DEST_BASE_DIR ?= ${ROOT_DIR}/opt/PortageII
-HTML_DIR ?= ${ROOT_DIR}/var/www/html
 
 
 ################################################################################
@@ -244,13 +243,7 @@ ${ALL_FILES}: %:
 # portage_info -notice
 .PHONY: notice
 all: notice
-notice: notices_head.html notices_tail.html
-	mkdir -p ${HTML_DIR}
-	find ${ROOT_DIR}/var -type d | xargs chmod 0755
-	cat notices_head.html > ${HTML_DIR}/portage_notices.html
-	portage_info -notice >> ${HTML_DIR}/portage_notices.html
-	cat notices_tail.html >> ${HTML_DIR}/portage_notices.html
-	chmod 0644 ${HTML_DIR}/portage_notices.html
+notice:
 	portage_info -notice >> ${DEST_BASE_DIR}/NOTICE
 
 

@@ -17,7 +17,8 @@
 #include "basicmodel.h"
 #include "unal_feature.h"
 #include "nnjm_abstract.h"
-#include "mapper.h"
+#include "mm_map.h"
+#include <tr1/unordered_map>
 
 namespace Portage {
 
@@ -25,6 +26,100 @@ typedef enum NNJM_FORMAT{nrc=0,udem=1,native=2} NNJM_Format;
 //using std::tr1::unordered_map;
 
 class NNJM : public DecoderFeature {
+protected:
+   /**
+    * Interface to map words to their classes in NNJM's context.
+    */
+   struct IWordClassesMapping {
+      const string unknown;   ///< What will be returned if the word is not part of the map.
+
+      /**
+       * Default constructor.
+       * @param  unknown  What will be returned if the word is not part of the map.
+       */
+      IWordClassesMapping(const string& unknown)
+      : unknown(unknown)
+      {}
+
+      /// Destructor.
+      virtual ~IWordClassesMapping() {}
+
+      /**
+       * Maps a word to its class.
+       * @params  word  word for which we want its class.
+       * @return  word's class or unknown.
+       */
+      virtual const string& operator()(const string& word) const = 0;
+
+      /**
+       * Is the map empty?
+       * @return  true if their is no element in the map.
+       */
+      virtual bool empty() const = 0;
+   };
+
+   struct WordClassesTextMapper : public IWordClassesMapping, private NonCopyable {
+      typedef std::tr1::unordered_map<string, string> Word2class;   ///< word -> class.
+      Word2class word2class;   ///< word -> class.
+
+      /**
+       * Default constructor.
+       * @param  fname  text file name containing word -> class.
+       * @param  unknown  What will be returned if the word is not part of the map.
+       */
+      WordClassesTextMapper(const string& fname, const string& unknown);
+
+      /**
+       * Maps a word to its class.
+       * @params  word  word for which we want its class.
+       * @return  word's class or unknown.
+       */
+      virtual const string& operator()(const string& word) const;
+
+      /**
+       * Is the map empty?
+       * @return  true if their is no element in the map.
+       */
+      virtual bool empty() const { return word2class.empty(); }
+   };
+
+   struct WordClassesMemoryMappedMapper : public IWordClassesMapping, private NonCopyable {
+      MMMap word2class;   ///<  Memory Mapped map  word -> class.
+      mutable string className;   ///< Placeholder for word's class name.
+
+      /**
+       * Default constructor.
+       * @param  fname  text file name containing word -> class.
+       * @param  unknown  What will be returned if the word is not part of the map.
+       */
+      WordClassesMemoryMappedMapper(const string& fname, const string& unknown);
+
+      /**
+       * Maps a word to its class.
+       * @params  word  word for which we want its class.
+       * @return  word's class or unknown.
+       */
+      virtual const string& operator()(const string& word) const;
+
+      /**
+       * Is the map empty?
+       * @return  true if their is no element in the map.
+       */
+      virtual bool empty() const { return word2class.empty(); }
+   };
+
+   /**
+    * Factory that either loads a text or memory mapped map word to classes file.
+    * @param fname  word classes filename either text or memory mapped map.
+    * @param unknown  What will be returned if the word is not part of the map.
+    */
+   static IWordClassesMapping* getWord2ClassesMapper(const string& fname, const string& unknown);
+
+   // For cxxtest
+   NNJM() {}
+
+
+
 private:
    static const Uint max_srcphrase_len = 255; // using Uchar indexing
    static const char* help;
@@ -49,8 +144,8 @@ private:
    Voc tgtvoc;   // for words in target history
    Voc outvoc;   // for predicted words
 
-   IWordClassesMapper* srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
-   IWordClassesMapper* tgttags;  // tgtword -> tag
+   IWordClassesMapping* srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
+   IWordClassesMapping* tgttags;  // tgtword -> tag
 
    map<string, NNJMAbstract*> file_to_nnjm; // filename -> NNJMAbstract object
    vector<NNJMAbstract*> nnjm_wraps; // python pickled NNJM or plain txt native NNJM
