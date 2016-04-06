@@ -75,6 +75,8 @@ PERL_LIBS=
 TESTPROGS= \
 	testconfig
 
+IGNORES=tests/test_*.MMmap tests/test_*.txt
+
 PROGRAMS=$(TESTPROGS) \
 	canoe \
 	configtool \

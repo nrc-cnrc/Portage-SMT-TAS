@@ -44,4 +44,6 @@ MODULE_DEPENDS = tp_models tpt
 
 DYNLIBS = $(LIBICU) -lboost_system
 
+IGNORES=tests/test_*.MMmap tests/test_*.txt
+
 include ../build/Makefile.incl

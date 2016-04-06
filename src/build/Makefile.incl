@@ -346,7 +346,7 @@ FORCE::
 
 # remove everything that can be remade
 clean: clean_testrunners
-	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
+	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) $(IGNORES) \
 	$(INFOFILES) $(DOCUMENTS) .cvsignore .gitignore Makefile.depend \
         *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.pyc *.info-* core core.* \
         $(OTHER_GENERATED_FILES) \

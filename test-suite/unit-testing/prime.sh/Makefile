@@ -13,6 +13,7 @@
 
 SYSTEM := ${PORTAGE}/test-suite/systems/toy-regress-en2fr
 
+TEMP_DIRS=translate_work_*
 
 -include Makefile.params
 -include ../Makefile.incl

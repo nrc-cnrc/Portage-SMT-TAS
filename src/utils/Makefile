@@ -117,6 +117,8 @@ NO_UTILS_LIB = true
 
 DOCUMENTS =
 
+IGNORES = tests/test_*.mmMap
+
 # Module/directory specific compile flags
 MODULE_CF=
 
