@@ -13,6 +13,12 @@
 
 make clean
 make gitignore
+
+if ! on-cluster.sh; then
+   echo Test IGNORED: not running on a cluster
+   exit 0
+fi
+
 ./go-2.sh
 COUNTER=1
 while true; do
