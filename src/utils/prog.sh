@@ -8,8 +8,8 @@
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2015, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2015, Her Majesty in Right of Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
 BIN=`dirname $0`
@@ -18,9 +18,6 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
    BIN="$BIN/../utils"
 fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
-
-# Change the program name and year here
-print_nrc_copyright prog.sh 2015
 
 usage() {
    for msg in "$@"; do

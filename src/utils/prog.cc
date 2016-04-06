@@ -6,8 +6,8 @@
  * Traitement multilingue de textes / Multilingual Text Processing
  * Tech. de l'information et des communications / Information and Communications Tech.
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2015, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2015, Her Majesty in Right of Canada
+ * Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2016, Her Majesty in Right of Canada
  */
 
 #include <iostream>
@@ -42,7 +42,6 @@ static void getArgs(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
-   printCopyright(2015, "prog");
    getArgs(argc, argv);
 
    iSafeMagicStream istr(infile);
