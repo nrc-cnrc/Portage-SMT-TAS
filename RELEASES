@@ -31,6 +31,8 @@ PortageII cur
   - Arabic is now supported as a source language.
 
  Minor changes:
+  - Use of generic models is optimized on PortageLive servers, via new
+    plive-optimized-pretrained.sh script.
   - Added support for SRI format for word alignment files (for fastalign)
   - align-words: added GDF and GDFA as self-documenting aliases for
     IBMOchAligner 3 and 4.

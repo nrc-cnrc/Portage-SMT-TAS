@@ -83,6 +83,7 @@ BINSCRIPTS = \
         on-cluster.sh \
         parallelize.pl \
         parse-monitor.pl \
+        plive-optimize-pretrained.sh \
         plog.pl \
         prep-fixedTerms-layout.sh \
         process-bind.sh \
