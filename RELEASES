@@ -19,20 +19,33 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII cur
- Work in progress
+PortageII 3.0
+ This release incorporates significant improvements from the research world
+ into on the core machine translation engine. There are few changes to the
+ visible features of the system, but important changes that should affect the
+ quality of the translations produced.
 
- Changes:
-  - Added sparse features, including the discriminative reordering model, a
+ Note: to take advantage of all these improvements, we recommend that you
+ retrain all models trained with previous versions of PortageII.
+ Please consult README for more details about upgrading to 3.0.
+
+ Major changes:
+  - Since the previous version of PortageII, we have conducted extensive
+    experiments to update our recommended use of all the options available.
+    Framework defaults have been updated to reflect our new recommendations.
+  - NNJM decoder feature: add support for NRC's implementation of the Neural
+    Network Joint Model, the ground-breaking deep learning approach of Devlin
+    et al (ACL 2014).
+  - New sparse features, including the discriminative reordering model, a
     significant improvement over previous reordering models.
   - New coarse BiLM features take into account source word classes in the
     context and give good empirical results, improving translation quality.
   - New RestCostLMs give better LM heuristic during decoding.
-  - Arabic is now supported as a source language.
 
  Minor changes:
   - Use of generic models is optimized on PortageLive servers, via new
     plive-optimized-pretrained.sh script.
+  - Arabic is now supported as a source language.
   - Added support for SRI format for word alignment files (for fastalign)
   - align-words: added GDF and GDFA as self-documenting aliases for
     IBMOchAligner 3 and 4.
