@@ -7,13 +7,14 @@
     file: PortageLiveAPI.wsdl
     brief: Definition of the API to the Portage SMT software suite.
     author: Samuel Larkin, Patrick Paul and Eric Joanis
+    version: PortageII cur
 
   Traitement multilingue de textes / Multilingual Text Processing
   Technologies de l'information et des communications /
     Information and Communications Technologies
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2009 - 2015, Sa Majesté la Reine du Chef du Canada /
-  Copyright 2009 - 2015, Her Majesty in Right of Canada
+  Copyright 2009 - 2016, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2016, Her Majesty in Right of Canada
 
   ChangeLog
   </documentation>
