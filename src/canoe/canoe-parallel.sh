@@ -604,6 +604,7 @@ if [ -n "$APPEND" ]; then
    FFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-ffvals'`
    SFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-sfvals'`
    PAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-palign' -e '-t ' -e '-trace'`
+   WAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-walign' -e '-t ' -e '-trace'`
 
    K=${NBEST_SIZE#:}
    K=${K:-100}
@@ -663,6 +664,22 @@ if [ -n "$APPEND" ]; then
          | cut -f2- \
          | xargs --no-run-if-empty cat > $OUTPUT; }
       [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best.pal$NBEST_COMPRESS | xargs \rm
+   fi
+
+   # merge wal files
+   if [ -n "$WAL_CREATED" ] && [ -n "$NBEST_PREFIX" ]; then
+      [[ `find $DIRNAME -name $BASENAME.\*.${K}best.wal$NBEST_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing wal files."
+
+      OUTPUT="${NBEST_PREFIX}wal$NBEST_COMPRESS"
+      debug "LB PAL output: $OUTPUT"
+      test -f $OUTPUT && \rm $OUTPUT
+      time { find $DIRNAME -name $BASENAME.\*.${K}best.wal$NBEST_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)\.${K}best.wal$NBEST_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best.wal$NBEST_COMPRESS | xargs \rm
    fi
 
    # merge the nbest files
