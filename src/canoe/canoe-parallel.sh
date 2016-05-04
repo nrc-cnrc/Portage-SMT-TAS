@@ -218,6 +218,10 @@ if [[ -n "$RESUME" ]]; then
    test -d $WORK_DIR || error_exit "$WORD_DIR does not exist, cannot resume."
 else
    WORK_DIR=`mktemp -d canoe-parallel.XXX` || error_exit "Cannot create temp workdir."
+   # mktemp doesn't give any group permissions, so we need to set appropriate
+   # group read/execute permissions on WORK_DIR: union of its original perms
+   # and the group read/execute perms of the current directory.
+   chmod $(printf %o $(( 0$(stat -c %a .) & 0050 | 0$(stat -c %a $WORK_DIR) )) ) $WORK_DIR
 fi
 INPUT="$WORK_DIR/input"
 CMDS_FILE=$WORK_DIR/commands
