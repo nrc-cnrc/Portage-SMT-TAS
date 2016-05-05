@@ -45,3 +45,11 @@ $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm:  tokenize/Arabic/Data.pm
 
 # Some programs need extra dynamic libraries
 utf8_casemap: DYNLIBS += $(LIBICU)
+
+
+test:  perl_doctest
+
+.PHONY:  perl_doctest
+perl_doctest:  $(addsuffix .doc_test, $(wildcard *.pm))
+%.doc_test:  %
+	perl -MTest::Doctest -e run $<
