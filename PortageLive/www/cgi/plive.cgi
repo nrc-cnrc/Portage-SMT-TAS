@@ -301,7 +301,7 @@ sub printForm {
              td({colspan=>2, align=>'center'},
                 defaults('Clear Form'))));
 
-    endform();
+    print end_multipart_form();
 
     print copyright();
 }
