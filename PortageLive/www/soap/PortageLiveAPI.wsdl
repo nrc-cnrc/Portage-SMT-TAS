@@ -7,13 +7,14 @@
     file: PortageLiveAPI.wsdl
     brief: Definition of the API to the Portage SMT software suite.
     author: Samuel Larkin, Patrick Paul and Eric Joanis
+    version: PortageII cur
 
   Traitement multilingue de textes / Multilingual Text Processing
   Technologies de l'information et des communications /
     Information and Communications Technologies
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2009 - 2015, Sa Majesté la Reine du Chef du Canada /
-  Copyright 2009 - 2015, Her Majesty in Right of Canada
+  Copyright 2009 - 2016, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2016, Her Majesty in Right of Canada
 
   ChangeLog
   </documentation>
@@ -184,6 +185,11 @@
          - PortageServer: the problem is with Portage server;
          - otherwise some other problem occurred, normally described by the
            faultcode and explained by the faulstring.
+
+        &lt;b>Performance consideration&lt;/b>
+        There is a fixed overhead of about half a second for each call to translate().
+        To process a collection of sentences or paragraphs, it is best to submit 10
+        sentences or paragraphs at a time, or to use translatePlainText().
       </documentation>
       <input message="tns:translateRequest"/>
       <output message="tns:translateResponse"/>
@@ -524,8 +530,8 @@
       loop: translate(srcText, context, "p", false);
 
       &lt;b>Constraints&lt;/b>
-      &lt;b>Time-out issues&lt;/b>: because the SOAP API calls are made through the HTTP
-      protocol, any time-out in the chain could cause the result to be lost:
+      &lt;b>Time-out issues&lt;/b>: because the SOAP API calls are made through the
+      HTTP protocol, any time-out in the chain could cause the result to be lost:
       Apache server time-out, browser or other client time-out, etc.  If
       you're submitting large amounts of text for translation that might
       exceed typical time-outs, you should split the input into smaller
@@ -533,11 +539,16 @@
       Asynchronous methods exist for translating TMX and XLIFF files, but
       not yet for plain text.
 
-      &lt;b>Performance issues&lt;/b>: typical systems run on the order of one sentence
-      per second per CPU.  Adequate server capacity should be secured for the
-      volume of translation required.
-      Some parameters can be tweaked at training time to speed up translation,
-      in a trade-off with translation quality.
+      &lt;b>Performance issues&lt;/b>:
+       - Typical systems run on the order of one sentence per second per CPU.
+         Adequate server capacity should be secured for the volume of translation
+         required.
+       - Some parameters can be tweaked at training time to speed up translation,
+         in a trade-off with translation quality.
+       - There is an overhead of about half a second for each call to translate().
+         When translating a document, you will get better performance if you submit
+         multiple sentences per call to translate(), of if you use
+         translatePlainText() to submit a whole file in one request.
 
     </documentation>
     <port name="PortageLive_Library" binding="tns:PortageLive_SoapHttpBinding">

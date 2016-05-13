@@ -188,7 +188,7 @@ Mandatory dependencies for all distributions:
       with it, and all of XML::Twig's dependencies - used to process XML files
       such as TMX or XLIFF
     - JSON
-    - Normally standard package, including File::Spec, File::Temp, List::Util,
+    - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
    To find out if you have a package already, try "perldoc <module>", e.g.,
@@ -525,6 +525,9 @@ Optional dependencies for source code distributions:
       # $PORTAGE/third-party/cxxtest-4.4
 
    If you don't install CxxTest, set CXXTEST=NONE in src/Makefile.user-conf.
+
+ - Perl module Test::Doctest is uses for some unit testing.
+   Install it using cpan: cpan install Test::Doctest
 
  - log4cxx - some programs in PortageII use log4cxx to produce debugging
    information.  By default, the use of logging is disabled in PortageII.

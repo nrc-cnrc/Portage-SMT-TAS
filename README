@@ -35,13 +35,15 @@ increasingly common xliff file format.
 PortageII_cur includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French, English, Spanish, Danish (tokenization,
-   detokenization, lowercasing, aligning) and Chinese (handling of dates and
-   numbers);
- - training lexical translation models (IBM models 1 and 2, HMM) from aligned
-   corpora;
+   detokenization, lowercasing, aligning), Chinese (handling of dates and
+   numbers), and Arabic (integration with MADA tokenizer);
+ - training lexical translation models (IBM models 1 and 2, HMM, plus
+   integration with MGiza++ for IBM4) from aligned corpora;
  - training phrase-based translation models from aligned corpora and lexical
    models;
  - training lexicalized distortion models, and their hierarchical variant;
+ - training sparse features, including discriminative hierarchical distortion
+   models;
  - using language models in text and binary format for various purposes;
  - filtering language and translation models to retain only information needed
    for a particular text to be translated;
@@ -109,15 +111,29 @@ from the framework instead.
 For further documentation, look at the contents of doc/.
 
 
+                     Upgrading from a previous version
+
+If you have models that were created using a previous version of PortageII, we
+strongly recommend that you retrain new models with the current version, to
+take advantage of the new features.
+
+Between PortageII 2.x and PortageII 3.0, we have conducted extensive
+experiments to optimize the training procedures, and updated the framework
+defaults to reflect the configuration we now recommend. If you have customized
+or created a template from the framework's Makefile.params file, please update
+it to reflect the changes in PortageII 3.0.
+
+We now recommend (and enable by default) the following settings:
+ - Use the new sparse features.
+ - Use the new Coarse LM models.
+ - Use IBM4 word-alignments, along with IBM2 and HMM ones (require MGiza++).
+ - If the target language is French or English, use the generic LM as
+   background model in a MixLM with your main language model (note: this will
+   not introduce out-of-domain terminology in your translations, rather, it
+   will help choose among competing alternatives from your own in-domain data).
+
+
                                Contacting us
 
 If you have any question about PortageII, be it technical, legal or
 otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
-
-
-                       PortageII Users mailing list
-
-We have created a mailing list for PortageII users, where questions of general
-interest can be asked and answered publicly.  If you would like to be added to
-this list, please e-mail PORTAGEshared@nrc-cnrc.gc.ca.
-

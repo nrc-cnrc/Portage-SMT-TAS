@@ -104,6 +104,7 @@ Distro creation check list:
     INSTALL file, all the README files
   - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
     printCopyright.h
+  - Update the API version in PortageLiveAPI.php's getVersion() method.
   - Update the RELEASES file
   - Change the version number on the Wiki
   - Change the year on the Wiki in /export/projets/Lizzy/PORTAGEshared/resources/layout/LayoutSnapshotFrench.html
