@@ -124,10 +124,14 @@ Old check list items, now automated via the -cur VERSION switch:
 }
 
 error_exit() {
-   for msg in "$@"; do
-      echo $msg
-   done
-   echo "Use -h for help."
+   {
+      PROG_NAME=`basename $0`
+      echo -n "$PROG_NAME fatal error: "
+      for msg in "$@"; do
+         echo $msg
+      done
+      echo "Use -h for help."
+   } >&2
    exit 1
 }
 
@@ -466,7 +470,8 @@ make_bin() {
          r mkdir -p $ELFDIR
          r file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
          if [[ $ICU = yes ]]; then
-            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe
+            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH \
+            ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          else
             ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          fi |
@@ -512,6 +517,7 @@ check_reliable_host
 [[ $CUR_VERSION ]] || error_exit "Missing mandaroty -cur VERSION argument"
 [[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
 [[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
+portage_info       || error_exit "Run portage_setbuild before make-distro.sh"
 
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.

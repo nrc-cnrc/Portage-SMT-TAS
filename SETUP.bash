@@ -40,7 +40,7 @@ PORTAGE=$HOME/PortageII-cur
 # Nonetheless, PRECOMP_PORTAGE_ARCH continues to be required for binary
 # distributions, in case we distribute new pre-compiles variants in the future.
 # Uncomment the following line if your distribution is binary:
-#PRECOMP_PORTAGE_ARCH=x86_64-icu
+#PRECOMP_PORTAGE_ARCH=x86_64-el5-icu
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
