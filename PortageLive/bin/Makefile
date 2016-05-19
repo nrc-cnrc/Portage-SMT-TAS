@@ -72,10 +72,12 @@ endif
 
 # Make sure all PortageII's scripts are from the same source build.
 SRC_PORTAGE_SCRIPT_DIR := $(sort $(dir $(shell which ${PORTAGE_SCRIPTS} 2> /dev/null)))
+SRC_PORTAGE_SCRIPT_DIR := $(filter-out %/third-party/chinese-segmentation/bin/,${SRC_PORTAGE_SCRIPT_DIR})
 SRC_PORTAGE_SCRIPT_DIR := ${SRC_PORTAGE_SCRIPT_DIR:/=}
 ifeq ("$(words ${SRC_PORTAGE_SCRIPT_DIR})","0")
    $(error Problem finding PortageII scripts, maybe it's not installed)
 else ifneq ("$(words ${SRC_PORTAGE_SCRIPT_DIR})","1")
+   $(info PortageII scripts found in: ${SRC_PORTAGE_SCRIPT_DIR})
    $(error Finding PortageII scripts in multiple directories, make sure you're pointing to a single consistent installation)
 endif
 
@@ -161,6 +163,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
 #If NRC's rewrite of the LDC/UPENN Chinese segmenter is included, include manseg.fre.
 PORTAGE_LIBS += $(if $(filter chinese_segmenter.pl, ${CHINESE}), manseg.fre)
+vpath manseg.fre $(dir $(shell which chinese_segmenter.pl 2> /dev/null))/../lib
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # PortageII's software.
