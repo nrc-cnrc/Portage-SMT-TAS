@@ -245,6 +245,7 @@ ${ALL_FILES}: %:
 all: notice
 notice:
 	portage_info -notice >> ${DEST_BASE_DIR}/NOTICE
+	chmod 644 ${DEST_BASE_DIR}/NOTICE
 
 
 
