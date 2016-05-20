@@ -126,6 +126,7 @@ sub NRCFooter {
                  Tr(td(),
                     td({valign=>'top', align=>'center'},
                        small(
+                          "PortageII cur", br(),
                           "Traitement multilingue de textes / Multilingual Text Processing", br(),
                           "Technologies de l'information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
