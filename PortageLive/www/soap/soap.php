@@ -105,6 +105,17 @@ function getAllContexts($verbose) {
    }
 }
 
+function getVersion() {
+   try {
+      global $WSDL;
+      $client = new SoapClient($WSDL);
+      return $client->getVersion();
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception, "SOAP Fault trying to get version:");
+   }
+}
+
 # @param type  either translateTMXCE or translateSDLXLIFFCE which represent
 #              what function to call depending on what is the type of the file
 #              argument.
@@ -726,6 +737,11 @@ CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 <b>Contexts: </b> <?php print getAllContexts(false) ?> <br/>
 <br/>
 <b>Verbose contexts: </b> <?php print getAllContexts(true) ?> <br/>
+</section>
+
+<section id='getVersion'>
+<header>getVersion()</header>
+<b>Version: </b> <?php print getVersion() ?> <br/>
 </section>
 
 <?php testSuite($WSDL); ?>
