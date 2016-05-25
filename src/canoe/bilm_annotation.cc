@@ -28,6 +28,8 @@
 const string BiLMAnnotation::name = "bilm";
 VocabFilter* BiLMAnnotation::biPhraseVocab = NULL;
 
+
+
 VocabFilter* BiLMAnnotation::init(const VocabFilter& tgtVocab)
 {
    // We need to create the biPhraseVocab with the same number of source
@@ -44,6 +46,8 @@ VocabFilter* BiLMAnnotation::init(const VocabFilter& tgtVocab)
    return biPhraseVocab;
 }
 
+
+
 void BiLMAnnotation::display(ostream& out) const
 {
    if (!bi_phrase.empty())
@@ -52,6 +56,8 @@ void BiLMAnnotation::display(ostream& out) const
           << endl;
 }
 
+
+
 BiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab)
    : type_id(AnnotationList::addAnnotationType(BiLMAnnotation::name.c_str()))
    , tgtVocab(tgtVocab)
@@ -59,11 +65,15 @@ BiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab)
    BiLMAnnotation::init(tgtVocab);
 }
 
+
+
 BiLMAnnotation::Annotator::~Annotator()
 {
    //cerr << "BiLMAnnotation::Annotator::~Annotator() for " << this << endl;
    *(const_cast<Uint*>(&type_id)) = 0xdea110cd;
 }
+
+
 
 void BiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
 {
@@ -84,6 +94,8 @@ void BiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
    }
 }
 
+
+
 void BiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info)
 {
    VectorPhrase bi_phrase;
@@ -101,11 +113,15 @@ void BiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const Ma
    newPI->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
 }
 
+
+
 void BiLMAnnotation::Annotator::annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word)
 {
    VectorPhrase bi_phrase(1, BiLMAnnotation::biPhraseVocab->add((word + BiLMWriter::sep + word).c_str()));
    newPI->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
 }
+
+
 
 void BiLMAnnotation::Annotator::annotate_helper(
       VectorPhrase& bi_phrase, VocabFilter& biVoc,
@@ -154,6 +170,8 @@ void BiLMAnnotation::Annotator::annotate_helper(
    }
 }
 
+
+
 void BiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry& entry)
 {
    BiLMAnnotation* bilm_ann = BiLMAnnotation::get(tscore->annotations);
@@ -181,8 +199,10 @@ void BiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry&
 
 static const bool debug_coarse_bilm = false;
 
+
 const string CoarseBiLMAnnotation::name_prefix = "CoarseBiLM_";
 char CoarseBiLMAnnotation::name_suffix = '0';
+
 
 void CoarseBiLMAnnotation::display(ostream& out) const
 {
@@ -192,24 +212,18 @@ void CoarseBiLMAnnotation::display(ostream& out) const
           << endl;
 }
 
-const string& CoarseBiLMAnnotation::Annotator::class2string(Uint classID)
-{
-   static const string UNK_Symbol = PLM::UNK_Symbol;
-   if (classID < class_str.size())
-      return class_str[classID];
-   else
-      return UNK_Symbol;
-}
+
 
 CoarseBiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab, const vector<string>& clsFiles)
    : BiLMAnnotation::Annotator(tgtVocab)
    , name(name_prefix + name_suffix++)
    , type_id(AnnotationList::addAnnotationType(name.c_str()))
-   , useSrcClasses(false), useTgtClasses(false), useTgtSrcClasses(false)
+   , srcClasses(NULL)
+   , tgtClasses(NULL)
+   , tgtSrcClasses(NULL)
    , coarseBiPhraseVocab(tgtVocab.getNumSourceSents())
 {
    if (debug_coarse_bilm) cerr << "CoarseBiLMAnnotation::Annotator::Annotator()" << endl;
-   Uint max_num_classes = 0;
 
    // Load all the class files specified
    for (Uint i = 0; i < clsFiles.size(); ++i) {
@@ -221,31 +235,29 @@ CoarseBiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab, const ve
          error(ETFatal, "Can't read class file " + class_file + " in coarse BiLM");
       const string key = keyvalue[0];
       if (key == "cls(src)") {
-         useSrcClasses = true;
-         srcClasses.read(class_file);
-         max_num_classes = max(max_num_classes, srcClasses.getHighestClassId()+1);
-      } else if (key == "cls(tgt)") {
-         useTgtClasses = true;
-         tgtClasses.read(class_file);
-         max_num_classes = max(max_num_classes, tgtClasses.getHighestClassId()+1);
-      } else if (key == "cls(tgt/src)") {
-         useTgtSrcClasses = true;
-         tgtSrcClasses.read(class_file);
-         max_num_classes = max(max_num_classes, tgtSrcClasses.getHighestClassId()+1);
-      } else {
+         srcClasses = getWordClassesMapper(class_file);
+      }
+      else if (key == "cls(tgt)") {
+         tgtClasses = getWordClassesMapper(class_file);
+      }
+      else if (key == "cls(tgt/src)") {
+         tgtSrcClasses = getWordClassesMapper(class_file);
+      }
+      else {
          error(ETFatal, "Don't know how to interpret class file specification " + clsFiles[i] + " in coarse BiLM");
       }
    }
-
-   // Init the class_str vector with a string for each possible class id over
-   // any of the three possible class maps.
-   class_str.reserve(max_num_classes);
-   char buf[24];
-   for (Uint i = 0; i < max_num_classes; ++i) {
-      sprintf(buf, "%d", i);
-      class_str.push_back(buf);
-   }
 }
+
+
+CoarseBiLMAnnotation::Annotator::~Annotator()
+{
+   delete srcClasses;     srcClasses = NULL;
+   delete tgtClasses;     tgtClasses = NULL;
+   delete tgtSrcClasses;  tgtSrcClasses = NULL;
+}
+
+
 
 void CoarseBiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
 {
@@ -265,6 +277,8 @@ void CoarseBiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& s
    if (debug_coarse_bilm) cerr << "biVoc " << &coarseBiPhraseVocab << " .size() = " << coarseBiPhraseVocab.size() << endl;
 }
 
+
+
 void CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info)
 {
    if (debug_coarse_bilm) cerr << "CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase()" << endl;
@@ -280,12 +294,16 @@ void CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, co
    newPI->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
 }
 
+
+
 void CoarseBiLMAnnotation::Annotator::annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word)
 {
    if (debug_coarse_bilm) cerr << "CoarseBiLMAnnotation::Annotator::annotateNoTransPhrase()" << endl;
    VectorPhrase bi_phrase(1, coarseBiPhraseVocab.add(biToken(tgtWord(word) + BiLMWriter::sep + srcWord(word))));
    newPI->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
 }
+
+
 
 void CoarseBiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry& entry)
 {
@@ -306,6 +324,77 @@ void CoarseBiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTable
    }
 }
 
+
+
 CoarseBiLMAnnotation* CoarseBiLMAnnotation::Annotator::get(const AnnotationList& list) {
    return static_cast<CoarseBiLMAnnotation*>(list.getAnnotation(type_id));
+}
+
+
+
+
+CoarseBiLMAnnotation::WordClassesTextMapper::WordClassesTextMapper(const string& filename, vector<string>& class_str) :
+   class_str(class_str)
+{
+   word2class.read(filename);
+   // Init the class_str vector with a string for each possible class id over
+   // any of the three possible class maps.
+   class_str.reserve(word2class.getHighestClassId());
+   char buf[24];
+   for (Uint i = class_str.size(); i < word2class.getHighestClassId()+1; ++i) {
+      sprintf(buf, "%d", i);
+      class_str.push_back(buf);
+   }
+}
+
+
+
+const char* CoarseBiLMAnnotation::WordClassesTextMapper::operator()(const char* word) const {
+   const Uint cls = word2class.classOf(word);
+
+   return cls < class_str.size() ? class_str[cls].c_str() : PLM::UNK_Symbol;
+}
+
+
+
+CoarseBiLMAnnotation::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& filename) :
+   word2class(filename)
+{ }
+
+
+
+const char* CoarseBiLMAnnotation::WordClassesMemoryMappedMapper::operator()(const char* word) const {
+   // TODO: Should we return UNK_Symbol if word is not in Voc* vocab?
+   MMMap::const_iterator it = word2class.find(word);
+   if (it == word2class.end())
+      return PLM::UNK_Symbol;
+
+   return it.getValue();
+}
+
+
+
+bool CoarseBiLMAnnotation::Annotator::isMemoryMapped(const string& filename) {
+   string magicNumber;
+   iSafeMagicStream is(filename);
+   if (!getline(is, magicNumber))
+      error(ETFatal, "Empty classfile %s", filename.c_str());
+
+   if (magicNumber == MMMap::version1)
+      error(ETFatal, "CoarseBiLMAnnotation requires MMmap >= 2.0.");
+
+   return magicNumber == MMMap::version2;
+}
+
+
+
+CoarseBiLMAnnotation::IWordClassesMapping* CoarseBiLMAnnotation::Annotator::getWordClassesMapper(const string& filename) {
+   IWordClassesMapping* mapper = NULL;
+   if (isMemoryMapped(filename))
+      mapper = new WordClassesMemoryMappedMapper(filename);
+   else
+      mapper = new WordClassesTextMapper(filename, class_str);
+
+   assert(mapper != NULL);
+   return mapper;
 }

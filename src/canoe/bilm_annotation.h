@@ -17,10 +17,13 @@
 #include "annotation_list.h"
 #include "vocab_filter.h"
 #include "word_classes.h"
+#include "mm_map.h"
 
 namespace Portage {
 
+
 class BasicModelGenerator;
+
 
 class BiLMAnnotation : public PhrasePairAnnotation {
    /// vocabulary of bi-phrase elements
@@ -85,54 +88,74 @@ public:
    };
 }; // class BiLMAnnotation
 
+
+
+
 class CoarseBiLMAnnotation : public BiLMAnnotation {
    static const string name_prefix;
    static char name_suffix; // Suffix so we can create multiple distinct Coarse BiLM annotators.
+
+protected:
+   struct IWordClassesMapping {
+      virtual ~IWordClassesMapping() {}
+      virtual const char* operator()(const char* word) const { assert(false); }
+   };
+
+   struct WordClassesTextMapper : public IWordClassesMapping, private NonCopyable {
+      WordClasses word2class;   ///<
+      vector<string>& class_str; ///< strings for class numbers
+
+      WordClassesTextMapper(const string& filename, vector<string>& class_str);
+      virtual const char* operator()(const char* word) const;
+   };
+
+   struct WordClassesMemoryMappedMapper : public IWordClassesMapping, private NonCopyable {
+      MMMap word2class;   ///<  Memory Mapped map  word -> class.
+
+      WordClassesMemoryMappedMapper(const string& filename);
+      virtual const char* operator()(const char* word) const;
+   };
+
 public:
    virtual PhrasePairAnnotation* clone() const { return new CoarseBiLMAnnotation(*this); }
    virtual void display(ostream& out) const;
    class Annotator : public BiLMAnnotation::Annotator {
       const string name;
       const Uint type_id;
-      WordClasses srcClasses; ///< classes of source tokens
-      bool useSrcClasses;
-      WordClasses tgtClasses; ///< classes of target tokens
-      bool useTgtClasses;
-      WordClasses tgtSrcClasses; ///< classes of tgt/src bitokens (of words or of classes)
-      bool useTgtSrcClasses;
+
+      IWordClassesMapping* srcClasses; ///< classes of source tokens
+      IWordClassesMapping* tgtClasses; ///< classes of target tokens
+      IWordClassesMapping* tgtSrcClasses; ///< classes of tgt/src bitokens (of words or of classes)
+
       VocabFilter coarseBiPhraseVocab;
       vector<string> class_str; ///< strings for class numbers
-      const string& class2string(Uint classID);
+
+      static bool isMemoryMapped(const string& filename);
+      IWordClassesMapping* getWordClassesMapper(const string& filename);
 
       /// convert Uint wordID to its string representation as a target-language
       /// word, after having applied srcClasses mapping.
       virtual const char* tgtWord(Uint wordID) {
-         return useTgtClasses
-                ? class2string(tgtClasses.classOf(tgtVocab.word(wordID))).c_str()
-                : tgtVocab.word(wordID);
+         const char* const word = tgtVocab.word(wordID);
+         return tgtClasses != NULL ? (*tgtClasses)(word) : word;
       }
       const char* tgtWord(const char* rawWord) {
-         return useTgtClasses
-                ? class2string(tgtClasses.classOf(rawWord)).c_str()
-                : rawWord;
+         return tgtClasses != NULL ? (*tgtClasses)(rawWord) : rawWord;
       }
       /// convert a raw char* word to its string representation as a source-language
       /// word, after having applied tgtClasses mapping.
       virtual const char* srcWord(const char* rawWord) {
-         return useSrcClasses
-                ? class2string(srcClasses.classOf(rawWord)).c_str()
-                : rawWord;
+         return srcClasses != NULL ? (*srcClasses)(rawWord) : rawWord;
       }
       /// Convert a char* bitoken to its string rep (applying classes of bitokens if necessary)
       virtual const char* biToken(const string& rawBiToken) {
-         return useTgtSrcClasses
-                ? class2string(tgtSrcClasses.classOf(rawBiToken.c_str())).c_str()
-                : rawBiToken.c_str();
+         return tgtSrcClasses != NULL ? (*tgtSrcClasses)(rawBiToken.c_str()) : rawBiToken.c_str();
       }
 
       friend class CoarseBiLMAnnotation;
    public:
       explicit Annotator(const VocabFilter& tgtVocab, const vector<string>& clsFiles);
+      virtual ~Annotator();
       virtual const string& getName() const { return name; }
       virtual void addSourceSentences(const VectorPSrcSent& sentences);
       virtual void annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info);
