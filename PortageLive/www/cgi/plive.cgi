@@ -259,7 +259,7 @@ sub printForm {
              td({align=>'left', colspan=>2},
                 radio_group(-name=>'newline',
                    -values=>['s', 'p', 'w'],
-                   -default=>'s',
+                   -default=>'p',
                    -linebreak=>'true',
                    -labels=>\%labels,
                    ))),
