@@ -14,17 +14,23 @@
 
 
 SHELL=/bin/bash
-.PHONY: FORCE
-FORCE:
 
 all: out out-tppt err_min_lmc coarseout boundary_cases
 
-TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
+.PHONY: FORCE
+# It's ugly to have FORCE depend on something else, but I always want that
+# thing done first, yet only once, and only if needed...
+FORCE: cpt.ibm2.en2fr.FILT.tppt/tppt
+
+TEMP_FILES=out out-tppt log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
            coarse*train_bilm coarse*train_bilm.raw \
            en.cls* fr.cls* bitoken*.cls* bilm.coarse*.gz bilm.*gram.gz
-TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm *.tplm.tmp.???
+TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm *.tplm.tmp.??? cpt.tppt cpt.ibm2.en2fr.FILT.tppt*
 include ../Makefile.incl
+
+PT_TYPE ?= cpt
+$(info PT_TYPE ${PT_TYPE})
 
 init-lm:
 	ngram-count -unk -text <(echo .) -lm lm
@@ -32,13 +38,17 @@ init-lm:
 init-bilm:
 	ngram-count -unk -text train_bilm -lm bilm.tiny.gz
 
+cpt.tppt/tppt: cpt
+	${RM} -r cpt.tppt
+	textpt2tppt.sh $< >& log.$<.tppt
+
+cpt.ibm2.en2fr.FILT.tppt/tppt: cpt.ibm2.en2fr.FILT.gz
+	${RM} -r cpt.ibm2.en2fr.FILT.tppt
+	textpt2tppt.sh $< >& log.$<.tppt
+
 out: in canoe.ini bilm.tiny.gz lm
 	canoe -f canoe.ini -input in -ffvals > out 2> log.out
 	diff out ref/out
-
-cpt.tppt/tppt: cpt
-	${RM} -r cpt.tppt
-	textpt2tppt.sh cpt >& log.cpt.tppt
 
 out-tppt: in canoe.ini bilm.tiny.gz lm cpt.tppt/tppt
 	canoe -f canoe.ini -ttable-multi-prob "" -ttable-tppt cpt.tppt -input in -ffvals > out-tppt 2> log.out-tppt
@@ -152,7 +162,7 @@ coarseout:
 	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=-minimize-lm-context-size
 
 coarse${refsuffix}out: FORCE bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.gz lm.tplm bilm.tiny.${LM_EXT}
-	canoe -f canoe.ini.coarse.FILT -ffvals -trace -input coarse.in \
+	canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -ffvals -trace -input coarse.in \
 	   -v ${verbosity} -timing ${LMC_MIN} \
 	   -bilm-file "bilm.tiny.${LM_EXT}:${COARSE_BILM}" \
 	   > $@.tmp 2> log.$@.lmext-${LM_EXT}${LMC_MIN}
@@ -168,14 +178,14 @@ boundary_cases: 7bilm_ok 8bilm_fail 8bilm_nomin_ok \
 
 7bilm_ok: override LM_EXT=tplm
 7bilm_ok: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
-	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm" \
 	   >& log.$@
 
 8bilm_fail: override LM_EXT=tplm
 8bilm_fail: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
-	! canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	! canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}" \
 	   >& log.$@
@@ -183,7 +193,7 @@ boundary_cases: 7bilm_ok 8bilm_fail 8bilm_nomin_ok \
 
 8bilm_nomin_ok: override LM_EXT=tplm
 8bilm_nomin_ok: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
-	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -no-minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}" \
 	   >& log.$@
@@ -192,20 +202,20 @@ bilm.%gram.gz: coarse${refsuffix}train_bilm
 	ngram-count -order $* -unk -text $< -lm $@ >& log.$@
 
 15gram_ok: bilm.15gram.tplm coarse.in bilm.tiny.tplm FORCE
-	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:$<" \
 	   >& log.$@
 
 16gram_fail: bilm.16gram.tplm coarse.in bilm.tiny.tplm FORCE
-	! canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	! canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:$<" \
 	   >& log.$@
 	grep 'maximum order of 15' log.$@
 
 16gram_nomin_ok: bilm.16gram.tplm coarse.in bilm.tiny.tplm FORCE
-	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	canoe -f canoe.ini.coarse.FILT-${PT_TYPE} -input coarse.in -v 2 \
 	   -no-minimize-lm-context-size \
 	   -bilm-file "bilm.tiny.tplm:$<" \
 	   >& log.$@
