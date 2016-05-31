@@ -17,7 +17,7 @@ SHELL=/bin/bash
 .PHONY: FORCE
 FORCE:
 
-all: out err_min_lmc coarseout boundary_cases
+all: out out-tppt err_min_lmc coarseout boundary_cases
 
 TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
@@ -35,6 +35,14 @@ init-bilm:
 out: in canoe.ini bilm.tiny.gz lm
 	canoe -f canoe.ini -input in -ffvals > out 2> log.out
 	diff out ref/out
+
+cpt.tppt/tppt: cpt
+	${RM} -r cpt.tppt
+	textpt2tppt.sh cpt >& log.cpt.tppt
+
+out-tppt: in canoe.ini bilm.tiny.gz lm cpt.tppt/tppt
+	canoe -f canoe.ini -ttable-multi-prob "" -ttable-tppt cpt.tppt -input in -ffvals > out-tppt 2> log.out-tppt
+	diff out-tppt ref/out
 
 err_min_lmc: in canoe.ini lm lm.tplm bilm.tiny.gz bilm.tiny.tplm
 	! canoe -f canoe.ini -input in -minimize-lm-context-size >& log.err1

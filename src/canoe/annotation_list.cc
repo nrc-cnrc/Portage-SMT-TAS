@@ -14,6 +14,7 @@
 #include "annotation_list.h"
 #include "alignment_annotation.h"
 #include "count_annotation.h"
+#include "phrasetable.h"
 
 
 Voc AnnotationList::registry;
@@ -52,6 +53,12 @@ void PhrasePairAnnotation::write_helper(ostream& phrase_table_file, const string
 void PhrasePairAnnotation::write_helper(ostream& phrase_table_file, const string& name, const string& value)
 {
    phrase_table_file << " " << name << "=" << value;
+}
+
+// PhrasePairAnnotator ========================================
+
+void PhrasePairAnnotator::annotate(TScore* tscore, const PhraseTableEntry& entry) {
+   annotate(tscore, &(entry.src_tokens[0]), entry.src_word_count, entry.tgtPhrase);
 }
 
 // UnknownAnnotation ========================================
