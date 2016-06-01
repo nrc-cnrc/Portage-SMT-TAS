@@ -31,8 +31,10 @@ TEMP_FILES=log.* core.* tm.*.ttpt-* \
            phrases-GT-ZN.fr2en.FILT.gz phrases-GT-ZN.fr2en.ORIG.GREP.gz phrases-GT-ZN.fr2en.ORIG.LIMIT.gz \
            phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz phrases-GT-KN.fr2en.ORIG.LIMIT.gz \
            canoe.ini* phrases.small.* dm.small* trans.* tmp.* prune-full.*
+TEMP_DIRS=dm.small.tpldm
 
 clean:
+	${RM} -r ${TEMP_DIRS}
 	${RM} ${TEMP_FILES}
 
 SETUP_FILES= src ibm[12].* phrases-GT-ZN.fr2en.gz .gitignore
@@ -41,7 +43,7 @@ distclean: clean
 	${RM} ${SETUP_FILES}
 
 gitignore:
-	echo "${TEMP_FILES} ${SETUP_FILES}" | tr ' ' '\n' > .gitignore
+	echo "${TEMP_FILES} ${TEMP_DIRS} ${SETUP_FILES}" | tr ' ' '\n' > .gitignore
 
 ############################################################
 ## SETUP
