@@ -315,15 +315,27 @@ sub processText {
     my $work_dir;               # For translate.pl
     my @tr_opt = ();            # Translate.pl options
 
-    my $context = param('context');
-    if (not $context) {
-        problem("No system (\"context\") specified.");
-    }
+    my $context = "";
 
-    if (not -d "$PORTAGE_MODEL_DIR/$context") {
+		
+	if (exists $CONTEXT{param('context')}) {
+		$context = param('context');
+	} 
+	else {
+	my $context_error = param('context');
+	 problem("Invalid context (\"$context_error\") specified.");
+	}
+
+
+	if (not -d "$PORTAGE_MODEL_DIR/$context") {
         problem("Invalid context (\"$context\") specified.");
     }
 
+
+	if (not $context) {
+        problem("No system (\"context\") specified.");
+    }
+    #
     # Create the work dir, get the source text in there:
     if (param('translate_file') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
@@ -389,7 +401,13 @@ sub processText {
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
-        my $newline = param('newline') || "p";
+		
+		#Setting deafult newline value to "p" ==> one paragraph per line
+		my $newline = "p";
+		#Taint Checking ( We should only accept the values for param  newline  "s" or "w" or "p"(default) 
+		if(param('newline') eq "s" || param('newline') eq "w" ){
+        	$newline = param('newline');
+		}
         push @tr_opt, "-nl=" . $newline;
     }
 
