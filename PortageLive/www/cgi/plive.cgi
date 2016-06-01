@@ -269,7 +269,20 @@ sub processText {
     my $work_name;              # User-recognizable jobname
     my $work_dir;               # For translate.pl
 
-    my $context = param('context');
+    my $context = "";
+
+    if (exists $CONTEXT{param('context')}) {
+        $context = param('context');
+    }
+    else {
+        my $context_error = param('context');
+        problem("Invalid context (\"$context_error\") specified.");
+    }
+
+    if (not -d "$PORTAGE_MODEL_DIR/$context") {
+        problem("Invalid context (\"$context\") specified.");
+    }
+
     if (not $context) {
         problem("No system (\"context\") specified.");
 
