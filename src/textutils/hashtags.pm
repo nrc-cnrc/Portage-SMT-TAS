@@ -234,6 +234,12 @@ sub hashtagify_helper($) {
 
 
 
+# Hyphens: U+2010, U+2011, figure dash (U+2012), n-dash (cp-1252 150, U+2013),
+# m-dash (cp-1252 151, U+2014), horizontal bar (U+2015), hyphen (ascii -)
+my $wide_dashes = quotemeta("‐‑‒–—―");
+my $hyphens = $wide_dashes . quotemeta("-");
+
+# What is a hashtag?
 my $hashtag_word_re = qr/#[\p{Word}\-#_]+/;
 
 =pod

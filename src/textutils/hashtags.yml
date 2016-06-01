@@ -1,4 +1,5 @@
 ---
+# https://github.com/twitter/twitter-text/blob/master/conformance/extract.yml
 tests:
   tokenizeHashtags:
     - description: "Extract an all-alpha hashtag"
