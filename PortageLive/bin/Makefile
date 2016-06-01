@@ -160,7 +160,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 
 ################################################################################
 # LIBRARIES
-PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
+PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so hashtags.pm
 #If NRC's rewrite of the LDC/UPENN Chinese segmenter is included, include manseg.fre.
 PORTAGE_LIBS += $(if $(filter chinese_segmenter.pl, ${CHINESE}), manseg.fre)
 vpath manseg.fre $(dir $(shell which chinese_segmenter.pl 2> /dev/null))/../lib

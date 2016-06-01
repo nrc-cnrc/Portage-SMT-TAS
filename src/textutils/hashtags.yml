@@ -1,0 +1,38 @@
+---
+tests:
+  tokenizeHashtags:
+    - description: "Extract an all-alpha hashtag"
+      text: "a #hashtag here"
+      expected: "a # hashtag here"
+
+    - description: "Extract a letter-then-number hashtag"
+      text: "this is #hashtag1"
+      expected: "this is # hashtag _ 1"
+
+    - description: "Extract a number-then-letter hashtag"
+      text: "#1hashtag is this"
+      expected: "# _ 1 _ hashtag is this"
+
+    - description: "DO NOT Extract an all-numeric hashtag"
+      text: "On the #16 bus"
+      expected: "On the #16 bus"
+
+    - description: "DO NOT Extract a single numeric hashtag"
+      text: "#0"
+      expected: "#0"
+
+    - description: "Extract a hashtag containing ñ"
+      text: "I'll write more tests #mañana"
+      expected: "I'll write more tests # mañana"
+
+    - description: "Extract a hashtag containing é"
+      text: "Working remotely #café"
+      expected: "Working remotely # café"
+
+    - description: "Extract a hashtag containing ü"
+      text: "Getting my Oktoberfest on #münchen"
+      expected: "Getting my Oktoberfest on # münchen"
+
+    - description: "Extract a hashtag in Russian"
+      text: "What is #ашок anyway?"
+      expected: "What is # ашок anyway?"
