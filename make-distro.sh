@@ -382,6 +382,8 @@ get_user_manual() {
                if grep -q 'Portage Machine Translation' $x; then
                   perl -e 'print '"'"'%s/Portage Machine Translation/PortageII Machine Translation/g'"'"'."\nw\nq\n"' | ed $x
                fi
+               r sed -i "'s/<strong><\/strong>//g'" $x
+               r sed -i "'s/<em><\/em>//g'" $x
             fi
          done
       r popd
