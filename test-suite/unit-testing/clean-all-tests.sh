@@ -16,9 +16,11 @@ if [[ "$1" =~ "^-" ]]; then
    exit
 fi
 
+CLEAN_LOG=
 TEST_SUITES=$*
 if [[ ! $TEST_SUITES ]]; then
    TEST_SUITES=`echo */Makefile */clean.sh | sed 's/\/[^ \/]*//g' | tr ' ' '\n' | sort -u`
+   CLEAN_LOG=1
 fi
 
 echo ""
@@ -54,6 +56,13 @@ for TEST_SUITE in $TEST_SUITES; do
       FAIL="$FAIL $TEST_SUITE"
    fi
 done
+
+if [[ $CLEAN_LOG ]]; then
+   echo ""
+   echo =======================================
+   echo "rm -f .log.run-all-tests-parallel"
+   rm -f .log.run-all-tests-parallel
+fi
 
 echo ""
 echo =======================================

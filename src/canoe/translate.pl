@@ -206,6 +206,11 @@ The input and output files are in XML format.
 Process and transfer tags, either in the XML file input, or in plain input text
 with XMLish markup.
 
+=item -hashtags
+
+Process hashtags in such a way that the hashtag words get translated.  This
+activates -xtags.
+
 =item -wal=WAL
 
 -wal=h: Use heuristic word alignment for -xtags and for -tcsrclm, even if work
@@ -401,6 +406,7 @@ Getopt::Long::GetOptions(
    #XML specific options
    "xml"            => \my $xml,
    "xtags"          => \my $xtags,
+   "hashtags"       => \my $hashtags,
    "wal=s"          => \my $wal,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
@@ -420,6 +426,9 @@ $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
+
+# To process hashtags, we use the xtags mechanism.
+$xtags = 1 if defined $hashtags;
 
 $wal = "mixed" unless defined $wal;
 $wal eq "h" or $wal eq "pal" or $wal eq "mixed"
@@ -458,7 +467,8 @@ if ($with_rescoring) {
    # Locate the rescoring model.
    if (defined $model) {
       $rs_model = $model
-   } else {
+   }
+   else {
       my $rescoring_dir = "$models_dir/models/rescore";
       my @files = grep !(/\.ini$/ || /\.template$/), glob "$rescoring_dir/rescore-model*";
       @files > 0 or die "Error: Unable to locate a rescore-model file in '$rescoring_dir'; ",
@@ -473,7 +483,8 @@ if ($with_rescoring) {
    # Locate the CE model.
    if (defined $model) {
       $ce_model = $model
-   } else {
+   }
+   else {
       my @files = grep !/^.*\/log\.[^\/]+/, glob "$models_dir/*.cem";
       @files > 0 or die "Error: Unable to locate a .cem file in '$models_dir'; ",
                         "use -model to specify the CE model.\nStopped";
@@ -482,7 +493,8 @@ if ($with_rescoring) {
       $ce_model = shift @files;
    }
    -f $ce_model && -r _ or die "Error: CE model '$ce_model' is not a readable file.\nStopped";
-} else {
+}
+else {
    !defined $model or die "Error: -model option is invalid with -decode-only; "
                         . "use -f or -ini to specify the canoe.ini file.\nStopped";
 }
@@ -572,7 +584,8 @@ if ($tc) {
       -d $tcmap && -x _
          or die "Error: Tightly packed truecasing map '$tcmap' ",
                 "is not a readable directory.\nStopped";
-   } else {
+   }
+   else {
       -f $tclm && -r _
          or die "Error: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
       -f $tcmap && -r _
@@ -583,7 +596,8 @@ if ($tc) {
          -d $tcsrclm && -x _
             or die "Error: Tightly packed truecasing $src model '$tcsrclm' ",
                    "is not a readable directory.\nStopped";
-      } else {
+      }
+      else {
          -f $tcsrclm && -r _
             or die "Error: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";
       }
@@ -596,7 +610,8 @@ if (defined $encoding) {
    $utf8 = $lc_enc eq "utf8" || $lc_enc eq "utf-8";
    $utf8 or $lc_enc eq "cp1252"
       or die "Error: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
-} else {
+}
+else {
    $encoding = "utf-8";
 }
 if ($xtags && !$utf8) {
@@ -638,7 +653,8 @@ if ($xml) {
       $xtgt = "$tgt-$src_country";
       $xtgt =~ tr/a-z/A-Z/;
    }
-} else {
+}
+else {
    !defined $xsrc and !defined $xtgt and !defined $filter
       or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -xml.\n";
 }
@@ -646,7 +662,8 @@ if ($xml) {
 # CE specific options
 if ($with_ce) {
    $xtra_ce_opts = "" unless defined $xtra_ce_opts;
-} else {
+}
+else {
    !defined $filter
       or die "Error: -filter is valid only with -with-ce.\nStopped";
    !defined $xtra_ce_opts
@@ -659,7 +676,8 @@ my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
    $out = "-";
-} else {
+}
+else {
    system("echo '' >$out") == 0
       or die "Error: '$out' is not a writable file.\nStopped";
 }
@@ -681,12 +699,14 @@ if ($dryrun) {
       print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
          or warn "Warning: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
    }
-} else {
+}
+else {
    if ($dir) {
       if (not -d $dir) {
          mkdir $dir or die "Error: Can't make directory '$dir': errno=$!.\nStopped";
       }
-   } else {
+   }
+   else {
       $dir = "";
       # Use eval to avoid death if unable to create the work directory .
       eval {$dir = tempdir('translate_work_XXXXXX', DIR=>".", CLEANUP=>0);};
@@ -758,6 +778,7 @@ my $Q_tags = "${dir}/Q.tags";     # Raw source text with tags
 my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
 # --> tokenize
 my $Q_tok = "${dir}/Q.tok";     # Tokenized source
+my $Q_tok_tags_hashtags = "${dir}/Q.tok.tags.hashtags";
 my $Q_tok_tags = "${dir}/Q.tok.tags";     # Tokenized source with tags
 # --> lowercase
 my $q_tok = "${dir}/q${ci}.tok";    # Lowercased tokenized source
@@ -781,6 +802,7 @@ my $P_tok_tags = "${dir}/P.tok.tags";     # Truecased tokenized translation with
 my $P_dtk = "${dir}/P.dtk";     # Truecased detokenized translation
 my $P_oppl = "${dir}/P.oppl";   # Truecased, detok'd, oppl'd translation
 # --> postprocessor plugin
+my $P_hashtagify = "${dir}/P.hashtagify";     # Restore hashtags.
 my $P_txt = "${dir}/P.txt";     # translation
 
 #Others:
@@ -796,7 +818,8 @@ IN:{
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
       # $Q_txt can be empty if there is nothing in the original document.
       cleanupAndDie("XML file $input_text has no sentences in language $xsrc.\n") unless -e $Q_txt or $dryrun;
-   } else {
+   }
+   else {
       if ($xtags) {
          copy($input_text, $Q_tags);
       }
@@ -810,7 +833,12 @@ IN:{
 PREP:{
    if ($xtags) {
       plugin("preprocess", $src, $Q_tags, $Q_pre);
-      tokenize($src, $Q_pre, $Q_tok_tags);
+      my $in = $Q_pre;
+      if ($hashtags) {
+         tokenize_hashtags($Q_pre, $Q_tok_tags_hashtags);
+         $in = $Q_tok_tags_hashtags;
+      }
+      tokenize($src, $in, $Q_tok_tags);
       strip_entity($Q_tok_tags, $Q_tok);
    }
    else {
@@ -925,10 +953,15 @@ POST:{
    if ($nl eq "p") {
       deparaline($P_dtk, $P_oppl);
       $in = $P_oppl;
-   } else {
+   }
+   else {
       $in = $P_dtk;
    }
 
+   if ($hashtags) {
+      reconstructHashtags($in, $P_hashtagify);
+      $in = $P_hashtagify;
+   }
    plugin("postprocess", $tgt, $in, $P_txt);
 
    # Generate pal.html's data.
@@ -951,7 +984,8 @@ OUT:{
       if ($with_ce) {
          my $ce_output = $out ne "-" ? "> '$out'" : "";
          call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
-      } else {
+      }
+      else {
          # For now this mode only works if there is an one-sentence-per-line file.
          if ($json_output and -e "$Q_pre.ospl") {
             outputJson("$Q_pre.ospl", $P_txt, $out);
@@ -989,6 +1023,8 @@ sub displayHelp {
    -t STDERR ? system "pod2text -t -o $0 >&2" : system "pod2text $0 >&2";
 }
 
+
+
 sub copy {
    my ($in, $out) = @_;
 
@@ -996,6 +1032,8 @@ sub copy {
                          : $in eq "-" ? qq(cat >"$out") : qq(cp "$in" "$out");
    call($cmd, $out ne "-" ? $out : "");
 }
+
+
 
 sub plugin {
    my ($name, $lang, $in, $out) = @_;
@@ -1011,13 +1049,16 @@ sub plugin {
    $ENV{PERL5LIB} = $old_perl5lib_path;
 }
 
+
+
 sub plogCreate {
    my ($job_name, $comment) = @_;
    my $plog_file;
 
    if ($dryrun) {
       $plog_file = "dummy-log";
-   } else {
+   }
+   else {
       my @plog_opt = qw(-create);
       push @plog_opt, "-verbose" if $verbose;
       push @plog_opt, "-comment=\"$comment\"" if defined $comment;
@@ -1027,6 +1068,8 @@ sub plogCreate {
 
    return $plog_file;
 }
+
+
 
 sub plogUpdate {
    my ($plog_file, $status, $words_in, $words_out, $comment) = @_;
@@ -1044,6 +1087,8 @@ sub plogUpdate {
    # Don't use call(): potential recursive loop!!
    system($cmd) == 0 or warn "Warning: ", explainSystemRC($?,$cmd,$0);
 }
+
+
 
 sub sourceWordCount {
    my ($filter) = @_;
@@ -1066,7 +1111,8 @@ sub sourceWordCount {
        close $ffh;
 
        $count_file = $Q_filt;
-   } else {
+   }
+   else {
        $count_file = $Q_pre;
    }
 
@@ -1091,11 +1137,14 @@ sub sourceWordCount {
          $word_count += scalar(my @w = split);
       }
       return $word_count;
-   } else {
+   }
+   else {
       my $cmd = "wc -w < '${count_file}'";
       return 0 + `$cmd`; # Add "0 +" to return a number, not a string with a newline.
    }
 }
+
+
 
 sub tokenize {
    my ($lang, $in, $out) = @_;
@@ -1115,7 +1164,8 @@ sub tokenize {
          $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
          call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
-      } else {
+      }
+      else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
          my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
          my $ss_output = $tok ? $tok_input : $out;
@@ -1140,7 +1190,8 @@ sub tokenize {
                call("sentsplit-with-tags-split.pl $ss_input $ss_output-text $ss_output-tags", "$ss_output-text", "$ss_output-tags");
                plugin("sentsplit", $src, "$ss_output-text", "$ss_output-textss");
                call("sentsplit-with-tags-combine.pl $ss_output-textss $ss_output-tags $ss_output", $ss_output);
-            } else {
+            }
+            else {
                plugin("sentsplit", $src, $ss_input, $ss_output);
             }
          }
@@ -1149,13 +1200,16 @@ sub tokenize {
                call("tok-with-tags-split.pl $tok_input $out-text $out-tags", "$out-text", "$out-tags");
                plugin("tokenize", $src, "$out-text", "$out-texttok");
                call("tok-with-tags-combine.pl $out-texttok $out-tags $out", $out);
-            } else {
+            }
+            else {
                plugin("tokenize", $src, $tok_input, $out);
             }
          }
       }
    }
 }
+
+
 
 sub strip_entity {
    my ($in, $out) = @_;
@@ -1177,6 +1231,8 @@ sub strip_entity {
    close(IN);
    close(OUT);
 }
+
+
 
 sub escape_entity {
    my ($in, $out) = @_;
@@ -1201,6 +1257,8 @@ sub escape_entity {
    close(IN);
    close(OUT);
 }
+
+
 
 sub detokenize {
    my ($lang, $in, $out) = @_;
@@ -1228,6 +1286,44 @@ sub detokenize {
       }
    }
 }
+
+
+
+sub reconstructHashtags {
+   my ($in, $out) = @_;
+   verbose("hashtagify hashtags from $in to $out");
+   open IN, $in or cleanupAndDie("Can't open $in for reading: $!");
+   binmode(IN, ":encoding(UTF-8)");
+   open OUT, ">$out" or cleanupAndDie("Can't open $out for writing: $!", $out);
+   binmode(OUT, ":encoding(UTF-8)");
+
+   use hashtags;
+   while (<IN>) {
+      print OUT hashtagify($_);
+   }
+   close IN;
+   close OUT;
+}
+
+
+
+sub tokenize_hashtags {
+   my ($in, $out) = @_;
+   verbose("tokenizing hashtags from $in to $out");
+   open IN, $in or cleanupAndDie("Can't open $in for reading: $!");
+   binmode(IN, ":encoding(UTF-8)");
+   open OUT, ">$out" or cleanupAndDie("Can't open $out for writing: $!", $out);
+   binmode(OUT, ":encoding(UTF-8)");
+
+   use hashtags;
+   while (<IN>) {
+      print OUT markHashTags(tokenizeHashtags($_));
+   }
+   close IN;
+   close OUT;
+}
+
+
 
 sub deparaline {
    my ($in, $out) = @_;
@@ -1257,21 +1353,27 @@ sub deparaline {
    close OUT;
 }
 
+
+
 sub lowercase {
    my ($in, $out) = @_;
    unless ($lc) {
       copy($in, $out);
-   } else {
+   }
+   else {
       my $lc_prog = $utf8 ? "utf8_casemap -c l" : "lc-latin.pl";
       call("${lc_prog} '${in}' '${out}'", $out);
    }
 }
 
+
+
 sub truecase {
    my ($lang, $in, $out, $src_file, $pal) = @_;
    unless ($tc) {
       copy($in, $out);
-   } else {
+   }
+   else {
       my ($lm_sw, $map_sw) = $tctp ? ("tplm", "tppt") : ("lm", "map");
       my $locale_opts = $src_locale ? "-locale ${src_locale}" : "-encoding ${encoding}";
       my $model_opts = "-$lm_sw '${tclm}' -$map_sw '${tcmap}'";
@@ -1284,18 +1386,23 @@ sub truecase {
    }
 }
 
+
+
 sub call {
    my ($cmd, @outfiles) = @_;
    my $start = time if $timing;
    verbose("call: $cmd");
    if ($dryrun) {
       print $cmd, "\n";
-   } else {
+   }
+   else {
       system($cmd) == 0
          or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
    }
    (print STDERR "translate.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;
 }
+
+
 
 sub callOutput {
    my ($cmd) = @_;
@@ -1315,6 +1422,8 @@ sub callOutput {
    return $cmdout;
 }
 
+
+
 # Routine to clean up (some) files, update the log file, and die.  Call this
 # routine instead of die() once plogCreate() has been called.
 sub cleanupAndDie {
@@ -1330,7 +1439,10 @@ sub cleanupAndDie {
    die "translate.pl fatal error: ", $message;
 }
 
+
 sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
+
+
 
 sub outputJson {
    my ($file_orig, $file_trans, $file_out) = @_;
@@ -1351,6 +1463,8 @@ sub outputJson {
    close(TRANS);
    close(OUT);
 }
+
+
 
 # Given a file containing sentences marked with OOVs (<OOV>words</OOV>),
 # genereate an html page where the OOVs are colored red.

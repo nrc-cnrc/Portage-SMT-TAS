@@ -35,7 +35,7 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-n]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-src] [-bin2013]
-       [-d GIT_PATH] [-framework FRAMEWORK]
+       [-d GIT_PATH] [-framework FRAMEWORK] [-tmx-prepro TMX-PREPRO]
        -r GIT_TAG -dir OUTPUT_DIR -cur VERSION
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
@@ -49,7 +49,7 @@ Arguments:
                 git push --tags", e.g.,:
                    git tag -a PortageII-3.0 master
                    git push --tags
-                run in both PORTAGEshared and portage.framework.
+                run in both PORTAGEshared, portage.framework and tmx-prepro
 
   -dir OUTPUT_DIR  The distro will be created in OUTPUT_DIR, which must not
                 already exist.
@@ -86,8 +86,8 @@ Options:
                 .iso file.  PREREQ_TOKEN must be a word that exists in the old
                 INSTALL but in no other distributed versions of INSTALL, past
                 or future.
-  -framework    Include framework from Git repository FRAMEWORK
-                [portage.framework]
+  -framework    Include framework from Git repo FRAMEWORK.git [portage.framework]
+  -tmx-prepro   Include tmx-prepro from Git repo TMX-PREPRO.git [tmx-prepro]
 
 Canned options for specific licensees:
 
@@ -98,8 +98,8 @@ Canned options for specific licensees:
   -bin2013      Same as: -bin -nosrc -archive-name bin
 
 Distro creation check list:
-  - Tag the PORTAGEshared and portage.framework Git repos with the current
-    version, e.g., git tag -a PortageII-3.0 master ; git push --tags
+  - Tag the PORTAGEshared, portage.framework and tmx-prepro Git repos with the
+    current version, e.g., git tag -a PortageII-3.0 master; git push --tags
   - Change the year in src/utils/portage_info.cc, SETUP.{bash,tcsh}, the
     INSTALL file, all the README files
   - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
@@ -124,10 +124,14 @@ Old check list items, now automated via the -cur VERSION switch:
 }
 
 error_exit() {
-   for msg in "$@"; do
-      echo $msg
-   done
-   echo "Use -h for help."
+   {
+      PROG_NAME=`basename $0`
+      echo -n "$PROG_NAME fatal error: "
+      for msg in "$@"; do
+         echo $msg
+      done
+      echo "Use -h for help."
+   } >&2
    exit 1
 }
 
@@ -187,6 +191,7 @@ done
 ICU=yes
 ICU_ROOT=$PORTAGE
 FRAMEWORK=portage.framework
+TMX_PREPRO=tmx-prepro
 CUR_VERSION=
 VERSION_TAG=
 OUTPUT_DIR=
@@ -207,6 +212,7 @@ while [ $# -gt 0 ]; do
    -src)                ARCHIVE_NAME=src;;
    -bin2013)            INCLUDE_BIN=1; NO_SOURCE=1; ARCHIVE_NAME=bin;;
    -framework)          arg_check 1 $# $1; FRAMEWORK=$2; shift;;
+   -tmx-prepro)         arg_check 1 $# $1; TMX_PREPRO=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
@@ -308,6 +314,16 @@ do_checkout() {
             r popd
          r popd
       fi
+      if [[ $TMX_PREPRO ]]; then
+         r pushd PORTAGEshared
+            r r git clone -v --no-checkout $GIT_PATH/$TMX_PREPRO.git tmx-prepro '>&' ../git.tmx-prepro.log
+            r pushd tmx-prepro
+               r r git checkout $VERSION_TAG '>>' ../../git.tmx-prepro.log '2>&1'
+               r r git remote show origin '>>' ../../git.tmx-prepro.log '2>&1'
+               r r git show --abbrev=40 --format=fuller HEAD '>>' ../../git.tmx-prepro.log '2>&1'
+            r popd
+         r popd
+      fi
       r 'find PORTAGEshared -name .git\* | xargs rm -rf'
       r 'rm PORTAGEshared/.[a-z]*'
 
@@ -366,6 +382,8 @@ get_user_manual() {
                if grep -q 'Portage Machine Translation' $x; then
                   perl -e 'print '"'"'%s/Portage Machine Translation/PortageII Machine Translation/g'"'"'."\nw\nq\n"' | ed $x
                fi
+               r sed -i "'s/<strong><\/strong>//g'" $x
+               r sed -i "'s/<em><\/em>//g'" $x
             fi
          done
       r popd
@@ -466,7 +484,8 @@ make_bin() {
          r mkdir -p $ELFDIR
          r file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
          if [[ $ICU = yes ]]; then
-            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe
+            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH \
+            ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          else
             ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          fi |
@@ -512,6 +531,7 @@ check_reliable_host
 [[ $CUR_VERSION ]] || error_exit "Missing mandaroty -cur VERSION argument"
 [[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
 [[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
+portage_info       || error_exit "Run portage_setbuild before make-distro.sh"
 
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.

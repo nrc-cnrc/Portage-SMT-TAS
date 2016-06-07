@@ -28,6 +28,8 @@ BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	sentsplit_plugin \
 	select-line
 
+PERL_LIBS = hashtags.pm
+
 test: check_perl_dependencies
 
 check_perl_dependencies:
@@ -58,3 +60,8 @@ perl_doctest:  $(addsuffix .doc_test, $(wildcard *.pm))
 %.doc_test:  %
 	perl -MTest::Doctest -e run $<
 endif
+
+test:  hashtags_testsuite
+.PHONY:  hashtags_testsuite
+hashtags_testsuite:
+	perl -e 'use hashtags (testsuite); testsuite();'

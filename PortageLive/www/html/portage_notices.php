@@ -11,9 +11,9 @@
 <pre>
 
 <?php
-  $PORTAGE = "/opt/PortageII/bin";
-  $cmd = "PORTAGE=$PORTAGE $PORTAGE/portage_info -notice";
-  print `$cmd 2>&1 | sed 's/$/<br\/>/'`;
+  $PORTAGE = "/opt/PortageII";
+  $cmd = "LD_LIBRARY_PATH=$PORTAGE/lib PORTAGE=$PORTAGE $PORTAGE/bin/portage_info -notice";
+  print `$cmd 2>&1`;
 ?>
 
 </pre>

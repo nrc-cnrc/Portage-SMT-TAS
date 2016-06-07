@@ -86,6 +86,7 @@ phrase-based statistical machine translation, including:
    test-suite/  various test suites
    PortageLive/ files needed to setup a runtime translation server
    third-party/ Non-NRC software distributed with PortageII for convenience
+   tmx-prepro/  Tools to extract and preprocess training corpora from TMX files
    README       this file
    INSTALL      installation instructions
    RELEASES     release history

@@ -436,7 +436,7 @@ def convert_rescore_model(model_in, model_rat_out, model_out):
                # Write out the original feature function name and its weight
                print(model_match.group(1), wts_match.group(2), file=model_out_file)
             if model_rat_out_file.readline():
-               fatal_error(model_rat_out, "contains more lines than", cmd_args.model)
+               fatal_error(model_rat_out, "contains more lines than", model_in)
 
 
 def main():

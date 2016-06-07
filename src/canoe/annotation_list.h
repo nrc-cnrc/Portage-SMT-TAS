@@ -177,9 +177,28 @@ public:
    /// override this method
    virtual void annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word) {}
 
-   /// Main factory function to create an annotation of your type
-   /// Should create your annotation type and add it to tscore->annotations as appropriate
-   virtual void annotate(TScore* tscore, const PhraseTableEntry& entry) = 0;
+   /**
+    * Main factory function to create an annotation of your type, called when
+    * loading a phrase pair from a text phrase table
+    * Should create your annotation type and add it to tscore->annotations as appropriate
+    * The default implementation will call the 4-argument annotate, so it's
+    * enough to implement only that one.
+    */
+   virtual void annotate(TScore* tscore, const PhraseTableEntry& entry);
+
+   /**
+    * Factory function to create an annotation of your type, called when
+    * loading a phrase pair from a TPPT
+    * Should create your annotation type and add it to tscore->annotations as appropriate
+    * @param tscore the TScore object has most phrase information, including
+    *               previously initialized annotations such as count and alignment.
+    * @param src_tokens array with the source phrase in const char* format for
+    *                   each source word
+    * @param src_word_count number of words in source phrase src_tokens
+    * @param tgtPhrase target phrase in the standard vector of word ID format.
+    */
+   virtual void annotate(TScore* tscore, const char* const src_tokens[],
+         Uint src_word_count, const VectorPhrase& tgtPhrase) = 0;
 };
 
 /**

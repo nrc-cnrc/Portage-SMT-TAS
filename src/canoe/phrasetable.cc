@@ -976,8 +976,13 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
                CountAnnotation::getOrCreate(tScores->annotations)->updateValue(it->counts);
             }
 
-            if (hasAlignments)
+            if (hasAlignments && !it->alignment.empty())
                tScores->annotations.initAnnotation("a", it->alignment.c_str());
+
+            // Call all the registered annotators to do what they need with the phrase pair
+            for (AnnotatorRegistry::iterator it(annotatorRegistry.begin()), end(annotatorRegistry.end());
+                 it != end; ++it)
+               it->second->annotate(tScores, s_key + range.start, range.size(), tgtPhrase);
          }
       }
       prob_offset += numModels;

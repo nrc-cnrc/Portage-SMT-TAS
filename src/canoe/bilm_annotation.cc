@@ -28,8 +28,6 @@
 const string BiLMAnnotation::name = "bilm";
 VocabFilter* BiLMAnnotation::biPhraseVocab = NULL;
 
-
-
 VocabFilter* BiLMAnnotation::init(const VocabFilter& tgtVocab)
 {
    // We need to create the biPhraseVocab with the same number of source
@@ -46,8 +44,6 @@ VocabFilter* BiLMAnnotation::init(const VocabFilter& tgtVocab)
    return biPhraseVocab;
 }
 
-
-
 void BiLMAnnotation::display(ostream& out) const
 {
    if (!bi_phrase.empty())
@@ -56,8 +52,6 @@ void BiLMAnnotation::display(ostream& out) const
           << endl;
 }
 
-
-
 BiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab)
    : type_id(AnnotationList::addAnnotationType(BiLMAnnotation::name.c_str()))
    , tgtVocab(tgtVocab)
@@ -65,15 +59,11 @@ BiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab)
    BiLMAnnotation::init(tgtVocab);
 }
 
-
-
 BiLMAnnotation::Annotator::~Annotator()
 {
    //cerr << "BiLMAnnotation::Annotator::~Annotator() for " << this << endl;
    *(const_cast<Uint*>(&type_id)) = 0xdea110cd;
 }
-
-
 
 void BiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
 {
@@ -94,8 +84,6 @@ void BiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
    }
 }
 
-
-
 void BiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info)
 {
    VectorPhrase bi_phrase;
@@ -113,23 +101,21 @@ void BiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const Ma
    newPI->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
 }
 
-
-
 void BiLMAnnotation::Annotator::annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word)
 {
    VectorPhrase bi_phrase(1, BiLMAnnotation::biPhraseVocab->add((word + BiLMWriter::sep + word).c_str()));
    newPI->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
 }
 
-
-
 void BiLMAnnotation::Annotator::annotate_helper(
       VectorPhrase& bi_phrase, VocabFilter& biVoc,
-      TScore* tscore, const PhraseTableEntry& entry)
+      TScore* tscore, //const PhraseTableEntry& entry)
+      const char* const src_tokens[], Uint src_word_count,
+      const VectorPhrase& tgtPhrase)
 {
    AlignmentAnnotation* a_ann = AlignmentAnnotation::get(tscore->annotations);
-   const Uint tgt_size = entry.tgtPhrase.size();
-   bi_phrase.resize(entry.tgtPhrase.size());
+   const Uint tgt_size = tgtPhrase.size();
+   bi_phrase.resize(tgtPhrase.size());
    if (a_ann) {
       // construct the bi_phrase from the phrase pair and its alignment
       vector<vector<Uint> > reversed_sets;
@@ -140,20 +126,20 @@ void BiLMAnnotation::Annotator::annotate_helper(
       const char* top_alignment_string = a_ann->getAlignmentVoc().word(alignment_freqs.max()->first);
       string reversed_al;
       GreenWriter::reverse_alignment(reversed_al, top_alignment_string,
-            entry.src_word_count, tgt_size, '_');
+            src_word_count, tgt_size, '_');
       GreenReader('_').operator()(reversed_al, reversed_sets);
 
       assert(reversed_sets.size() >= tgt_size);
       string bi_word;
       for (Uint i = 0; i < tgt_size; ++i) {
-         bi_word = tgtWord(entry.tgtPhrase[i]);
+         bi_word = tgtWord(tgtPhrase[i]);
          if (reversed_sets[i].empty()) bi_word += BiLMWriter::sep;
          for (Uint j = 0; j < reversed_sets[i].size(); ++j) {
             bi_word += BiLMWriter::sep;
-            if (reversed_sets[i][j] >= entry.src_word_count)
+            if (reversed_sets[i][j] >= src_word_count)
                bi_word += "NULL";
             else
-               bi_word += srcWord(entry.src_tokens[reversed_sets[i][j]]);
+               bi_word += srcWord(src_tokens[reversed_sets[i][j]]);
          }
          bi_phrase[i] = biVoc.add(biToken(bi_word));
       }
@@ -163,14 +149,12 @@ void BiLMAnnotation::Annotator::annotate_helper(
       // default for the most common case, the single-word phrase pair
       // that came from the TTable.
       string sep_src_words;
-      for (Uint i = 0; i < entry.src_word_count; ++i)
-         sep_src_words += BiLMWriter::sep + srcWord(entry.src_tokens[i]);
-      for (Uint i = 0; i < entry.tgtPhrase.size(); ++i)
-         bi_phrase[i] = biVoc.add(biToken(tgtWord(entry.tgtPhrase[i]) + sep_src_words));
+      for (Uint i = 0; i < src_word_count; ++i)
+         sep_src_words += BiLMWriter::sep + srcWord(src_tokens[i]);
+      for (Uint i = 0; i < tgtPhrase.size(); ++i)
+         bi_phrase[i] = biVoc.add(biToken(tgtWord(tgtPhrase[i]) + sep_src_words));
    }
 }
-
-
 
 void BiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry& entry)
 {
@@ -183,14 +167,33 @@ void BiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry&
       }
    } else {
       VectorPhrase bi_phrase;
-      annotate_helper(bi_phrase, *BiLMAnnotation::biPhraseVocab, tscore, entry);
+      annotate_helper(bi_phrase, *BiLMAnnotation::biPhraseVocab, tscore, // entry);
+         &(entry.src_tokens[0]), entry.src_word_count, entry.tgtPhrase);
       tscore->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
       if (entry.limitPhrases)
          BiLMAnnotation::biPhraseVocab->addPerSentenceVocab(bi_phrase, &entry.tgtTable->input_sent_set);
    }
-
 }
 
+void BiLMAnnotation::Annotator::annotate(TScore* tscore, const char* const src_tokens[],
+      Uint src_word_count, const VectorPhrase& tgtPhrase)
+{
+   BiLMAnnotation* bilm_ann = BiLMAnnotation::get(tscore->annotations);
+   if (bilm_ann) {
+      // nothing to do - just seeing this TPPT entry a second time.
+      // warning superfluous but printing for debugging purposes
+      static bool warning_printed = false;
+      if (!warning_printed) {
+         error(ETWarn, "BiLMAnnotation annotating a phrase pair from TPPT a second time.");
+         warning_printed = true;
+      }
+   } else {
+      VectorPhrase bi_phrase;
+      annotate_helper(bi_phrase, *BiLMAnnotation::biPhraseVocab, tscore,
+         src_tokens, src_word_count, tgtPhrase);
+      tscore->annotations.setAnnotation(type_id, new BiLMAnnotation(bi_phrase));
+   }
+}
 
 
 //===================================================================
@@ -199,10 +202,8 @@ void BiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry&
 
 static const bool debug_coarse_bilm = false;
 
-
 const string CoarseBiLMAnnotation::name_prefix = "CoarseBiLM_";
 char CoarseBiLMAnnotation::name_suffix = '0';
-
 
 void CoarseBiLMAnnotation::display(ostream& out) const
 {
@@ -211,8 +212,6 @@ void CoarseBiLMAnnotation::display(ostream& out) const
           << phrase2string(bi_phrase, annotator->coarseBiPhraseVocab)
           << endl;
 }
-
-
 
 CoarseBiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab, const vector<string>& clsFiles)
    : BiLMAnnotation::Annotator(tgtVocab)
@@ -249,15 +248,12 @@ CoarseBiLMAnnotation::Annotator::Annotator(const VocabFilter& tgtVocab, const ve
    }
 }
 
-
 CoarseBiLMAnnotation::Annotator::~Annotator()
 {
    delete srcClasses;     srcClasses = NULL;
    delete tgtClasses;     tgtClasses = NULL;
    delete tgtSrcClasses;  tgtSrcClasses = NULL;
 }
-
-
 
 void CoarseBiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& sents)
 {
@@ -277,8 +273,6 @@ void CoarseBiLMAnnotation::Annotator::addSourceSentences(const VectorPSrcSent& s
    if (debug_coarse_bilm) cerr << "biVoc " << &coarseBiPhraseVocab << " .size() = " << coarseBiPhraseVocab.size() << endl;
 }
 
-
-
 void CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info)
 {
    if (debug_coarse_bilm) cerr << "CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase()" << endl;
@@ -294,16 +288,12 @@ void CoarseBiLMAnnotation::Annotator::annotateMarkedPhrase(PhraseInfo* newPI, co
    newPI->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
 }
 
-
-
 void CoarseBiLMAnnotation::Annotator::annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word)
 {
    if (debug_coarse_bilm) cerr << "CoarseBiLMAnnotation::Annotator::annotateNoTransPhrase()" << endl;
    VectorPhrase bi_phrase(1, coarseBiPhraseVocab.add(biToken(tgtWord(word) + BiLMWriter::sep + srcWord(word))));
    newPI->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
 }
-
-
 
 void CoarseBiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTableEntry& entry)
 {
@@ -317,20 +307,37 @@ void CoarseBiLMAnnotation::Annotator::annotate(TScore* tscore, const PhraseTable
       }
    } else {
       VectorPhrase bi_phrase;
-      annotate_helper(bi_phrase, coarseBiPhraseVocab, tscore, entry);
+      annotate_helper(bi_phrase, coarseBiPhraseVocab, tscore, // entry);
+         &(entry.src_tokens[0]), entry.src_word_count, entry.tgtPhrase);
       tscore->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
       if (entry.limitPhrases)
          coarseBiPhraseVocab.addPerSentenceVocab(bi_phrase, &entry.tgtTable->input_sent_set);
    }
 }
 
-
+void CoarseBiLMAnnotation::Annotator::annotate(TScore* tscore, const char* const src_tokens[],
+      Uint src_word_count, const VectorPhrase& tgtPhrase)
+{
+   CoarseBiLMAnnotation* bilm_ann = get(tscore->annotations);
+   if (bilm_ann) {
+      // nothing to do - just seeing this TPPT entry a second time.
+      // warning superfluous but printing for debugging purposes
+      static bool warning_printed = false;
+      if (!warning_printed) {
+         error(ETWarn, "CoarseBiLMAnnotation annotating a phrase pair from TPPT a second time.");
+         warning_printed = true;
+      }
+   } else {
+      VectorPhrase bi_phrase;
+      annotate_helper(bi_phrase, coarseBiPhraseVocab, tscore,
+         src_tokens, src_word_count, tgtPhrase);
+      tscore->annotations.setAnnotation(type_id, new CoarseBiLMAnnotation(this, bi_phrase));
+   }
+}
 
 CoarseBiLMAnnotation* CoarseBiLMAnnotation::Annotator::get(const AnnotationList& list) {
    return static_cast<CoarseBiLMAnnotation*>(list.getAnnotation(type_id));
 }
-
-
 
 
 CoarseBiLMAnnotation::WordClassesTextMapper::WordClassesTextMapper(const string& filename, vector<string>& class_str) :
@@ -347,8 +354,6 @@ CoarseBiLMAnnotation::WordClassesTextMapper::WordClassesTextMapper(const string&
    }
 }
 
-
-
 const char* CoarseBiLMAnnotation::WordClassesTextMapper::operator()(const char* word) const {
    const Uint cls = word2class.classOf(word);
 
@@ -356,12 +361,9 @@ const char* CoarseBiLMAnnotation::WordClassesTextMapper::operator()(const char* 
 }
 
 
-
 CoarseBiLMAnnotation::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& filename) :
    word2class(filename)
 { }
-
-
 
 const char* CoarseBiLMAnnotation::WordClassesMemoryMappedMapper::operator()(const char* word) const {
    // TODO: Should we return UNK_Symbol if word is not in Voc* vocab?
@@ -371,7 +373,6 @@ const char* CoarseBiLMAnnotation::WordClassesMemoryMappedMapper::operator()(cons
 
    return it.getValue();
 }
-
 
 
 bool CoarseBiLMAnnotation::Annotator::isMemoryMapped(const string& filename) {
@@ -385,8 +386,6 @@ bool CoarseBiLMAnnotation::Annotator::isMemoryMapped(const string& filename) {
 
    return magicNumber == MMMap::version2;
 }
-
-
 
 CoarseBiLMAnnotation::IWordClassesMapping* CoarseBiLMAnnotation::Annotator::getWordClassesMapper(const string& filename) {
    IWordClassesMapping* mapper = NULL;

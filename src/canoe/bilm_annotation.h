@@ -73,7 +73,8 @@ public:
       virtual const char* biToken(const string& rawBiToken) { return rawBiToken.c_str(); }
       /// Do the real work for annotate()
       void annotate_helper(VectorPhrase& bi_phrase, VocabFilter& biVoc,
-            TScore* tscore, const PhraseTableEntry& entry);
+            TScore* tscore, //const PhraseTableEntry& entry);
+            const char* const src_tokens[], Uint src_word_count, const VectorPhrase& tgtPhrase);
    public:
       explicit Annotator(const VocabFilter& tgtVocab);
       virtual ~Annotator();
@@ -82,6 +83,10 @@ public:
       virtual void annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info);
       virtual void annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word);
       virtual void annotate(TScore* tscore, const PhraseTableEntry& entry);
+      /// The four-argument annotate() is for annotating after having read the
+      /// phrase table, e.g., phrase pairs that come from a TPPT
+      virtual void annotate(TScore* tscore, const char* const src_tokens[],
+            Uint src_word_count, const VectorPhrase& tgtPhrase);
 
       virtual BiLMAnnotation* get(const AnnotationList& list) { return BiLMAnnotation::get(list); }
       virtual VocabFilter* getVoc() { /*cerr << "BILM::getVoc" << endl;*/ return BiLMAnnotation::biPhraseVocab; }
@@ -161,6 +166,8 @@ public:
       virtual void annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info);
       virtual void annotateNoTransPhrase(PhraseInfo* newPI, const Range &range, const char *word);
       virtual void annotate(TScore* tscore, const PhraseTableEntry& entry);
+      virtual void annotate(TScore* tscore, const char* const src_tokens[],
+            Uint src_word_count, const VectorPhrase& tgtPhrase);
 
       virtual CoarseBiLMAnnotation* get(const AnnotationList& list);
       virtual VocabFilter* getVoc() { /*cerr << "COARSE BILM::getVoc" << endl;*/ return &coarseBiPhraseVocab; }

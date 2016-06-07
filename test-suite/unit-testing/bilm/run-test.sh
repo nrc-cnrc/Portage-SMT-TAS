@@ -15,28 +15,33 @@
 
 make clean
 make gitignore
-make out err_min_lmc boundary_cases -j 4 || BAD=1
-make en.cls.gz fr.cls.gz lm.tplm bilm.tiny.tplm -j || BAD=1
+BAD=
+for pt_type in cpt tppt; do
+   export PT_TYPE=$pt_type
 
-#time-mem make -j coarseout cls_en=  cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 35s.
-#time-mem make -j coarseout cls_en=1 cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
-#time-mem make -j coarseout cls_en=  cls_fr=1 cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
-#time-mem make -j coarseout cls_en=1 cls_fr=1 cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
-#time-mem make -j coarseout cls_en=  cls_fr=  cls_bitoken=1 verbosity=2 || BAD=1 # takes about 105s.
-#time-mem make -j coarseout cls_en=1 cls_fr=  cls_bitoken=1 verbosity=2 || BAD=1 # takes about 70s.
-#time-mem make -j coarseout cls_en=  cls_fr=1 cls_bitoken=1 verbosity=2 || BAD=1 # takes about 75s.
-#time-mem make -j coarseout cls_en=1 cls_fr=1 cls_bitoken=1 verbosity=2 || BAD=1 # takes about 55s.
+   make out err_min_lmc boundary_cases -j 4 || BAD=1
+   make en.cls.gz fr.cls.gz lm.tplm bilm.tiny.tplm -j || BAD=1
 
-echo \
-'make coarseout cls_en=  cls_fr=  cls_bitoken=1 verbosity=2 >& log.make001
-make coarseout cls_en=1 cls_fr=  cls_bitoken=1 verbosity=2 >& log.make101
-make coarseout cls_en=  cls_fr=1 cls_bitoken=1 verbosity=2 >& log.make011
-make coarseout cls_en=1 cls_fr=1 cls_bitoken=1 verbosity=2 >& log.make111
-make coarseout cls_en=  cls_fr=  cls_bitoken=  verbosity=2 >& log.make000
-make coarseout cls_en=1 cls_fr=  cls_bitoken=  verbosity=2 >& log.make100
-make coarseout cls_en=  cls_fr=1 cls_bitoken=  verbosity=2 >& log.make010
-make coarseout cls_en=1 cls_fr=1 cls_bitoken=  verbosity=2 >& log.make110' |
-   run-parallel.sh -on-error continue - 4 || BAD=1
+   #time-mem make -j coarseout cls_en=  cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 35s.
+   #time-mem make -j coarseout cls_en=1 cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
+   #time-mem make -j coarseout cls_en=  cls_fr=1 cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
+   #time-mem make -j coarseout cls_en=1 cls_fr=1 cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.
+   #time-mem make -j coarseout cls_en=  cls_fr=  cls_bitoken=1 verbosity=2 || BAD=1 # takes about 105s.
+   #time-mem make -j coarseout cls_en=1 cls_fr=  cls_bitoken=1 verbosity=2 || BAD=1 # takes about 70s.
+   #time-mem make -j coarseout cls_en=  cls_fr=1 cls_bitoken=1 verbosity=2 || BAD=1 # takes about 75s.
+   #time-mem make -j coarseout cls_en=1 cls_fr=1 cls_bitoken=1 verbosity=2 || BAD=1 # takes about 55s.
+
+   echo \
+   'make coarseout cls_en=  cls_fr=  cls_bitoken=1 verbosity=2 >& log.make001
+   make coarseout cls_en=1 cls_fr=  cls_bitoken=1 verbosity=2 >& log.make101
+   make coarseout cls_en=  cls_fr=1 cls_bitoken=1 verbosity=2 >& log.make011
+   make coarseout cls_en=1 cls_fr=1 cls_bitoken=1 verbosity=2 >& log.make111
+   make coarseout cls_en=  cls_fr=  cls_bitoken=  verbosity=2 >& log.make000
+   make coarseout cls_en=1 cls_fr=  cls_bitoken=  verbosity=2 >& log.make100
+   make coarseout cls_en=  cls_fr=1 cls_bitoken=  verbosity=2 >& log.make010
+   make coarseout cls_en=1 cls_fr=1 cls_bitoken=  verbosity=2 >& log.make110' |
+      run-parallel.sh -on-error continue - 4 || BAD=1
+done
 
 if [[ $BAD ]]; then
    echo At least one test FAILED.
