@@ -550,7 +550,7 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
    } else {
 
       static char punc_num[] = "0123456789=[];,./!@#$%^&*()_+{}:<>?";
-      
+
       Uint slen = pp.src_pos.second - pp.src_pos.first;
       Uint tlen = pp.tgt_pos.second - pp.tgt_pos.first;
 
@@ -558,6 +558,10 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
          error(ETFatal, "Missing word-alignment information in the PAL file.  Make sure your phrase table has the a= field, that canoe has -walign, and that nbest2rescore.pl has -wal.");
 
       src_al.resize(slen, vector<Uint>(1,0));
+      for (Uint i = 0; i < slen; ++i) {
+         src_al[i].clear();
+         src_al[i].push_back(0);
+      }
       vector<double> src_scores(slen, 0.0);
 
       for (Uint i = 0; i < slen; ++i) {
