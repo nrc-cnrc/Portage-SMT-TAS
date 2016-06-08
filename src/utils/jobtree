@@ -114,7 +114,8 @@ sub createJobList {
          $line =~ s/\s*$//;
          my ($id, $prior, $name, $user, $state, $date, $time, $queue, $slots, $a) = split(/\s+/, $line, 10);
          $state = "UNK" unless($state ne "");
-         if (!$slots && $queue =~ /^\d+$/) {
+         if (!$a && $queue =~ /^\d+$/) {
+            $a = $slots;
             $slots = $queue;
             $queue = "";
          }
@@ -180,7 +181,7 @@ sub createJobList {
          }
 
          # Drop .science.gc.ca from the queue's name.
-         $queue =~ s/\.science\..+?$//;
+         $queue =~ s/\.sci.+?$//;
 
          if (defined($localtime)) {
             print STDERR "date=", $date, ", time=", $time, "\n" if ($debug);
@@ -191,7 +192,7 @@ sub createJobList {
          }
 
          # Let's create a node for that job.
-         my $label = sprintf("%-8d %.3f %-10s %-7s %2d %3dG %4d %-3s %s %s %20s %-5s %s",
+         my $label = sprintf("%-8d %.3f %-10s %-7s %2d %3dG %4d %-3s %s %s %23s %3s   %s",
             $id,
             $prior,
             $name,
@@ -329,8 +330,8 @@ sub displayJobs {
    $Data::TreeDumper::Displayaddress    = 0;
 
    # Let's display the header
-   print "   job-ID" . "   " x $max_height . "prior   name      user  cpus mem time st    submit/start at           queue        slots ja-task-ID\n";
-   print "--------" . "---" x $max_height . " ----- ---------- ------- -- ---- ---- --- ------------------- -------------------- ----- ----------";
+   print "   job-ID" . "   " x $max_height . "prior   name      user  cpus mem time st    submit/start at            queue          slots ja-task-ID\n";
+   print "--------" . "---" x $max_height . " ----- ---------- ------- -- ---- ---- --- ------------------- ----------------------- ----- ----------";
    print DumpTree($jobs,
       '',
       COLOR_LEVELS => [\@colors, ''],
@@ -398,13 +399,15 @@ sub epilogue {
 
    my @usernames = sort keys %users;
 
-   $users{TOTAL} = total(sub { my $a = shift; $a !~ m/Eqw/; }, %users);
+   $users{running} = total(sub { my $a = shift; $a =~ m/r/; }, %users);
+   $users{qw}   = total(sub { my $a = shift; $a =~ m/^qw/; }, %users);
    $users{Eqw}   = total(sub { my $a = shift; $a =~ m/Eqw/; }, %users);
+   $users{TOTAL} = total(sub { my $a = shift; $a !~ m/Eqw/; }, %users);
 
    # Find out the group for each user, to print in the tally only
    foreach my $name (@usernames) {
       my @home_dir = glob "$home_root*/*/$name $home_root2*/$name";
-      #print "HOME_DIR=@home_dir\n";
+      print STDERR "HOME_DIR=@home_dir\n" if ($debug);
       if (@home_dir && $home_dir[0] =~ m#$home_root(.*/.*)/$name#) {
          $users{$name}{group} = $1;
       }
@@ -412,15 +415,31 @@ sub epilogue {
          $users{$name}{group} = $1;
       }
       else {
-         $users{$name}{group} = "";
+         my $home_link = `ls -l /home/$name`;
+         print STDERR "HOME_LINK=$home_link\n" if ($debug);
+         if ($home_link =~ m#$home_root(.*/.*)/$name#) {
+            $users{$name}{group} = $1;
+         }
+         elsif ($home_link =~ m#$home_root2(.*)/$name#) {
+            $users{$name}{group} = $1;
+         }
+         else {
+            $users{$name}{group} = "";
+         }
       }
    }
 
    print "--------", "---" x $max_height, "-" x 105, "\n" unless($summaryOnly);
    printf($header, 'user', 'group', '#jobs', 'cpus', 'mem (G)', 'max rt (H)');
    printf($header, '-' x 7, '-' x 16, '-' x 5, '-' x 5, '-' x 9, '-' x 10);
-   foreach my $name (@usernames, "TOTAL", "Eqw") {
+   my $print_TOTAL = 0;
+   foreach my $name (@usernames, "running", "qw", "TOTAL", "Eqw") {
+      printf($header, '-' x 7, '-' x 16, '-' x 5, '-' x 5, '-' x 9, '-' x 10) if $name eq "running";
       my %stats = %{$users{$name}};
+      $print_TOTAL = 1 if $name eq "qw" && $stats{job_count} != 0;
+      next if $name eq "qw" && $stats{job_count} == 0;
+      next if $name eq "TOTAL" && ! $print_TOTAL;
+      next if $name eq "Eqw" && $stats{job_count} == 0;
       print $color if $LOGNAME eq $name;
       printf($format, $name, $stats{group}, $stats{job_count}, $stats{cpus}, $stats{mem}, $stats{h_rt});
       print "$noColor";
