@@ -26,6 +26,31 @@ typedef enum NNJM_FORMAT{nrc=0,udem=1,native=2} NNJM_Format;
 //using std::tr1::unordered_map;
 
 class NNJM : public DecoderFeature {
+public:
+   struct Config {
+      Config() {};
+      Config(const string& arg, bool arg_is_filename);
+      void read(const string& arg, bool arg_is_filename);
+
+      bool useLookup;
+      Uint srcwindow;
+      bool dump;                   ///< dump testing info to stderr
+      bool caching;                ///< cache logprob scores if true
+      bool srcSentCaching;         ///< perform caching when encountering a new source sentence.
+      Uint ngorder;
+      bool selfnorm;               ///< skip lm score normalization if true (native only)
+      string srcvocFilename;
+      string tgtvocFilename;
+      string outvocFilename;
+      string srcTagFilename;
+      string tgtTagFilename;
+      NNJM_Format format;  // nnjm_wrap format: 0 for nrc, 1 for udem, 2 for native
+      std::vector<string> nnjm_files;
+   };
+
+   static bool prime(const string& arg, bool arg_is_filename, bool full = false);
+
+
 protected:
    /**
     * Interface to map words to their classes in NNJM's context.
@@ -56,6 +81,8 @@ protected:
        * @return  true if their is no element in the map.
        */
       virtual bool empty() const = 0;
+
+      static bool isMemoryMapped(const string& fname);
    };
 
    struct WordClassesTextMapper : public IWordClassesMapping, private NonCopyable {
@@ -127,16 +154,11 @@ private:
    enum KeyWords {ELID, UNK, BOS, EOS, NUMKEYS};
    static const char* keywords[]; // <ELID>, <UNK>, <BOS>, <EOS>
 
+   Config config;
    BasicModelGenerator* bmg;
 
-   Uint srcwindow;
-   Uint ngorder;
    bool have_src_tags;          ///< true if src voc contains <TAG>* entries
    bool have_tgt_tags;          ///< true if tgt or out voc contains <TAG>* entries
-   bool dump;                   ///< dump testing info to stderr
-   bool caching;                ///< cache logprob scores if true
-   bool srcSentCaching;         ///< perform caching when encountering a new source sentence.
-   bool selfnorm;               ///< skip lm score normalization if true (native only)
    Uint cache_hits;             ///< cumulative across all sentences
    Uint cache_misses;           ///< cumulative across all sentences
 
@@ -152,7 +174,6 @@ private:
                                      // one for each level of backoff (may be the same
                                      // model for each. nnjm_wraps[0] is full context
    NNJMAbstract* nnjm_wrap;     // nnjms_wraps[0]
-   NNJM_Format format;  // nnjm_wrap format: 0 for nrc, 1 for udem, 2 for native
 
    typedef UnalFeature::CacheKey CacheKey;
    typedef UnalFeature::CacheKeyHash CacheHash;
@@ -171,7 +192,7 @@ private:
    PTrie<double, Empty, false> score_cache; // ngram,w,spos -> score
 
    // Read a voc in 'num word' format. Return num words beginning w/ tag_prefix.
-   Uint readVoc(const string& dir, const string& filename, Voc& voc);
+   Uint readVoc(const string& filename, Voc& voc);
 
    // Update mapping ind_map from global voc indexes to ind_voc indexes.  This
    // assumes that existing contents (if any) of ind_map are valid, and creates
@@ -188,11 +209,11 @@ private:
    }
 
    // Get an nnjm from its filename
-   NNJMAbstract* getNNJM(string dir, string file, bool useLookup) {
-      string fullname = adjustRelativePath(dir, file);
+   NNJMAbstract* getNNJM(const string& fullname, bool useLookup) {
       if(file_to_nnjm.find(fullname) != file_to_nnjm.end()) {
          return file_to_nnjm[fullname];
-      } else {
+      }
+      else {
          if(!native) {
             error(ETFatal, "The PyWrap version of NNJM is not in PortageII yet. -native is required.");
             /*
@@ -203,7 +224,7 @@ private:
             return NULL;
          }
          else {
-            NNJMAbstract* toRet = NNJMs::new_Native(fullname, selfnorm, useLookup);
+            NNJMAbstract* toRet = NNJMs::new_Native(fullname, config.selfnorm, useLookup);
             file_to_nnjm[fullname]=toRet;
             return toRet;
          }
@@ -216,7 +237,7 @@ private:
    double logprob(NNJMAbstract* nnjm, Uint src_pos, VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uint w) {
       double p = 0.0;
       if (nnjm) {
-         if (caching) {
+         if (config.caching) {
             const Uint len = hist_end-hist_beg;
             Uint ctxt[len+2];
             for (Uint i = 0; i < len; ++i) ctxt[i] = *(hist_beg+i);
@@ -231,7 +252,7 @@ private:
          } else
             p = nnjm->logprob(src_beg, src_end, hist_beg, hist_end, w, src_pos);
       }
-      if (dump) dumpContext(src_beg, src_end, hist_beg, hist_end, w, p);
+      if (config.dump) dumpContext(src_beg, src_end, hist_beg, hist_end, w, p);
       return p;
    }
 
@@ -295,7 +316,7 @@ public:
    virtual Uint computeRecombHash(const PartialTranslation &pt) {return 0.0;}
    virtual bool isRecombinable(const PartialTranslation &pt1,
                                const PartialTranslation &pt2) {return true;}
-   virtual Uint lmLikeContextNeeded() { return ngorder-1; }
+   virtual Uint lmLikeContextNeeded() { return config.ngorder-1; }
 };
 }
 

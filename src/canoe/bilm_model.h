@@ -41,8 +41,14 @@ public:
    static Uint64 totalMemmapSize(const string& bilm_specification);
    /// Fix the relative path of file and subfiles it requires, e.g., class files
    static string fix_relative_path(const string& path, string file);
+   /// Load memory class models in memory.
+   static bool prime(const string& arg, bool full = false);
+   /// A common bilm specification parser.
+   static bool parseSpecification(const string& bilm_specification, string& lm, vector<string>* class_files);
+
    BiLMModel(BasicModelGenerator* bmg, const string& model_string);
    ~BiLMModel();
+
    virtual void finalizeInitialization(); // the real loading is done here, since we need TMs first
    virtual void newSrcSent(const newSrcSentInfo& info);
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);

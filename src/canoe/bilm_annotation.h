@@ -135,7 +135,6 @@ public:
       VocabFilter coarseBiPhraseVocab;
       vector<string> class_str; ///< strings for class numbers
 
-      static bool isMemoryMapped(const string& filename);
       IWordClassesMapping* getWordClassesMapper(const string& filename);
 
       /// convert Uint wordID to its string representation as a target-language
@@ -161,6 +160,7 @@ public:
    public:
       explicit Annotator(const VocabFilter& tgtVocab, const vector<string>& clsFiles);
       virtual ~Annotator();
+
       virtual const string& getName() const { return name; }
       virtual void addSourceSentences(const VectorPSrcSent& sentences);
       virtual void annotateMarkedPhrase(PhraseInfo* newPI, const MarkedTranslation* mark, const newSrcSentInfo* info);
@@ -171,6 +171,8 @@ public:
 
       virtual CoarseBiLMAnnotation* get(const AnnotationList& list);
       virtual VocabFilter* getVoc() { /*cerr << "COARSE BILM::getVoc" << endl;*/ return &coarseBiPhraseVocab; }
+
+      static bool isMemoryMapped(const string& filename);
    };
 private:
    Annotator* annotator; ///< the annotator that was used to create this annotation

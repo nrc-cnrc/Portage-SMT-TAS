@@ -77,6 +77,10 @@ Uint64 PLM::Creator::totalMemmapSize()
    return 0;
 }
 
+bool PLM::Creator::prime(bool full) {
+   return true;
+}
+
 //----------------------------------------------------------------------------
 shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
 {
@@ -211,6 +215,10 @@ PLM* PLM::Create(const string& lm_filename,
 Uint64 PLM::totalMemmapSize(const string& lm_filename)
 {
    return getCreator(lm_filename)->totalMemmapSize();
+}
+
+bool PLM::prime(const string& lm_filename, bool full) {
+   return getCreator(lm_filename)->prime(full);
 }
 
 //----------------------------------------------------------------------------

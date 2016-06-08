@@ -113,6 +113,8 @@ protected:
        * @return Returns the class for the input word as a string.
        */
       virtual const string& operator()(string& word) = 0;
+
+      static bool isMemoryMapped(const string& filename);
    };
 
    /**
@@ -206,6 +208,7 @@ public:
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
       virtual bool checkFileExists(vector<string>* list);
       virtual Uint64 totalMemmapSize();
+      virtual bool prime(bool full = false);
       virtual PLM* Create(VocabFilter* vocab,
                           OOVHandling oov_handling,
                           float oov_unigram_prob,

@@ -46,7 +46,7 @@ void BiLMModel::getLastBiWordsBackwards(VectorPhrase &biWords, Uint num, const P
 
 static const bool debug_coarse_bilm = false;
 
-bool BiLMModel::checkFileExists(const string& bilm_specification, vector<string>* list)
+bool BiLMModel::parseSpecification(const string& bilm_specification, string& lm, vector<string>* class_files)
 {
    vector<string> tokens;
    split(bilm_specification, tokens, ";");
@@ -59,32 +59,50 @@ bool BiLMModel::checkFileExists(const string& bilm_specification, vector<string>
       return false;
    }
    bool ok = true;
-   if (!PLM::checkFileExists(tokens[0])) {
-      cerr << "Can't access LM " << tokens[0] << " in BiLM " << bilm_specification << endl;
+   lm = tokens[0];
+   if (!PLM::checkFileExists(lm)) {
+      cerr << "Can't access LM " << lm << " in BiLM " << bilm_specification << endl;
       ok = false;
    }
-   if (list)
-      PLM::checkFileExists(tokens[0], list);
+
    for (Uint i = 1; i < tokens.size(); ++i) {
       vector<string> keyvalue;
       split(tokens[i], keyvalue, "=", 2);
+
+      const string key = keyvalue[0];
       if (keyvalue.size() != 2) {
          cerr << "Bad class file specification: " << tokens[i] << " in BiLM " << bilm_specification << endl;
          ok = false;
          continue;
       }
+
       const string class_file = keyvalue[1];
-      if (!check_if_exists(class_file)) {
-         cerr << "Can't access class file " << class_file << " in BiLM " << bilm_specification << endl;
-         ok = false;
-      }
-      if (list) list->push_back(class_file);
-      const string key=keyvalue[0];
       if (key != "cls(src)" && key != "cls(tgt)" && key != "cls(tgt/src)") {
          cerr << "Don't know how to interpret " << tokens[i] << " in BiLM " << bilm_specification << endl;
          ok = false;
       }
+
+      if (!check_if_exists(class_file)) {
+         cerr << "Can't access class file " << class_file << " in BiLM " << bilm_specification << endl;
+         ok = false;
+      }
+      if (class_files) class_files->push_back(class_file);
    }
+
+   return ok;
+}
+
+bool BiLMModel::checkFileExists(const string& bilm_specification, vector<string>* list)
+{
+   string lm;
+   vector<string> class_files;
+   const bool ok = parseSpecification(bilm_specification, lm, &class_files);
+
+   if (list) {
+      PLM::checkFileExists(lm, list);
+      list->insert(list->end(), class_files.begin(), class_files.end());
+   }
+
    return ok;
 }
 
@@ -122,6 +140,24 @@ string BiLMModel::fix_relative_path(const string& path, string file)
       }
    }
    return join(fixed_tokens, ";");
+}
+
+bool BiLMModel::prime(const string& bilm_specification, bool full)
+{
+   string lm;
+   vector<string> class_files;
+   bool ok = parseSpecification(bilm_specification, lm, &class_files);
+
+   ok |= PLM::prime(lm, full);
+
+   for (vector<string>::const_iterator it(class_files.begin()); it!=class_files.end(); ++it) {
+      if (CoarseBiLMAnnotation::Annotator::isMemoryMapped(*it)) {
+         cerr << "\tPriming: " << *it << endl;  // SAM DEBUGGING
+         gulpFile(*it);
+      }
+   }
+
+   return ok;
 }
 
 BiLMModel::BiLMModel(BasicModelGenerator* bmg, const string& model_string)

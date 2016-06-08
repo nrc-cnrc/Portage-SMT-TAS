@@ -1377,6 +1377,43 @@ bool& CanoeConfig::readStatus(const string& param)
 }
 
 
+bool CanoeConfig::prime(bool full)
+{
+   typedef vector<string>::iterator  IT;
+
+   for ( Uint i = 0; i < LDMFiles.size(); ++i )
+      if (isSuffix(".tpldm", LDMFiles[i])) {
+         cerr << "\tPriming: " << LDMFiles[i] << endl;  // SAM DEBUGGING
+         gulpFile(LDMFiles[i] + "/trg.repos.dat");
+         gulpFile(LDMFiles[i] + "/cbk");
+         if (full) gulpFile(LDMFiles[i] + "/tppt");
+      }
+
+   for ( Uint i = 0; i < tpptFiles.size(); ++i ) {
+      cerr << "\tPriming: " << tpptFiles[i] << endl;  // SAM DEBUGGING
+      gulpFile(tpptFiles[i] + "/trg.repos.dat");
+      gulpFile(tpptFiles[i] + "/cbk");
+      if (full) gulpFile(tpptFiles[i] + "/tppt");
+   }
+
+   for (IT it=lmFiles.begin(); it!=lmFiles.end(); ++it) {
+      PLM::prime(*it, full);
+   }
+
+   FeatureGroup *nnjms = featureGroup("nnjm");
+   for (IT it=nnjms->args.begin(); it != nnjms->args.end(); ++it){
+      NNJM::prime(*it, true);
+   }
+
+   FeatureGroup *bilm = featureGroup("bilm");
+   for (IT it=bilm->args.begin(); it != bilm->args.end(); ++it){
+      BiLMModel::prime(*it, true);
+   }
+
+   return true;
+}
+
+
 const string CanoeConfig::random_param::default_value = "U(-1.0,1.0)";
 
 rnd_distribution* CanoeConfig::random_param::get(Uint index) const

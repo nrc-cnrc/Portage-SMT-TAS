@@ -160,8 +160,6 @@ static void getArgs(int argc, char* argv[]);
  */
 static RescoreResult parseRescoreResultsLine(const string& line);
 
-static void gulpFile(const string& filename);
-
 } // ends namespace ConfigTool
 } // ends namespace Portage
 using namespace Portage::ConfigTool;
@@ -511,31 +509,7 @@ int main(int argc, char* argv[])
       if (!ok)
          error(ETFatal, "There was some problem, the list is probably incomplete");
    } else if (cmd == "prime_partial" or cmd == "prime_full") {
-      for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
-         if (isSuffix(".tpldm", c.LDMFiles[i])) {
-            gulpFile(c.LDMFiles[i] + "/trg.repos.dat");
-            gulpFile(c.LDMFiles[i] + "/cbk");
-            if (cmd =="prime_full") gulpFile(c.LDMFiles[i] + "/tppt");
-         }
-
-      for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
-         gulpFile(c.tpptFiles[i] + "/trg.repos.dat");
-         gulpFile(c.tpptFiles[i] + "/cbk");
-         if (cmd =="prime_full") gulpFile(c.tpptFiles[i] + "/tppt");
-      }
-
-      vector<string> lmlist;
-      for ( Uint i = 0; i < c.lmFiles.size(); ++i ) {
-         lmlist.clear();
-         PLM::checkFileExists(c.lmFiles[i], &lmlist);
-         for (Uint j = 0; j < lmlist.size(); ++j) {
-            if (isSuffix(".tplm", lmlist[j])) {
-               gulpFile(lmlist[j] + "/tdx");
-               gulpFile(lmlist[j] + "/cbk");
-               gulpFile(lmlist[j] + "/tplm");
-            }
-         }
-      }
+      c.prime(cmd == "prime_full");
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
@@ -610,15 +584,6 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet(0, "cmd", cmd);
    arg_reader.testAndSet(1, "config", config_in);
    arg_reader.testAndSet(2, "out", &osp, ofs);
-}
-
-void gulpFile(const string& filename) {
-   const streamsize length = 8192;
-   char buffer[length];
-   iSafeMagicStream in(filename);
-   while (in) {
-      in.read(buffer, length);
-   }
 }
 
 }  // ends namespace ConfigTool

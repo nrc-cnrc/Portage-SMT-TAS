@@ -5,7 +5,7 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2014, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2014, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2014, Her Majesty in Right of Canada
  */
 
@@ -60,20 +60,19 @@ static void checkArg(const vector<string>& toks, Uint i, Uint n)
 }
 
 
-
-Uint NNJM::readVoc(const string& dir, const string& filename, Voc& voc)
+Uint NNJM::readVoc(const string& filename, Voc& voc)
 {
    Uint tag_count = 0;
    string line;
-   iSafeMagicStream is(adjustRelativePath(dir, filename));
+   iSafeMagicStream is(filename);
 
    while (getline(is, line)) {
       vector<string> toks = split<string>(line); // num word
       if (toks.size() != 2)
-         error(ETFatal, "expected 'num word' entries in <%s>", 
+         error(ETFatal, "expected 'num word' entries in <%s>",
                filename.c_str());
       if (voc.add(toks[1].c_str()) != conv<Uint>(toks[0]))
-         error(ETFatal, 
+         error(ETFatal,
                "expected entries in <%s> to be consecutively numbered, starting with 0",
                filename.c_str());
       if (isPrefix(tag_prefix, toks[1].c_str()))
@@ -86,72 +85,74 @@ Uint NNJM::readVoc(const string& dir, const string& filename, Voc& voc)
    return tag_count;
 }
 
-NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
-   bmg(bmg),
+NNJM::Config::Config(const string& arg, bool arg_is_filename) :
+   useLookup(true),
    srcwindow(11),
-   ngorder(4),
-   have_src_tags(false),
-   have_tgt_tags(false),
    dump(false),
    caching(true),
    srcSentCaching(true),
-   cache_hits(0),
-   cache_misses(0),
-   srctags(NULL),
-   tgttags(NULL),
-   nnjm_wrap(NULL),
+   ngorder(4),
+   selfnorm(false),
    format(native)
 {
-   time_t start;
-   time(&start);
+   read(arg, arg_is_filename);
+}
 
-   string str, line;
+
+void NNJM::Config::read(const string& arg, bool arg_is_filename) {
+   string str;
    const string& spec = arg_is_filename ? gulpFile(arg.c_str(), str) : arg;
-   string dir = arg_is_filename ? DirName(arg) : ".";
-   std::vector<string> nnjm_files;
-
-   bool useLookup = true;
+   const string dir = arg_is_filename ? DirName(arg) : ".";
 
    cerr << "Loading NNJM model" << (arg_is_filename?" from file " + arg:"") <<  endl;
-     
+
    vector<string> toks = split<string>(spec);
    for (Uint i = 0; i < toks.size(); ++i) {
       if (toks[i] == "[dump]") {
          dump = true;
-      } else if (toks[i] == "[noLookup]") {
+      }
+      else if (toks[i] == "[noLookup]") {
          useLookup = false;
-      } else if (toks[i] == "[nocache]") {
+      }
+      else if (toks[i] == "[nocache]") {
          caching = false;
-      } else if (toks[i] == "[noSrcSentCache]") {
+      }
+      else if (toks[i] == "[noSrcSentCache]") {
          srcSentCaching = false;
-      } else if (toks[i] == "[srcwindow]") {
+      }
+      else if (toks[i] == "[srcwindow]") {
          checkArg(toks, i++, 1);
          srcwindow = conv<Uint>(toks[i]);
          if (srcwindow % 2 == 0)
             error(ETFatal, "NNJM [srcwindow] parameter must be an odd number");
-      } else if (toks[i] == "[ngorder]") {
+      }
+      else if (toks[i] == "[ngorder]") {
          checkArg(toks, i++, 1);
          ngorder = conv<Uint>(toks[i]);
          if (ngorder == 0)
             error(ETFatal, "NNJM [ngorder] parameter must be > 0");
-      } else if (toks[i] == "[srcvoc]") {
+      }
+      else if (toks[i] == "[srcvoc]") {
          checkArg(toks, i++, 1);
-         have_src_tags = readVoc(dir, toks[i], srcvoc);
-      } else if (toks[i] == "[tgtvoc]") {
+         tgtvocFilename = adjustRelativePath(dir, toks[i]);
+      }
+      else if (toks[i] == "[tgtvoc]") {
          checkArg(toks, i++, 1);
-         have_tgt_tags = readVoc(dir, toks[i], tgtvoc) || have_tgt_tags;
-      } else if (toks[i] == "[outvoc]") {
+         srcvocFilename = adjustRelativePath(dir, toks[i]);
+      }
+      else if (toks[i] == "[outvoc]") {
          checkArg(toks, i++, 1);
-         have_tgt_tags = readVoc(dir, toks[i], outvoc) || have_tgt_tags;
-      } else if (toks[i] == "[srcclasses]") {
+         outvocFilename = adjustRelativePath(dir, toks[i]);
+      }
+      else if (toks[i] == "[srcclasses]") {
          checkArg(toks, i++, 1);
-	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         srctags = getWord2ClassesMapper(adjustRelativePath(dir, toks[i]), keywords[UNK]);
-      } else if (toks[i] == "[tgtclasses]") {
+         srcTagFilename = adjustRelativePath(dir, toks[i]);
+      }
+      else if (toks[i] == "[tgtclasses]") {
          checkArg(toks, i++, 1);
-	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         tgttags = getWord2ClassesMapper(adjustRelativePath(dir, toks[i]), keywords[UNK]);
-      } else if (toks[i] == "[file]") {
+         tgtTagFilename = adjustRelativePath(dir, toks[i]);
+      }
+      else if (toks[i] == "[file]") {
          checkArg(toks, i++, 1);
          vector<string> hashsplit;
          split(toks[i],hashsplit,"#");
@@ -165,67 +166,128 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
          if(nnjm_files[iIndex]!="")
             error(ETFatal, "error, repeated file at index %d, saw both %s and %s",
                   iIndex, nnjm_files[iIndex].c_str(), hashsplit[0].c_str());
-         nnjm_files[iIndex] = hashsplit[0];
-      } else if (toks[i] == "[format]") {
+         nnjm_files[iIndex] = adjustRelativePath(dir, hashsplit[0]);
+      }
+      else if (toks[i] == "[format]") {
          checkArg(toks, i++, 1);
          if (toks[i] == "nrc") format = nrc;
          else if (toks[i] == "udem") format = udem;
          else if (toks[i] == "native") format = native;
          else error(ETFatal, "unknown format in NNJM model: %s", toks[i].c_str());
-      } else if (toks[i] == "[selfnorm]") {
+      }
+      else if (toks[i] == "[selfnorm]") {
          selfnorm = true;
-      } else
+      }
+      else
          error(ETFatal, "unexpected token in NNJM model: %s", toks[i].c_str());
    }
+}
+
+
+bool NNJM::prime(const string& arg, bool arg_is_filename, bool full) {
+   Config c(arg, arg_is_filename);
+
+   if (!c.srcTagFilename.empty() && IWordClassesMapping::isMemoryMapped(c.srcTagFilename)) {
+      cerr << "\tPriming: " << c.srcTagFilename << endl;  // SAM DEBUGGING
+      gulpFile(c.srcTagFilename);
+   }
+
+   if (!c.tgtTagFilename.empty() && IWordClassesMapping::isMemoryMapped(c.tgtTagFilename)) {
+      cerr << "\tPriming: " << c.tgtTagFilename << endl;  // SAM DEBUGGING
+      gulpFile(c.tgtTagFilename);
+   }
+
+   return true;
+}
+
+
+NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
+   config(arg, arg_is_filename),
+   bmg(bmg),
+   have_src_tags(false),
+   have_tgt_tags(false),
+   cache_hits(0),
+   cache_misses(0),
+   srctags(NULL),
+   tgttags(NULL),
+   nnjm_wrap(NULL)
+{
+   time_t start;
+   time(&start);
+
+
+   if (!config.srcvocFilename.empty()) {
+      have_src_tags = readVoc(config.srcvocFilename, srcvoc);
+   }
+   if (!config.tgtvocFilename.empty()) {
+      have_tgt_tags = readVoc(config.tgtvocFilename, tgtvoc) || have_tgt_tags;
+   }
+   if (!config.outvocFilename.empty()) {
+      have_tgt_tags = readVoc(config.outvocFilename, outvoc) || have_tgt_tags;
+   }
+   if (!config.srcTagFilename.empty()) {
+      cerr << "Loading tgtclasses " << config.srcTagFilename << endl;
+      srctags = getWord2ClassesMapper(config.srcTagFilename, keywords[UNK]);
+   }
+   if (!config.tgtTagFilename.empty()) {
+      cerr << "Loading tgtclasses " << config.tgtTagFilename << endl;
+      tgttags = getWord2ClassesMapper(config.tgtTagFilename, keywords[UNK]);
+   }
+
    if (srcvoc.empty()) {
-      string kw = join(keywords, keywords+NUMKEYS, "/");
-      error(ETWarn, "no NNJM [srcvoc] provided: will map all source words/contexts to %s", 
+      const string kw = join(keywords, keywords+NUMKEYS, "/");
+      error(ETWarn, "no NNJM [srcvoc] provided: will map all source words/contexts to %s",
             kw.c_str());
       for (Uint i = 0; i < NUMKEYS; ++i)
          srcvoc.add(keywords[i]);
    }
+
    if (tgtvoc.empty()) {
-      string kw = join(keywords, keywords+NUMKEYS, "/");
-      error(ETWarn, "no NNJM [tgtvoc] provided: will map all target contexts to %s", 
+      const string kw = join(keywords, keywords+NUMKEYS, "/");
+      error(ETWarn, "no NNJM [tgtvoc] provided: will map all target contexts to %s",
             kw.c_str());
       for (Uint i = 0; i < NUMKEYS; ++i)
          tgtvoc.add(keywords[i]);
    }
+
    if (outvoc.empty()) {
-      error(ETWarn, "no NNJM [outvoc] provided: will map all target words to %s or %s", 
+      error(ETWarn, "no NNJM [outvoc] provided: will map all target words to %s or %s",
             keywords[UNK], keywords[EOS]);
       for (Uint i = 0; i < NUMKEYS; ++i)
          outvoc.add(keywords[i]);
    }
+
    if (have_tgt_tags && (tgttags == NULL || tgttags->empty())) {
       error(ETFatal, "this NNJM requires a non-empty [tgttags] file");
    }
-   tgt_pad.resize(ngorder-1, BOS);
-   tgt_pad_fut.resize(ngorder-1, ELID);
-   
-   if (selfnorm && format!=native) {
+   tgt_pad.resize(config.ngorder-1, BOS);
+   tgt_pad_fut.resize(config.ngorder-1, ELID);
+
+   if (config.selfnorm && config.format!=native) {
       error(ETFatal, "only [format] native models can [selfnorm]");
    }
 
    // Ensures fall-back behaviour of everyone returning 0
-   while(nnjm_wraps.size()<ngorder) {
+   while(nnjm_wraps.size()<config.ngorder) {
       nnjm_wraps.push_back(NULL);
    }
 
-   if (nnjm_files.empty() || nnjm_files[0] == "") {
+   if (config.nnjm_files.empty() || config.nnjm_files[0] == "") {
       error(ETWarn, "[file] parameter not supplied for NNJM %s - all scores will be 0",
             arg_is_filename ? arg.c_str() : "<>");
-   } else if(nnjm_files.size()>ngorder) {
-      error(ETFatal, "expected max #index to be between 0 and %d, got %d",ngorder-1,nnjm_files.size()-1);
+   }
+   else if(config.nnjm_files.size() > config.ngorder) {
+      error(ETFatal, "expected max #index to be between 0 and %d, got %d", config.ngorder-1, config.nnjm_files.size()-1);
    }
    else{
-      for(Uint i=0;i<ngorder;i++) {
+      for(Uint i=0; i<config.ngorder; ++i) {
          string nnjm_file = "";
-         if(i<nnjm_files.size()) nnjm_file = nnjm_files[i];
+         if(i < config.nnjm_files.size()) nnjm_file = config.nnjm_files[i];
          if(!nnjm_file.empty()) {
             cerr << "Loading NNJM wrapper at index " << i << " from " << nnjm_file << endl;
-            nnjm_wraps[i] = getNNJM(dir, nnjm_file, useLookup);
-         } else {
+            nnjm_wraps[i] = getNNJM(nnjm_file, config.useLookup);
+         }
+         else {
             cerr << "No NNJM wrapper at index " << i << "; model will always return 0" << endl;
          }
       }
@@ -262,7 +324,7 @@ void NNJM::updateIndexMap(const Voc& ind_voc, vector<Uint>& ind_map)
    }
 }
 
-void NNJM::finalizeInitialization() 
+void NNJM::finalizeInitialization()
 {
    tgtind_map.clear();
    outind_map.clear();
@@ -295,7 +357,7 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
    if (src_sent_tags.size() != info.src_sent.size())
       error(ETFatal, "number of tags doesn't match number of tokens for input sentence %d",
             info.external_src_sent_id);
-   src_pad.assign(srcwindow/2, BOS);
+   src_pad.assign(config.srcwindow/2, BOS);
    for (Uint i = 0; i < info.src_sent.size(); ++i) {
       Uint ind = srcvoc.index(info.src_sent[i].c_str());
       if (ind == srcvoc.size()) { // word not in voc
@@ -306,10 +368,10 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
       }
       src_pad.push_back(ind);
    }
-   src_pad.insert(src_pad.end(), srcwindow/2+1, EOS);
+   src_pad.insert(src_pad.end(), config.srcwindow/2+1, EOS);
 
-   if (nnjm_wrap && srcSentCaching) {
-      nnjm_wrap->newSrcSent(src_pad, srcwindow);
+   if (nnjm_wrap && config.srcSentCaching) {
+      nnjm_wrap->newSrcSent(src_pad, config.srcwindow);
    }
 
    updateIndexMap(tgtvoc, tgtind_map);
@@ -323,7 +385,7 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
    const Uint tgt_len = pi.phrase.size();
    if (total_phrasepairs <= 100) ++total_phrasepairs;
    if (src_len > max_srcphrase_len)
-      error(ETFatal, "maximum permissible source phrase length for NNJMs is %d", 
+      error(ETFatal, "maximum permissible source phrase length for NNJMs is %d",
             max_srcphrase_len);
 
    // find cached tgt pos -> src pos map for this phrase pair, or make new cache entry
@@ -370,35 +432,35 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
    return spos;
 }
 
-double NNJM::score(const PartialTranslation& pt) 
+double NNJM::score(const PartialTranslation& pt)
 {
    vector<Uchar>* spos = getSposMap(*pt.lastPhrase);  // tgt pos -> src pos
    const Uint tgt_len = pt.lastPhrase->phrase.size();
-   tgt_pad.resize(ngorder-1);   // 1st ngorder-1 positions are <BOS>
-   pt.getLastWords(tgt_pad, tgt_len + ngorder-1); // append h,w
+   tgt_pad.resize(config.ngorder-1);   // 1st ngorder-1 positions are <BOS>
+   pt.getLastWords(tgt_pad, tgt_len + config.ngorder-1); // append h,w
    // remap indexes for the words before current tgt phrase, if any
-   for (Uint i = ngorder-1; i < tgt_pad.size()-tgt_len; ++i)
+   for (Uint i = config.ngorder-1; i < tgt_pad.size()-tgt_len; ++i)
       tgt_pad[i] = tgtind_map[tgt_pad[i]];
 
    // call logprob for every position in tgt phrase
    vector<Uint>::iterator tw = tgt_pad.end() - tgt_len;
-   vector<Uint>::iterator th = tw - ngorder + 1;
+   vector<Uint>::iterator th = tw - config.ngorder + 1;
    double s = 0.0;
    for (Uint i = 0; i < tgt_len; ++i) {
-      const Uint sp = pt.lastPhrase->src_words.start + 
+      const Uint sp = pt.lastPhrase->src_words.start +
          (spos ? (*spos)[i] : congruentPos(i, tgt_len, pt.lastPhrase->src_words.size()));
       const Uint w = outind_map[*tw]; // predicted word
       *tw = tgtind_map[*tw];    // set up for use as history on next iter
-      if (dump)
+      if (config.dump)
          cerr << "NNJM::s(" << pt.lastPhrase->src_words << ", " << bmg->getStringPhrase(pt.lastPhrase->phrase) << ") ";
-      s += logprob(sp, src_pad.begin()+sp, src_pad.begin()+sp+srcwindow, th++, tw++, w);
+      s += logprob(sp, src_pad.begin()+sp, src_pad.begin()+sp+config.srcwindow, th++, tw++, w);
    }
    // handle end-of-sentence
    if(pt.sourceWordsNotCovered.empty() && !bmg->c->nosent) {
-      const Uint sp = src_pad.size() - srcwindow;
-      if (dump)
+      const Uint sp = src_pad.size() - config.srcwindow;
+      if (config.dump)
          cerr << "NNJM::s(" << pt.lastPhrase->src_words << ", " << "<EOS>" << ") ";
-      s += logprob(sp, src_pad.begin()+sp, src_pad.begin()+sp+srcwindow, th++, tw++, EOS);
+      s += logprob(sp, src_pad.begin()+sp, src_pad.begin()+sp+config.srcwindow, th++, tw++, EOS);
    }
 
    return s;
@@ -409,26 +471,26 @@ double NNJM::precomputeFutureScore(const PhraseInfo& pi)
    // TODO prove that these two updateIndexMap are useless.
    updateIndexMap(tgtvoc, tgtind_map); // needed?
    updateIndexMap(outvoc, outind_map); // needed?
- 
+
    vector<Uchar>* spos = getSposMap(pi); // tgt pos -> src pos
    const Uint tgt_len = pi.phrase.size();
-   tgt_pad_fut.resize(ngorder-1, ELID); // 1st ngorder-1 positions are <ELID>
-   tgt_pad_fut.reserve(ngorder-1+tgt_len);
+   tgt_pad_fut.resize(config.ngorder-1, ELID); // 1st ngorder-1 positions are <ELID>
+   tgt_pad_fut.reserve(config.ngorder-1+tgt_len);
    copy(pi.phrase.begin(), pi.phrase.end(), back_inserter(tgt_pad_fut));
 
    vector<Uint>::iterator tw = tgt_pad_fut.end() - tgt_len;
-   vector<Uint>::iterator th = tw - ngorder + 1;
+   vector<Uint>::iterator th = tw - config.ngorder + 1;
 
    double s = 0.0;
-   Uint elid = ngorder-1;
+   Uint elid = config.ngorder-1;
    for (Uint i = 0; i < tgt_len; ++i) {
-      const Uint sp = pi.src_words.start + 
+      const Uint sp = pi.src_words.start +
          (spos ? (*spos)[i] : congruentPos(i, tgt_len, pi.src_words.size()));
       const Uint w = outind_map[*tw]; // predicted word
       *tw = tgtind_map[*tw];    // set up for use as history on next iter
-      if (dump)
+      if (config.dump)
          cerr << "NNJM::pFS(" << pi.src_words << ", " << bmg->getStringPhrase(pi.phrase) << ") ";
-      s += elidLogprob(elid, sp, src_pad.begin()+sp, src_pad.begin()+sp+srcwindow, th++, tw++, w);
+      s += elidLogprob(elid, sp, src_pad.begin()+sp, src_pad.begin()+sp+config.srcwindow, th++, tw++, w);
       if(elid!=0) elid--;
    }
    return s;
@@ -436,8 +498,8 @@ double NNJM::precomputeFutureScore(const PhraseInfo& pi)
 
 void NNJM::dumpContext(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uint w, double score)
 {
-   assert(hist_end - hist_beg == ngorder-1);
-   assert(src_end - src_beg == srcwindow);
+   assert(hist_end - hist_beg == config.ngorder-1);
+   assert(src_end - src_beg == config.srcwindow);
    cerr << "NNJM: ";
    for (VUI p = src_beg; p != src_end; ++p) {
       assert(*p < srcvoc.size());
@@ -450,21 +512,26 @@ void NNJM::dumpContext(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uin
    }
    assert(w < outvoc.size());
    cerr << "/ " << outvoc.word(w) << " : " << score;
-   if (nnjm_wrap && caching) cerr << " (hits=" << cache_hits << ")";
-   if (nnjm_wrap && caching) cerr << " (misses=" << cache_misses << ")";
+   if (nnjm_wrap && config.caching) cerr << " (hits=" << cache_hits << ")";
+   if (nnjm_wrap && config.caching) cerr << " (misses=" << cache_misses << ")";
    cerr << endl;
 }
 
 
 
-NNJM::IWordClassesMapping* NNJM::getWord2ClassesMapper(const string& fname, const string& unknown) {
+bool NNJM::IWordClassesMapping:: isMemoryMapped(const string& fname) {
    string magicNumber;
    iSafeMagicStream is(fname);
    if (!getline(is, magicNumber))
       error(ETFatal, "Empty classfile %s", fname.c_str());
 
+   return magicNumber == MMMap::version2;
+}
+
+
+NNJM::IWordClassesMapping* NNJM::getWord2ClassesMapper(const string& fname, const string& unknown) {
    IWordClassesMapping* mapper(NULL);
-   if (magicNumber == MMMap::version2)
+   if (IWordClassesMapping::isMemoryMapped(fname))
       mapper = new WordClassesMemoryMappedMapper(fname, unknown);
    else
       mapper = new WordClassesTextMapper(fname, unknown);

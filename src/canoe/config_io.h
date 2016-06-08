@@ -444,6 +444,9 @@ public:
    bool& readStatus(const string& param);
 
 
+   bool prime(bool full = false);
+
+
 private:
 
    // No, this is not the most elegant way to handle generics...

@@ -153,6 +153,7 @@ public:
     Creator(const string& lm_physical_filename, Uint naming_limit_order);
     virtual bool checkFileExists(vector<string>* list);
     virtual Uint64 totalMemmapSize();
+    virtual bool prime(bool full = false);
     virtual PLM* Create(VocabFilter* vocab,
                         OOVHandling oov_handling,
                         float oov_unigram_prob,
@@ -233,7 +234,7 @@ public:
 typedef LMtpt<id_type> TPLM;
 BOOST_STATIC_ASSERT(sizeof(id_type) == sizeof(Uint));
 
-const char* const tplm_extensions[] = { "tplm", "tdx", "cbk" };
+const char* const tplm_extensions[] = { "tdx", "cbk", "tplm" };
 
 template<typename valIdType>
 LMtpt<valIdType>::Creator::Creator(
@@ -270,6 +271,23 @@ Uint64 LMtpt<valIdType>::Creator::totalMemmapSize()
   for ( int i = 0; i < 3; ++i )
     total_memmap_size += getFileSize(basename + tplm_extensions[i]);
   return total_memmap_size;
+}
+
+template<typename valIdType>
+bool LMtpt<valIdType>::Creator::prime(bool full)
+{
+   cerr << "\tPriming: " << basename << endl;  // SAM DEBUGGING
+   for ( int i = 0; i < 3; ++i ) {
+      if ( ! check_if_exists(basename + tplm_extensions[i], false) ) {
+         cerr << ewarn << "TPLM(" << lm_physical_filename << ") can't access: "
+            << basename << tplm_extensions[i] << endl;
+      }
+      else {
+         gulpFile(basename + tplm_extensions[i]);
+      }
+   }
+
+   return true;
 }
 
 template<typename valIdType>

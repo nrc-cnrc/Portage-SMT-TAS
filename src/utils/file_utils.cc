@@ -38,6 +38,15 @@ string& Portage::gulpFile(const char* filename, string& dst) {
    return gulpFile(file, dst);
 }
 
+void Portage::gulpFile(const string& filename) {
+   const streamsize length = 8192;
+   char buffer[length];
+   iSafeMagicStream in(filename);
+   while (in) {
+      in.read(buffer, length);
+   }
+}
+
 void Portage::readFileLines(std::istream& istr, vector<string>& lines)
 {
    string null;

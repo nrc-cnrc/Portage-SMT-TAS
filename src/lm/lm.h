@@ -264,6 +264,15 @@ protected:
       virtual Uint64 totalMemmapSize();
 
       /**
+       * Efficiently language model in memory.  This is only applicable to memory
+       * mapped language models.
+       * @param full load all model's parts in memory not just the most
+       *             essential ones.
+       * @return true unless there was a problem.
+       */
+      virtual bool prime(bool full = false);
+
+      /**
        * Create an LM of the enclosing type.
        * See PLM::Create() for a description of the parameters
        * @return a new LM, which must be deleted externally when no longer
@@ -336,6 +345,15 @@ public:
     *         in case of problems or if the model does not use memory mapped IO.
     */
    static Uint64 totalMemmapSize(const string& lm_filename);
+
+   /**
+    * Efficiently language model in memory.  This is only applicable to memory
+    * mapped language models.
+    * @param full load all model's parts in memory not just the most
+    *             essential ones.
+    * @return true unless there was a problem.
+    */
+   static bool prime(const string& lm_filename, bool full = false);
 
    /**
     * The main LM method: log probability of a word in context.

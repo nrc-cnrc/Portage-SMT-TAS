@@ -8,7 +8,7 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2007, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
@@ -57,7 +57,7 @@ bool LMDynMap::Creator::checkFileExists(vector<string>* list)
    // Removing the map type
    const string::size_type p = lm_physical_filename.find(separator);
    if (p == string::npos || p+1 == lm_physical_filename.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
+      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
                help_the_poor_user);
    const string embedded_lm = lm_physical_filename.substr(p+1);
    const string map_type = lm_physical_filename.substr(0, p);
@@ -85,10 +85,38 @@ Uint64 LMDynMap::Creator::totalMemmapSize()
 {
    const string::size_type p = lm_physical_filename.find(separator);
    if (p == string::npos || p+1 == lm_physical_filename.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
+      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
             help_the_poor_user);
    const string embedded_lm = lm_physical_filename.substr(p+1);
+
+   // TODO: include memory mapped class files.
    return PLM::totalMemmapSize(embedded_lm);
+}
+
+bool LMDynMap::Creator::prime(bool full)
+{
+   const string::size_type p = lm_physical_filename.find(separator);
+   if (p == string::npos || p+1 == lm_physical_filename.size())
+      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
+            help_the_poor_user);
+   const string embedded_lm = lm_physical_filename.substr(p+1);
+
+   const string map_type = lm_physical_filename.substr(0, p);
+   if (isPrefix("wordClasses", map_type)) {      // word classes mapping
+      const Uint keylen = strlen("wordClasses");
+      string classesFile;
+      if (map_type.size() > keylen + 1)
+         classesFile = map_type.substr(keylen+1);
+      else
+         error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
+
+      if (IWordClassesMapping::isMemoryMapped(classesFile)) {
+         cerr << "\tPriming: " << classesFile << endl;  // SAM DEBUGGING
+         gulpFile(classesFile);
+      }
+   }
+
+   return PLM::prime(embedded_lm, full);
 }
 
 PLM* LMDynMap::Creator::Create(VocabFilter* vocab,
@@ -117,10 +145,10 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
    time_t start = time(NULL);
    const string::size_type p = name.find(separator);
    if (p == string::npos || p+1 == name.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
+      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
             help_the_poor_user);
 
-   // Initialize specified mapping & construct local vocab 
+   // Initialize specified mapping & construct local vocab
 
    const string map_type = name.substr(0, p);
    const string nm = name.substr(p+1);
@@ -130,7 +158,7 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
    else if (isPrefix("lower", map_type)) {    // lowercase mapping
       string loc("en_US.UTF-8");
       const Uint keylen = strlen("lower");
-      if (map_type.size() > keylen + 1) 
+      if (map_type.size() > keylen + 1)
          loc = map_type.substr(keylen+1);
       else if (map_type.size() != keylen)
          error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
@@ -225,11 +253,11 @@ void LMDynMap::newSrcSent(const vector<string>& src_sent,
 string LMDynMap::fix_relative_path(const string& path, string file)
 {
    assert(isPrefix(header, file));
-   
+
    // check for map type
    const string::size_type p = file.find(LMDynMap::separator, strlen(header));
    if (p == string::npos || p+1 == file.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
+      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
                help_the_poor_user);
 
    if (!file.empty() && file[p+1] != '/')
@@ -248,14 +276,21 @@ string LMDynMap::fix_relative_path(const string& path, string file)
 
 
 
-LMDynMap::IWordClassesMapping* LMDynMap::getWord2ClassesMapper(const string& fname, Voc* vocab) {
+bool LMDynMap::IWordClassesMapping::isMemoryMapped(const string& filename)
+{
    string magicNumber;
-   iSafeMagicStream is(fname);
+   iSafeMagicStream is(filename);
    if (!getline(is, magicNumber))
-      error(ETFatal, "Empty classfile %s", fname.c_str());
+      error(ETFatal, "Empty classfile %s", filename.c_str());
 
+   return magicNumber == MMMap::version2;
+}
+
+
+
+LMDynMap::IWordClassesMapping* LMDynMap::getWord2ClassesMapper(const string& fname, Voc* vocab) {
    IWordClassesMapping* mapper(NULL);
-   if (magicNumber == MMMap::version2)
+   if (IWordClassesMapping::isMemoryMapped(fname))
       mapper = new WordClassesMemoryMappedMapper(fname);
    else
       mapper = new WordClassesTextMapper(fname, vocab);

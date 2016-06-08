@@ -1,10 +1,10 @@
 /**
  * @author George Foster
  * @file file_utils.h File utilities.
- * 
- * 
- * COMMENTS: 
- * 
+ *
+ *
+ * COMMENTS:
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -74,12 +74,19 @@ string& gulpFile(std::istream& istr, string& dst);
 
 /**
  * Open a file and gulp into a string, or die if file can't be opened. This is
- * fairly inefficient 
+ * fairly inefficient
  * @param filename  name of file
  * @param dst       string to gulp into
  * @return ref to dst
  */
 string& gulpFile(const char* filename, string& dst);
+
+/**
+ * Open a file and gulp into a string, or die if file can't be opened. This is
+ * fairly inefficient
+ * @param filename  name of file
+ */
+void gulpFile(const string& filename);
 
 /**
  * Read a stream into a vector of lines (appending to what is already there).
@@ -326,7 +333,7 @@ string swap_languages(const string& s, const string& separator,
 char *tmpnam(char *);
 
 /// Read the contents of a tokenized file, line by line.
-class TokReader 
+class TokReader
 {
    iSafeMagicStream* istr;
    string fname;
@@ -334,11 +341,11 @@ class TokReader
    Uint lineno;
 
 public:
-   
+
    /// Default constructor.
    TokReader() : istr(NULL), lineno(0) {}
    // TODO: add from-stream constructor.
-   
+
    /// Default destructor.
    ~TokReader() {if (istr) delete istr;}
 
@@ -398,7 +405,7 @@ public:
 };
 
 /// Read a pair of aligned, tokenized files line by line (synchronously).
-struct TokReaderPair 
+struct TokReaderPair
 {
    TokReader tr1;
    TokReader tr2;
@@ -426,7 +433,7 @@ struct TokReaderPair
 	 error(ETWarn, "file %s is too short", tr2.filename().c_str());
       else if (s2 && !s1)
 	 error(ETWarn, "file %s is too short", tr1.filename().c_str());
-      else 
+      else
 	 return s1 && s2;
    }
 
