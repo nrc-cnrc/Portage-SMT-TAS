@@ -5570,6 +5570,470 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translatePlainText xtags zh2en TestCase" searchProperties="true" id="ab68de1b-8ba4-4000-8ccb-e760c47c8322">
+      <con:settings/>
+      <con:testStep type="request" name="translatePlainText - Request" id="2345309a-3da3-4917-964c-db762bcb5980">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translatePlainText</con:operation>
+          <con:request name="translatePlainText - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@skip_soap_action">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@force_mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">true</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translatePlainText soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input_b64}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.txt</Filename>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">true</xtags>
+      </urn:translatePlainText>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translatePlainTextCE"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Monitoring Address" id="258c3dd6-e6ba-4007-9cab-c447f658f599">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>token</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translatePlainText - Request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringToken</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations" id="bbc07a15-0f96-4de3-a163-843e1ae7ef32">
+        <con:settings/>
+        <con:config>
+          <delay>2000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Are we done translating- Request" id="99b013e3-b79f-4081-8d5b-d6cd08710bdc">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Are we done translating- Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Are translations available" id="95cfea4b-bf57-4a59-9643-28614a319556">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Translation availability</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>contains(//*:translateFileStatusResponse/*:token, "1 In progress")</con:expression>
+            <con:targetStep>Wait for translations</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Translation File Address" id="5e4eea8e-d76a-4088-8541-39107d03f30c">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Translation File Link</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translateFileStatus - Are we done translating- Request</con:sourceStep>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2]</con:sourcePath>
+            <con:targetType>TranslationFileAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" entitize="false" transferToAll="false" transferChildNodes="false" ignoreEmpty="false" useXQuery="false">
+            <con:name>Job UID</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translateFileStatus - Are we done translating- Request</con:sourceStep>
+            <con:sourcePath>(:
+tokenize(tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2], "/")
+job uid only
+tokenize(tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2], "/")[2]
+remove(tokenize(tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2], "/"), 3)
+:)
+string-join(remove(tokenize(tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2], "/"), 3), "/")</con:sourcePath>
+            <con:targetType>job_uid</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translation File" id="cd1042bf-e8e2-423b-a492-22db8b5a25df">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translation File" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#TranslationFileAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="Simple Contains" name="Contains">
+            <con:configuration>
+              <token><![CDATA[<x id="614"/><g id="615">List 插图</g>
+List 插图
+
+<x id="1855"/>（%） Convection difficult to cpi 15：ppi figure
+（%） Convection difficult to cpi 15：ppi figure
+
+The continued to maintain 14： figure （%） capacity than 环 prices <x id="1837"/>services
+The continued to maintain 14： figure （%） capacity than 环 prices services
+
+However, tension population of the past had 宽松 半年 ， 不及 下半年 <g id="1883">expected</g>.
+However, tension population of the past had 宽松 半年 ， 不及 下半年 expected.
+
+The 下半年 will be <g id="1888">expected</g> by an will ， changes in the overall shifted 宽松 population.
+The 下半年 will be expected by an will ， changes in the overall shifted 宽松 population.
+
+In the economic future ， small microeconomic 回落 幅 highlight the deterioration of the situation of profitable profitable will <g id="2849">料</g> eased the growth of would be <g id="2850">expected</g> ， more than one <g id="2851">would still but</g> ， last year.
+In the economic future ， small microeconomic 回落 幅 highlight the deterioration of the situation of profitable profitable will 料 eased the growth of would be expected ， more than one would still but ， last year.
+
+<g id="1032"><g id="1033">The main ： <g id="1031">table</g> 2 on Sheet （ circumstances change 幅 addendum products <g id="1034">subregional than 100 （%， ） growth with ） p.m.</g></g> </g>
+The main 2： table on Sheet （ change 幅 addendum products subregional than 100 （%， ） growth with ） p.m.
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f3 &lt;/bpt>" id="1"/>70 per cent<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> rate Sales 开盘
+70 per cent rate Sales 开盘
+
+The new 油船 灵便 <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>08-10.10<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> ： <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>5<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>, type figure 1 million dollars （ tended get prices ） boat
+The new 油船, type 灵便 boat 5：08-10.10 prices figure ） 1 million dollars （ tended get
+
+We UNPROFOR 银 expected of a new VI. Sheet, size and <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>20 per cent<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>, respectively period resumed VI. <open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>20 per cent<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/> <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>per cent<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> growth rates size UNPROFOR 银 ， UNPROFOR and new than 银 ， <open_wrap content="&lt;bpt i=&quot;4&quot;>{\f2 &lt;/bpt>" id="4"/>1/2<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/> closer UNPROFOR per cent per cent of income costs UNPROFOR Sheet around the new operational Sheet VI. <open_wrap content="&lt;bpt i=&quot;5&quot;>{\f2 &lt;/bpt>" id="5"/>60%-80%<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/> 寿.
+We UNPROFOR 银 expected three months, size and new VI. respectively period resumed VI. growth Sheet size UNPROFOR 银 20%， UNPROFOR and costs 30%,20% Sheet than new UNPROFOR 银 1/2， closer per cent per cent of income costs UNPROFOR around the new operational Sheet VI. 60%-80% 寿.
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>March <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>2<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>, 2010<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>
+March 2, 2010
+
+Table progressive model profitable transformation industries pieces <tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \pgnrestart\linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>：
+Table progressive model profitable transformation industries pieces ：
+
+Table 2 <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>2009<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> <tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>： regional competition industries 经纪 房 structure deputies
+In table 2 ：2009 regional competition industries 经纪 房 structure deputies
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f1 &lt;/bpt>" id="1"/>Such <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f3 &lt;/bpt>" id="2"/>5 per cent<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> <open_wrap content="&lt;bpt i=&quot;4&quot;>{\f3 &lt;/bpt>" id="4"/>per cent<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/> <open_wrap content="&lt;bpt i=&quot;3&quot;>{\f1 &lt;/bpt>" id="3"/>meat- ，<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/> <open_wrap content="&lt;bpt i=&quot;5&quot;>{\f1 &lt;/bpt>" id="5"/>，<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/> 蔬菜<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><tag_wrap content="&lt;ph>{\field {\*\fldinst {\f3 HYPERLINK &quot;http://www.search.hc360.com/cgi-bin/seinterface.cgi?word=}水产品{\f3 &quot; \\t &quot;_blank&quot; }}{\fldrslt 水产品}}&lt;/ph>"/>
+Such 蔬菜 15%， meat- 5%，
+
+I now call on the last year. <tag_wrap content="&lt;bogus val=&quot;去年.料&quot;/>" id="2"/>Will be eased eased 料]]></token>
+              <ignoreCase>false</ignoreCase>
+              <useRegEx>false</useRegEx>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Validate Q.pre.ospl">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Validate Q.pre.ospl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#job_uid}/Q.pre.ospl</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="Simple Contains" name="Contains">
+            <con:configuration>
+              <token><![CDATA[<x id="614"/><g id="615">插图目录</g>
+
+插图目录
+
+
+
+图15：PPI难以传导至CPI <x id="1855"/> （%）
+
+图15：PPI难以传导至CPI （%）
+
+
+
+图14：<x id="1837"/>服务价格环比保持持续上涨 （%）
+
+图14：服务价格环比保持持续上涨 （%）
+
+
+
+流动性紧张已经过去，但是<g id="1883">预计</g>下半年不及上半年宽松。
+
+流动性紧张已经过去，但是预计下半年不及上半年宽松。
+
+
+
+<g id="1888">预计</g>下半年的情况将有所变化，流动性总体上将由宽松转向中性。
+
+预计下半年的情况将有所变化，流动性总体上将由宽松转向中性。
+
+
+
+在经济小幅回落的情况下，未来微观经济主体的盈利状况<g id="2849">料</g>将略有恶化，<g id="2850">预计</g>盈利增长将会到个位数，<g id="2851">但仍会</g>高于去年。
+
+在经济小幅回落的情况下，未来微观经济主体的盈利状况料将略有恶化，预计盈利增长将会到个位数，但仍会高于去年。
+
+
+
+<g id="1031">表</g><g id="1032">2<g id="1033">：主要产品增幅变动情况（单月同比增长）</g> </g><g id="1034">（%，百分点）</g>
+
+表2：主要产品增幅变动情况（单月同比增长） （%，百分点）
+
+
+
+开盘销售率<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f3 &lt;/bpt>" id="1"/>70%<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>
+
+开盘销售率70%
+
+
+
+图<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>5<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>：<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>08-10.10<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>灵便型油船新船价格走势 （百万美元）
+
+图5：08-10.10灵便型油船新船价格走势 （百万美元）
+
+
+
+我们预计银保规模、个险新单和个险续期分别增长<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>30%<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>、<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>20%<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>和<open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>20%<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>，银保规模保费占比接近<open_wrap content="&lt;bpt i=&quot;4&quot;>{\f2 &lt;/bpt>" id="4"/>1/2<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/>，银保新单保费收入占寿险新单业务的<open_wrap content="&lt;bpt i=&quot;5&quot;>{\f2 &lt;/bpt>" id="5"/>60%-80%<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/>左右。
+
+我们预计银保规模、个险新单和个险续期分别增长30%、20%和20%，银保规模保费占比接近1/2，银保新单保费收入占寿险新单业务的60%-80%左右。
+
+
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>2010<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>年<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>3<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>月<open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>2<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>日
+
+2010年3月2日
+
+
+
+表<tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \pgnrestart\linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>：房地产行业盈利模式的逐渐转变
+
+表：房地产行业盈利模式的逐渐转变
+
+
+
+表<tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>：<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>2009<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>年二手房经纪行业区域竞争结构
+
+表：2009年二手房经纪行业区域竞争结构
+
+
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f1 &lt;/bpt>" id="1"/>蔬菜类<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\f3 &lt;/bpt>" id="2"/>5%<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\f1 &lt;/bpt>" id="3"/>，肉类<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/><open_wrap content="&lt;bpt i=&quot;4&quot;>{\f3 &lt;/bpt>" id="4"/>15%<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/><open_wrap content="&lt;bpt i=&quot;5&quot;>{\f1 &lt;/bpt>" id="5"/>，<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/><tag_wrap content="&lt;ph>{\field {\*\fldinst {\f3 HYPERLINK &quot;http://www.search.hc360.com/cgi-bin/seinterface.cgi?word=}水产品{\f3 &quot; \\t &quot;_blank&quot; }}{\fldrslt 水产品}}&lt;/ph>"/>
+
+蔬菜类5%，肉类15%，
+
+
+
+况<g id="2849">去年。
+料</g>将略有<tag_wrap content="&lt;bogus val=&quot;去年。料&quot;/>" id="2"/>将略有]]></token>
+              <ignoreCase>false</ignoreCase>
+              <useRegEx>false</useRegEx>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Validate Q.tok.tags">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Validate Q.tok.tags" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#job_uid}/Q.tok.tags</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="Simple Contains" name="Contains">
+            <con:configuration>
+              <token><![CDATA[<x id="614"/><g id="615">插图 目录</g>
+
+插图 目录
+
+
+
+图 15：PPI 难以 传导 至 CPI <x id="1855"/> （%）
+
+图 15：PPI 难以 传导 至 CPI （%）
+
+
+
+图 14： <x id="1837"/>服务 价格 环 比 保持 持续 上涨 （%）
+
+图 14： 服务 价格 环 比 保持 持续 上涨 （%）
+
+
+
+流动性 紧张 已经 过去 ， 但是 <g id="1883">预计</g> 下半年 不及 上 半年 宽松 。
+
+流动性 紧张 已经 过去 ， 但是 预计 下半年 不及 上 半年 宽松 。
+
+
+
+<g id="1888">预计</g> 下半年 的 情况 将 有所 变化 ， 流动性 总体 上 将 由 宽松 转向 中 性 。
+
+预计 下半年 的 情况 将 有所 变化 ， 流动性 总体 上 将 由 宽松 转向 中 性 。
+
+
+
+在 经济 小 幅 回落 的 情况 下 ， 未来 微观 经济 主体 的 盈利 状况 <g id="2849">料</g> 将 略 有 恶化 ， <g id="2850">预计</g> 盈利 增长 将 会 到 个 位 数 ， <g id="2851">但 仍 会</g> 高于 去年 。
+
+在 经济 小 幅 回落 的 情况 下 ， 未来 微观 经济 主体 的 盈利 状况 料 将 略 有 恶化 ， 预计 盈利 增长 将 会 到 个 位 数 ， 但 仍 会 高于 去年 。
+
+
+
+<g id="1031">表</g> <g id="1032">2 <g id="1033">： 主要 产品 增 幅 变动 情况 （ 单 月 同 比 增长 ）</g> </g><g id="1034">（%， 百 分 点 ）</g>
+
+表 2： 主要 产品 增 幅 变动 情况 （ 单 月 同 比 增长 ） （%， 百 分 点 ）
+
+
+
+开盘 销售 率 <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f3 &lt;/bpt>" id="1"/>70%<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>
+
+开盘 销售 率 70%
+
+
+
+图 <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>5<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> ： <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>08-10.10<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> 灵便 型 油船 新 船 价格 走 势 （ 百万 美元 ）
+
+图 5：08-10.10 灵便 型 油船 新 船 价格 走 势 （ 百万 美元 ）
+
+
+
+我们 预计 银 保 规模 、 个 险 新 单 和 个 险 续 期 分别 增长 <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>30%<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> 、 <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>20%<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> 和 <open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>20%<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/> ， 银 保 规模 保 费 占 比 接近 <open_wrap content="&lt;bpt i=&quot;4&quot;>{\f2 &lt;/bpt>" id="4"/>1/2<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/> ， 银 保 新 单 保 费 收入 占 寿 险 新 单 业务 的 <open_wrap content="&lt;bpt i=&quot;5&quot;>{\f2 &lt;/bpt>" id="5"/>60%-80%<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/> 左右 。
+
+我们 预计 银 保 规模 、 个 险 新 单 和 个 险 续 期 分别 增长 30%、20% 和 20%， 银 保 规模 保 费 占 比 接近 1/2， 银 保 新 单 保 费 收入 占 寿 险 新 单 业务 的 60%-80% 左右 。
+
+
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>2010<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> 年 <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>3<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> 月 <open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>2<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/> 日
+
+2010 年 3 月 2 日
+
+
+
+表 <tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \pgnrestart\linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>： 房地产 行业 盈利 模式 的 逐渐 转变
+
+表 ： 房地产 行业 盈利 模式 的 逐渐 转变
+
+
+
+表 <tag_wrap content="&lt;ph>{\field {\fldinst SEQ}}&lt;/ph>"/><tag_wrap content="&lt;ph>\sectd\ltrsect\marglsxn851\margrsxn851\margtsxn1865\margbsxn998 \psz9 \linex0\headery0\footery227\colsx425\endnhere \pgbrdropt32 \sectlinegrid312\sectspecifyl0\sftnbj &lt;/ph>"/>： <open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>2009<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> 年 二 手 房 经纪 行业 区域 竞争 结构
+
+表 ：2009 年 二 手 房 经纪 行业 区域 竞争 结构
+
+
+
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f1 &lt;/bpt>" id="1"/>蔬菜 类<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;2&quot;>{\f3 &lt;/bpt>" id="2"/>5%<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> <open_wrap content="&lt;bpt i=&quot;3&quot;>{\f1 &lt;/bpt>" id="3"/>， 肉类<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/> <open_wrap content="&lt;bpt i=&quot;4&quot;>{\f3 &lt;/bpt>" id="4"/>15%<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/> <open_wrap content="&lt;bpt i=&quot;5&quot;>{\f1 &lt;/bpt>" id="5"/>，<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/><tag_wrap content="&lt;ph>{\field {\*\fldinst {\f3 HYPERLINK &quot;http://www.search.hc360.com/cgi-bin/seinterface.cgi?word=}水产品{\f3 &quot; \\t &quot;_blank&quot; }}{\fldrslt 水产品}}&lt;/ph>"/>
+
+蔬菜 类 5%， 肉类 15%，
+
+
+
+况 <g id="2849">去年 。
+料</g> 将 略 有 <tag_wrap content="&lt;bogus val=&quot;去年。料&quot;/>" id="2"/>将 略 有]]></token>
+              <ignoreCase>false</ignoreCase>
+              <useRegEx>false</useRegEx>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+/*
+import org.apache.commons.codec.binary.Base64
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
+*/
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["MonitoringToken", "TranslationFileAddress", "job_uid"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>toy-regress-ch2en</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_b64</con:name>
+          <con:value>PHggaWQ9IjYxNCIvPjxnIGlkPSI2MTUiPuaPkuWbvuebruW9lTwvZz4K5o+S5Zu+55uu5b2VCgrl m74xNe+8mlBQSemavuS7peS8oOWvvOiHs0NQSSA8eCBpZD0iMTg1NSIvPiDvvIgl77yJCuWbvjE1 77yaUFBJ6Zq+5Lul5Lyg5a+86IezQ1BJIO+8iCXvvIkKCuWbvjE077yaPHggaWQ9IjE4MzciLz7m nI3liqHku7fmoLznjq/mr5Tkv53mjIHmjIHnu63kuIrmtqgg77yIJe+8iQrlm74xNO+8muacjeWK oeS7t+agvOeOr+avlOS/neaMgeaMgee7reS4iua2qCDvvIgl77yJCgrmtYHliqjmgKfntKflvKDl t7Lnu4/ov4fljrvvvIzkvYbmmK88ZyBpZD0iMTg4MyI+6aKE6K6hPC9nPuS4i+WNiuW5tOS4jeWP iuS4iuWNiuW5tOWuveadvuOAggrmtYHliqjmgKfntKflvKDlt7Lnu4/ov4fljrvvvIzkvYbmmK/p ooTorqHkuIvljYrlubTkuI3lj4rkuIrljYrlubTlrr3mnb7jgIIKCjxnIGlkPSIxODg4Ij7pooTo rqE8L2c+5LiL5Y2K5bm055qE5oOF5Ya15bCG5pyJ5omA5Y+Y5YyW77yM5rWB5Yqo5oCn5oC75L2T 5LiK5bCG55Sx5a695p2+6L2s5ZCR5Lit5oCn44CCCumihOiuoeS4i+WNiuW5tOeahOaDheWGteWw huacieaJgOWPmOWMlu+8jOa1geWKqOaAp+aAu+S9k+S4iuWwhueUseWuveadvui9rOWQkeS4reaA p+OAggoK5Zyo57uP5rWO5bCP5bmF5Zue6JC955qE5oOF5Ya15LiL77yM5pyq5p2l5b6u6KeC57uP 5rWO5Li75L2T55qE55uI5Yip54q25Ya1PGcgaWQ9IjI4NDkiPuaWmTwvZz7lsIbnlaXmnInmgbbl jJbvvIw8ZyBpZD0iMjg1MCI+6aKE6K6hPC9nPuebiOWIqeWinumVv+WwhuS8muWIsOS4quS9jeaV sO+8jDxnIGlkPSIyODUxIj7kvYbku43kvJo8L2c+6auY5LqO5Y675bm044CCCuWcqOe7j+a1juWw j+W5heWbnuiQveeahOaDheWGteS4i++8jOacquadpeW+ruingue7j+a1juS4u+S9k+eahOebiOWI qeeKtuWGteaWmeWwhueVpeacieaBtuWMlu+8jOmihOiuoeebiOWIqeWinumVv+WwhuS8muWIsOS4 quS9jeaVsO+8jOS9huS7jeS8mumrmOS6juWOu+W5tOOAggoKPGcgaWQ9IjEwMzEiPuihqDwvZz48 ZyBpZD0iMTAzMiI+MjxnIGlkPSIxMDMzIj7vvJrkuLvopoHkuqflk4Hlop7luYXlj5jliqjmg4Xl hrXvvIjljZXmnIjlkIzmr5Tlop7plb/vvIk8L2c+IDwvZz48ZyBpZD0iMTAzNCI+77yIJe+8jOeZ vuWIhueCue+8iTwvZz4K6KGoMu+8muS4u+imgeS6p+WTgeWinuW5heWPmOWKqOaDheWGte+8iOWN leaciOWQjOavlOWinumVv++8iSDvvIgl77yM55m+5YiG54K577yJCgrlvIDnm5jplIDllK7njoc8 b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0mcXVvdDsxJnF1b3Q7PntcZjMgJmx0Oy9icHQ+ IiBpZD0iMSIvPjcwJTxjbG9zZV93cmFwIGNvbnRlbnQ9IiZsdDtlcHQgaT0mcXVvdDsxJnF1b3Q7 Pn0mbHQ7L2VwdD4iIGlkPSIxIi8+CuW8gOebmOmUgOWUrueOhzcwJQoK5Zu+PG9wZW5fd3JhcCBj b250ZW50PSImbHQ7YnB0IGk9JnF1b3Q7MSZxdW90Oz57XGYyICZsdDsvYnB0PiIgaWQ9IjEiLz41 PGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzEmcXVvdDs+fSZsdDsvZXB0PiIg aWQ9IjEiLz7vvJo8b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0mcXVvdDsyJnF1b3Q7Pntc ZjIgJmx0Oy9icHQ+IiBpZD0iMiIvPjA4LTEwLjEwPGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2Vw dCBpPSZxdW90OzImcXVvdDs+fSZsdDsvZXB0PiIgaWQ9IjIiLz7ngbXkvr/lnovmsrnoiLnmlrDo iLnku7fmoLzotbDlir8g77yI55m+5LiH576O5YWD77yJCuWbvjXvvJowOC0xMC4xMOeBteS+v+We i+ayueiIueaWsOiIueS7t+agvOi1sOWKvyDvvIjnmb7kuIfnvo7lhYPvvIkKCuaIkeS7rOmihOiu oemTtuS/neinhOaooeOAgeS4qumZqeaWsOWNleWSjOS4qumZqee7reacn+WIhuWIq+WinumVvzxv cGVuX3dyYXAgY29udGVudD0iJmx0O2JwdCBpPSZxdW90OzEmcXVvdDs+e1xmMiAmbHQ7L2JwdD4i IGlkPSIxIi8+MzAlPGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzEmcXVvdDs+ fSZsdDsvZXB0PiIgaWQ9IjEiLz7jgIE8b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0mcXVv dDsyJnF1b3Q7PntcZjIgJmx0Oy9icHQ+IiBpZD0iMiIvPjIwJTxjbG9zZV93cmFwIGNvbnRlbnQ9 IiZsdDtlcHQgaT0mcXVvdDsyJnF1b3Q7Pn0mbHQ7L2VwdD4iIGlkPSIyIi8+5ZKMPG9wZW5fd3Jh cCBjb250ZW50PSImbHQ7YnB0IGk9JnF1b3Q7MyZxdW90Oz57XGYyICZsdDsvYnB0PiIgaWQ9IjMi Lz4yMCU8Y2xvc2Vfd3JhcCBjb250ZW50PSImbHQ7ZXB0IGk9JnF1b3Q7MyZxdW90Oz59Jmx0Oy9l cHQ+IiBpZD0iMyIvPu+8jOmTtuS/neinhOaooeS/nei0ueWNoOavlOaOpei/kTxvcGVuX3dyYXAg Y29udGVudD0iJmx0O2JwdCBpPSZxdW90OzQmcXVvdDs+e1xmMiAmbHQ7L2JwdD4iIGlkPSI0Ii8+ MS8yPGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzQmcXVvdDs+fSZsdDsvZXB0 PiIgaWQ9IjQiLz7vvIzpk7bkv53mlrDljZXkv53otLnmlLblhaXljaDlr7/pmanmlrDljZXkuJrl iqHnmoQ8b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0mcXVvdDs1JnF1b3Q7PntcZjIgJmx0 Oy9icHQ+IiBpZD0iNSIvPjYwJS04MCU8Y2xvc2Vfd3JhcCBjb250ZW50PSImbHQ7ZXB0IGk9JnF1 b3Q7NSZxdW90Oz59Jmx0Oy9lcHQ+IiBpZD0iNSIvPuW3puWPs+OAggrmiJHku6zpooTorqHpk7bk v53op4TmqKHjgIHkuKrpmanmlrDljZXlkozkuKrpmannu63mnJ/liIbliKvlop7plb8zMCXjgIEy MCXlkowyMCXvvIzpk7bkv53op4TmqKHkv53otLnljaDmr5TmjqXov5ExLzLvvIzpk7bkv53mlrDl jZXkv53otLnmlLblhaXljaDlr7/pmanmlrDljZXkuJrliqHnmoQ2MCUtODAl5bem5Y+z44CCCgo8 b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0mcXVvdDsxJnF1b3Q7PntcZjIgJmx0Oy9icHQ+ IiBpZD0iMSIvPjIwMTA8Y2xvc2Vfd3JhcCBjb250ZW50PSImbHQ7ZXB0IGk9JnF1b3Q7MSZxdW90 Oz59Jmx0Oy9lcHQ+IiBpZD0iMSIvPuW5tDxvcGVuX3dyYXAgY29udGVudD0iJmx0O2JwdCBpPSZx dW90OzImcXVvdDs+e1xmMiAmbHQ7L2JwdD4iIGlkPSIyIi8+MzxjbG9zZV93cmFwIGNvbnRlbnQ9 IiZsdDtlcHQgaT0mcXVvdDsyJnF1b3Q7Pn0mbHQ7L2VwdD4iIGlkPSIyIi8+5pyIPG9wZW5fd3Jh cCBjb250ZW50PSImbHQ7YnB0IGk9JnF1b3Q7MyZxdW90Oz57XGYyICZsdDsvYnB0PiIgaWQ9IjMi Lz4yPGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzMmcXVvdDs+fSZsdDsvZXB0 PiIgaWQ9IjMiLz7ml6UKMjAxMOW5tDPmnIgy5pelCgrooag8dGFnX3dyYXAgY29udGVudD0iJmx0 O3BoPntcZmllbGQge1xmbGRpbnN0IFNFUX19Jmx0Oy9waD4iLz48dGFnX3dyYXAgY29udGVudD0i Jmx0O3BoPlxzZWN0ZFxsdHJzZWN0XG1hcmdsc3huODUxXG1hcmdyc3huODUxXG1hcmd0c3huMTg2 NVxtYXJnYnN4bjk5OCBccHN6OSBccGducmVzdGFydFxsaW5leDBcaGVhZGVyeTBcZm9vdGVyeTIy N1xjb2xzeDQyNVxlbmRuaGVyZSBccGdicmRyb3B0MzIgXHNlY3RsaW5lZ3JpZDMxMlxzZWN0c3Bl Y2lmeWwwXHNmdG5iaiAmbHQ7L3BoPiIvPu+8muaIv+WcsOS6p+ihjOS4muebiOWIqeaooeW8j+ea hOmAkOa4kOi9rOWPmArooajvvJrmiL/lnLDkuqfooYzkuJrnm4jliKnmqKHlvI/nmoTpgJDmuJDo vazlj5gKCuihqDx0YWdfd3JhcCBjb250ZW50PSImbHQ7cGg+e1xmaWVsZCB7XGZsZGluc3QgU0VR fX0mbHQ7L3BoPiIvPjx0YWdfd3JhcCBjb250ZW50PSImbHQ7cGg+XHNlY3RkXGx0cnNlY3RcbWFy Z2xzeG44NTFcbWFyZ3JzeG44NTFcbWFyZ3RzeG4xODY1XG1hcmdic3huOTk4IFxwc3o5IFxsaW5l eDBcaGVhZGVyeTBcZm9vdGVyeTIyN1xjb2xzeDQyNVxlbmRuaGVyZSBccGdicmRyb3B0MzIgXHNl Y3RsaW5lZ3JpZDMxMlxzZWN0c3BlY2lmeWwwXHNmdG5iaiAmbHQ7L3BoPiIvPu+8mjxvcGVuX3dy YXAgY29udGVudD0iJmx0O2JwdCBpPSZxdW90OzEmcXVvdDs+e1xmMiAmbHQ7L2JwdD4iIGlkPSIx Ii8+MjAwOTxjbG9zZV93cmFwIGNvbnRlbnQ9IiZsdDtlcHQgaT0mcXVvdDsxJnF1b3Q7Pn0mbHQ7 L2VwdD4iIGlkPSIxIi8+5bm05LqM5omL5oi/57uP57qq6KGM5Lia5Yy65Z+f56ue5LqJ57uT5p6E CuihqO+8mjIwMDnlubTkuozmiYvmiL/nu4/nuqrooYzkuJrljLrln5/nq57kuonnu5PmnoQKCjxv cGVuX3dyYXAgY29udGVudD0iJmx0O2JwdCBpPSZxdW90OzEmcXVvdDs+e1xmMSAmbHQ7L2JwdD4i IGlkPSIxIi8+6JSs6I+c57G7PGNsb3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzEm cXVvdDs+fSZsdDsvZXB0PiIgaWQ9IjEiLz48b3Blbl93cmFwIGNvbnRlbnQ9IiZsdDticHQgaT0m cXVvdDsyJnF1b3Q7PntcZjMgJmx0Oy9icHQ+IiBpZD0iMiIvPjUlPGNsb3NlX3dyYXAgY29udGVu dD0iJmx0O2VwdCBpPSZxdW90OzImcXVvdDs+fSZsdDsvZXB0PiIgaWQ9IjIiLz48b3Blbl93cmFw IGNvbnRlbnQ9IiZsdDticHQgaT0mcXVvdDszJnF1b3Q7PntcZjEgJmx0Oy9icHQ+IiBpZD0iMyIv Pu+8jOiCieexuzxjbG9zZV93cmFwIGNvbnRlbnQ9IiZsdDtlcHQgaT0mcXVvdDszJnF1b3Q7Pn0m bHQ7L2VwdD4iIGlkPSIzIi8+PG9wZW5fd3JhcCBjb250ZW50PSImbHQ7YnB0IGk9JnF1b3Q7NCZx dW90Oz57XGYzICZsdDsvYnB0PiIgaWQ9IjQiLz4xNSU8Y2xvc2Vfd3JhcCBjb250ZW50PSImbHQ7 ZXB0IGk9JnF1b3Q7NCZxdW90Oz59Jmx0Oy9lcHQ+IiBpZD0iNCIvPjxvcGVuX3dyYXAgY29udGVu dD0iJmx0O2JwdCBpPSZxdW90OzUmcXVvdDs+e1xmMSAmbHQ7L2JwdD4iIGlkPSI1Ii8+77yMPGNs b3NlX3dyYXAgY29udGVudD0iJmx0O2VwdCBpPSZxdW90OzUmcXVvdDs+fSZsdDsvZXB0PiIgaWQ9 IjUiLz48dGFnX3dyYXAgY29udGVudD0iJmx0O3BoPntcZmllbGQge1wqXGZsZGluc3Qge1xmMyBI WVBFUkxJTksgJnF1b3Q7aHR0cDovL3d3dy5zZWFyY2guaGMzNjAuY29tL2NnaS1iaW4vc2VpbnRl cmZhY2UuY2dpP3dvcmQ9feawtOS6p+WTgXtcZjMgJnF1b3Q7IFxcdCAmcXVvdDtfYmxhbmsmcXVv dDsgfX17XGZsZHJzbHQg5rC05Lqn5ZOBfX0mbHQ7L3BoPiIvPgrolKzoj5znsbs1Je+8jOiCieex uzE1Je+8jAoK5Ya1PGcgaWQ9IjI4NDkiPuWOu+W5tOOAguaWmTwvZz7lsIbnlaXmnIk8dGFnX3dy YXAgY29udGVudD0iJmx0O2JvZ3VzIHZhbD0mcXVvdDvljrvlubTjgILmlpkmcXVvdDsvPiIgaWQ9 IjIiLz7lsIbnlaXmnIkK</con:value>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>job_uid</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
     <con:properties>
       <con:property>
         <con:name>input</con:name>
