@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # make-distro.sh - Make a DVD or a copyable distro of Generic Model.
 # 
@@ -8,12 +7,12 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2012, Her Majesty in Right of Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
 
 echo 'make-distro.sh, NRC-CNRC, (c) 2012, Her Majesty in Right of Canada'
 
-GIT_PATH=balzac.iit.nrc.ca:/home/git
+GIT_PATH=$PORTAGE_GIT_ROOT
 
 usage() {
    for msg in "$@"; do
@@ -126,8 +125,7 @@ print_header() {
 
 check_reliable_host() {
    print_header check_reliable_host
-   [[ `hostname` = joyce ]] &&
-      error_exit "This script does not work on Joyce.  Use Verlaine instead."
+   echo Using `hostname`.
 }
 
 do_checkout() {
@@ -141,8 +139,11 @@ do_checkout() {
    run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
-      run_cmd mv PORTAGEshared/generic-model .
+      run_cmd git clone -n $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
+      run_cmd pushd PORTAGEshared
+         run_cmd git checkout $VERSION_TAG -- generic-model
+         run_cmd mv generic-model ..
+      run_cmd popd
       run_cmd rm -rf PORTAGEshared
       run_cmd rm -f generic-model/make-distro.sh
    run_cmd popd
@@ -170,21 +171,19 @@ make_iso_and_tar() {
       ARCHIVE_FILE=$VOLID
    fi
    run_cmd pushd ./$OUTPUT_DIR
+      run_cmd mv generic-model PortageGenericModel2.0
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              generic-model '&>' iso.log
-      run_cmd mv generic-model PortageGenericModel1.0
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel1.0 '>&' tar.log
+              PortageGenericModel2.0 '&>' iso.log
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel2.0 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }
 
 check_reliable_host
 
-test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
-
-if [[ ! $VERSION_TAG ]]; then
-   error_exit "Missing mandatory -r GIT_TAG argument"
-fi
+[[ $OUTPUT_DIR ]] || error_exit "Missing mandatory -dir argument"
+[[ $MODELS ]] || error_exit "Missing mandatory -models argument"
+[[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
 
 do_checkout
 get_models
