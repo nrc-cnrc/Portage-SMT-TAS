@@ -255,7 +255,7 @@ OR
 </tr>
 <tr valign="top">
 <td>
-<INPUT TYPE = "radio" Name = "newline" VALUE = "s" checked = "checked"/>
+<INPUT TYPE = "radio" Name = "newline" VALUE = "s"/>
 </td>
 <td>
 <b>one sentence per line</b>
@@ -264,7 +264,7 @@ OR
 </tr>
 <tr valign="top">
 <td>
-<INPUT TYPE = "radio" Name = "newline" VALUE = "p"/>
+<INPUT TYPE = "radio" Name = "newline" VALUE = "p" checked = "checked"/>
 </td>
 <td>
 <b>one paragraph per line</b>

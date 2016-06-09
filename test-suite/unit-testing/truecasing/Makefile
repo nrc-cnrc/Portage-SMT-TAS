@@ -140,3 +140,10 @@ buggy.markup.out: buggy/in/tc_tmp_text_25951.cmark.in buggy/in/tc_tmp_text_25951
 
 buggy.casemark.out: buggy/in/tc_tmp_text_25951.cmark.out
 	casemark.py -r -enc utf-8 $+ > $@
+
+.PHONY: buggy2
+all: buggy2
+buggy2: buggycmp.buggy.in2.out
+
+buggy.in2.out: buggy/in2/tc_tmp_text_31660.cmark buggy/in2/tc_tmp_text_31660.tc buggy/in2/p.pal
+	markup_canoe_output -wal mixed -n OOV $+ > $@
