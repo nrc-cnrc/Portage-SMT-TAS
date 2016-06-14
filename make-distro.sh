@@ -260,11 +260,11 @@ print_header() {
    date
 }
 
-check_reliable_host() {
-   print_header check_reliable_host
+identify_host() {
+   print_header identify_host
    [[ `hostname` = joyce ]] &&
       error_exit "This script does not work on Joyce.  Use Verlaine instead."
-   echo Using `hostname`.  Should be OK.
+   echo Using `hostname`.
 }
 
 # Usage: set_cur dir
@@ -526,7 +526,7 @@ make_iso_and_tar() {
 }
 
 
-check_reliable_host
+identify_host
 
 [[ $CUR_VERSION ]] || error_exit "Missing mandaroty -cur VERSION argument"
 [[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
