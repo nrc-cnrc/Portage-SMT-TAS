@@ -292,23 +292,16 @@ sub processText {
     my $work_dir;               # For translate.pl
     my @tr_opt = ();            # Translate.pl options
 
-    my $context = "";
-
-    if (exists $CONTEXT{param('context')}) {
-        $context = param('context');
+    if (not param('context')) {
+        problem("No system (\"context\") specified.");
     }
-    else {
+
+    if (! exists $CONTEXT{param('context')}) {
         my $context_error = param('context');
         problem("Invalid context (\"$context_error\") specified.");
     }
 
-    if (not -d "$PORTAGE_MODEL_DIR/$context") {
-        problem("Invalid context (\"$context\") specified.");
-    }
-
-    if (not $context) {
-        problem("No system (\"context\") specified.");
-    }
+    my $context = param('context');
 
     # Create the work dir, get the source text in there:
     if (param('TranslateFile') and param('filename')) {  # File upload
