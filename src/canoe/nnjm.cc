@@ -134,11 +134,11 @@ void NNJM::Config::read(const string& arg, bool arg_is_filename) {
       }
       else if (toks[i] == "[srcvoc]") {
          checkArg(toks, i++, 1);
-         tgtvocFilename = adjustRelativePath(dir, toks[i]);
+         srcvocFilename = adjustRelativePath(dir, toks[i]);
       }
       else if (toks[i] == "[tgtvoc]") {
          checkArg(toks, i++, 1);
-         srcvocFilename = adjustRelativePath(dir, toks[i]);
+         tgtvocFilename = adjustRelativePath(dir, toks[i]);
       }
       else if (toks[i] == "[outvoc]") {
          checkArg(toks, i++, 1);
