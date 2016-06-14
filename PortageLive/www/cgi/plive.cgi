@@ -269,25 +269,19 @@ sub processText {
     my $work_name;              # User-recognizable jobname
     my $work_dir;               # For translate.pl
 
-    my $context = "";
-
-    if (exists $CONTEXT{param('context')}) {
-        $context = param('context');
+    if (not param('context')) {
+        problem("No system (\"context\") specified.");
     }
-    else {
+
+    if (! exists $CONTEXT{param('context')}) {
         my $context_error = param('context');
         problem("Invalid context (\"$context_error\") specified.");
     }
 
-    if (not -d "$PORTAGE_MODEL_DIR/$context") {
-        problem("Invalid context (\"$context\") specified.");
-    }
-
-    if (not $context) {
-        problem("No system (\"context\") specified.");
+    my $context = param('context');
 
     # Create the work dir, get the source text in there:
-    } elsif (param('TranslateFile') and param('filename')) {  # File upload
+    if (param('TranslateFile') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
             || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
