@@ -315,17 +315,18 @@ sub processText {
     my $work_dir;               # For translate.pl
     my @tr_opt = ();            # Translate.pl options
 
-    my $context = "";
+    if (not param('context')) {
+        problem("No system (\"context\") specified.");
+    }
 
     # Taint checking: only use the user-specified context if the value exists
     # in the list of contexts (%CONTEXT) that we found on the system.
-    if (exists $CONTEXT{param('context')}) {
-        $context = param('context');
-    }
-    else {
+    if (! exists $CONTEXT{param('context')}) {
         my $context_error = param('context');
         problem("Invalid context (\"$context_error\") specified.");
     }
+
+    my $context = param('context');
 
     # Create the work dir, get the source text in there:
     if (param('translate_file') and param('filename')) {  # File upload
