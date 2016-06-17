@@ -34,7 +34,7 @@
 namespace bio = boost::iostreams;
 
 namespace ugdiss {
-/// @return the size of file fname.
+/// @return the size of file fname, or -1 in case of error.
 uint64_t getFileSize(const std::string& fname);
 
 /**

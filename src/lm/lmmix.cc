@@ -95,6 +95,7 @@ bool LMMix::Creator::checkFileExists(vector<string>* list)
 Uint64 LMMix::Creator::totalMemmapSize()
 {
    iSafeMagicStream file(lm_physical_filename);
+   string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
    string line;
 
    Uint64 total_size = 0;
@@ -106,7 +107,7 @@ Uint64 LMMix::Creator::totalMemmapSize()
          error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
                lm_physical_filename.c_str(), line.c_str());
 
-      total_size += PLM::totalMemmapSize(toks[0]);
+      total_size += PLM::totalMemmapSize(adjustRelativePath(lmmix_dir, toks[0]));
    }
    return total_size;
 }

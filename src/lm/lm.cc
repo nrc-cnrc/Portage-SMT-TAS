@@ -212,8 +212,15 @@ PLM* PLM::Create(const string& lm_filename,
    return lm;
 } // PLM::Create
 
+static const bool debug_memmap_size = false;
+
 Uint64 PLM::totalMemmapSize(const string& lm_filename)
 {
+   if (debug_memmap_size) {
+      shared_ptr<Creator> creator = getCreator(lm_filename);
+      cerr << "totalMemmapSize for " << creator->lm_physical_filename
+           << " = " << creator->totalMemmapSize() << endl;
+   }
    return getCreator(lm_filename)->totalMemmapSize();
 }
 
