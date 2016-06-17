@@ -867,16 +867,16 @@ TRANS:{
          $decoder = "cd $dir && canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
-      $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce or $xtags);
+      $decoder_opts .= " -walign -palign";
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
       my $decoder_log = ($verbose > 1) ? "2> '${dir}/log.decode'" : "";
-      my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
-      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
+      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_raw}' ${decoder_log}");
 
       my $wal_opt = ($wal eq "h") ? "" : "-wal";
-      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
-           "| perl -pe 's/ +\$//;' > '${p_decoov}'");
+      call("set -o pipefail;" .
+           " nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
+           " | perl -pe 's/ +\$//;' > '${p_decoov}'");
 
       generateOOVsPage(${p_decoov}, ${oov_html});
 
@@ -915,13 +915,8 @@ TRANS:{
       chdir($cwd);
    }
 
-   if (not (defined $tcsrclm or $xtags)) {
-      plugin("postdecode", $tgt, $p_dec, $p_tok);
-   }
-   else {
-      plugin("postdecode", $tgt, $p_decoov, $p_tokoov);
-      call("cat '${p_tokoov}' | perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' > '${p_tok}'");
-   }
+   plugin("postdecode", $tgt, $p_decoov, $p_tokoov);
+   call("perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' < '${p_tokoov}' > '${p_tok}'");
 }
 
 # Truecase, detokenize, and postprocess
@@ -1476,7 +1471,7 @@ sub generateOOVsPage {
    open(OOV, "<${oov}") or die "Error: can't open ${oov} to create the OOV html page. ($!)";
    open(HTML, ">${html}")   or die "Error: can't open ${html} to create the OOV html page. ($!)";
 
-   print HTML '<!DOCTYPE html><html><head><style>.OOV { color: red;} </style></head><body>';
+   print HTML "<!DOCTYPE html>\n<html>\n<head><style>.OOV { color: red;} </style></head>\n<body>\n";
    while (<OOV>) {
       s/&/\&amp;/g;
       s/</\&lt;/g;

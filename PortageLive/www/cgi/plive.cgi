@@ -315,27 +315,19 @@ sub processText {
     my $work_dir;               # For translate.pl
     my @tr_opt = ();            # Translate.pl options
 
-    my $context = "";
-
-		
-	if (exists $CONTEXT{param('context')}) {
-		$context = param('context');
-	} 
-	else {
-	my $context_error = param('context');
-	 problem("Invalid context (\"$context_error\") specified.");
-	}
-
-
-	if (not -d "$PORTAGE_MODEL_DIR/$context") {
-        problem("Invalid context (\"$context\") specified.");
-    }
-
-
-	if (not $context) {
+    if (not param('context')) {
         problem("No system (\"context\") specified.");
     }
-    #
+
+    # Taint checking: only use the user-specified context if the value exists
+    # in the list of contexts (%CONTEXT) that we found on the system.
+    if (! exists $CONTEXT{param('context')}) {
+        my $context_error = param('context');
+        problem("Invalid context (\"$context_error\") specified.");
+    }
+
+    my $context = param('context');
+
     # Create the work dir, get the source text in there:
     if (param('translate_file') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
@@ -401,13 +393,13 @@ sub processText {
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
-		
-		#Setting deafult newline value to "p" ==> one paragraph per line
-		my $newline = "p";
-		#Taint Checking ( We should only accept the values for param  newline  "s" or "w" or "p"(default) 
-		if(param('newline') eq "s" || param('newline') eq "w" ){
-        	$newline = param('newline');
-		}
+
+        # Setting deafult newline value to "p" ==> one paragraph per line
+        my $newline = "p";
+        # Taint Checking ( We should only accept the values for param  newline  "s" or "w" or "p"(default)
+        if (param('newline') eq "s" || param('newline') eq "w") {
+            $newline = param('newline');
+        }
         push @tr_opt, "-nl=" . $newline;
     }
 
@@ -429,7 +421,7 @@ sub processText {
         monitor($work_name, $work_dir, $outfilename, $context);
 
         # Launch translate.pl in the background for uploaded files, in order to return to
-	# webserver as soon as possible, and avoid potential timeout.
+        # webserver as soon as possible, and avoid potential timeout.
 
         close STDIN;
         close STDOUT;
