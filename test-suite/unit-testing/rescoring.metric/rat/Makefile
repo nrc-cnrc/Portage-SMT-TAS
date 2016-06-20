@@ -13,12 +13,12 @@ all: bleu per wer
 TEMP_FILES=scores.* rescore-model.* log.*
 include ../../Makefile.incl
 
-.PHONY: bleu per wer
-bleu: diff.bleu
-per: diff.per
-wer: diff.wer
+.PHONY:  bleu per wer
+bleu:  diff.bleu
+per:   diff.per
+wer:   diff.wer
 
-rt.%: dev2_fr.al 100best.gz dev2_en.al
+rt.%:  dev2_fr.al 100best.gz dev2_en.al
 	-${RM} scores.$*
 	${RESCORE_TRAIN} \
 		-$* \
@@ -31,5 +31,5 @@ rt.%: dev2_fr.al 100best.gz dev2_en.al
 		>& log.$*
 
 diff.%: rt.%
-	diff rescore-model.$* ref/rescore-model.$* -q -s || diff rescore-model.$* ref-alt/rescore-model.$* -q -s
-	diff-round.pl -sort -p 5 scores.$* ref/scores.$* -q || diff-round.pl -sort -p 5 scores.$* ref-alt/scores.$* -q
+	! diff rescore-model.$*  ${DATA_DIR}/workdir-dev2_fr.al-100best/rescore-model.ini.rat -q || ! echo "Error: the trained model file should be different than the original model file." >&2
+	[[ `wc -l < scores.$*` -gt 1 ]] || ! echo "Error: there should be more than one iteration" >&2

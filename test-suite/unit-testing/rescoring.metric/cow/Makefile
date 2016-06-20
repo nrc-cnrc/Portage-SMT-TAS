@@ -18,11 +18,12 @@ TEMP_DIRS=foos.* run-p.*
 include ../../Makefile.incl
 
 .PHONY: cow
-cow: bleu per wer
+cow:  bleu per wer
+
 .PHONY: bleu per wer
-bleu: diff.bleu
-per: diff.per
-wer: diff.wer
+bleu:  diff.bleu
+per:   diff.per
+wer:   diff.wer
 
 # Since tune.py doesn't support wer and per yet, we still have to use cow.sh here.
 vpath dev1_%.al ${DATA_DIR}
@@ -40,6 +41,7 @@ cow.%: dev1_fr.al dev1_en.al
 	mv rescore-results rescore-results.$*
 	mv canoe.ini.cow canoe.ini.cow.$*
 
-diff.%: cow.%
-	diff ref/rescore-results.$* rescore-results.$* -q -s || diff ref/rescore-results.$*-alt rescore-results.$* -q -s || diff ref/rescore-results.$*-alt2 rescore-results.$* -q -s
-	diff ref/canoe.ini.cow.$* canoe.ini.cow.$* -q -s || diff ref/canoe.ini.cow.$*-alt canoe.ini.cow.$* -q -s
+diff.%:  cow.%
+	[[ `wc -l < rescore-results.$*` -eq 3 ]] || ! echo "Error: Cow should have run for 3 iterations for $*" >&2
+	configtool check canoe.ini.cow.$*
+	[[ `configtool weights canoe.ini.cow.$*`  !=  " -d 1 -w 0 -lm 1 -tm 1" ]] || ! echo "Error: Looks like the weights haven't changed for $*" >&2
