@@ -33,11 +33,20 @@ LMMix::Creator::Creator(
       const string& lm_physical_filename, Uint naming_limit_order)
    : PLM::Creator(lm_physical_filename, naming_limit_order)
    , lmmix_relative(true)
+   , has_been_parsed(false)
 {}
 
 bool LMMix::Creator::checkFileExists(vector<string>* list)
 {
+   // If we don't have to populated list and we already have parsed this model
+   // file then do nothing.
+   if (!list && has_been_parsed) return true;
+
+   canonical_sub_models.clear();
+
    if (!check_if_exists(lm_physical_filename)) return false;
+
+   if (list) list->push_back(lm_physical_filename);
 
    string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
 
@@ -52,7 +61,7 @@ bool LMMix::Creator::checkFileExists(vector<string>* list)
          break;
       ++num_lines;
       vector<string> toks;
-      if (split(line, toks) != 2) 
+      if (split(line, toks) != 2)
          error(ETFatal, "syntax error in %s; expected 2 tokens on line %d: %s",
                lm_physical_filename.c_str(), num_lines, line.c_str());
 
@@ -68,7 +77,8 @@ bool LMMix::Creator::checkFileExists(vector<string>* list)
                  << ": " << adjustRelativePath(lmmix_dir, toks[0]) << endl;
             error(ETWarn, "Using component LM paths relative to the %s.",
                   lmmix_relative ? "mixlm file location" : "current working directory");
-         } else {
+         }
+         else {
             lmmix_relative = not lmmix_relative; // restore default setting
             lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
          }
@@ -80,6 +90,10 @@ bool LMMix::Creator::checkFileExists(vector<string>* list)
               << toks[0] << endl;
          ok = false;
       }
+
+      canonical_sub_models.push_back(adjustRelativePath(lmmix_dir, toks[0]));
+
+      if (list) PLM::checkFileExists(canonical_sub_models.back(), list);
    }
 
    if (num_lines == 0) {
@@ -87,48 +101,35 @@ bool LMMix::Creator::checkFileExists(vector<string>* list)
       return false;
    }
 
-   if (ok && list) listAllFiles(list);
+   has_been_parsed = ok;
 
    return ok;
 }
 
 Uint64 LMMix::Creator::totalMemmapSize()
 {
-   iSafeMagicStream file(lm_physical_filename);
-   string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
-   string line;
+   if (!checkFileExists(NULL)) return 0;
 
    Uint64 total_size = 0;
-   while (getline(file, line)) {
-      if (isPrefix(LMMIX_COOKIE_V1_0, line))
-         break;
-      vector<string> toks;
-      if (split(line, toks) != 2) 
-         error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
-               lm_physical_filename.c_str(), line.c_str());
-
-      total_size += PLM::totalMemmapSize(adjustRelativePath(lmmix_dir, toks[0]));
+   typedef vector<string>::const_iterator IT;
+   for (IT it(canonical_sub_models.begin()); it!=canonical_sub_models.end(); ++it) {
+      total_size += PLM::totalMemmapSize(*it);
    }
+
    return total_size;
 }
 
-void LMMix::Creator::listAllFiles(vector<string>* list)
+bool LMMix::Creator::prime(bool full)
 {
-   list->push_back(lm_physical_filename);
+   if (!checkFileExists(NULL)) return false;
 
-   iSafeMagicStream file(lm_physical_filename);
-   string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
-   string line;
-   while (getline(file, line)) {
-      if (isPrefix(LMMIX_COOKIE_V1_0, line))
-         break;
-      vector<string> toks;
-      if (split(line, toks) != 2)
-         error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
-               lm_physical_filename.c_str(), line.c_str());
-
-      PLM::checkFileExists(adjustRelativePath(lmmix_dir, toks[0]), list);
+   bool ok = true;
+   typedef vector<string>::const_iterator IT;
+   for (IT it(canonical_sub_models.begin()); it!=canonical_sub_models.end(); ++it) {
+      ok &= PLM::prime(*it);
    }
+
+   return ok;
 }
 
 PLM* LMMix::Creator::Create(VocabFilter* vocab,
@@ -147,10 +148,13 @@ PLM* LMMix::Creator::Create(VocabFilter* vocab,
 
 }
 
+
+
+
 LMMix::LMMix(const string& name, VocabFilter* vocab,
              OOVHandling oov_handling, float oov_unigram_prob,
              bool limit_vocab, Uint limit_order, bool lmmix_relative,
-             bool notreally, vector<string>* model_names) : 
+             bool notreally, vector<string>* model_names) :
    PLM(vocab, oov_handling, oov_unigram_prob),
    sent_level_mixture(false)
 {
@@ -166,7 +170,7 @@ LMMix::LMMix(const string& name, VocabFilter* vocab,
          break;
       }
       vector<string> toks;
-      if (split(line, toks) != 2) 
+      if (split(line, toks) != 2)
          error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
                name.c_str(), line.c_str());
 
@@ -200,11 +204,11 @@ LMMix::LMMix(const string& name, VocabFilter* vocab,
       double g = 0.0;
       if (line.length() > strlen(LMMIX_COOKIE_V1_0))
          g = conv<double>(line.substr(strlen(LMMIX_COOKIE_V1_0)));
-      
+
       while (getline(file, line)) {
          per_sent_wts.push_back(vector<double>(0));
          if (split(line, per_sent_wts.back()) != gwts.size())
-            error(ETFatal, "size of weight vector doesn't match global vector: %s", 
+            error(ETFatal, "size of weight vector doesn't match global vector: %s",
                   line.c_str());
          for (Uint i = 0; i < gwts.size(); ++i)
             per_sent_wts.back()[i] = log(g * gwts[i] + (1.0-g) * per_sent_wts.back()[i]);
@@ -245,7 +249,7 @@ void LMMix::newSrcSent(const vector<string>& src_sent,
    if (sent_level_mixture) {
       clearCache(); // In this case, changing sentence invalidates the cache.
       if (external_src_sent_id >= per_sent_wts.size())
-         error(ETFatal, 
+         error(ETFatal,
                "mixlm src index too large: you may be using the model for the wrong source file!");
       wts = &per_sent_wts[external_src_sent_id][0];
    }
@@ -260,14 +264,14 @@ LMMix::~LMMix()
       delete(models[i]);
 }
 
-PLM::Hits LMMix::getHits() 
+PLM::Hits LMMix::getHits()
 {
    PLM::Hits hits;
    typedef vector<PLM*>::iterator LM_IT;
    for (LM_IT it(models.begin()); it!= models.end(); ++it) {
       hits += (*it)->getHits();
    }
-   return hits; 
+   return hits;
 }
 
 };

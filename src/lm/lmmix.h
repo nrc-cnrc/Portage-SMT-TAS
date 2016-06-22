@@ -53,7 +53,7 @@ public:
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
       virtual bool checkFileExists(vector<string>* list);
       virtual Uint64 totalMemmapSize();
-      void listAllFiles(vector<string>* list);
+      virtual bool prime(bool full = false);
       virtual PLM* Create(VocabFilter* vocab,
                           OOVHandling oov_handling,
                           float oov_unigram_prob,
@@ -63,7 +63,11 @@ public:
                           bool quiet);
    private:
       bool lmmix_relative;   // are paths relative to lmmix file location?
+      bool has_been_parsed;  ///< prevents parseModel to reload the model file.
+      vector<string> canonical_sub_models;   ///< populated by parseModel with canonical sub models' path.
    };
+
+
 
    /**
     * Construct: name specifies the LM's in the mixture, as described below;
