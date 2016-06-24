@@ -268,8 +268,12 @@ template<typename valIdType>
 Uint64 LMtpt<valIdType>::Creator::totalMemmapSize()
 {
   uint64_t total_memmap_size = 0;
-  for ( int i = 0; i < 3; ++i )
-    total_memmap_size += getFileSize(basename + tplm_extensions[i]);
+  for ( int i = 0; i < 3; ++i ) {
+    uint64_t memmap_size = getFileSize(basename + tplm_extensions[i]);
+    if (memmap_size == uint64_t(-1))
+      cerr << "Error: TPLM sub file " << (basename + tplm_extensions[i]) << " does not exist" << exit_1;
+    total_memmap_size += memmap_size;
+  }
   return total_memmap_size;
 }
 
