@@ -33,7 +33,7 @@ Using the generic models in conjunction with your in-domain models can
 significantly improve translation quality of new text, especially for small
 in-domain corpora: the generic models will help the system handle the general
 constructs of the language, while the in-domain material will provide the
-domain-specific vocabulary and contructions.
+domain-specific vocabulary and constructions.
 
 We recommend you systematically use the generic LM for systems translating into
 French or English, since that model will help construct better sentences from
@@ -154,10 +154,10 @@ or
 
                                Getting Started
 
-Once installed, the models of the PortageII Generic Model are very easy to use in
+Once installed, the models of the PortageII Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
 
-For the purpose of this description, we assume the generic model is installed in
+For the purpose of this description, we assume the generic model is installed
 in the standard location: $PORTAGE/generic-model/generic2.0.
 
 You can use the language models in the lm directory in standard (log-linear)
@@ -166,18 +166,18 @@ To do so, prior to training your PortageII system edit your framework
 Makefile.params file as follows.
 
 To train a PortageII system using the generic LM in standard combination with
-your in-domain LMs, add the file path of the binlm format target language
+your in-domain LMs, add the file path of the TPLM format target language
 generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
 for an English->French system, this would be:
 
-LM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.binlm.gz
+LM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
 
 To train a PortageII system using the generic LM in linear combination with your
-in-domain LMs in a MixLM, add the file path of the binlm format target language
+in-domain LMs in a MixLM, add the file path of the TPLM format target language
 generic model LM to the MIXLM_PRETRAINED_TGT_LMS variable definition. For
 example, for an English->French system, this would be:
 
-MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.binlm.gz
+MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
 
 You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
@@ -241,7 +241,7 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXLM_PRETRAINED_TGT_LMS:
 
-      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.binlm.gz
+      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
 
    d. TRAIN_TC now needs to be explicitly defined, because its default is to
       copy TRAIN_LM, which is no longer defined.  Uncomment and edit the line
