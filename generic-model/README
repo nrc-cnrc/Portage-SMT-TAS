@@ -101,8 +101,8 @@ alternative uses.
                required for training with PortageII 2.2 or older)
 
       nnjm/    English->French and French->English Neural Network Joint Models
-         nnjm.generic2.0.en2fr.mm (disk 1)
-         nnjm.generic2.0.fr2en.mm (disk 1)
+         nnjm.generic2.0.en2fr.mm/ (disk 1)
+         nnjm.generic2.0.fr2en.mm/ (disk 1)
                Pre-trained NNJMs for use with English->French and
                French->English systems, respectively.
 
@@ -113,8 +113,8 @@ alternative uses.
                TMs for training English->French and French->English translation
                systems, respectively.
 
-         cpt.generic1.0.en2fr.tppt (disk 2)
-         cpt.generic1.0.fr2en.tppt (disk 2)
+         cpt.generic1.0.en2fr.tppt/ (disk 2)
+         cpt.generic1.0.fr2en.tppt/ (disk 2)
                The same models, in tightly-packed format (TPPT), used for our
                pre-tuned generic model.
 
