@@ -13,7 +13,7 @@
   print "Translating... This is a test.<BR/>";
   try {
     $client = new SoapClient("PortageLiveAPI.wsdl");
-    $translation = $client->translate("This is a test.", "context", "s", 0);
+    $translation = $client->translate("This is a test.", "context", "s", 0, 0);
     if ($translation != "") {
       print "<H1><B><FONT COLOR=\"#00FF00\">Successful</FONT></B></H1>";
       print "response from translate(): " . $translation;
