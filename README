@@ -122,7 +122,8 @@ Between PortageII 2.x and PortageII 3.0, we have conducted extensive
 experiments to optimize the training procedures, and updated the framework
 defaults to reflect the configuration we now recommend. If you have customized
 or created a template from the framework's Makefile.params file, please update
-it to reflect the changes in PortageII 3.0.
+it to reflect the changes in PortageII 3.0. If you use custom plugins, please
+review the new default plugins, which might meet your needs out of the box.
 
 We now recommend (and enable by default) the following settings:
  - Use the new sparse features.
@@ -132,6 +133,14 @@ We now recommend (and enable by default) the following settings:
    background model in a MixLM with your main language model (note: this will
    not introduce out-of-domain terminology in your translations, rather, it
    will help choose among competing alternatives from your own in-domain data).
+
+A matrix showing the evolution of the SOAP API, plugins and training features
+is now provided: review doc/PortageAPIComparison.pdf when upgrading.
+
+The PortageLive SOAP API has changed significantly with version 3.0 as well.
+Review the updated PortageLiveAPI.wsdl, doc/PortageAPIComparison.pdf and the
+php scripts in PortageLive/www/soap when updating your applications to work
+with the PortageII 3.0.
 
 
                                Contacting us
