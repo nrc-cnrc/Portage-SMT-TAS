@@ -125,9 +125,9 @@ cp phraseAlignmentVisualization.html ${HTML_DIR}/
 cp html/portage_notices.php ${HTML_DIR}/
 
 # Copy the php and SOAP files
-cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST
+cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,test.php,soap.php,determine-version.php} $SOAP_DEST
 # Copy them into secure/ as well, for use with ssl/https.
-cp soap/{index.html,PortageLiveAPI.php,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST/secure
+cp soap/{index.html,PortageLiveAPI.php,wsdl-viewer.xsl,test.php,soap.php,determine-version.php} $SOAP_DEST/secure
 perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/g' \
    < soap/PortageLiveAPI.wsdl \
    > $SOAP_DEST/secure/PortageLiveAPI.wsdl
