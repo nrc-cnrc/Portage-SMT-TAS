@@ -27,7 +27,7 @@ fi
 [[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
 TARGET_LANGUAGE=$1; shift
 
-if [[ $TARGET_LANGUAGE = fr || $TARGET_LANGUAGE = en || $TARGET_LANGUAGE = es ]]; then
+if [[ $TARGET_LANGUAGE = fr || $TARGET_LANGUAGE = en || $TARGET_LANGUAGE = es || $TARGET_LANGUAGE = da ]]; then
    udetokenize.pl -lang=$TARGET_LANGUAGE
 else
    echo "Unsupported language: $TARGET_LANGUAGE" >&2
