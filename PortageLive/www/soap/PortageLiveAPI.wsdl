@@ -370,6 +370,12 @@
       <documentation>
          Returns the current API's version.
          Throws a SoapFault exception in case of a protocol or connection error.
+
+         This method did not exist before PortageII 3.0, so we also provide a
+         sample PHP function in determine-version.php that detects the version
+         of a PortageLive server by querying it in targetted ways.  You can
+         port it to the langage you work in if you want to make your
+         application capable of talking to different versions of PortageLive.
       </documentation>
       <input message="tns:getVersionRequest"/>
       <output message="tns:getVersionResponse"/>
