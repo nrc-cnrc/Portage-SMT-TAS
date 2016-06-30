@@ -86,12 +86,10 @@ the version (e.g., if the PortageLive server predates PortageII 1.0).
     return "unknown";
   }
 
-  print "<p>determineVersion(PortageLiveAPI.wsdl): " . determineVersion("PortageLiveAPI.wsdl") . "</p>";
+  print "<p>determineVersion(local PortageLiveAPI.wsdl): " . determineVersion("PortageLiveAPI.wsdl") . "</p>";
   print "<p>determineVersion(bad-name): " . determineVersion("bad-name") . "</p>";
-  print "<p>determineVersion(pls1): " . determineVersion("http://portagelive-sandbox/PortageLiveAPI.wsdl") . "</p>";
-  print "<p>determineVersion(pls2): " . determineVersion("http://portagelive-sandbox2/PortageLiveAPI.wsdl") . "</p>";
-  print "<p>determineVersion(219): " . determineVersion("http://132.246.128.219/PortageLiveAPI.wsdl") . "</p>";
-  print "<p>determineVersion(220): " . determineVersion("http://132.246.128.220/PortageLiveAPI.wsdl") . "</p>";
+  # Adjust this call to point to your PortageLive server.
+  print "<p>determineVersion(remote PLive): " . determineVersion("http://portagelive-sandbox/PortageLiveAPI.wsdl") . "</p>";
 ?>
 
 <h3>Debugging details and full output of relevant calls (and more)</h3>
@@ -99,7 +97,7 @@ the version (e.g., if the PortageLive server predates PortageII 1.0).
 <?php
 
   $wsdl = "PortageLiveAPI.wsdl";
-  #$wsdl = "http://portagelive-sandbox2/PortageLiveAPI.wsdl";
+  #$wsdl = "http://portagelive-sandbox/PortageLiveAPI.wsdl";
 
   try {
     $client = new SoapClient($wsdl);
