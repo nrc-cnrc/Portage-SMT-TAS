@@ -82,10 +82,10 @@ Usage recommendation
 
                    Contents of the generic-model directory
 
-Note: Generic Model 2.0 takes 7GB, so we ship it on two DVDs: disk1 has all
-the files required for using Generic Model 2.0 as background models, while
-disk2 provides the same models in different formats, for reference and
-alternative uses.
+Note: Generic Model 2.0 takes 7GB, so you might have it on one double-layer DVD
+or on two regular DVDs: in that case, disk1 has all the files required for
+using Generic Model 2.0 as background models, while disk2 provides the same
+models in different formats, for reference and alternative uses.
 
    generic2.0/
       lm/      English and French Language Models
@@ -126,9 +126,8 @@ alternative uses.
 If you have licensed the PortageII Generic Model DVD, you can install it in the
 generic-model directory.
 
-Copy the full contents of first DVD (disk 1) to the generic-model directory
-within PortageII or some other directory of your choice; the usual location is:
-$PORTAGE/generic-model.
+Copy the full contents of first DVD (disk 1) or the double-layer DVD to the
+generic-model directory within PortageII: $PORTAGE/generic-model.
    cp -prd /DVD1location/PortageGenericModel2.0/* $PORTAGE/generic-model/
 or
    rsync -av /DVD1location/PortageGenericModel2.0/* $PORTAGE/generic-model/
@@ -136,8 +135,8 @@ Either command above should create $PORTAGE/generic-model/generic2.0 and
 $PORTAGE/generic-model/generic1.0, the former containing the new generic LM and
 and NNJM, the latter the copy of the old generic TM.
 
-You also need to make a copy of disk 1 on every PortageLive server you use,
-under /opt/PortageII/models/pretrained:
+You also need to make a copy of disk 1 or the double-layer DVD on every
+PortageLive server you use, under /opt/PortageII/models/pretrained:
    cp -prd /DVD1location/PortageGenericModel2.0/* /opt/PortageII/models/pretrained/
 or
    rsync -av /DVD1location/PortageGenericModel2.0/* hostname:/opt/PortageII/models/pretrained/
