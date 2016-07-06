@@ -155,7 +155,7 @@ Once installed, the models of the PortageII Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
 
 For the purpose of this description, we assume the generic model is installed
-in the standard location: $PORTAGE/generic-model/generic-2.0.
+in the standard location: $PORTAGE/generic-model.
 
 You can use the language models in the lm directory in standard (log-linear)
 combination with your own in-domain LMs or in linear combination using a MixLM.
