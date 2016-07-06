@@ -172,10 +172,10 @@ make_iso_and_tar() {
       ARCHIVE_FILE=$VOLID
    fi
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd mv generic-model PortageGenericModel2.0
+      run_cmd mv generic-model PortageGenericModel-2.0
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              PortageGenericModel2.0 '&>' iso.log
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel2.0 '>&' tar.log
+              PortageGenericModel-2.0 '&>' iso.log
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel-2.0 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }

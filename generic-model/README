@@ -128,25 +128,25 @@ generic-model directory.
 
 Copy the full contents of first DVD (disk 1) or the double-layer DVD to the
 generic-model directory within PortageII: $PORTAGE/generic-model.
-   cp -prd /DVD1location/PortageGenericModel2.0/* $PORTAGE/generic-model/
+   cp -prd /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 or
-   rsync -av /DVD1location/PortageGenericModel2.0/* $PORTAGE/generic-model/
+   rsync -av /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 Either command above should create $PORTAGE/generic-model/generic2.0 and
 $PORTAGE/generic-model/generic1.0, the former containing the new generic LM and
 and NNJM, the latter the copy of the old generic TM.
 
 You also need to make a copy of disk 1 or the double-layer DVD on every
 PortageLive server you use, under /opt/PortageII/models/pretrained:
-   cp -prd /DVD1location/PortageGenericModel2.0/* /opt/PortageII/models/pretrained/
+   cp -prd /DVD1location/PortageGenericModel-2.0/* /opt/PortageII/models/pretrained/
 or
-   rsync -av /DVD1location/PortageGenericModel2.0/* hostname:/opt/PortageII/models/pretrained/
+   rsync -av /DVD1location/PortageGenericModel-2.0/* hostname:/opt/PortageII/models/pretrained/
 
 You can optionally copy the second DVD (disk 2) into the same directory. Either
 of the following commands will merge the second DVD contents into the structure
 where you copied the first:
-   cp -prd /DVD2location/PortageGenericModel2.0/* $PORTAGE/generic-model/
+   cp -prd /DVD2location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 or
-   rsync -av /DVD2location/PortageGenericModel2.0/* $PORTAGE/generic-model/
+   rsync -av /DVD2location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 
 
                                Getting Started
