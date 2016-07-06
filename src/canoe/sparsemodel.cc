@@ -304,7 +304,8 @@ Uint FwdHierDistortion::sigSize() const {
 }
 
 Uint FwdHierDistortion::sig(const PartialTranslation& pt) const {
-   assert(pt.back->shiftReduce!=NULL);
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    return this->sig(pt.lastPhrase->src_words, pt.back->shiftReduce);
 }
 
@@ -336,7 +337,8 @@ const vector<Uint>& FwdHierDistortion::type(const Range& shift,
 
 const vector<Uint>& FwdHierDistortion::type(const PartialTranslation& pt) const {
 
-   assert(pt.back->shiftReduce!=NULL && "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    // EJJ TODO: test if cache for last type query could save CPU time
    // Probably not, because we can at a higher level now.
    return this->type(pt.lastPhrase->src_words, pt.back->shiftReduce);
@@ -429,7 +431,8 @@ Uint FwdLRSplitHierDistortion::sigSize() const {
 }
 
 Uint FwdLRSplitHierDistortion::sig(const PartialTranslation& pt) const {
-   assert(pt.back->shiftReduce!=NULL);
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    return this->sig(pt.lastPhrase->src_words, pt.back->shiftReduce);
 }
 
@@ -448,7 +451,8 @@ const vector<Uint>& FwdLRSplitHierDistortion::type(const Range& shift,
 
 const vector<Uint>& FwdLRSplitHierDistortion::type(const PartialTranslation& pt) const {
 
-   assert(pt.back->shiftReduce!=NULL && "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    return this->type(pt.lastPhrase->src_words, pt.back->shiftReduce);
 }
 
@@ -3103,7 +3107,8 @@ void DistGapSrcWord::addEvents(const PartialTranslation& pt, vector<Uint>& event
    Uint iLeft = 1;  // Start point (inclusive)
    Uint iRight = 0; // End point (exclusive)
    Uint iCode = 2;
-   assert(pt.back->shiftReduce!=NULL);
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    if (pt.lastPhrase->src_words.start > pt.back->shiftReduce->end())
    {
       // Disjoint to the right
@@ -3162,7 +3167,8 @@ Uint DistTopSrcFirstWord::numEvents()
 
 void DistTopSrcFirstWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   assert(pt.back->shiftReduce!=NULL);
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    const Uint word = 1; // Default to Beginning of Sentence
    if(pt.back->shiftReduce->end()!=0)
       // TODO: Why to we get the clusterid if we don't use it?
@@ -3200,7 +3206,8 @@ Uint DistTopSrcLastWord::numEvents()
 
 void DistTopSrcLastWord::addEvents(const PartialTranslation& pt, vector<Uint>& event_ids)
 {
-   assert(pt.back->shiftReduce!=NULL);
+   if (pt.back->shiftReduce == NULL)
+      error(ETFatal, "you need to specify -force-shift-reduce or use an hldm before using the DHDM sparse features");
    const Uint word = 1; // Default to Beginning of Sentence
    if(pt.back->shiftReduce->end()!=0)
       // TODO: Why call clusterId?
