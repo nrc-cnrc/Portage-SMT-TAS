@@ -19,6 +19,10 @@
 # Change this variable to indicate where this package is actually located.
 setenv PORTAGE $HOME/PortageII-cur
 
+# Where the generic model is installed. Update this variable if you install the
+# generic model in a non-standard location.
+setenv PORTAGE_GENERIC_MODEL $PORTAGE/generic-model
+
 # Software overrides
 # Uncomment and change the following if you installed these packages in
 # a different location:
