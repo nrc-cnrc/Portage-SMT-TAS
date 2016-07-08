@@ -87,34 +87,34 @@ or on two regular DVDs: in that case, disk1 has all the files required for
 using Generic Model 2.0 as background models, while disk2 provides the same
 models in different formats, for reference and alternative uses.
 
-   generic2.0/
+   generic-2.0/
       lm/      English and French Language Models
-         generic2.0_en.tplm/ (disk 1)
-         generic2.0_fr.tplm/ (disk 1)
+         generic-2.0_en.tplm/ (disk 1)
+         generic-2.0_fr.tplm/ (disk 1)
                English and French LMs in TPLM format, used both for training
                systems and for translating into English and into French,
                respectively.
 
-         generic2.0_en.binlm.gz (disk 2)
-         generic2.0_fr.binlm.gz (disk 2)
+         generic-2.0_en.binlm.gz (disk 2)
+         generic-2.0_fr.binlm.gz (disk 2)
                English and French LMs in binlm format (now for reference only;
                required for training with PortageII 2.2 or older)
 
       nnjm/    English->French and French->English Neural Network Joint Models
-         nnjm.generic2.0.en2fr.mm/ (disk 1)
-         nnjm.generic2.0.fr2en.mm/ (disk 1)
+         nnjm.generic-2.0.en2fr.mm/ (disk 1)
+         nnjm.generic-2.0.fr2en.mm/ (disk 1)
                Pre-trained NNJMs for use with English->French and
                French->English systems, respectively.
 
-   generic1.0/
+   generic-1.0/
       tm/      English->French and French->English Translation Models
-         cpt.generic1.0.en2fr.gz (disk 1)
-         cpt.generic1.0.fr2en.gz (disk 1)
+         cpt.generic-1.0.en2fr.gz (disk 1)
+         cpt.generic-1.0.fr2en.gz (disk 1)
                TMs for training English->French and French->English translation
                systems, respectively.
 
-         cpt.generic1.0.en2fr.tppt/ (disk 2)
-         cpt.generic1.0.fr2en.tppt/ (disk 2)
+         cpt.generic-1.0.en2fr.tppt/ (disk 2)
+         cpt.generic-1.0.fr2en.tppt/ (disk 2)
                The same models, in tightly-packed format (TPPT), used for our
                pre-tuned generic model.
 
@@ -131,8 +131,8 @@ generic-model directory within PortageII: $PORTAGE/generic-model.
    cp -prd /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 or
    rsync -av /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
-Either command above should create $PORTAGE/generic-model/generic2.0 and
-$PORTAGE/generic-model/generic1.0, the former containing the new generic LM and
+Either command above should create $PORTAGE/generic-model/generic-2.0 and
+$PORTAGE/generic-model/generic-1.0, the former containing the new generic LM and
 and NNJM, the latter the copy of the old generic TM.
 
 You also need to make a copy of disk 1 or the double-layer DVD on every
@@ -149,13 +149,18 @@ or
    rsync -av /DVD2location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
 
 
+                     The PORTAGE_GENERIC_MODEL variable
+
+The framework uses variable PORTAGE_GENERIC_MODEL to find the generic models.
+By default, it sets PORTAGE_GENERIC_MODEL=$PORTAGE/generic-model. If you
+installed the models elsewhere, modify SETUP.bash to define
+PORTAGE_GENERIC_MODEL accordingly.
+
+
                                Getting Started
 
 Once installed, the models of the PortageII Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
-
-For the purpose of this description, we assume the generic model is installed
-in the standard location: $PORTAGE/generic-model/generic2.0.
 
 You can use the language models in the lm directory in standard (log-linear)
 combination with your own in-domain LMs or in linear combination using a MixLM.
@@ -167,14 +172,14 @@ your in-domain LMs, add the file path of the TPLM format target language
 generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
 for an English->French system, this would be:
 
-LM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
+LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
 
 To train a PortageII system using the generic LM in linear combination with your
 in-domain LMs in a MixLM, add the file path of the TPLM format target language
 generic model LM to the MIXLM_PRETRAINED_TGT_LMS variable definition. For
 example, for an English->French system, this would be:
 
-MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
+MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
 
 You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
@@ -187,7 +192,7 @@ English->French system) or fr2en generic model CPT (for a French->English
 system) to the TM_PRETRAINED_TMS variable definition. For example, for an
 English->French system, this would be:
 
-TM_PRETRAINED_TMS ?= ${PORTAGE}/generic-model/generic2.0/tm/cpt.generic1.0.en2fr.gz
+TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
 
 To train a PortageII system using the generic TM in linear combination with your
 in-domain TMs in a MixTM, add the file path of the en2fr generic model CPT (for
@@ -195,7 +200,7 @@ an English->French system) or fr2en generic model CPT (for a French->English
 system) to the MIXTM_PRETRAINED_TMS variable definition. For example, for an
 English->French system, this would be:
 
-MIXTM_PRETRAINED_TMS ?= ${PORTAGE}/generic-model/generic2.0/tm/cpt.generic1.0.en2fr.gz
+MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
 
 The framework will automatically create symbolic links to the necessary generic
 model files within the framework structure, including the LM in TPLM format for
@@ -238,7 +243,7 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXLM_PRETRAINED_TGT_LMS:
 
-      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/generic2.0/lm/generic2.0_fr.tplm
+      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
 
    d. TRAIN_TC now needs to be explicitly defined, because its default is to
       copy TRAIN_LM, which is no longer defined.  Uncomment and edit the line
@@ -259,7 +264,7 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXTM_PRETRAINED_TMS:
 
-      MIXTM_PRETRAINED_TMS ?= ${PORTAGE}/generic-model/generic2.0/tm/cpt.generic1.0.en2fr.gz
+      MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
 
    d. Leave MIXTM_TRAIN_MIX undefined (don't uncomment its line) since its
       default value is appropriate:
