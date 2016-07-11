@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 # @file hashtags.pm
 # @brief Transform hashtags to and from a xmlish form for Portage.
 #

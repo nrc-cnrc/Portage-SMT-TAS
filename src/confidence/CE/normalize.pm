@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file normalize.pm
 # @brief Feature Normalization for confidence estimation
 # 

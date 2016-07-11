@@ -1,4 +1,3 @@
-# $Id$
 # @file CE::distance.pm
 # @brief Text distance metrics for confidence estimation.
 # 

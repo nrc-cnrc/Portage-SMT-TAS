@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file libsvm.pm 
 # @brief Quick-and-dirty Perl API for libsvm
 # 

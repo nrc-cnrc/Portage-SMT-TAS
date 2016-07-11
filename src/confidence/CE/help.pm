@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file help.pm 
 # @brief Help object for confidence estimation
 # 

@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file data.pm 
 # @brief Datapoint representation for confidence estimation
 # 

@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file dataset.pm 
 # @brief Dataset representation for confidence estimation
 # 

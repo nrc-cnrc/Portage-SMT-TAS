@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file model.pm
 # @brief Confidence Estimation Model
 # 

@@ -1,5 +1,3 @@
-#!/usr/bin/perl -s
-
 # @file feature.pm
 # @brief Feature functions for confidence estimation.
 # 
