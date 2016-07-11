@@ -1,4 +1,9 @@
-#!/usr/bin/perl -s -w
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 #
 # @file filter-for-giza.pl 
 # @brief Produce a pair of line-aligned files for giza.

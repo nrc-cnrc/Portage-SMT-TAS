@@ -1,4 +1,9 @@
-#!/usr/bin/perl -sw
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 
 # @file reverse.pl 
 # @brief Reverses the words in each line of input.

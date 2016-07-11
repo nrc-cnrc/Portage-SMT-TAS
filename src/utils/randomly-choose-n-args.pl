@@ -1,4 +1,8 @@
-#!/usr/bin/perl -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
 
 # @file randomly-choose-n-args.pl 
 # @brief Choose n out of the given m args and write them to stdout.

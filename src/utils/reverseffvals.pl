@@ -1,4 +1,9 @@
-#!/usr/bin/perl -sw
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 
 # @file reverseffvals.pl 
 # @brief Reverse the words in each line of input of -ffvals text.

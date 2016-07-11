@@ -1,4 +1,8 @@
-#!/usr/bin/perl -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
 
 # @file uc-first.pl 
 # @brief 1st-letter per line uppercase mapping for iso-latin1.

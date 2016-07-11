@@ -1,4 +1,9 @@
-#!/usr/bin/perl -sw
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 #
 # @file split-listed.pl 
 # @brief Like unix split, but split into a given list of output files,

@@ -1,4 +1,9 @@
-#!/usr/bin/perl -w -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 
 # @file ce_train.pl 
 # @brief Learn a confidence estimation model

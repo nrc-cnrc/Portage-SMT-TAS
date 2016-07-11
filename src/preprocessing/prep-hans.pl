@@ -1,4 +1,8 @@
-#!/usr/bin/perl -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
 
 # @file prep-hans.pl 
 # @brief Preprocess Hansard files in old (non-HTML) format.

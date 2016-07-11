@@ -1,4 +1,8 @@
-#!/usr/bin/perl -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
 
 # @file strip-parallel-blank-lines.pl 
 # @brief Strip parallel blank lines from two line-aligned files. Write output

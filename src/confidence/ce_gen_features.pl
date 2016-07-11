@@ -1,4 +1,9 @@
-#!/usr/bin/perl -w -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 
 # @file ce_gen_features.pl 
 # @brief Generate feature values for confidence estimation

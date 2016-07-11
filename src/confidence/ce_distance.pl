@@ -1,4 +1,9 @@
-#!/usr/bin/perl -w -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
+use warnings;
 
 # @file ce_distance.pl 
 # @brief Compute per sentence distance (various metrics)

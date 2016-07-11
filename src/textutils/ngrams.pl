@@ -1,4 +1,8 @@
-#!/usr/bin/perl -s
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -s -wS $0 ${1+"$@"}'
+   if 0;
+
 
 # @file ngrams.pl 
 # @brief Write all ngrams (tokens, not types) occuring in tokenized ospl input text.
