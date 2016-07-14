@@ -11,6 +11,10 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
+if [[ ! $MADA_HOME ]]; then
+   echo Cannot run this test suite: MADA is not installed
+   exit
+fi
 
 make clean
 make all
