@@ -188,6 +188,7 @@ Mandatory dependencies for all distributions:
       with it, and all of XML::Twig's dependencies - used to process XML files
       such as TMX or XLIFF
     - JSON
+    - YAML
     - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
@@ -195,16 +196,19 @@ Mandatory dependencies for all distributions:
    "perldoc XML::XPath" or "perldoc JSON".
 
    If you're using yum or another Linux package manager, installing
-   perl-XML-XPath, perl-XML-Twig and perl-JSON, including all dependencies,
-   should do the trick.  This has to be done as root.  This is by far the
-   easiest way to go.
+   perl-XML-XPath, perl-XML-Twig, perl-JSON, and perl-YAML, including all
+   dependencies, should do the trick.  This has to be done as root.  This is by
+   far the easiest way to go.
 
    Failing that, you can try using cpan.  Executed as root, or if you compiled
    Perl manually following the instructions above, this might work:
+      Install expat-devel using yum
+         yum install expat-devel
       Launch "cpan" and do this for any package you don't already have:
          install XML::XPath
          install XML::Twig
          install JSON
+         install YAML
    You have to let cpan install all dependencies.  (Say y or yes to all
    questions.)  You mileage may vary because various compilation steps are
    required.
