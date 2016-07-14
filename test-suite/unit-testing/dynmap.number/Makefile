@@ -23,7 +23,8 @@ doc: toy.pdf
 .PHONY: clean tokenize align lowercase split lm tm cow rat translate rescore test all
 
 PORTAGE ?= /home/portage
-SOURCE_DIR ?= ${PORTAGE}/test-suite/toy
+#SOURCE_DIR ?= ${PORTAGE}/test-suite/toy
+SOURCE_DIR ?= ../toy
 vpath hans%.txt ${SOURCE_DIR}
 
 TEMP_FILES=*.al *.lc *.tok lines.en lm_eval.test.txt \
