@@ -135,12 +135,20 @@ logitransoutput/%/Q.txt logitransoutput/%/Q.tags:  %.LogiTransOutput
 	[[ -s $@ ]] || ! echo "ERROR replacing $@, empty or non existing."
 
 
+ifeq ($(shell xpath < /dev/null 2>&1 | grep -- -e),)
+   $(info Using old xpath usage: xpath FILE QUERY)
+   CALL_XPATH=xpath $1 $2
+else
+   $(info Using new xpath usage: xpath -e QUERY FILE)
+   CALL_XPATH=xpath -e $2 $1
+endif
+
 
 # Validate TMX format.
 REMOVE_DOCTYPE = <(sed -e 's/<!DOCTYPE tmx SYSTEM "tmx14.dtd">//' < $1)
 tmx/%/val:  tmx/%/QP.xml  %.tmx
-	[[ `xpath $(call REMOVE_DOCTYPE, $<) 'count(//tuv[@xml:lang="FR-CA" or @xml:lang="fr-CA"])' 2> /dev/null` -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]]
-	$(and ${SCORE}, ${FILTER}, [[ "`xpath $(call REMOVE_DOCTYPE, $<) 'count(//tu/prop[@type=\"Txt::CE\"])' 2> /dev/null`" -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]])
+	[[ `$(call CALL_XPATH,$(call REMOVE_DOCTYPE, $<),'count(//tuv[@xml:lang="FR-CA" or @xml:lang="fr-CA"])') 2> /dev/null` -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]]
+	$(and ${SCORE}, ${FILTER}, [[ "`$(call CALL_XPATH,$(call REMOVE_DOCTYPE, $<),'count(//tu/prop[@type=\"Txt::CE\"])') 2> /dev/null`" -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]])
 	$(if ${FILTER},, diff --ignore-matching-lines="^<file filename" <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %/QP.xml, $+)) <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %.tmx, $+)) \
 		|| ! echo "the source sentence was altered" >&2)
 	echo "validate that the source sentence is unaltered: viewdiff <(xmllint --format --recover - 2>/dev/null < $(filter %.tmx,$+))  <(xmllint --format --recover - 2>/dev/null < $(<:xml=template.xml))  <(xmllint --format --recover - 2>/dev/null < $<) +/xml:lang=\\\"EN-CA\\\""
@@ -149,13 +157,13 @@ tmx/%/val:  tmx/%/QP.xml  %.tmx
 GET_SOURCES = perl -nle 'BEGIN{$$/=undef}; s/<mrk[^>]+>//g; s/\n//gs; while (m/(<source.*?\/source>|<seg-source.*?\/seg-source>)/gs) {print "line $$1\n"}' $1
 STRIP_1E_1f = <(sed 's/&\#x1[eEfF];//g;' $1)
 xliff/%/val:  xliff/%/QP.xml  %.sdlxliff
-	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
+	[[ "`$(call CALL_XPATH,$(call STRIP_1E_1f, $<),'count(//target[not(@*)]//mrk[@mtype=\"seg\"])') 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 		|| ! echo "ERROR: There are some target with attributs" >&2
-	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//target//mrk)' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
-		|| ! echo "ERROR: There is not the right number of mrk segments." >&2 
-	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//sdl:seg-defs[not(node())])' 2> /dev/null`" -eq "0" ]] \
-		|| ! echo "ERROR: Empty sdl:seg-defs are not allowed in sdlxliff." >&2 
-	$(and ${SCORE}, ${FILTER}, [[ "`xpath $(call STRIP_1E_1f, $<) 'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @percent<=100])' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
+	[[ "`$(call CALL_XPATH,$(call STRIP_1E_1f, $<),'count(//target//mrk)') 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
+		|| ! echo "ERROR: There is not the right number of mrk segments." >&2
+	[[ "`$(call CALL_XPATH,$(call STRIP_1E_1f, $<),'count(//sdl:seg-defs[not(node())])') 2> /dev/null`" -eq "0" ]] \
+		|| ! echo "ERROR: Empty sdl:seg-defs are not allowed in sdlxliff." >&2
+	$(and ${SCORE}, ${FILTER}, [[ "`$(call CALL_XPATH,$(call STRIP_1E_1f, $<),'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @percent<=100])') 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 		|| ! echo "ERROR: Filtering" >&2)
 	$(if ${FILTER},, diff --ignore-all-space <($(call GET_SOURCES, $(filter %/QP.xml, $+))) <($(call GET_SOURCES, $(filter %.sdlxliff, $+))); \
 		echo "Visually make sure the sources are identical except for > &gt;" >&2)
@@ -164,7 +172,7 @@ xliff/%/val:  xliff/%/QP.xml  %.sdlxliff
 # Validate logi.trans.output format.
 # TODO Perform so sort of automatic validation.
 logitransoutput/%/val:  logitransoutput/%/QP.xml  %.LogiTransOutput
-	[[ `xpath $< 'count(//Matches)' 2> /dev/null` -le `xpath $< 'count(//Query)' 2> /dev/null` ]] \
+	[[ `$(call CALL_XPATH,$<,'count(//Matches)') 2> /dev/null` -le `$(call CALL_XPATH,$<,'count(//Query)') 2> /dev/null` ]] \
 		|| ! echo "Missing Matches section." >&2
 
 
@@ -304,8 +312,8 @@ count:  $(addsuffix .count, ${XLIFF})
 count:  $(addsuffix .count, ${TMX})
 
 %.sdlxliff.count:  %.sdlxliff
-	@echo "xliff/$*/%:  override EXPECTED_SIZE = `xpath $+ 'count(//seg-source//mrk[@mtype=\"seg\"])' 2> /dev/null`"
-	@[[ `xpath $< 'count(//mrk[@mtype="seg"])' 2> /dev/null` -eq `egrep -o '<mrk[^<]* mtype="seg"' $< | \wc -l` ]]
+	@echo "xliff/$*/%:  override EXPECTED_SIZE = `$(call CALL_XPATH,$+,'count(//seg-source//mrk[@mtype=\"seg\"])') 2> /dev/null`"
+	@[[ `$(call CALL_XPATH,$<,'count(//mrk[@mtype="seg"])') 2> /dev/null` -eq `egrep -o '<mrk[^<]* mtype="seg"' $< | \wc -l` ]]
 
 TMX_COUNT_CONVERT := iconv -f UTF-16 -t UTF-8
 testmemory.tmx.count:  override TMX_COUNT_CONVERT=cat
