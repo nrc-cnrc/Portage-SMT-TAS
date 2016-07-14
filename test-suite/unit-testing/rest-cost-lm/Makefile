@@ -9,7 +9,7 @@
 # Copyright 2014, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2014, Her Majesty in Right of Canada
 
-TEMP_FILES=log.* train.wc LM.rclm.synopsis prob.*
+TEMP_FILES=log.* train.wc LM.rclm.synopsis prob.* lm-train_fr.al.gz
 TEMP_DIRS=LM.rclm LM.rclm.tmp.*
 include ../Makefile.incl
 
@@ -17,10 +17,15 @@ SHELL:=/bin/bash
 
 all: check_input check_LM.rclm test_probs
 
-TRAIN_CORPUS=${PORTAGE}/test-suite/tutorial-data/lm-train_fr.al.gz
+RAW_TRAIN_CORPUS=${PORTAGE}/test-suite/tutorial-data/lm-train_fr.raw.gz
+#TRAIN_CORPUS=${PORTAGE}/test-suite/tutorial-data/lm-train_fr.al.gz
+TRAIN_CORPUS=lm-train_fr.al.gz
+
+${TRAIN_CORPUS}: ${RAW_TRAIN_CORPUS}
+	utokenize.pl -lang=fr -noss $< $@
 
 # Make sure the training data did not change on us...
-check_input:
+check_input: ${TRAIN_CORPUS}
 	gzip -cqdf ${TRAIN_CORPUS} | wc_stats > train.wc
 	diff train.wc ref/train.wc
 
@@ -57,6 +62,6 @@ cmp_prob.rclm.arpa: prob.rclm.arpa
 	diff-round.pl -p 3 $< ref/prob.rclm
 
 relative_check_probs: probs
-	cmp prob.rclm prob.rclm.arpa
+	diff-round.pl -p 5 prob.rclm prob.rclm.arpa
 	[[ `diff-round.pl prob.5g prob.rclm | wc -l` == 5 ]]
 
