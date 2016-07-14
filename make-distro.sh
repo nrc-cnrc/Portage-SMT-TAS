@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# make-distro.sh - Make a CD or a copyable distro of PORTAGEshared.
-# 
+# make-distro.sh - Make a CD or a copyable distro of PortageII
+#
 # PROGRAMMER: Eric Joanis
-# 
+#
 # Traitement multilingue de textes / Multilingual Text Processing
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2007, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2007, Her Majesty in Right of Canada
+# Copyright 2007-2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2007-2016, Her Majesty in Right of Canada
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2013, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2016, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 if [[ -d /space/project/portage ]]; then
@@ -133,6 +133,24 @@ error_exit() {
       echo "Use -h for help."
    } >&2
    exit 1
+}
+
+# Run git clone with several attempts, which is sometimes needed to succeed.
+# Usage: git_clone $REPO $LOCAL_DIR
+git_clone() {
+   [[ $2 ]] || error_exit "git_clone Usage: git_clone REPO LOCALDIR"
+   clone_cmd="git clone -v --no-checkout $1 $2"
+   echo $clone_cmd
+   attemps=4
+   for i in `seq 1 $attemps`; do
+      if $clone_cmd; then
+         return 0
+      else
+         [[ -d $2 ]] && rm -rf $2
+         echo Warning: git clone failed, trying again
+      fi
+   done
+   echo $clone_cmd FAILED $attemps times. Giving up.
 }
 
 # Verbosely run a command, echoing was it was.
@@ -297,9 +315,9 @@ do_checkout() {
    r echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    r pushd ./$OUTPUT_DIR
       # Note: "r r git" gives us the echo in both the git.log and make-distro logs.
-      r r git clone -v --no-checkout $GIT_PATH/PORTAGEshared.git '>&' git.log
+      r git_clone $GIT_PATH/PORTAGEshared.git PORTAGEshared '>&' git.log
       r pushd PORTAGEshared
-         r r git checkout $VERSION_TAG '>>' ../git.log '2>&1'
+          r git checkout $VERSION_TAG '>>' ../git.log '2>&1'
          r r git remote show origin '>>' ../git.log '2>&1'
          r r git show --abbrev=40 --format=fuller HEAD '>>' ../git.log '2>&1'
       r popd
@@ -308,7 +326,7 @@ do_checkout() {
       r chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
          r pushd PORTAGEshared
-            r r git clone -v --no-checkout $GIT_PATH/$FRAMEWORK.git framework '>&' ../git.framework.log
+            r git_clone $GIT_PATH/$FRAMEWORK.git framework '>&' ../git.framework.log
             r pushd framework
                r r git checkout $VERSION_TAG '>>' ../../git.framework.log '2>&1'
                r r git remote show origin '>>' ../../git.framework.log '2>&1'
@@ -318,7 +336,7 @@ do_checkout() {
       fi
       if [[ $TMX_PREPRO ]]; then
          r pushd PORTAGEshared
-            r r git clone -v --no-checkout $GIT_PATH/$TMX_PREPRO.git tmx-prepro '>&' ../git.tmx-prepro.log
+            r git_clone $GIT_PATH/$TMX_PREPRO.git tmx-prepro '>&' ../git.tmx-prepro.log
             r pushd tmx-prepro
                r r git checkout $VERSION_TAG '>>' ../../git.tmx-prepro.log '2>&1'
                r r git remote show origin '>>' ../../git.tmx-prepro.log '2>&1'
@@ -439,7 +457,7 @@ make_usage() {
    print_header make_usage
    echo Generating usage information.
    r pushd ./$OUTPUT_DIR/PORTAGEshared
-      r r git clone -v --no-checkout $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git.for_usage.log
+      r git_clone $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git.for_usage.log
       r pushd FOR_USAGE
          r r git checkout $VERSION_TAG '>>' ../../git.for_usage.log '2>&1'
       r popd
