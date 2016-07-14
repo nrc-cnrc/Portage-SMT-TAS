@@ -10,6 +10,11 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
+# Creating the PortageGenericModel-2.0 DVD: on 221, in /home/joanise/sandboxes/PORTAGEshared/generic-model, Eric ran:
+# ./make-distro.sh -dir v2.0 -models /home/portage/models/generic-model/v2.0/dvd_v2.0 -r master >& log.v2.0 
+# ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
+# ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
+
 echo 'make-distro.sh, NRC-CNRC, (c) 2012, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
@@ -164,7 +169,7 @@ make_iso_and_tar() {
    VOLID=PortageGenericModel_${VERSION}
    VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
    #echo $VOLID
-   ISO_VOLID=PortageGenericModel`echo $VERSION | sed -e 's/v//g' -e 's/_/./g'`
+   ISO_VOLID=PortageGenericModel-`echo $VERSION | sed -e 's/v//g' -e 's/_/./g'`
    ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
