@@ -132,6 +132,7 @@ function processFile($type, $file) {
    print "<header>$type</header>\n";
    print "<b>Translating using $type and file: </b> $filename <br/>";
    print "<b>Context: </b> $context <br/>";
+   print "<b>CE: </b> $use_Confidence_Estimation <b>CE thr: " . (0 + $ce_threshold) . " <b>xtags: </b> $file_xtags <br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
 
    if ( is_uploaded_file($file["tmp_name"]) ) {
@@ -147,7 +148,11 @@ function processFile($type, $file) {
          $client = new SoapClient($WSDL);
 
          $ce_threshold += 0;
-         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $file_xtags, $use_Confidence_Estimation);
+         if ($type == "translatePlainText") {
+            $reply = $client->$type($tmp_contents_base64, $filename, $context, $use_Confidence_Estimation, $file_xtags);
+         } else {
+            $reply = $client->$type($tmp_contents_base64, $filename, $context, $use_Confidence_Estimation, $ce_threshold, $file_xtags);
+         }
 
          print "<b>Portage replied: </b>$reply";
          print "<br/><a href=\"$reply\">Monitor job interactively</a>";
