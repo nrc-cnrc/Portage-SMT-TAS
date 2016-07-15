@@ -604,7 +604,7 @@ Prime:
 
 
 <section id="plain_text">
-<header>Plain text</header>
+<header>Translate</header>
 <!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?php echo $context;?>" / -->
  Enter text here:
 <table width="60%" border="0">
@@ -612,20 +612,9 @@ Prime:
 <td>
 <textarea name="to_translate" rows="10" cols="50"></textarea>
 </td>
-<td rowspan='2'>
-OR
-</td>
-<td>
- Alternatively, use a plain text file:
-<INPUT TYPE = "file"   Name = "plain_text_filename"/>
-</td>
-
 </tr>
 <td>
 <INPUT TYPE = "Submit" Name = "TranslateBox"  VALUE = "Translate Text"/>
-</td>
-<td>
-<INPUT TYPE = "Submit" Name = "TranslatePlainText"  VALUE = "Translate plain text File"/>
 </td>
 </tr>
 </table>
@@ -675,20 +664,27 @@ OR
 </section>
 
 <section id='translating_xml_file'>
-<header>XML File</header>
+<header>Translate a file</header>
 <INPUT TYPE = "hidden" Name = "MAX_FILE_SIZE" VALUE = "2000000" />
 <table>
 <tr>
 <td>
- Alternatively, use a TMX file:
+ Translate a plain text file:
+<INPUT TYPE = "file"   Name = "plain_text_filename"/>
+</td>
+<td>
+ Translate a TMX file:
 <INPUT TYPE = "file"   Name = "tmx_filename"/>
 </td>
 <td>
- Alternatively, use a SDLXLIFF file:
+ Translate an SDLXLIFF file:
 <INPUT TYPE = "file"   Name = "sdlxliff_filename"/>
 </td>
 </tr>
 <tr>
+<td>
+<INPUT TYPE = "Submit" Name = "TranslatePlainText"  VALUE = "Translate plain text File"/>
+</td>
 <td>
 <INPUT TYPE = "Submit" Name = "TranslateTMX"  VALUE = "Translate TMX File"/>
 </td>
