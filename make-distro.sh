@@ -548,10 +548,13 @@ make_iso_and_tar() {
 
 identify_host
 
-[[ $CUR_VERSION ]] || error_exit "Missing mandaroty -cur VERSION argument"
+[[ $CUR_VERSION ]] || error_exit "Missing mandatory -cur VERSION argument"
 [[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
 [[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
-portage_info       || error_exit "Run portage_setbuild before make-distro.sh"
+if ! portage_info 2> /dev/null; then
+   source $PORTAGE/SETUP-specific.bash `pwd`
+   portage_info    || error_exit "portage_info not found in PATH or ./bin" "Run portage_setbuild before make-distro.sh"
+fi
 
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.
@@ -563,8 +566,9 @@ if
    exit
 fi
 
+do_checkout
+
 if [[ ! $COMPILE_ONLY ]]; then
-   do_checkout
    get_test_systems
    get_user_manual
    make_pdfs
@@ -611,7 +615,7 @@ fi
 
 if [[ $COMPILE_HOST ]]; then
    print_header "Logging on to $COMPILE_HOST to compile code."
-   r ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR $ICU_OPT
+   r ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR -cur $CUR_VERSION -r $VERSION_TAG $ICU_OPT
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
