@@ -177,6 +177,8 @@
          - xtags: if true, XMLish tags (typically representing markup in the
            original document, as some translation memory software does) will be
            transferred into the translation using our tag transfer module.
+         - useCE: if true, produce confidence estimates (only works well with
+           newline=w or newline=s).
 
         Throws SoapFault in case of problems.
         Possible faultcode values:
@@ -201,9 +203,9 @@
         Submit a request to translate a TMX file using the specified context.
 
         Arguments:
-         - context must be a valid context identifier as returned by getAllContexts().
          - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
          - TMXFilename is the name of the TMX file.
+         - context must be a valid context identifier as returned by getAllContexts().
          - useCE enables generating CE scores which in turn enables CETreshold.
          - If CETreshold is greater than 0, confidence estimation is used to
            filter out translations with confidence score below the threshold
@@ -242,9 +244,9 @@
         Submit a request to translate a plain text file using the specified context.
 
         Arguments:
-         - context must be a valid context identifier as returned by getAllContexts().
          - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
          - TMXFilename is the name of the TMX file.
+         - context must be a valid context identifier as returned by getAllContexts().
          - useCE enables generating CE scores.
          - If xtags is true, tags in the source sentences are transfered to the
            target sentences.
@@ -515,8 +517,7 @@
       getAllContexts().  The non-verbose mode is meant for machine
       processing, listing just the contexts installed on the server, while
       the verbose mode adds human-readable details such as language
-      direction and whether confidence estimation is available. (See
-      translateCE()).
+      direction and whether confidence estimation is available.
 
       To translate text, call translate() with the desired context.
       srcString is used for the raw text to be translated.  It should
@@ -530,10 +531,12 @@
 
       You are about to submit a series of requests to a particular system, for
       text where newline characters delimit paragraphs.  The context name
-      is provided to you by the server administrator.
-      Before the series of requests starts:
+      is provided to you by the server administrator or you got it using
+      getAllContexts().
+      Before the series of requests starts, prime the models to optimize
+      performance:
       primeModels(context, "partial");
-      loop: translate(srcText, context, "p", false);
+      loop: translate(srcText, context, "p", false, false);
 
       &lt;b>Constraints&lt;/b>
       &lt;b>Time-out issues&lt;/b>: because the SOAP API calls are made through the
