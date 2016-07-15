@@ -21,8 +21,8 @@ only if you really know what you're doing!</p>
 <hr/>
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
-      <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" />
+      <td width="20%" align="right" valign="center">
+	 <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
       </td>
       <td width="60%" align="center" valign="bottom">
 	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
@@ -32,8 +32,7 @@ only if you really know what you're doing!</p>
       </td>
    </tr>
    <tr>
-      <td align="right" valign="top">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" />
+      <td>
       </td>
       <td align="center" valign="top">
 	 <small>Traitement multilingue de textes / Multilingual Text Processing  <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.php">Third party Copyright notices</a>

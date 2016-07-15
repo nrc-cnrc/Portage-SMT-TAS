@@ -760,8 +760,8 @@ Job Token:
 <footer>
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
-      <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-ICT" src="images/sidenav_graphictop_e.gif" height="54" />
+      <td width="20%" align="right" valign="center">
+	 <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
       </td>
       <td width="60%" align="center" valign="bottom">
 	 <img width="286" alt="National Research Council Canada" src="images/mainf1.gif" height="44" />
@@ -771,8 +771,7 @@ Job Token:
       </td>
    </tr>
    <tr>
-      <td align="right" valign="top">
-	 <img alt="NRC-ICT" src="images/sidenav_graphicbottom_e.gif" />
+      <td>
       </td>
       <td align="center" valign="top">
 	 <small>Traitement multilingue de textes / Multilingual Text Processing <br />

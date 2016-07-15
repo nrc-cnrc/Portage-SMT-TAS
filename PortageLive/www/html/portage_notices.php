@@ -19,10 +19,10 @@
 </pre>
 <hr />
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
-   <tr><td width="20%" align="right" valign="bottom"><img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" /></td>
+   <tr><td width="20%" align="right" valign="center"><img alt="NRC-ICT" src="/images/sidenav_graphic.png" height="44" /></td>
        <td width="60%" align="center" valign="bottom"><img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" /></td>
        <td width="20%" align="left" valign="center"><img width="93" alt="Government of Canada" src="/images/mainWordmark.gif" height="44" /></td></tr>
-   <tr><td align="right" valign="top"><img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" /></td>
+   <tr><td></td>
        <td align="center" valign="top">
        <small>
           Traitement multilingue de textes / Multilingual Text Processing <br />
