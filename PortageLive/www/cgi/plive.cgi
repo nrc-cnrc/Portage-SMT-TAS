@@ -549,9 +549,9 @@ sub checkFile {
         unless ($charset eq 'utf-8') or ($charset eq 'us-ascii');
 }
 
-# checkTMX(src_file)
+# checkXML(src_file)
 #
-# Check the validity of the source file as TMX file, return the number
+# Check the validity of the source SDLXLIFF or TMX file, return the number
 # of translateble segments. This is based on ce_tmx.pl.
 
 sub checkXML {
