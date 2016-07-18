@@ -342,8 +342,8 @@ sub tokenizeHashtags($) {
 
 #perl -e 'use hashtags (testsuite); testsuite();'
 sub testsuite() {
-   use YAML qw/LoadFile/;
-   my $tests = LoadFile('hashtags.yml');
+   require YAML;  # Only at runtime.
+   my $tests = YAML::LoadFile('hashtags.yml');
    #use Data::Dumper;
    #print Dumper($tests), "\n";
    my $error_count = 0;
