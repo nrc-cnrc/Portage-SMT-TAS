@@ -48,6 +48,15 @@ libraries into /opt/PortageII/bin and lib:
    ln -s /PATH_TO/python2.7.x/bin/python /opt/PortageII/bin/python
    ln -s /PATH_TO/python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
 
+Perl 5.22
+==========
+
+Once you've copied or installed the bin layout, you must make sure PortageLive
+will find Perl-5.22. As mentioned in INSTALL in the top-level directory of
+PortageII, the recommended installation procedure is to symlink perl into
+/opt/PortageII/bin:
+   ln -s /PATH_TO/perl-5.22.0/bin/perl /opt/PortageII/bin/perl
+
 Manual Installation
 ===================
 

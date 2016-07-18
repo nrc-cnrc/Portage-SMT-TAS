@@ -182,6 +182,17 @@ Mandatory dependencies for all distributions:
       make -j 5 test
       make -j 5 install
 
+   PortageLive also needs to see Perl-5.22, and the above won't suffice because
+   PortageLive binaries are normally installed in a different location.  Once
+   you've completed the PortageLive installation itself (see PortageLive/
+   subdirectory as well as the "PortageLive Manual" section of the PortageII
+   user manual: doc/user-manual.html / Portage Live Manual), you need to create
+   the symlinks so PortageLive sees your custom perl installation:
+      ln -s /PATH_TO/perl-5.22.0/bin/perl /opt/PortageII/bin/perl
+   If using multiple PortageLive servers, you need to perform the full
+   Perl-5.22 installation procedure on each of them, unlike other third party
+   software, which automatically get installed along with PortageLive itself.
+
  - Perl packages: the following Perl packages are required to run PortageII:
     - XML::XPath
     - XML::Twig version 3.32 or later, including the xml_grep tool that comes
@@ -225,7 +236,7 @@ Mandatory dependencies for all distributions:
 
    If you install Python 2.7 in a non-standard location, set
    PYTHON_HOME_OVERRIDE in SETUP.bash/tcsh.  Alternatively, make symlinks
-   (using ln -s) in $PORTAGE/bin to the python executable and in $PORTAGE/live
+   (using ln -s) in $PORTAGE/bin to the python executable and in $PORTAGE/lib
    to libpython2.7.so*.  (The symlink is the best solution for your PortageLive
    server(s), where you must also make sure the apache user has sufficient
    permissions to use python 2.7.)  If you compile Python 2.7 by hand, make
