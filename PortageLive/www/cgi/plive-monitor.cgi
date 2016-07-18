@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # @file plive-monitor.cgi
 # @brief PortageLive monitor CGI script
 #
