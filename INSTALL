@@ -266,10 +266,10 @@ Mandatory dependencies for all distributions:
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
    since it is readily available.  We recommend MITLM
-   (http://code.google.com/p/mitlm/ or https://github.com/mit-nlp/mitlm) or
-   SRILM (http://www.speech.sri.com/projects/srilm/).  You can also use any
-   other package which produces language models in Doug Paul's ARPA format, but
-   note that in our experiments, SRILM and MITLM have worked best.
+   (https://github.com/mit-nlp/mitlm) or SRILM
+   (http://www.speech.sri.com/projects/srilm/).  You can also use any other
+   package which produces language models in Doug Paul's ARPA format, but note
+   that in our experiments, SRILM and MITLM have worked best.
 
    Installing the current version of MITLM from the Git repo on GitHub is
    easiest:
