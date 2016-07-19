@@ -335,14 +335,15 @@ Mandatory dependencies for all distributions:
    required for some models added to PortageII in version 3.0, in particular
    for our coarse language models. There is no download package available, but
    compilation is easy from source:
-      # Obtain the package from https://code.google.com/p/word2vec/
-      # It is not available as a download file, so you have to do an svn
-      # checkout to obtain the latest version:
-      svn checkout http://word2vec.googlecode.com/svn/trunk/ word2vec.trunk
-      cd word2vec.trunk
-      make all
+      # To compile word2vec, you need gcc-4.4 or newer (requires -Wno-unused-result).
+      # Obtain the package from https://github.com/dav/word2vec
+      # It is not available as a download file, so you have to do a git
+      # clone to obtain the latest version:
+      git clone https://github.com/dav/word2vec
+      cd word2vec
+      make -C src
    Installation is manual. You can put it anywhere on your path:
-      cp word2vec $PORTAGE/third-party/bin
+      cp bin/word2vec $PORTAGE/third-party/bin
 
  - libsvm - The executable programs that come with the libsvm library are
    needed for Confidence Estimation.  The package is available from
