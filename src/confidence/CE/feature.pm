@@ -506,8 +506,8 @@ sub generate {
         open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
         open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $lcs=<$in1>) {
-            my $N=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
-            my $U=(min($lcs, $K)/$K)*(min(2*$lcs,$N)/$N);
+            my $N = <$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
+            my $U = (min($lcs, $K)/$K) * ($N > 0 ? (min(2*$lcs,$N)/$N) : 0);
             print $out $U, "\n";
         }
         cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
