@@ -4,15 +4,13 @@
 # @file Makefile
 # @brief Validate all dependencies for Portage.
 #
-# @author Samuel Larkin
+# @author Samuel Larkin, Eric Joanis, Darlene Stewart
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2011, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2011, Her Majesty in Right of Canada
-
-
+# Copyright 2011, 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2011, 2016, Her Majesty in Right of Canada
 
 -include Makefile.params
 
@@ -31,7 +29,6 @@ include ../Makefile.incl
 .PHONY: testsuite
 testsuite:
 	@echo "Installation successful."
-
 
 
 ########################################
@@ -74,7 +71,6 @@ make_version:
 	@[[ $$( echo "`\make --version | head -n 1 | egrep -o '[0-9\.]+'` >= 3.81" | bc) == 1 ]] \
 	|| ! echo "Portage requires make-3.81" >&2
 
-
 .PHONY: gcc_version
 gcc_version:
 	@[[ $$( echo "`${CXX} --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+' | head -n 1` >= 4.2" | bc) == 1 ]] \
@@ -91,7 +87,6 @@ ram_vs_swap:
 	|| echo "We strongly suggest that you have twice as much swap($$SWAP) than ram($$RAM)." >&2
 
 
-
 ########################################
 # What needs to work after a successful installation of Portage.
 testsuite: post_installation
@@ -101,24 +96,23 @@ VALIDATE_PGMS := canoe tune.py tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py arpalm
 post_installation: ${VALIDATE_PGMS}
 	@echo "Portage itself is correctly installed." >&2
 
-
-canoe: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
+canoe: EXPLAIN:=Make sure Portage is correctly installed.
 ce.pl: EXPLAIN:=Check your PERL5LIB or XML::Twig may not be correctly installed.
-tune.py: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
-tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is not greater or equal to XML::Twig-3.28.
+tune.py: EXPLAIN:=Check your Python version. Make sure Portage is correctly installed.
+tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is less than XML::Twig-3.28.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
-filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH variable.
+filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH.
 arpalm.encode: EXPLAIN:=Check that all boost libraries are installed.
 
 .PHONY: ${VALIDATE_PGMS}
 # We simply make sure we can invoke the help message to trigger the dependencies.
 ${VALIDATE_PGMS}:
-	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH." >&2
-	@$@ -h 2>&1 | head -5 | diff - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
+	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@$@ -h 2>&1 | head -5 | diff - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 post_installation: check_casemark
 
 .PHONY: check_casemark
-check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should point to the location of libportage_truecasing.so.  Check your PYTHONPATH: it should point to the location of portage_utils.py.
+check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should include the location of libportage_truecasing.so. Check your PYTHONPATH: it should include the location of portage_utils.pyc.
 check_casemark:
-	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref || ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
+	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref || ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
