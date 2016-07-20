@@ -1,0 +1,5 @@
+usage: casemark.py [options] [-a|-r] [infile [outfile]]
+
+Either add (-a) or remove (-r) case markup information to/from <infile>. The
+add operation adds markup to identify the truecase form of each token in
+<infile>, and lowercases the normal text. The remove operation removes the

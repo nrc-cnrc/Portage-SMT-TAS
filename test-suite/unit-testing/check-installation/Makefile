@@ -91,7 +91,7 @@ ram_vs_swap:
 # What needs to work after a successful installation of Portage.
 testsuite: post_installation
 
-VALIDATE_PGMS := canoe tune.py tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py arpalm.encode
+VALIDATE_PGMS := canoe tune.py tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py casemark.py arpalm.encode
 .PHONY: post_installation
 post_installation: ${VALIDATE_PGMS}
 	@echo "Portage itself is correctly installed." >&2
@@ -99,9 +99,10 @@ post_installation: ${VALIDATE_PGMS}
 canoe: EXPLAIN:=Make sure Portage is correctly installed.
 ce.pl: EXPLAIN:=Check your PERL5LIB or XML::Twig may not be correctly installed.
 tune.py: EXPLAIN:=Check your Python version. Make sure Portage is correctly installed.
-tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is less than XML::Twig-3.28.
+tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB, or you're missing XML::Twig, or your version is less than XML::Twig-3.28.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
 filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH.
+casemark.py: EXPLAIN:=Check your Python version and PYTHONPATH. Make sure Python is installed correctly (with dynamic library support).
 arpalm.encode: EXPLAIN:=Check that all boost libraries are installed.
 
 .PHONY: ${VALIDATE_PGMS}
@@ -113,6 +114,9 @@ ${VALIDATE_PGMS}:
 post_installation: check_casemark
 
 .PHONY: check_casemark
-check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should include the location of libportage_truecasing.so. Check your PYTHONPATH: it should include the location of portage_utils.pyc.
+check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should include the location of libportage_truecasing.so. \
+                         Check your PYTHONPATH: it should include the location of portage_utils.pyc. \
+                         Make sure Python is installed correctly (with dynamic library support).
 check_casemark:
-	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref || ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
+	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref \
+	|| ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
