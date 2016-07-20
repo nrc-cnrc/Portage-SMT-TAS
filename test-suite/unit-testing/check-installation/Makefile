@@ -103,7 +103,7 @@ tune.py: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
 tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is not greater or equal to XML::Twig-3.28.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
 filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH variable.
-arpalm.encore: EXPLAIN:=Check that all boost libraries are installed.
+arpalm.encode: EXPLAIN:=Check that all boost libraries are installed.
 
 .PHONY: ${VALIDATE_PGMS}
 # We simply make sure we can invoke the help message to trigger the dependencies.
