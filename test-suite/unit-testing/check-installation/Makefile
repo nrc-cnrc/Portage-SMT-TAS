@@ -39,7 +39,7 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version perl_modules python_version make_version gcc_version ram_vs_swap
+pre_installation: perl_version perl_modules python_version java_version make_version gcc_version ram_vs_swap
 	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
@@ -63,6 +63,11 @@ python_modules:
 	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string; do \
 		/usr/bin/python -c "import $$module" || rc=1;\
 	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing." >&2
+
+.PHONY: java_version
+java_version:
+	@[[ $$(echo "$$(java -version 2>&1 | egrep -o -m 1 '[0-9]+\.[0-9]+') >= 1.6" | bc) == 1 ]]  \
+	|| ! echo "Portage requires Java 1.6 or more recent." >&2
 
 .PHONY: make_version
 make_version:
