@@ -36,7 +36,9 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version perl_modules python_version python_modules java_version make_version gcc_version ram_vs_swap
+pre_installation: perl_version perl_modules python_version python_modules
+pre_installation: java_version make_version gcc_version mgiza word2vec ram_vs_swap
+pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
@@ -77,6 +79,19 @@ gcc_version:
 	@[[ $$( echo "`${CXX} --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+' | head -n 1` >= 4.2" | bc) == 1 ]] \
 	|| ! echo "Portage requires at least g++-4.2, unless you have a binary distribution." >&2
 
+.PHONY: mgiza
+mgiza: EXPLAIN:=Make sure MGIZA is correctly installed.
+mgiza:
+	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@mgiza --help >/dev/null | grep -q "Starting MGIZA" \
+	|| ! echo "mgiza --help FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
+
+.PHONY: word2vec
+word2vec: EXPLAIN:=Make sure word2vec is correctly installed.
+word2vec:
+	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@word2vec >/dev/null | grep -q "WORD VECTOR estimation toolkit" \
+	|| ! echo "word2vec FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 # Since the ram is power of 1024 but swap is power of 1000, we will make the
 # conversion here.
