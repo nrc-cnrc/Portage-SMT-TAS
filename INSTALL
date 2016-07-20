@@ -245,7 +245,7 @@ Mandatory dependencies for all distributions:
 
    This procedure worked for us:
       # Obtain Python-2.7.10.tgz from the web.
-      tar -xjf Python-2.7.10.tgz
+      tar -xzf Python-2.7.10.tgz
       cd Python-2.7.10
       ./configure --enable-shared --prefix=$PORTAGE/third-party/python-2.7
       make -j 5
