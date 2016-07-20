@@ -268,14 +268,16 @@ identify_host() {
 }
 
 # Usage: set_cur dir
-# Change all instances of PortageII{-,_, }cur PortageII{-,_, }$CUR_VERSION,
-# e.g., PortageII-3.0, PortageII_3.0, PortageII 3.0.
+# Change all instances of PortageII{-,_, }cur PortageII{-, , }$CUR_VERSION,
+# e.g., PortageII-3.0, PortageII 3.0, PortageII 3.0.
+# Change with 3.0: we now replace _ by space, since the name is with a space,
+# not an underscore. The hyphen is kept for file/dir names and CD volid etc.
 set_cur() {
    local dir=$1
    if [[ $CUR_VERSION ]]; then
       echo Renaming PortageII?cur to PortageII?$CUR_VERSION in $dir
       grep -R -l PortageII.cur $dir |
-         xargs -r sed -i -e "s/PortageII_cur/PortageII_$CUR_VERSION/g" \
+         xargs -r sed -i -e "s/PortageII_cur/PortageII $CUR_VERSION/g" \
                          -e "s/PortageII-cur/PortageII-$CUR_VERSION/g" \
                          -e "s/PortageII cur/PortageII $CUR_VERSION/g"
       find $dir -name Doxyfile |
