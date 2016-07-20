@@ -12,7 +12,9 @@
 # Copyright 2015, Her Majesty in Right of Canada
 
 CANOE := canoe
-JQ := jq
+
+JSON_PP := python -c "import sys, json; [sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sort_keys=True)) for d in sys.stdin]"
+#JSON_PP := python -c "import sys, json; map(lambda d: sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sot_keys=True)), sys.stdin)"
 
 -include Makefile.params
 
@@ -39,8 +41,12 @@ nssi.json:  canoe.ini.cow
 	echo -e 'This is a test .\nApples cannot be " purple " .' |\
 	${CANOE} -f $< -nssiFilename $@
 
+# Let's make sure the output is valid json.
 nssi.json.parsable:  %.parsable:  %
-	${JQ} . $< &> /dev/null
+	${JSON_PP} < $< &> /dev/null
 
 nssi.json.check:  %.check:  %  ref/%
-	diff-round.pl -p 5 '${JQ} . nssi.json | sed "s/,/ ,/" |' '${JQ} . ref/nssi.json | sed "s/,/ ,/" |'
+	diff-round.pl \
+		-p 5 \
+		'${JSON_PP} < nssi.json | sed "s/,/ ,/" |' \
+		'${JSON_PP} < ref/nssi.json | sed "s/,/ ,/" |'
