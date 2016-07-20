@@ -120,3 +120,12 @@ check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should include the locat
 check_casemark:
 	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref \
 	|| ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
+
+post_installation: check_structpred
+
+.PHONY: check_structpred
+check_structpred: EXPLAIN:=Make sure Java is correctly installed.
+check_structpred:
+	@which structpred.jar &> /dev/null || ! echo "Can't locate structpred.jar in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@structpred.jar JavaVersion 2>&1 | grep -q "StructPred version" \
+	|| ! echo "structpred.jar JavaVersion FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
