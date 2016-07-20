@@ -616,12 +616,14 @@ fi
 if [[ $COMPILE_HOST ]]; then
    print_header "Logging on to $COMPILE_HOST to compile code."
    r ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR -cur $CUR_VERSION -r $VERSION_TAG $ICU_OPT
+   r rsync -arz $COMPILE_HOST:`pwd`/$OUTPUT_DIR/PORTAGEshared/bin/x86_64\* $OUTPUT_DIR/PORTAGEshared/bin/
+   r rsync -arz $COMPILE_HOST:`pwd`/$OUTPUT_DIR/PORTAGEshared/lib/x86_64\* $OUTPUT_DIR/PORTAGEshared/lib/
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
 
-   print_header "Cleaning up source and source-doc"
    if [[ $NO_SOURCE ]]; then
+      print_header "Cleaning up source and source-doc"
       r pushd ./$OUTPUT_DIR/PORTAGEshared
          r rm ./doc/code-documentation.html
          r rm -rf src
