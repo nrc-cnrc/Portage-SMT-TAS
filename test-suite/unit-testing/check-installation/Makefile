@@ -36,16 +36,14 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version perl_modules python_version libpython python_modules
+pre_installation: perl_version perl_modules python_version python_modules
 pre_installation: java_version make_version gcc_version mgiza word2vec ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
 perl_version:
-	@perl -e 'require 5.8.5;' || ! echo "Your perl version is too old." >&2
-	@perl -e 'require 5.8.8;' || echo "Some perl XML functionalities will most likely fail." >&2
-	@perl -e 'require 5.10.0;' || ! echo "Perl 5.10 or greater is required for proper UTF-8 handling." >&2
+	@perl -e 'require 5.10.0;' || ! echo "Portage requires Perl 5.10 or greater for proper UTF-8 handling." >&2
 	@perl -e 'use threads;' || ! echo "Perl must be installed with -Dusethreads." >&2
 
 .PHONY: perl_modules
@@ -53,15 +51,13 @@ perl_modules:
 	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env; do \
 		perldoc -l $$module > /dev/null || rc=1; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing." >&2
+	@perl -e 'use XML::Twig 3.32;' || ! echo "Portage requires XML::Twig version 3.32 or greater." >&2
 
 .PHONY: python_version
 python_version:
 	@python --version 2>&1 | grep -q 2\.7 || ! echo "Portage requires Python 2.7." >&2
-
-.PHONY: libpython
-libpython:
-	@ldd $(which python) | egrep -q libpython2\.[0-9]+\.so \
-	|| ! echo "Portage requires Python built with shared library support (--enable-shared). Refer to \$$PORTAGE/INSTALL." >&2
+	@ldd $$(which python) | egrep -q libpython2\.[0-9]+\.so \
+	|| ! echo "Portage requires Python 2.7 built with dynamic library support (--enabled-shared). Refer to \$$PORTAGE/INSTALL." >&2
 
 .PHONY: python_modules
 python_modules:
@@ -88,14 +84,14 @@ gcc_version:
 mgiza: EXPLAIN:=Make sure MGIZA is correctly installed.
 mgiza:
 	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
-	@mgiza --help >/dev/null | grep -q "Starting MGIZA" \
+	@mgiza --help 2>&1 | grep -q "Starting MGIZA" \
 	|| ! echo "mgiza --help FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 .PHONY: word2vec
 word2vec: EXPLAIN:=Make sure word2vec is correctly installed.
 word2vec:
 	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
-	@word2vec >/dev/null | grep -q "WORD VECTOR estimation toolkit" \
+	@word2vec 2>&1 | grep -q "WORD VECTOR estimation toolkit" \
 	|| ! echo "word2vec FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 # Since the ram is power of 1024 but swap is power of 1000, we will make the
@@ -120,7 +116,7 @@ post_installation: ${VALIDATE_PGMS}
 canoe: EXPLAIN:=Make sure Portage is correctly installed.
 ce.pl: EXPLAIN:=Check your PERL5LIB or XML::Twig may not be correctly installed.
 tune.py: EXPLAIN:=Check your Python version. Make sure Portage is correctly installed.
-tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB, or you're missing XML::Twig, or your version is less than XML::Twig-3.28.
+tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB, or you're missing XML::Twig, or your XML::Twig version is less than 3.32.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
 filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH.
 casemark.py: EXPLAIN:=Check your Python version and PYTHONPATH. Make sure Python is installed correctly (with dynamic library support).
