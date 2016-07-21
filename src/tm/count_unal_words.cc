@@ -1,6 +1,7 @@
 /**
  * @author George Foster
  * @file count_unal_words.cc
+ * @brief Count unaligned words in a set of jtps with word-alignment info.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
