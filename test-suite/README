@@ -1,4 +1,4 @@
-Technologies langagieres interactives / Interactive Language Technologies
+Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
@@ -13,15 +13,18 @@ license agreement for details.
 
 Contents of this directory:
 
- - unit-testing/        unit test suites that are too slow or too complex to
-                        routinely run as part of compilation
+ - data/                some test data files
 
  - regress-small-voc/   regression test suite on a small corpus
 
  - rescoring-example/   example prepared for a previous release of the
                         rescoring code only
 
+ - systems/             pre-built toy systems for testing purposes
+
  - tutorial-data/       Toy data for the tuturial in our experimental framework
                         (tutorial.pdf is recommended as your starting point).
 
+ - unit-testing/        unit test suites that are too slow or too complex to
+                        routinely run as part of compilation
 
