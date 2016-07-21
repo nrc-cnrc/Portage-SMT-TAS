@@ -36,7 +36,7 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version perl_modules python_version python_modules
+pre_installation: perl_version perl_modules python_version libpython python_modules
 pre_installation: java_version make_version gcc_version mgiza word2vec ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
@@ -57,6 +57,11 @@ perl_modules:
 .PHONY: python_version
 python_version:
 	@python --version 2>&1 | grep -q 2\.7 || ! echo "Portage requires Python 2.7." >&2
+
+.PHONY: libpython
+libpython:
+	@ldd $(which python) | egrep -q libpython2\.[0-9]+\.so \
+	|| ! echo "Portage requires Python built with shared library support (--enable-shared). Refer to \$$PORTAGE/INSTALL." >&2
 
 .PHONY: python_modules
 python_modules:
