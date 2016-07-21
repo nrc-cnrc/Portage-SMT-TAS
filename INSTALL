@@ -42,6 +42,11 @@ or
 
 For source code distributions :
 
+   Verify that you have the compilation dependencies resolved to compile
+   PortageII (see Mandatory dependencies for source code distributions):
+      make \
+         -C $HOME/PortageII-cur/test-suite/unit-testing/check-installation \
+         pre_installation
    Resolve any dependencies (see External dependencies, below).
    Review src/Makefile.user-conf and make any changes needed to reflect your
    system configuration and choices.
