@@ -13,17 +13,22 @@ license agreement for details.
 
 Contents of this directory:
 
+User documentation:
    tutorial.pdf             PortageII tutorial using our framework
                             Note: read this tutorial *first*
    user-manual.html         PortageII user manual
    system-requirements.pdf  Sys reqs and recommended hardware
+   PortageAPIComparison.pdf Evolution of the Portage API, plugins and framework
+                            features from PortageII 1.0 to 3.0
+
+Advanced user documentation:
    usage.html               Usage information for each program
    adaptation.README        Documentation for the adaptation module
    rescoring.README         Additional doc for the rescoring module
    confidence/              Documentation for the confidence module
+
+Programmer documentation:
    code-documentation.html  Code doc (distributions with source code only)
    canoe.pdf                Overview of the initial design of the decoder
    rescoring_overview.pdf   Overview of the initial design of the rescorer
    ochlinemax.pdf           Details of Och's line max algorithm
-   README and index.html    List of file in this directory
-
