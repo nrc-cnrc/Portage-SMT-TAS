@@ -1,3 +1,7 @@
+This file is for NRC-internal purposes and documents our procedure that we've
+used to compile python in our environment but could be of some help to others
+as well.  Note that PortageII accepts any version of Python-2.7.X.
+
 This README describes how to build an RPM for Python 2.7.1 that can be used in
 PortageLive VMs built on CentOS 5.8 using VMware Studio 2.6.
 
