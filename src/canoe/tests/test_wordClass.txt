@@ -1,5 +1,0 @@
-DDD d
-A	1
-E 1
-C	cc
-BB 1
