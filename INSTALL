@@ -581,86 +581,10 @@ Optional PortageLive dependencies
 
 MADA and its dependencies
 
-  If you have obtained all licenses to all of MADA's dependencies, here is how
-  you can install MADA on a system that serves PortageLive with Arabic data.
-
-  # g++ version 4
-    # check if you have g++ installed and what version
-    gcc --version
-    g++ --version
-    # or install it
-    yum install gcc.x86_64 gcc-c++.x86_64 # on a centos linux
-
-  # perl's Build system for SAMA
-    yes | cpan install Module::Build
-
-  # SVMTool-1.3.1
-    cd ~/tmp
-    wget 'http://www.lsi.upc.edu/~nlp/SVMTool/SVMTool.v1.3.1.tar.gz'
-    tar zxf SVMTool.v1.3.1.tar.gz
-    cd SVMTool-1.3.1/
-    perl Makefile.PL
-    make
-    cp -R lib/SVMTool /opt/PortageII/lib
-    cp bin/* /opt/PortageII/bin
-
-  # Buckwalter
-    yes | cpan install Encode::Buckwalter
-
-  # SAMA
-    # Obtain LDC2010L01.tgz from https://catalog.ldc.upenn.edu/LDC2010L01
-    cd ~/tmp
-    tar zxf LDC2010L01.tgz
-    cd sama_3_1/SAMA-3.1/
-    perl Build.PL
-    ./Build
-    ./Build install
-
-  # SRILM
-    # Obtain srilm-1.6.0.tgz from http://www.speech.sri.com/projects/srilm/download.html
-    cd ~/tmp
-    mkdir srilm-1.6.0
-    cd srilm-1.6.0
-    tar zxf ../srilm-1.6.0.tgz
-    pwd
-    # edit Makefile to set SRILM to the current dir
-    sed -i -e "s|^# SRILM.*|SRILM = $PWD|" Makefile
-    make MACHINE_TYPE=i686-m64
-    [[ -e "bin/i686-m64/disambig" ]] || echo "disambig not built" >&2
-    cp bin/i686-m64/disambig /opt/PortageII/bin
-
-  # MADA
-    cd ~/tmp
-    # Obtain mada from http://www1.ccls.columbia.edu/MADA/MADA_download.html
-    tar zxf MADA-3.2.tgz
-    cd MADA-3.2
-    mv * /opt/PortageII/bin
-    cd /opt/PortageII/bin
-    PERL5LIB=/opt/PortageII/bin:/opt/PortageII/lib:$PERL5LIB \
-    perl INSTALL.pl \
-       madahome=/opt/PortageII/bin \
-       srihome=/opt/PortageII \
-       svmhome=/opt/PortageII \
-       xamadir=/root/tmp/sama_3_1/SAMA-3.1/blib/lib/SAMA_DB/v3_1 \
-       xamaversion=SAMA3.1 \
-       &> log.MADA
-    cd /opt/PortageII/lib
-    ln -s ../bin/MADA .
-
-  # Test MADA
-    echo "اقلقتهم مشاهد النيران وهي تلتهم علمهم الاحمر والابيض لتحوله الى رماد" > test_ar
-    PERL5LIB=/opt/PortageII/lib:$PERL5LIB perl /opt/PortageII/bin/MADA+TOKAN.pl file=test_ar config=/opt/PortageII/bin/config-files/template.madaconfig
-    ls -1 test_ar*
-      test_ar
-      test_ar.bw
-      test_ar.bw.mada
-      test_ar.bw.mada.tok
-    head test_ar
-      اقلقتهم مشاهد النيران وهي تلتهم علمهم الاحمر والابيض لتحوله الى رماد
-    head test_ar.bw
-      Aqlqthm m$Ahd AlnyrAn why tlthm Elmhm AlAHmr wAlAbyD ltHwlh AlY rmAd
-    head test_ar.bw.mada.tok
-      Aqlqt +hm m$Ahd AlnyrAn w+ hy tlthm Elm +hm AlAHmr w+ AlAbyD l+ tHwl +h Aly rmAd
+  If you want to process Arabic text, please contact us about MADA.  We have
+  used MADA-3.2 which is no longer available and it has been replaced by
+  MADAMIRA which is only free for research and academic purposes.  Future
+  release of PortageII will be based on MADAMIRA.
 
 
 
