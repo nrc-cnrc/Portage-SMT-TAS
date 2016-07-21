@@ -14,6 +14,7 @@ File name             Programmer  Description
 append-uniq.pl                SL  Append parallel non duplicate lines.
 asciify (.cc)                 GF  Remap non-ascii characters.
 combine.pl                    AT  Combine files by interleaving lines.
+clean-utf8-text.pl            EJ  Clean up spaces, control chars, hyphen, etc. in utf8 text
 crlf2lf.sh                    MS  Convert CRLF (DOS-style) line endings to LF (UNIX-style).
 expand-auto.pl                EJ  Like expand, with automatically calculated tab stops.
 filter-for-giza.pl            MS  Filter training corpus for use with GIZA++.

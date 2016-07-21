@@ -9,6 +9,7 @@ File name             Programmer  Description
 
 alignment-stats.pl            EJ  Alignment statistics to diagnose misaligned corpora.
 all-best-rr-vals              GF  Summarize a set of COW experiments.
+analyze-plive-data.pl         EJ  Statistics from the temp files created by PortageLive
 arg_reader.{cc,h}             GF  Argument processing for C++ programs.
 bc_stats.{cc,h}               GF  Statistics over binary classification results.
 best-rr-val                   GF  Pick out the best line in a rescore-results file.
@@ -17,8 +18,8 @@ bloater (.cc)                 GF  Allocate memory until death occurs.
 bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
 build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
+collect-plive-data.pl         EJ  Collect the temp files created by PortageLive
 diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
-docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
 exception_dump.h              SL  Macro for printing a message when dying on an exception
 file_utils.{cc,h}             GF  File utility routines and classes (add to me!).
@@ -61,16 +62,12 @@ run-after.sh                  EJ  Run a job once another job has finished.
 run-parallel.sh               EJ  Run a job suite using the deamon/worker system.
 r-parallel-d.pl               PP/EJ  Deamon for run-parallel.sh.
 r-parallel-worker.pl          PP/EJ  Execute tasks obtained from r-parallel-d.pl
-sample_parallel_text (.cc)    GF  Extract a subsample from a parallel text.
 simple_histogram.h            SL  Simple histogram building/displaying class.
-sloth.sh                      GF  Script to Lower Overhead when Testing Hypotheses
 string_hash.h                 GF  Hash function for strings, for g++ hash_* classes.
-strip-markup.pl               GF  Strips <markup like this> from a text.
 str_utils.{cc,h}              GF  String utility routines and classes (add to me!).
 sum.pl                        GF  Sum a column of numbers.
 testleven (.cc)               NU  Unit testing for levenshtein.h.
 test_MagicStream (.cc)        SL  Unit testing for MagicStream.{cc,h}.
-test_trie*                    EJ  Test the trie implementation.
 trans-search.pl               GF  Grep for an expression in parallel Hansard.
 trie*.{cc,h}                  EJ  A fast and compact trie representation.
 try (.cc)                     GF  A program shell for trying things out.
