@@ -36,8 +36,9 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
+pre_installation: gcc_version
 pre_installation: perl_version perl_modules python_version python_modules
-pre_installation: java_version make_version gcc_version mgiza word2vec ram_vs_swap
+pre_installation: java_version make_version mgiza word2vec libsvm ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
@@ -83,16 +84,24 @@ gcc_version:
 .PHONY: mgiza
 mgiza: EXPLAIN:=Make sure MGIZA is correctly installed.
 mgiza:
-	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@which $@ &> /dev/null || ! echo "Portage requires MGIZA. Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
 	@mgiza --help 2>&1 | grep -q "Starting MGIZA" \
 	|| ! echo "mgiza --help FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 .PHONY: word2vec
 word2vec: EXPLAIN:=Make sure word2vec is correctly installed.
 word2vec:
-	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@which $@ &> /dev/null || ! echo "Portage requires word2vec. Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
 	@word2vec 2>&1 | grep -q "WORD VECTOR estimation toolkit" \
 	|| ! echo "word2vec FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
+
+.PHONY: libsvm
+libsvm: EXPLAIN:=Make sure libsvm is correctly installed.
+libsvm:
+	@which svm-predict &> /dev/null \
+	|| ! echo "Portage requires libsvm. Can't locate svm-predict in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@svm-predict 2>&1 | grep -q "svm-predict" \
+	|| ! echo "svm-predict FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 # Since the ram is power of 1024 but swap is power of 1000, we will make the
 # conversion here.
