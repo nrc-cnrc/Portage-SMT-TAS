@@ -57,6 +57,16 @@ PortageII, the recommended installation procedure is to symlink perl into
 /opt/PortageII/bin:
    ln -s /PATH_TO/perl-5.22.0/bin/perl /opt/PortageII/bin/perl
 
+Warnings for other compiled dependencies
+========================================
+  We have previously mentionned having to symbolic link Perl & Python into
+  /opt/PortageII/{bin,lib}.  Be aware that, if you had to compile some other
+  dependencies to get PortageII running, you might also have to symbolic link
+  them into /opt/PortageII the same way you did for Perl & Python.  This is due
+  to the fact that PortageLice's web server runs in a more restrictive
+  environment where it doesn't have access to all software and is limited to
+  /opt/PortageII/{bin,lib}.
+
 Manual Installation
 ===================
 
