@@ -37,8 +37,8 @@ testsuite: pre_installation
 
 .PHONY: pre_installation
 pre_installation: gcc_version
-pre_installation: perl_version perl_modules python_version python_modules
-pre_installation: java_version make_version mgiza word2vec libsvm ram_vs_swap
+pre_installation: perl_version perl_modules python_version python_modules java_version
+pre_installation: make_version mgiza word2vec libsvm xml_grep xmllint ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
@@ -108,6 +108,14 @@ libsvm:
 	|| ! echo "Portage requires libsvm. Can't locate svm-predict in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
 	@svm-predict 2>&1 | grep -q "svm-predict" \
 	|| ! echo "svm-predict FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
+
+.PHONY: xml_grep xmllint
+xml_grep xmllint: EXPLAIN:=Make sure $@ is correctly installed.
+xml_grep xmllint:
+	@which $@ &> /dev/null \
+	|| ! echo "Portage tmx2lfl.pl requires $@. Can't locate $@ in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
+	@$@ --version 2>&1 | grep -q "$@" \
+	|| ! echo "$@ --version FAILED. ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2
 
 # Since the ram is power of 1024 but swap is power of 1000, we will make the
 # conversion here.
