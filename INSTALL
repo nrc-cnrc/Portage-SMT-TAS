@@ -78,14 +78,14 @@ If you get "command not found" for any of the tests, your PATH is not correctly
 set or your installation failed.  Check your SETUP.bash/tcsh file and make sure
 you source it properly, ideally in your .<shell>rc file.  Your $PATH variable
 should include PortageII-cur/bin.  Also check that PortageII-cur/bin contains
-tokenize.pl.  If that's not the case for a source code distribution, "make
+utokenize.pl.  If that's not the case for a source code distribution, "make
 install" probably didn't complete successfully.
 
-If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
+If utokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
 Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
 ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
-PortageII-cur/lib.  That directory should also contain LexiTools.pm and a
+PortageII-cur/lib.  That directory should also contain ULexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, for a
 source code distribution, "make install" probably didn't complete successfully.
 
@@ -116,7 +116,7 @@ If canoe -h says "command not found" but the other commands work:
    appropriately.  The PortageII-cur/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
-   tune.py and tokenize.pl, so compilation probably failed if only canoe
+   tune.py and utokenize.pl, so compilation probably failed if only canoe
    doesn't work.
 
 Binary distributions only:
