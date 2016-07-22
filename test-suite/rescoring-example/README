@@ -9,13 +9,14 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-PORTAGEshared note
-------------------
+PORTAGEshared and PortageII note
+--------------------------------
 
-This rescoring example was included as part of an earlier distribution which
-only included rescoring software.  It is kept here since it may still be
-informative, but it is superceeded by the much more complete rescoring suite
-included with PORTAGEshared and its successors.
+This rescoring example was included as part of a distribution made in 2006
+which only included rescoring software, predating PORTAGEshared 1.0.  It is
+kept here as a historical reference but is otherwise obsolete.  Rescoring is
+now done with the rescore.py script and managed by the framework.  See the
+tutorial there for details.
 
 
 NRC Rescoring Toolkit
