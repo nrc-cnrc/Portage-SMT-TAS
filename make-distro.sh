@@ -244,6 +244,22 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+if [[ ! $PORTAGE ]]; then
+   echo source ~/.bashrc
+   source ~/.bashrc
+   [[ $PORTAGE ]] || error_exit "define \$PORTAGE or have your ~/.bashrc define it"
+   [[ $GIT_PATH ]] || GIT_PATH=$PORTAGE_GIT_ROOT
+fi
+
+if ! portage_info 2> /dev/null; then
+   source $PORTAGE/SETUP-specific.bash `pwd`
+   portage_info || error_exit "portage_info not found in PATH or ./bin" "Run portage_setbuild before make-distro.sh"
+fi
+
+[[ $CUR_VERSION ]] || error_exit "Missing mandatory -cur VERSION argument"
+[[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
+[[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
+
 if [[ $ICU_ROOT != $PORTAGE ]]; then
    ICU_OPT="$ICU_OPT -icu-root $ICU_ROOT"
    ICU_ROOT=${ICU_ROOT//_ARCH_/`arch`}
@@ -283,6 +299,8 @@ identify_host() {
    [[ `hostname` = joyce ]] &&
       error_exit "This script does not work on Joyce.  Use Verlaine instead."
    echo Using `hostname`.
+   echo PORTAGE=$PORTAGE
+   echo PORTAGE_GIT_ROOT=$PORTAGE_GIT_ROOT
 }
 
 # Usage: set_cur dir
@@ -547,14 +565,6 @@ make_iso_and_tar() {
 
 
 identify_host
-
-[[ $CUR_VERSION ]] || error_exit "Missing mandatory -cur VERSION argument"
-[[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
-[[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
-if ! portage_info 2> /dev/null; then
-   source $PORTAGE/SETUP-specific.bash `pwd`
-   portage_info    || error_exit "portage_info not found in PATH or ./bin" "Run portage_setbuild before make-distro.sh"
-fi
 
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.
