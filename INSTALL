@@ -61,44 +61,63 @@ For source code distributions :
 
                         Verifying your installation
 
+PortageII depends on a number of third-party packages. The check-installation
+test suite identifies unresolved dependencies. See the External dependencies
+section below for the list of dependencies and how to resolve them.
+
 Once PortageII is installed, execute the following command to make sure you can
 run the software:
    make -C $HOME/PortageII-cur/test-suite/unit-testing/check-installation
 This script invokes programs that are each installed differently, and exercise
 the key parts of PortageII installation.  If everything is OK, you should see
 the following message: "Installation successful." otherwise you will get some
-indication of what could be missing or mis-configured.  Repeat the command
+indication of what could be missing or misconfigured.  Repeat the command
 until you solved all errors.
 
-If you get "command not found" for any of these, your PATH is not correctly set
-or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
-are sourcing it properly, ideally in your .<shell>rc file.  Your $PATH variable
+If you get "command not found" for any of the tests, your PATH is not correctly
+set or your installation failed.  Check your SETUP.bash/tcsh file and make sure
+you source it properly, ideally in your .<shell>rc file.  Your $PATH variable
 should include PortageII-cur/bin.  Also check that PortageII-cur/bin contains
-tokenize.pl.  If that's not the case, "make install" probably didn't complete
-successfully.
+tokenize.pl.  If that's not the case for a source code distribution, "make
+install" probably didn't complete successfully.
 
 If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
 Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
 ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
 PortageII-cur/lib.  That directory should also contain LexiTools.pm and a
-subdirectory called CE containing several .pm files.  If it doesn't, "make
-install" probably didn't complete successfully.
+subdirectory called CE containing several .pm files.  If it doesn't, for a
+source code distribution, "make install" probably didn't complete successfully.
 
-If tmx2lfl.pl complains about not finding XML/Twig.pm, then XML::Twig is
+If tmx2lfl.pl -h complains about not finding XML/Twig.pm, then XML::Twig is
 missing or is not installed correctly; see External dependencies below.  You
 can safely ignore this problem if you're not planning to work with TMX or TTX
 files.
 
-If canoe -h says "command not found" but the other two commands work:
+If filter-nc1.py -h and casemark.py -h complain about "ImportError: No module
+named portage_utils", then your PYTHONPATH is not correctly set or your
+installation partially failed. Check your SETUP.bash/tcsh file and make sure
+you are sourcing it properly. Your $PYTHONPATH variable should include
+PortageII-cur/lib. That directory should also contain portage_utils.pyc. If it
+doesn't, for a source code distribution, "make install" probably didn't
+complete successfully.
+
+If casemark.py -lm... failed but casemark.py -h worked, then your
+LD_LIBRARY_PATH may be set incorrectly. Your $LD_LIBRARY_PATH should include
+PortageII-cur/lib. That directory should also contain libportage_truecasing.so.
+If it doesn't, for a source code distribution, "make install" probably didn't
+complete successfully. Also, casemark.py requires that Python be compiled
+with dynamic library support (see External dependencies below).
+
+If canoe -h says "command not found" but the other commands work:
  - with binary distributions, your $PATH variable must also include the
    architecture specific folder PortageII-cur/bin/<arch>.  Check your
    SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
    appropriately.  The PortageII-cur/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
-   cow.sh and tokenize.pl, so compilation probably failed if only canoe doesn't
-   work.
+   tune.py and tokenize.pl, so compilation probably failed if only canoe
+   doesn't work.
 
 Binary distributions only:
  - If canoe -h complains about a lib*.so* file not being found, some external
@@ -118,11 +137,17 @@ We also provide a template experimental framework in subdirectory framework.
 This is intended as a reasonable out-of-the-box baseline system.  We recommend
 you use this framework as your starting point for real experiments.
 
-In framework, you will also find the document framework-toy.pdf.  This document
+In framework, you will also find the document tutorial.pdf.  This document
 walks you through a complete experiment using a toy corpus.  It is intended as
 a tutorial to get you started with PortageII.
 
 For further documentation, see doc/user-manual.html.
+
+Refer to $HOME/PortageII-cur/tmx-prepro/README for information on how to
+pre-process TMX files to use as a training corpus.
+
+Refer to $HOME/PortageII-cur/generic-model/README for instructions on how to
+install the PortageII generic models in the generic-model directory.
 
 
                            Hardware requirements
@@ -148,6 +173,12 @@ installed Python, add <name> for better control.
 If you choose different destinations, adjust SETUP.bash/tcsh accordingly.  In
 any case, make sure you update the User Configurable Variables section of
 SETUP.bash/tcsh.
+
+After installing the third-party packages, source SETUP.bash/tcsh to enable the
+packages:
+   source $HOME/PortageII-cur/SETUP.bash
+or
+   source $HOME/PortageII-cur/SETUP.tcsh
 
 Mandatory dependencies for all distributions:
 
@@ -229,24 +260,29 @@ Mandatory dependencies for all distributions:
    questions.)  You mileage may vary because various compilation steps are
    required.
 
-   If you cannot work as root, you can setup libraries in your user account,
+   If you cannot work as root, you can set up libraries in your user account,
    but some work will be needed to configure CPAN to do so, and then some more
    work will be required so those libraries are seen by Perl at runtime.  Ask
    your sysadmin for help if you don't already know how to do this.
 
- - Python 2.7 - our new tuning script, tune.py, the new truecasing module, as
-   well as some some convenience scripts, use python.  In most distros, Python
+ - Python 2.7 - our tuning script, tune.py and the truecasing module, as well
+   as some some convenience scripts, use Python.  In most distros, Python
    should be standard, or available via the package manager, but it might not
    be the right version: version 2.7 (any 2.7.x) is required.
 
    If you install Python 2.7 in a non-standard location, set
    PYTHON_HOME_OVERRIDE in SETUP.bash/tcsh.  Alternatively, make symlinks
    (using ln -s) in $PORTAGE/bin to the python executable and in $PORTAGE/lib
-   to libpython2.7.so*.  (The symlink is the best solution for your PortageLive
-   server(s), where you must also make sure the apache user has sufficient
-   permissions to use python 2.7.)  If you compile Python 2.7 by hand, make
-   sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package installed
-   first, or download zlib from http://www.zlib.net and install it by hand.
+   to libpython2.7.so*.  (Creating symlinks is the best solution for your
+   PortageLive server(s), where you must also make sure the apache user has
+   sufficient permissions to use python 2.7.)  If you compile Python 2.7 by
+   hand, make sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package
+   installedfirst, or download zlib from http://www.zlib.net and install it by
+   hand.  Also, PortageII requires Python 2.7 to be compiled with dynamic
+   (shared) library support (--enabled-shared).  You can determine if your
+   Python 2.7 has been compiled appropriately by looking for libpython2.7.so*
+   in the output of the following command:
+      ldd $(which python)
 
    This procedure worked for us:
       # Obtain Python-2.7.10.tgz from the web.
@@ -256,7 +292,7 @@ Mandatory dependencies for all distributions:
       make -j 5
       make install -j 5
 
-   PortageLive also needs to see python 2.7, and the above won't suffice
+   PortageLive also needs to see Python 2.7, and the above won't suffice
    because PortageLive binaries are normally installed in a different location.
    Once you've completed the PortageLive installation itself (see PortageLive/
    subdirectory as well as the "PortageLive Manual" section of the PortageII
@@ -314,9 +350,10 @@ Mandatory dependencies for all distributions:
       #    $BOOST_ROOT/lib64, but the default might work for you as is.
       ./compile.sh
       # Edit transfer.sh to set the scp destination to $PORTAGE/third-party/bin.
+      mkdir -p $PORTAGE/third-party/bin
       ./transfer.sh
       # The default transfer.sh script is missing plain2snt-hasvcb.py:
-      cp ../scripts/plain2snt-hasvcb.py $PORTAGE/third-party/bin
+      cp ../scripts/plain2snt-hasvcb.py $PORTAGE/third-party/bin/
 
    If you have an old download of version 0.6.3 or 0.7.2, or a current one,
    they are all equivalent for our purposes.  If it works, keep what you have.
@@ -325,9 +362,10 @@ Mandatory dependencies for all distributions:
 
    Version 0.6.3 can still be found at http://www.cs.cmu.edu/~qing/release/
    and is easy to install. This worked for us:
-      # Obtain mgizapp-0.6.3.tar.gz
-      tar -xzf mgizapp-0.6.3.tar.gz
-      cd mgizapp
+      # Download the mgizapp-0.6.3 tarball, expand it, and build MGIZA
+      wget http://www.cs.cmu.edu/~qing/release/mgiza-0.6.3-10-01-11.tar.gz
+      tar -xzf mgiza-0.6.3-10-01-11.tar.gz
+      cd MGIZA
       ./configure --prefix=$PORTAGE/third-party
       make -j 5
       make -j 5 install
@@ -348,14 +386,15 @@ Mandatory dependencies for all distributions:
       cd word2vec
       make -C src
    Installation is manual. You can put it anywhere on your path:
-      cp bin/word2vec $PORTAGE/third-party/bin
+      mkdir -p $PORTAGE/third-party/bin
+      cp bin/word2vec $PORTAGE/third-party/bin/
 
  - libsvm - The executable programs that come with the libsvm library are
    needed for Confidence Estimation.  The package is available from
    http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is very easy to compile.
    Installation is manual but trivial.  Any version should do, as far as we
    know.  This procedure worked for us:
-      # Download the current tar ball
+      # Download the current tarball
       wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
       # Expand it
       tar -xzf libsvm-3.20.tar.gz
@@ -363,7 +402,8 @@ Mandatory dependencies for all distributions:
       cd libsvm-3.20
       make
       # "Install" the three executables somewhere on the PATH.
-      cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin
+      mkdir -p $PORTAGE/third-party/bin
+      cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin/
 
    If you can work as root, libsvm is available in some Linux distros as a
    package called libsvm-tools or libsvm.  On CentOS, which uses yum, this
@@ -397,7 +437,7 @@ Optional dependencies for all distributions:
    http://icu-project.org/download/.  Any version should do; we've tested 49, 4.0
    and 3.4.
    This worked for us:
-      # Download the ICU4C 49 tar ball and expand it
+      # Download the ICU4C 49 tarball and expand it
       wget 'http://download.icu-project.org/files/icu4c/49.1.2/icu4c-49_1_2-src.tgz'
       tar -xzf icu4c-49_1_2-src.tgz
       mv icu icu-49.1.2
@@ -426,7 +466,8 @@ Optional dependencies for all distributions:
       ar -r ictclas.a *.o
       cd ..
       g++ -o ictclas main.cpp Source/ictclas.a
-      cp -pr ictclas Data $PORTAGE/third-party/bin
+      mkdir -p $PORTAGE/third-party/bin
+      cp -pr ictclas Data $PORTAGE/third-party/bin/
 
    If you use ICTCLAS, you must also edit tokenize_plugin (in bin/ for binary
    distributions, in src/textutils/ for source distributions) to make your
@@ -538,7 +579,7 @@ Optional dependencies for source code distributions:
 
    This procedure worked for us:
       # Obtain cxxtest-4.4.tar.gz (or the current version) from http://cxxtest.com/
-      # Installation is done by simply expanding the tar ball in the
+      # Installation is done by simply expanding the tarball in the
       # destination directory
       cd $PORTAGE/third-party
       tar -xzf /PATH/TO/cxxtest-4.4.tar.gz
@@ -587,8 +628,8 @@ Optional PortageLive dependencies
 MADA and its dependencies
 
   If you want to process Arabic text, please contact us about MADA.  We have
-  used MADA-3.2 which is no longer available and it has been replaced by
-  MADAMIRA which is only free for research and academic purposes.  Future
+  used MADA-3.2, which is no longer available, and it has been replaced by
+  MADAMIRA, which is only free for research and academic purposes.  A future
   release of PortageII will be based on MADAMIRA.
 
 
