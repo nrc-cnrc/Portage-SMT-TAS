@@ -29,53 +29,119 @@ Contents of this directory
 ==========================
 
 Scripts:
- - run-all-tests.sh     Master script running all fully automated suites.
- - clean-all-tests.sh   Clean up after running test suites.
+ - run-all-tests.sh       Master script running all fully automated suites.
+ - clean-all-tests.sh     Clean up after running test suites.
 
 Test suites:
- - align.posteriors/    Test suite for the PosteriorAligner.
- - canoe.compress.output/  Make sure different ways of creating n-best produce
-                        the same results.
+ - add-fr-nbsp/           Test add-fr-nbsp.pl
+ - al-diff.py/            Test al-diff.py
+ - align.posteriors/      Test suite for the PosteriorAligner.
+ - arpalm2tplm.sh/        Test building TPLMs
+ - bilm/                  Test the bilm features
+ - build-tp-suffix-array.sh/ Test building tightly packed suffix arrays
+ - canoe.compress.output/ Make sure different ways of creating n-best produce
+                          the same results.
+ - canoe-daemon/          Test the canoe daemon feature and per-sentence load b.
+ - canoe_newSrcSentInfo2JSON/ Test that canoe can output its NSSI to JSON
+ - canoe_TriangularArray/ Test that canoe can write a triangular array per sent
+ - cat.sh/                Test parallel IBM model training
+ - ce_tmx.pl/             Test processing TMX and sdlxliff files
+ - check-installation/    Check that installation of prerequisites and
+                          PortageII is OK
+ - chinese_rule_markup.pl/ Test chinese_rule_markup.pl
+ - coarse-lm/             Test coarse LMs
+ - coarse-tm/             Test coarse TMs
  - compile_truecase_map/  Test suite for compile_truecase_map.
- - configtool/          Test suite for configtool.
- - filter-distortion-model/  Test suite for filter-distortion-model.
- - filter_models/       Test suite for filter_models.
- - hmm-classes/         Test suite for the class-conditioned variant of the HMM
-                        word alignment module.
- - hmm-lex/             Test suite for the lexically conditioned variant of the
-                        HMM word alignment module.
- - hmm-sym/             Test suite for symmetrized training of HMM word
-                        alignment models.
- - joint2cond/          Test suite for joint2cond_phrase_tables, including its
-                        -reduce-mem and -prune1 options.
- - lm/                  Test suite for using our various LM file formats and
-                        filtering options.
- - lm.train_mixture/    Test suite for train_lm_mixture.
- - markup_canoe_output/ Test suite for the tools of tags transfer from source
-                        to target text.
- - merge_counts/        Test suite for merge_counts and its uses for parallel
-                        counting of phrase tables and LMs.
- - portage_utils.pm/    Test suite for Perl magic streams
- - rescoring.metric/    Test suite for using PER or WER in cow.sh.
- - r-parallel-d.pl/     Test suite for the run-parallel deamon's ability to
-                        detect when its parent has disappeared and then exit.
- - run-parallel.io/     Test STDERR and STDOUT capturing in run-parallel.sh.
- - run-parallel.local-workers/  Test the choosing of the number of workers in
-                        the master job under varying circumstances.
- - run-parallel.RP_PSUB_OPTS/  Make sure RP_PSUB_OPTS=... works correctly.
- - script.ff/           Test suite for the SCRIPT: rescoring feature.
- - strip_non_printing/  Test suite for strip_non_printing.
- - tokenize.pl/         Test suite for recent enhancements to our tokenizer.
- - toy/                 *** OBSOLETE *** Complete use of the PORTAGEshared 1.0
-                        through 1.2 software suite on a tiny corpus, with
-                        parameters chosen to run very fast (*not* recommended
-                        as an experimental starting point).
- - translate.pl/        Test suite for doing the whole translation pipeline
- - truecasing/          Test suite for truecasing.
- - tune.py/             Test suite for decoder weight tuning
- - unal/                Test suite for decoder features counting unaligned words
- - wc_stats/            Test suite for our enhanced word counter
- - word_align_tool/     Test suite for word_align_tool.
+ - configtool/            Test suite for configtool.
+ - dist-limit/            Test various distortion limit implementations
+ - distortion-limit/      Check that canoe's -dist-limit-{ext,swap,simple} work
+ - diversity/             Test canoe's -diversity, -diversity-stack-increment,
+                          -cov-limit options work
+ - dynmap.number/         Test DynMap LMs
+ - fast_align_normalize_ttable.py/ Test fast_align_normalize_ttable.py
+ - filter-distortion-model/ Test suite for filter-distortion-model.
+ - filter-long-lines.pl/  Test our long-line filter
+ - filter_models/         Test suite for filter_models.
+ - fixed_term2tm.pl/      Test compiling a list of fixed terms for use
+ - fix-en-fr-numbers/     Test rule-based handling of numbers for en<->fr
+ - forced-decoding/       Test canoe -forced
+ - gen_feature_values/    Test generating rescoring features
+ - gen-jpt-parallel.sh/   Test generating rescoring features in parallel
+ - gen_phrase_tables/     Test generating phrase tables
+ - giza_filter/           Test our filter to prepare input for giza
+ - hmm-classes/           Test suite for the class-conditioned variant of the HMM
+                          word alignment module.
+ - hmm-lex/               Test suite for the lexically conditioned variant of the
+                          HMM word alignment module.
+ - hmm-sym/               Test suite for symmetrized training of HMM word
+                          alignment models.
+ - ibmcat/                Test the multi-reader of all IBM files
+ - ibm-och-aligner/       Test align-words's IBMOchAligner algorithm
+ - IdentityAligner/       Test align-words's IdentityAligner algorithm
+ - joint2cond/            Test suite for joint2cond_phrase_tables, including its
+                          -reduce-mem and -prune1 options.
+ - joint2multi_cpt/
+ - lm/                    Test suite for using our various LM file formats and
+                          filtering options.
+ - lm-context/            Test canoe's -minimize-lm-context-size
+ - lm-filter.py/          Test filtering LM in ARPALM format
+ - lm-order-error/        Test using arpalm2binlm | binlm2arpalm to patch bad
+                          ARPALM files
+ - lm.train_mixture/      Test suite for train_lm_mixture.
+ - markup_canoe_output/   Test suite for the tools of tags transfer from source
+                          to target text.
+ - merge_counts/          Test suite for merge_counts and its uses for parallel
+                          counting of phrase tables and LMs.
+ - merge_multi_column_counts/ Test merge_multi_column_counts
+ - merge_sigprune_counts.py/ Test the C++ implementation of merge_sigprune_counts
+ - nbest2rescore.pl/      Test suite for all outputs from nbest2rescore.pl
+ - nnjm/                  Test using NNJMs in canoe
+ - parallelize.pl/        Test suite for parallelize.pl and its funky uses
+ - parse_tokan.pl/        Test parsing MADA+TOKAN output
+ - perl_interpreter/      Test the syntax to get the user Perl, not system one
+ - PortageLiveAPI/        Test the PortageLive SOAP API (not run automatically)
+ - portage_utils.pm/      Test suite for Perl magic streams
+ - portage_utils.py/      Test Python magic streams and other Python utils
+ - predecode_plugin/      Test the components of the predecode plugin
+ - prime.sh/              Make sure prime.sh works for PortageLive systems
+ - rescoring.metric/      Test suite for using PER or WER in cow.sh.
+ - rest-cost-lm/          Test RestCostLM training and use
+ - run-parallel.io/       Test STDERR and STDOUT capturing in run-parallel.sh.
+ - run-parallel.local-workers/ Test the choosing of the number of workers in
+                          the master job under varying circumstances.
+ - run-parallel.RP_PSUB_OPTS/ Make sure RP_PSUB_OPTS=... works correctly.
+ - r-parallel-d.pl/       Test suite for the run-parallel deamon's ability to
+                          detect when its parent has disappeared and then exit.
+ - script.ff/             Test suite for the SCRIPT: rescoring feature.
+ - second-to-hms.pl/      Test converting seconds to HM:MM:SS and back
+ - sigprune.sh/           Significance pruning test suite
+ - sparse/                Test SparseModel training and use in decoding
+ - stripe.py/             Test performing striped splitting
+ - strip_non_printing/    Test suite for strip_non_printing.
+ - textpt2tppt.sh/        Test creating TPPTs
+ - time-mem/              Test time-mem
+ - tm-count/              Test handling counts in phrase tables
+ - tmx2lfl.pl/            Test extracting text from TMX files
+ - tokenize.pl/           Test suite for recent enhancements to our tokenizer.
+ - tokenize_plugin/       Test tokenizing Arabic (requires MADA)
+ - tokenize_plugin_ar/    Also test tokenizing Arabic (requires MADA)
+ - toy/                   *** OBSOLETE *** Complete use of the PORTAGEshared 1.0
+                          through 1.2 software suite on a tiny corpus, with
+                          parameters chosen to run very fast (*not* recommended
+                          as an experimental starting point).
+ - translate.pl/          Test suite for doing the whole translation pipeline
+ - truecasing/            Test suite for truecasing.
+ - tp-alignment/          Test the tightly-packed alignment file format
+ - tpldm/                 Test TPLDMs (tightly-packed lexical distortion models)
+ - tppt/                  Test TPPTs
+ - train_tm_mixture/      Test making mixture TMs
+ - tune.py/               Test suite for decoder weight tuning
+ - udetokenize.pl/        Test detokenization with -paraline and -deparaline
+ - unal/                  Test suite for decoder features counting unaligned words
+ - walls-zones/           Test canoe's Walls and Zones features
+ - wc_stats/              Test suite for our enhanced word counter
+ - word_align_tool/       Test suite for word_align_tool.
+ - zensprune/             Test Zens pruning (based on compositionality scores)
 
 
 Types of unit tests in PortageII
