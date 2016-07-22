@@ -19,7 +19,7 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 3.0 2016-07?-??
+PortageII 3.0 2016-07-26
  This release incorporates significant improvements from the research world
  into the core machine translation engine. Although end users will not see
  visible feature changes, they should appreciate the significant improvements
