@@ -345,9 +345,13 @@ Mandatory dependencies for all distributions:
       # Download ZIP from https://github.com/moses-smt/mgiza or use Git:
       git clone https://github.com/moses-smt/mgiza.git
       cd mgiza/mgizapp
-      # If you have cmake, you can try to follow the instructions in INSTALL,
-      # but they did not work easily for us. The manual-compile route was much
-      # easier:
+      export BOOST_ROOT=/path/to/boost (see boost section later in this file)
+      cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party -DBoost_NO_BOOST_CMAKE=ON .
+      make -j 5
+      make install
+
+      # If the above fails or you don't have cmake, you can try the manual
+      # install instead, from the same git clone:
       cd manual-compile
       # Edit compile.sh and
       #  - set SRC_DIR to mgiza/mgizapp/src
@@ -368,7 +372,7 @@ Mandatory dependencies for all distributions:
    chose whichever one you successfully compile.
 
    Version 0.6.3 can still be found at http://www.cs.cmu.edu/~qing/release/
-   and is easy to install. This worked for us:
+   and is easier to install. This worked for us:
       # Download the mgizapp-0.6.3 tarball, expand it, and build MGIZA
       wget http://www.cs.cmu.edu/~qing/release/mgiza-0.6.3-10-01-11.tar.gz
       tar -xzf mgiza-0.6.3-10-01-11.tar.gz
