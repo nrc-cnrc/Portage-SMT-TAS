@@ -26,7 +26,7 @@ usage() {
    cat <<==EOF==
 
 Usage: make-distro.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
-       -models MODELS -dir OUTPUT_DIR
+       -models MODELS -dir OUTPUT_DIR -cur VERSION
 
   Make a generic-model distribution folder, ready to burn on CD or copy to a
   remote site as is.
@@ -45,6 +45,8 @@ Arguments:
 
   -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
+
+  -cur          Current version number, e.g., 2.0
 
 Options:
 
@@ -107,6 +109,7 @@ while [ $# -gt 0 ]; do
    -d)                  arg_check 1 $# $1; GIT_PATH="$2"; shift;;
    -r)                  arg_check 1 $# $1; VERSION_TAG="$2"; shift;;
    -dir)                arg_check 1 $# $1; OUTPUT_DIR=$2; shift;;
+   -cur)                arg_check 1 $# $1; CUR_VERSION=$2; shift;;
    -models)             arg_check 1 $# $1; MODELS=$2; shift;;
    -archive-name)       arg_check 1 $# $1; ARCHIVE_NAME=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
@@ -119,6 +122,10 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
+
+[[ $CUR_VERSION ]] || error_exit "Missing mandatory -cur VERSION argument"
+[[ $OUTPUT_DIR ]]  || error_exit "Missing mandatory -dir OUTPUT_DIR argument"
+[[ $VERSION_TAG ]] || error_exit "Missing mandatory -r GIT_TAG argument"
 
 print_header() {
    fn=$1
@@ -164,22 +171,22 @@ make_iso_and_tar() {
    print_header make_iso_and_tar
    echo Generating tar ball and iso file.
    
-   #VERSION=v1_0
-   VERSION=${OUTPUT_DIR//./_}
-   VOLID=PortageGenericModel_${VERSION}
-   VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
-   #echo $VOLID
-   ISO_VOLID=PortageGenericModel-`echo $VERSION | sed -e 's/v//g' -e 's/_/./g'`
+   VOLID=PortageGenericModel-$CUR_VERSION
+   # man mkisofs says VOLID can have 32 chars, but Joliet truncates to 16
+   ISO_VOLID=GenericModel-$CUR_VERSION
    ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
-      ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
+      ARCHIVE_FILE=${VOLID}-${ARCHIVE_NAME}
    else
       ARCHIVE_FILE=$VOLID
    fi
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd mv generic-model PortageGenericModel-2.0
+      run_cmd mkdir DVD-root
+      run_cmd mv generic-model DVD-root/$VOLID
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              PortageGenericModel-2.0 '&>' iso.log
+              DVD-root '&>' iso.log
+      run_cmd mv DVD-root/$VOLID .
+      run_cmd rmdir DVD-root
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel-2.0 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd

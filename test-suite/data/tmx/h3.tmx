@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tmx SYSTEM "tmx14.dtd">
+<tmx version="1.4">
+<header creationtool="created-by-hand" creationtoolversion="1.0.0" segtype="sentence" o-tmf="none" adminlang="EN-CA" srclang="EN" datatype="PlainText">
+</header>
+<body>
+
+<tu changedate="20010323T182128Z" changeid="SOMEONE">
+<prop type="Txt::Document">SOMEDOC</prop>
+<tuv xml:lang="EN-CA">
+<seg><bpt i="1" type="font">{\f28 </bpt>­ <ept i="1">}</ept><bpt i="2" type="font">{\f2 </bpt>,Shift Tab<ept i="2">}</ept></seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg><bpt i="1" type="font">{\f28 </bpt>­ <ept i="1">}</ept><bpt i="2" type="font">{\f2 </bpt>,Maj Tab<ept i="2">}</ept></seg>
+</tuv>
+</tu>
+
+<tu changedate="20010411T024157Z" changeid="TALIGN!">
+<prop type="Txt::Document">258877bt</prop>
+<tuv xml:lang="EN-CA">
+<seg>Cash Sale (Mon Ord)</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>Vente compt. <bpt i="1" type="font">{\f1 </bpt>(m.<ept i="1">}</ept><ph>\_</ph><bpt i="2" type="font">{\f1 </bpt>p.)<ept i="2">}</ept></seg>
+</tuv>
+</tu>
+
+<tu usagecount="1" lastusagedate="20021211T125141Z" changedate="20021211T125141Z" changeid="CHEBERT">
+<prop type="Txt::Document">0274194-0</prop>
+<tuv xml:lang="EN-CA">
+<seg>John Doe, a retail clerk from Postal Station B co<ph>\_</ph>ordinated this very successful project.</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>John Doe, un préposé à la vente au détail du poste de facteurs B, a coordonné ce projet fort réussi.</seg>
+</tuv>
+</tu>
+
+<tu usagecount="1" lastusagedate="20021211T152353Z" changedate="20021211T152353Z" changeid="CTHERIAULT">
+<prop type="Txt::Document">0274194</prop>
+<tuv xml:lang="EN-CA">
+<seg>Photo L<ph>\_</ph>R: Counter Clerk, Lead hand and clerk</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>Photo (de gauche à droite) : Préposé au comptoir, chef d’équipe et commis</seg>
+</tuv>
+</tu>
+
+<tu>
+<tuv xml:lang="EN-CA">
+<seg>Optio<ph>\-</ph>nal hy<ph>\-</ph>phens should be stripped.</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>Les traits d'unions optio<ph>\-</ph>nels sont à retirer.</seg>
+</tuv>
+</tu>
+
+<tu>
+<tuv xml:lang="EN-CA">
+<seg>Literal \x2011 a‑b \xAD a­b \x1E ab \x1F ab.</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>Literal \x2011 a‑b \xAD a­b \x1E ab \x1F ab.</seg>
+</tuv>
+</tu>
+
+<tu>
+<tuv xml:lang="EN-CA">
+<seg>||| three pipes ||| ||| three more |||</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>||| trois tuyaux ||| ||| trois tuyaux |||</seg>
+</tuv>
+</tu>
+
+</body>
+</tmx>
