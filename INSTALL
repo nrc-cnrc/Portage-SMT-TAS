@@ -376,6 +376,10 @@ Mandatory dependencies for all distributions:
       ./configure --prefix=$PORTAGE/third-party
       make -j 5
       make -j 5 install
+      # Next we need to manually patch the file plain2snt-hasvcb.py where we
+      # need to replace "1" for "2" in line 55 and 70. This fixes a bug present
+      # in all MGIZA++ versions from before February 2015.
+      sed -i -e '55s/1/2/' -e '70s/1/2/' $PORTAGE/third-party/scripts/plain2snt-hasvcb.py
 
  - mkcls - this word clustering tool by Franz Och is required for some models
    added to PortageII in version 3.0, in particular the sparse ones. It comes
