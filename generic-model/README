@@ -1,4 +1,4 @@
-                              Generic Model 2.0
+                         Portage Generic Model 2.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
@@ -11,12 +11,12 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                         PortageII Generic Model 2.0
+                         Portage Generic Model 2.0
 
-If you have licensed the PortageII generic models, you should install these
+If you have licensed the Portage Generic Models, you should install these
 models in the generic-model directory (see section Installing... below).
 
-The PortageII Generic Model DVD contains trained English and French language
+The Portage Generic Model DVD contains trained English and French language
 models (LM), English->French and French->English translation models (TM), and
 English->French and French->English Neural Network Joint Models (NNJM), which
 may be used in conjunction with your own in-domain language and translation
@@ -48,17 +48,17 @@ However, if the occasional insertion of terminology that is not from the
 in-domain corpus is not acceptable, leave out the generic TM and use only the
 generic LM.
 
-We thank Library and Archives Canada for providing the data on which the
-PortageII models for Generic Model 1.0 and 2.0 were trained.
+We thank Library and Archives Canada for providing the data on which the models
+for Portage Generic Model 1.0 and 2.0 were trained.
 
 
-                 Changes between Generic Model 1.0 and 2.0
+             Changes between Portage Generic Model 1.0 and 2.0
 
 NNJM: Neural Network Joint Model
 
    PortageII 3.0 introduces the Neural Network Joint Model (NNJM), trained
    using Deep Learning technology. While the training software for NNJMs is not
-   released yet, Generic Model 2.0 includes a pre-trained NNJM for
+   released yet, Portage Generic Model 2.0 includes a pre-trained NNJM for
    English->French and one for French->English.
 
 Size of the training data
@@ -70,9 +70,9 @@ Size of the training data
    This larger training corpus was used to update the LM and to create the new
    NNJM.
 
-   The updated TM is not available yet, so Generic Model 2.0 includes a copy of
-   the generic TM from 1.0. An updated version of the TM should be available in
-   a future release.
+   The updated TM is not available yet, so Portage Generic Model 2.0 includes a
+   copy of the generic TM from 1.0. An updated version of the TM should be
+   available in a future release.
 
 Usage recommendation
 
@@ -82,10 +82,11 @@ Usage recommendation
 
                    Contents of the generic-model directory
 
-Note: Generic Model 2.0 takes 7GB, so you might have it on one double-layer DVD
-or on two regular DVDs: in that case, disk1 has all the files required for
-using Generic Model 2.0 as background models, while disk2 provides the same
-models in different formats, for reference and alternative uses.
+Note: Portage Generic Model 2.0 takes 7GB, so you might have it on one
+double-layer DVD or on two regular DVDs: in that case, disk1 has all the files
+required for using Portage Generic Model 2.0 as background models, while disk2
+provides the same models in different formats, for reference and alternative
+uses.
 
    generic-2.0/
       lm/      English and French Language Models
@@ -121,9 +122,9 @@ models in different formats, for reference and alternative uses.
    README   this file
 
 
-                  Installing the PortageII Generic Model 2.0
+                    Installing Portage Generic Model 2.0
 
-If you have licensed the PortageII Generic Model DVD, you can install it in the
+If you have licensed the Portage Generic Model DVD, you can install it in the
 generic-model directory.
 
 Copy the full contents of first DVD (disk 1) or the double-layer DVD to the
@@ -159,7 +160,7 @@ PORTAGE_GENERIC_MODEL accordingly.
 
                                Getting Started
 
-Once installed, the models of the PortageII Generic Model can be used in
+Once installed, the models of the Portage Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
 
 You can use the language models in the lm directory in standard (log-linear)
