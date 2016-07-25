@@ -1,22 +1,20 @@
-#Lines	#Words	#Char	min #W	max #W	min #C	max #C	#empty L	mean(W/L)	sdev(W/L)	filename
-24	159	972	2	14	8	89	0	6.62	3.75	tmx-prepro-test1/template/corpora/all_en.raw.gz
-24	195	1161	2	20	8	106	0	8.12	5.79	tmx-prepro-test1/template/corpora/all_fr.raw.gz
-24	48	321	2	2	9	20	0	2.00	0.00	tmx-prepro-test1/template/corpora/all.id
-24	159	972	2	14	8	89	0	6.62	3.75	tmx-prepro-test1/template/corpora/corpus_en.al
-24	195	1161	2	20	8	106	0	8.12	5.79	tmx-prepro-test1/template/corpora/corpus_fr.al
-24	48	321	2	2	9	20	0	2.00	0.00	tmx-prepro-test1/template/corpora/corpus.id
-3	22	129	5	9	36	45	0	7.33	2.08	tmx-prepro-test1/template/corpora/dev1_en.raw
-3	29	173	7	13	45	79	0	9.67	3.06	tmx-prepro-test1/template/corpora/dev1_fr.raw
-3	6	42	2	2	9	15	0	2.00	0.00	tmx-prepro-test1/template/corpora/dev1.id
-3	17	96	3	9	12	45	0	5.67	3.06	tmx-prepro-test1/template/corpora/test_en.raw
-3	19	104	3	9	10	46	0	6.33	3.06	tmx-prepro-test1/template/corpora/test_fr.raw
-3	6	42	2	2	9	15	0	2.00	0.00	tmx-prepro-test1/template/corpora/test.id
-18	120	747	2	14	8	89	0	6.67	4.14	tmx-prepro-test1/template/corpora/train_en.raw.gz
-18	147	884	2	20	8	106	0	8.17	6.49	tmx-prepro-test1/template/corpora/train_fr.raw.gz
-18	36	237	2	2	9	20	0	2.00	0.00	tmx-prepro-test1/template/corpora/train.id
+#Lines	filename
+24	tmx-prepro-test1/template/corpora/all_en.raw.gz
+24	tmx-prepro-test1/template/corpora/all_fr.raw.gz
+24	tmx-prepro-test1/template/corpora/all.id
+24	tmx-prepro-test1/template/corpora/corpus_en.al
+24	tmx-prepro-test1/template/corpora/corpus_fr.al
+24	tmx-prepro-test1/template/corpora/corpus.id
+3	tmx-prepro-test1/template/corpora/dev1_en.raw
+3	tmx-prepro-test1/template/corpora/dev1_fr.raw
+3	tmx-prepro-test1/template/corpora/dev1.id
+3	tmx-prepro-test1/template/corpora/test_en.raw
+3	tmx-prepro-test1/template/corpora/test_fr.raw
+3	tmx-prepro-test1/template/corpora/test.id
+18	tmx-prepro-test1/template/corpora/train_en.raw.gz
+18	tmx-prepro-test1/template/corpora/train_fr.raw.gz
+18	tmx-prepro-test1/template/corpora/train.id
 
-216	1206	7362	2	20	8	106	0	5.58	4.70	TOTAL
+216	TOTAL
 
-80.40 words per doc with sdev of 72.51
-14.40 lines per doc with sdev of 9.90
 15 documents in total

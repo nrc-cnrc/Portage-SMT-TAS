@@ -5,7 +5,7 @@ include ../Makefile.incl
 all: wc_stats.test1 wc_stats.test2
 
 wc_stats.%: %
-	wc_stats tmx-prepro-$*/template/corpora/[^M]* > wc_stats.$*
+	wc_stats tmx-prepro-$*/template/corpora/[^M]* | cut -f 1,11 | grep -v sdev > wc_stats.$*
 	diff wc_stats.$* ref/
 
 tmx-prepro-%/README:

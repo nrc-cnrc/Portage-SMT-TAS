@@ -2,4 +2,4 @@
 
 make clean
 make gitignore
-make
+make -k
