@@ -74,6 +74,13 @@ the following message: "Installation successful." otherwise you will get some
 indication of what could be missing or misconfigured.  Repeat the command
 until you solved all errors.
 
+If you encounter an error that we identify below as one you can safely ignore
+for your training situation, then you can for check-installation to keep-going
+even in the precence of errors by running:
+   make -k -C $HOME/PortageII-cur/test-suite/unit-testing/check-installation
+In that case, your will have to examine all the output to identify the errors
+that you should address.
+
 If you get "command not found" for any of the tests, your PATH is not correctly
 set or your installation failed.  Check your SETUP.bash/tcsh file and make sure
 you source it properly, ideally in your .<shell>rc file.  Your $PATH variable
