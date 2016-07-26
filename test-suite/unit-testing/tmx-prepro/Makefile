@@ -12,12 +12,12 @@ tmx-prepro-%/README:
 	[[ -n "${PORTAGE_GIT_ROOT}" ]] && git clone ${PORTAGE_GIT_ROOT}/tmx-prepro.git tmx-prepro-$* || cp -ar ${PORTAGE}/tmx-prepro tmx-prepro-$*
 
 test1: %: tmx-prepro-%/README
-	cp ../../data/tmx/{h2,h3,hyphens,train_termino}.tmx tmx-prepro-$@/template/tmx/
+	cp data/{h2,h3,hyphens,train_termino}.tmx tmx-prepro-$@/template/tmx/
 	cd tmx-prepro-$@/template/preparation; make all DEV_SETS=dev1 SIZE.BIG=3 SIZE.SMALL=2 RSAMPLE_SIZE=1
 	cd tmx-prepro-$@/template/corpora; make all DEV_SETS=dev1 SIZE.BIG=3 SIZE.SMALL=2 RSAMPLE_SIZE=1
 
 test2: %: tmx-prepro-%/README
-	cp ../../data/tmx/{train_text,train_termino}.tmx tmx-prepro-$@/template/tmx/
+	cp data/{train_text,train_termino}.tmx tmx-prepro-$@/template/tmx/
 	cd tmx-prepro-$@/template/preparation; make all DEV_SETS=dev1 SIZE.BIG=3 SIZE.SMALL=2 RSAMPLE_SIZE=1 corpus=train_text corpus.extra=train_termino
 	cd tmx-prepro-$@/template/corpora; make all DEV_SETS=dev1 SIZE.BIG=3 SIZE.SMALL=2 RSAMPLE_SIZE=1 corpus=train_text corpus.extra=train_termino
 
