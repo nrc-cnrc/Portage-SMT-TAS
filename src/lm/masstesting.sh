@@ -100,9 +100,10 @@ echo "====================== Summary ====================="
 echo ""
 
 if [ $ALL_GOOD = 0 ]; then
-   echo "Something went wrong! One or more tests are not accurate!"
+   echo -e "Something went wrong! One or more tests are not accurate!\n"
+   exit 1
 else
-   echo "OK! All tests look allright!"
+   echo -e "OK! All tests look allright!\n"
+   rm  srilmtestfile  lmtexttestfile-per-sent  lmtexttestfile  lmtexttestfile-no-limit
+   exit 0
 fi
-
-echo ""
