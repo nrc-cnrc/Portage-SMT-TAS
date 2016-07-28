@@ -341,6 +341,9 @@ Mandatory dependencies for all distributions:
    multi-threaded implementation.  It is now available from GitHub:
    https://github.com/moses-smt/mgiza
 
+   Note: before you install MGIZA++, you may need to install Python, ICU and
+   boost. See elsewhere in this file for details.
+
    Get and install the current version:
       # Download ZIP from https://github.com/moses-smt/mgiza or use Git:
       git clone https://github.com/moses-smt/mgiza.git
