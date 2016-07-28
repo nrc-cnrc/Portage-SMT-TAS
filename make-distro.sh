@@ -527,7 +527,7 @@ make_bin() {
          else
             ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          fi |
-            egrep -o '/[^ ]*(portage|libtcmalloc|libprofiler|libicu)[^ ]*.so[^ ]*' |
+            egrep -o '/[^ ]*(home|portage|libtcmalloc|libprofiler|libicu|libunwind)[^ ]*.so[^ ]*' |
             xargs -i cp {} $ELFDIR
          r rmdir --ignore-fail-on-non-empty $ELFDIR
       r popd
