@@ -555,7 +555,7 @@ make_iso_and_tar() {
       else
          PATCH_FILES=
       fi
-      r r -no-error mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+      r r -no-error mkisofs -V $ISO_VOLID -joliet-long -D -r -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '>&' iso.log
       r mv PORTAGEshared PortageII-$CUR_VERSION
       r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-$CUR_VERSION '>&' tar.log
