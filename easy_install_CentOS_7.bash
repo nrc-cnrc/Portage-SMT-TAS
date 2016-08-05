@@ -91,7 +91,6 @@ perl-JSON.noarch  perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch pe
 #Quick PortageII-3.0 installation check
 
 	source $HOME/PortageII-3.0/SETUP.bash
-	source $HOME/PortageII-3.0/SETUP.bash
 	make -C $PORTAGE/test-suite/unit-testing/check-installation
 
 
