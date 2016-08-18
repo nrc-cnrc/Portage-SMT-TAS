@@ -400,12 +400,12 @@ Mandatory dependencies for all distributions:
       # Obtain the package from https://github.com/dav/word2vec
       # It is not available as a download file, so you have to do a git
       # clone to obtain the latest version:
-      git clone https://github.com/dav/word2vec
+      git clone https://github.com/tmikolov/word2vec
       cd word2vec
-      make -C src
+      make word2vec
    Installation is manual. You can put it anywhere on your path:
       mkdir -p $PORTAGE/third-party/bin
-      cp bin/word2vec $PORTAGE/third-party/bin/
+      cp word2vec $PORTAGE/third-party/bin/
 
  - libsvm - The executable programs that come with the libsvm library are
    needed for Confidence Estimation.  The package is available from
