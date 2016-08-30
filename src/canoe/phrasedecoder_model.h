@@ -67,6 +67,11 @@ namespace Portage
          , partial_score(NAN)
       {}
 
+      /// This class has some subclasses, so let's be cosher and give it a
+      /// virtual destructor. Necessary to make g++ 4.7.4 or more recent happy,
+      /// too...
+      virtual ~PhraseInfo() {}
+
       /// The source words that this is a translation of
       Range src_words;
 
