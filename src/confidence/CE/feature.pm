@@ -33,6 +33,7 @@ package CE::feature;
 use strict;
 use warnings;
 use open IO=>':utf8';
+use filetest 'access';
 use File::Spec qw(rel2abs);
 use CE::distance qw(Levenshtein longestCommonSubstring commonNgrams);
 use CE::help;

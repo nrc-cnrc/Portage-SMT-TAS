@@ -338,6 +338,11 @@ BEGIN {
    }
 }
 
+# With ACLs, -x and -r don't work properly unless we use filetest 'access'
+# Downside: -x _ and -r _ no longer work properly in this mode, so we must
+# repeat the file name (see perldoc filetest for details).
+use filetest 'access';
+
 use portage_utils;
 printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
@@ -456,7 +461,7 @@ unless (defined $canoe_ini) {
    -f $canoe_ini or die "Error: Unable to locate a canoe.ini.cow file; ",
                         "use -f or -ini to specify the canoe.ini file.\nStopped"
 }
--f $canoe_ini && -r _ or die "Error: canoe.ini file '$canoe_ini' is not a readable file.\nStopped";
+-f $canoe_ini && -r $canoe_ini or die "Error: canoe.ini file '$canoe_ini' is not a readable file.\nStopped";
 
 my $models_dir = dirname($canoe_ini);
 -d $models_dir or die "Error: models directory '$models_dir' is not a readable directory.\nStopped";
@@ -478,7 +483,7 @@ if ($with_rescoring) {
                          "use -model to specify the rescoring model.\nStopped";
       $rs_model = shift @files;
    }
-   -f $rs_model && -r _ or die "Error: Rescoring model '$rs_model' is not a readable file.\nStopped";
+   -f $rs_model && -r $rs_model or die "Error: Rescoring model '$rs_model' is not a readable file.\nStopped";
 } elsif ($with_ce) {
    # Locate the CE model.
    if (defined $model) {
@@ -492,7 +497,7 @@ if ($with_rescoring) {
                          "use -model to specify the CE model.\nStopped";
       $ce_model = shift @files;
    }
-   -f $ce_model && -r _ or die "Error: CE model '$ce_model' is not a readable file.\nStopped";
+   -f $ce_model && -r $ce_model or die "Error: CE model '$ce_model' is not a readable file.\nStopped";
 }
 else {
    !defined $model or die "Error: -model option is invalid with -decode-only; "
@@ -578,27 +583,27 @@ if ($tc and !defined $tclm) {
 }
 if ($tc) {
    if ($tctp) {
-      -d $tclm && -x _
+      -d $tclm && -x $tclm
          or die "Error: Tightly packed truecasing $tgt model '$tclm' ",
                 "is not a readable directory.\nStopped";
-      -d $tcmap && -x _
+      -d $tcmap && -x $tcmap
          or die "Error: Tightly packed truecasing map '$tcmap' ",
                 "is not a readable directory.\nStopped";
    }
    else {
-      -f $tclm && -r _
+      -f $tclm && -r $tclm
          or die "Error: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
-      -f $tcmap && -r _
+      -f $tcmap && -r $tcmap
          or die "Error: Truecasing map '$tcmap' is not a readable file.\nStopped";
    }
    if (defined $tcsrclm) {
       if ($tcsrclm =~ /.tplm$/) {
-         -d $tcsrclm && -x _
+         -d $tcsrclm && -x $tcsrclm
             or die "Error: Tightly packed truecasing $src model '$tcsrclm' ",
                    "is not a readable directory.\nStopped";
       }
       else {
-         -f $tcsrclm && -r _
+         -f $tcsrclm && -r $tcsrclm
             or die "Error: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";
       }
    }

@@ -193,21 +193,25 @@ $lmOrder = 3 if (!defined $lmOrder && $use_srilm);
 print STDERR "truecase.pl: truecasing '$in_file' starting\n" if $verbose;
 
 # Make sure the input files exist
-$in_file eq '-' or -f $in_file && -r _
+# With ACLs, -x and -r don't work properly unless we use filetest 'access'
+# Downside: -x _ and -r _ no longer work properly in this mode, so we must
+# repeat the file name (see perldoc filetest for details).
+use filetest 'access';
+$in_file eq '-' or -f $in_file && -r $in_file
    or die "Error: Input text file '$in_file' is not a readable file.\n";
-not defined $src_file or -f $src_file && -r _
+not defined $src_file or -f $src_file && -r $src_file
    or die "Error: Source language file '$src_file' is not a readable file.\n";
-not defined $pal_file or -f $pal_file && -r _
+not defined $pal_file or -f $pal_file && -r $pal_file
    or die "Error: PAL file '$pal_file' is not a readable file.\n";
-not defined $lm_file or -f $lm_file && -r _
+not defined $lm_file or -f $lm_file && -r $lm_file
    or die "Error: Truecasing model '$lm_file' is not a readable file.\n";
-not defined $map_file or -f $map_file && -r _
+not defined $map_file or -f $map_file && -r $map_file
    or die "Error: Truecasing MAP '$lm_file' is not a readable file.\n";
-not defined $tplm or -d $tplm && -x _
+not defined $tplm or -d $tplm && -x $tplm
    or die "Error: Tightly packed truecasing model '$tplm' is not a readable directory.\n";
-not defined $tppt or -d $tppt && -x _
+not defined $tppt or -d $tppt && -x $tppt
    or die "Error: Tightly packed truecasing phrase table '$tppt' is not a readable directory.\n";
-not defined $srclm_file or (-f $srclm_file && -r _) or (-d $srclm_file && -x _)
+not defined $srclm_file or (-f $srclm_file && -r $srclm_file) or (-d $srclm_file && -x $srclm_file)
    or die "Error: Source NC1 language model '$srclm_file' is not readable.\n";
 
 # Establish that the output file can be written.
