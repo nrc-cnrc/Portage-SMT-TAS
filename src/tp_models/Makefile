@@ -35,7 +35,7 @@ MODULE_CF = -DIN_PORTAGE=1 -ggdb
 
 MODULE_DEPENDS = word_align tpt
 
-DYNLIBS = -lboost_program_options -lboost_system
+DYNLIBS = -lboost_program_options -lboost_system -licuuc
 
 #DOCUMENTS = doc/TSA.pdf
 
