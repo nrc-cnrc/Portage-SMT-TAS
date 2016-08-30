@@ -119,7 +119,7 @@ public:
       string empty("");
       vector<string> toks;
 
-      split(empty, toks, ";");
+      TS_ASSERT_EQUALS(split(empty, toks, ";"), 0u);
       TS_ASSERT_EQUALS(toks.size(), 0);
    }
 

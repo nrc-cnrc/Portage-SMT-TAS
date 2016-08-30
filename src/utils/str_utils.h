@@ -478,6 +478,10 @@ Uint split(const char* s, T* dest, Converter& converter, const char* sep = " \t\
 /**
  * Split an input string into a sequence of whitespace-delimited tokens.
  * The * splitZ() version clears the output vector first.
+ * *
+ * NOTE: split fails in tests/test_str_utils.h using [g++-4.8.0, g++-4.9.1]
+ * because dest.size() does NOT return the correct value.  The error goes away
+ * in g++-4.9.2.
  *
  * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, Uint max_toks)
  * @param s          input string
@@ -494,6 +498,12 @@ Uint split(const char* s, T* dest, Converter& converter, const char* sep = " \t\
 template<class T, class Converter>
 Uint split(const char* s, vector<T>& dest, Converter& converter, const char* sep = " \t\n", Uint max_toks = 0)
 {
+   // IMPORTANT NOTE:
+   // Portage fails its tests/test_str_utils.h using [g++-4.8.0, g++-4.9.1]
+   // because dest.size() does NOT return the correct value.  Calling
+   // dest.size() a second time seems to fix the problem but is an unacceptable
+   // solution since we don't know where else in Portage this type of error
+   // might also occur.  The error goes away in g++-4.9.2.
    const Uint init_size(dest.size());
    // Make a copy to work on
    const Uint len = strlen(s);
