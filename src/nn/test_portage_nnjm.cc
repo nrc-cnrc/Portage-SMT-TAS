@@ -58,11 +58,11 @@ int main(int argc, char* argv[])
    printCopyright(2014, "prog");
    getArgs(argc, argv);
 
-   Uint fmt = 0;
+   //Uint fmt = 0;
    if (format == "nrc")
-      fmt = 0;
+      ; //fmt = 0;
    else if (format == "udem")
-      fmt = 1;
+      ; //fmt = 1;
    else
       error(ETFatal, "unknown format string: %s", format.c_str());
 
