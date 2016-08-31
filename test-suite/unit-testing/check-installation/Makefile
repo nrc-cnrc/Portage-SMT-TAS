@@ -36,9 +36,19 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
+pre_installation: perl_version
+pre_installation: perl_modules
+pre_installation: python_version
+pre_installation: python_modules
+pre_installation: java_version
+pre_installation: make_version
 pre_installation: gcc_version
-pre_installation: perl_version perl_modules python_version python_modules java_version
-pre_installation: make_version mgiza word2vec libsvm xml_grep xmllint ram_vs_swap
+pre_installation: mgiza
+pre_installation: word2vec
+pre_installation: libsvm
+pre_installation: xml_grep
+pre_installation: xmllint
+pre_installation: ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
