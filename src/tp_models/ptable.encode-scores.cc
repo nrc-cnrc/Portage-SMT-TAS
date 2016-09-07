@@ -557,10 +557,10 @@ int MAIN(argc, argv)
       cerr << efatal << "Unable to open final score file '" << scrName << "' for read/write."
            << exit_1;
    }
-   uint32_t scrs_per_line = third_col_scores + adir_scores;
-   uint32_t fields_per_line = scrs_per_line + num_counts +
+   size_t scrs_per_line = third_col_scores + adir_scores;
+   size_t fields_per_line = scrs_per_line + num_counts +
       (has_alignments ? 1 : 0) * (sizeof(prelimAlignmentPosn)/sizeof(uint32_t));
-   size_t expected_size = entry.LineNo() * fields_per_line * sizeof(uint32_t);
+   size_t expected_size = size_t(entry.LineNo()) * fields_per_line * sizeof(uint32_t);
    if (scr.size() != expected_size)
       cerr << efatal << "Incorrect temporary score file size: " << scr.size()
            << "; expected " << expected_size
