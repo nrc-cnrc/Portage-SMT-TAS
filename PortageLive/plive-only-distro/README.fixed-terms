@@ -1,17 +1,17 @@
-                        PortageLive - PortageII 2.2
+                        PortageLive - PortageII 3.0
  
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2014, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2014, Her Majesty in Right of Canada
+Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2016, Her Majesty in Right of Canada
 
                                 Fixed Terms
 
-Starting with version 2.2, PortageII can handle a list of fixed terms, which
-are used to bypass the translation system for fixed expressions that should not
-be translated statistically.
+Starting with version 2.2, and now also in 3.0, PortageII can handle a list of
+fixed terms, which are used to bypass the translation system for fixed
+expressions that should not be translated statistically.
 
 The purpose of the fixed-terms module is to handle specific brand names, proper
 names and other terms that accept no variations and must be systematically

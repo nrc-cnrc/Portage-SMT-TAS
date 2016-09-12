@@ -1,7 +1,17 @@
 Contents:
- - Bin: result of make DO_EXTERNAL_LIBS=1 in PortageII-2.2/PortageLive/bin, in branch
-   PortageII-2.2-maintenance-branch, commit edb99556d, on ilt-build02
- - www: result of ./prep-file-layout.sh in PortageII-2.2/PortageLive/www
+ - bin:
+      make DO_EXTERNAL_LIBS=1
+   in PortageII-3.0/PortageLive/bin, on tag PortageII-3.0, commit a5e11efa03,
+   on machine ilt-build02.
+ - plive.bin.PortageII-3.0.tar.gz:
+      cd bin/rpm.build.root; tar -czf ../../plive.bin.PortageII-3.0.tar.gz opt
+ - www:
+      ./prep-file-layout.sh -dynamic-ip
+   in PortageII-3.0/PortageLive/www, on tag PortageII-3.0, commit a5e11efa03.
+ - plive.www.PortageII-3.0.tar.gz:
+      cd www/rpm.build.root; tar -czf ../../plive.www.PortageII-3.0.tar.gz opt var
  - first-boot-script and subsequent-boot-script: scripts for configuring stuff automatically
- - NOTICE: third party copyrights copied from PortageII-2.2/NOTICE
+ - NOTICE: third party copyrights copied from PortageII-3.0/NOTICE
  - README: general information and installation instructions.
+ - sha1:
+      sha1sum plive.*.tar.gz first-boot-script subsequent-boot-script NOTICE > sha1
