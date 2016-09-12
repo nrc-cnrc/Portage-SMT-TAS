@@ -571,23 +571,35 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
 
 static bool debugDaemon = false;
 
+/// Singleton socket object to talk to the canoe daemon.
+static const SocketUtils *canoeDaemonSocket = NULL;
+
+/**
+ * Init the singleton daemon socket object from the canoeDaemonSpec, thus
+ * saving the specs for all connections to the canoe daemon.
+ * @param canoeDaemonSpec  value of -canoe-daemon command line option
+ */
+static void setDaemonSpecs(const string& canoeDaemonSpec) {
+   assert(canoeDaemonSocket == NULL);
+   canoeDaemonSocket = new SocketUtils(canoeDaemonSpec);
+}
+
 /**
  * Send a command to the canoe daemon
- * @param canoeDaemonSpec  c.canoeDaemon
  * @param message          message to send (e.g., GET, DONE, PING)
  * @param responseExpected set this iff you expect a non-empty answer from the daemon
  * @return the daemon's response
  */
-static string sendMessageToDaemon(const string& canoeDaemonSpec, const string& message, bool responseExpected)
+static string sendMessageToDaemon(const string& message, bool responseExpected)
 {
    if (debugDaemon) cerr << "Send message to daemon: " << message << endl;
-   static const SocketUtils daemon(canoeDaemonSpec);
+   assert(canoeDaemonSocket != NULL);
 
    string response;
-   bool success = daemon.sendRecv(message + daemon.selfDescription(), response);
+   bool success = canoeDaemonSocket->sendRecv(message + canoeDaemonSocket->selfDescription(), response);
    if ((!success || response.empty()) && responseExpected)
       error(ETWarn, "No response for message %s to %s",
-            message.c_str(), canoeDaemonSpec.c_str());
+            message.c_str(), canoeDaemonSocket->remoteDescription().c_str());
    trim(response, "\n");
    if (debugDaemon) cerr << "Received response from daemon: " << response << endl;
 
@@ -614,7 +626,7 @@ void reportSignalToDaemon(int s) {
    } else {
       oss << "SIGNALED ***(rc=" << s << ")*** (signal=" << s << ")";
    }
-   sendMessageToDaemon("", oss.str(), false);
+   sendMessageToDaemon(oss.str(), false);
    cerr << "reporting signal to daemon and exiting: " << oss.str() << endl;
    exit(128+s);
 }
@@ -623,7 +635,7 @@ void reportSignalToDaemon(int s) {
 /// Returns next sentence to translate, or Uint(-1) if the daemon said done.
 static Uint getNextSentenceIDFromDaemon(const string& canoeDaemonSpec)
 {
-   string response = sendMessageToDaemon(canoeDaemonSpec, "GET", false);
+   string response = sendMessageToDaemon("GET", false);
    if (response == "***EMPTY***" || response == "")
       return Uint(-1);
 
@@ -693,7 +705,8 @@ int MAIN(argc, argv)
    }
    const bool useCanoeDaemon = !canoeDaemon.empty();
    if (useCanoeDaemon) {
-      if (sendMessageToDaemon(canoeDaemon, "PING", true) == "PONG") {
+      setDaemonSpecs(canoeDaemon);
+      if (sendMessageToDaemon("PING", true) == "PONG") {
          // set signal handlers so we report errors to the daemon too.
          sigHandler.sa_handler = reportSignalToDaemon;
          sigemptyset(&sigHandler.sa_mask);
@@ -1072,7 +1085,7 @@ int MAIN(argc, argv)
 
       if (useCanoeDaemon) {
          const string response =
-            sendMessageToDaemon(c.canoeDaemon, "DONE " + toString(i) + " (rc=0)", false);
+            sendMessageToDaemon("DONE " + toString(i) + " (rc=0)", false);
          if (response.substr(0,10) == "ALLSTARTED")
             break;
       }

@@ -44,6 +44,12 @@ public:
    const std::string& selfDescription() const { return self_description; }
 
    /**
+    * Get a short string describing the remote end of the connecion.
+    * @return  host:port as given as socket_spec to the constructor
+    */
+   const std::string& remoteDescription() const { return remote_description; }
+
+   /**
     * Send a short message to this SocketUtils's host and port, and get a short response back.
     *
     * The message and the response should be no longer than 255 characters.
