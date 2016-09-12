@@ -1,0 +1,6 @@
+Contents:
+ - Bin: result of make DO_EXTERNAL_LIBS=1 in PortageII-2.1/PortageLive/bin
+ - www: result of ./prep-file-layout.sh in PortageII-2.1/PortageLive/www
+ - first-boot-script and subsequent-boot-script: scripts for configuring stuff automatically
+ - NOTICE: third party copyrights copyed from PortageII-2.1/NOTICE
+ - README: general information and installation instructions.
