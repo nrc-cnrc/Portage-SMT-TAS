@@ -15,3 +15,5 @@ Contents:
  - README: general information and installation instructions.
  - sha1:
       sha1sum plive.*.tar.gz first-boot-script subsequent-boot-script NOTICE > sha1
+ - ISO file:
+      mkisofs -V PII-3.0-live -joliet-long -D -r -o ../PortageII-3.0-PortageLive.iso first-boot-script NOTICE plive.bin.PortageII-3.0.tar.gz plive.www.PortageII-3.0.tar.gz README README.fixed-terms sha1 subsequent-boot-script
