@@ -633,7 +633,7 @@ void reportSignalToDaemon(int s) {
 
 /// Get the next sentence number to translate, from the canoe daemon
 /// Returns next sentence to translate, or Uint(-1) if the daemon said done.
-static Uint getNextSentenceIDFromDaemon(const string& canoeDaemonSpec)
+static Uint getNextSentenceIDFromDaemon()
 {
    string response = sendMessageToDaemon("GET", false);
    if (response == "***EMPTY***" || response == "")
@@ -910,7 +910,7 @@ int MAIN(argc, argv)
 
       Uint save_i = i;
       if (useCanoeDaemon) {
-         i = getNextSentenceIDFromDaemon(c.canoeDaemon);
+         i = getNextSentenceIDFromDaemon();
          /*
          if (i == 0)
             error(ETFatal, "Testing fatal error catching");
