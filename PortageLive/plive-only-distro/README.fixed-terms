@@ -1,0 +1,121 @@
+                        PortageLive - PortageII 2.2
+ 
+Traitement multilingue de textes / Multilingual Text Processing
+Technologies de l'information et des communications /
+   Information and Communications Technologies
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2014, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2014, Her Majesty in Right of Canada
+
+                                Fixed Terms
+
+Starting with version 2.2, PortageII can handle a list of fixed terms, which
+are used to bypass the translation system for fixed expressions that should not
+be translated statistically.
+
+The purpose of the fixed-terms module is to handle specific brand names, proper
+names and other terms that accept no variations and must be systematically
+translated exactly the same way.
+
+Limitations:
+
+ - No morphological processing of any kind is done. This is not intended for
+   terms with morphological variants, although source-language variants can be
+   entered as separate fixed terms.
+
+ - A given term can only have one translation.
+
+ - No disambiguation will be performed: if the given term appears in text to
+   translate, it will get its fixed translation even when that might not have
+   been appropriate. Therefore, make sure not to enter text that can sometimes
+   be used in a different way.
+
+ - The fixed-terms list is lower-cased, and it is applied to text to translate
+   after lowercasing. Therefore, there is no way to distinguish between "Rice"
+   and "rice" or between "US" and "us". Therefore, make sure to add enough
+   context to make your fixed terms unambiguous, e.g., "Mr. Rice" instead of
+   "Rice".
+
+ - Important warning: do not upload your whole terminology database as a
+   fixed-terms list. The results will be disastrous. The fixed-terms system
+   completely bypasses all statistical learning abilities of PortageII and is
+   only appropriate for carefully selected, fully disambiguated cases.
+
+Installation:
+
+To enable the fixed-terms functionality:
+
+ - A directory plugins/fixedTerms/ must exist in each system and be readable,
+   writable and executable by the Apache process. This is automatically done
+   for systems trained with PortageII 2.2 or more recent. We provide a script
+   to retrofit systems trained with earlier versions. Run:
+
+      prep-fixedTerms-layout.sh /opt/PortageII/models/<system>
+
+   for each pre-existing system to create this directory and set its
+   permissions correctly.
+
+ - The predecode_plugin must also be included within each system that might
+   handle fixed terms, by copying it into its plugins/ directory:
+
+      cp /opt/PortageII/bin/predecode_plugin /opt/PortageII/models/<system>/plugins
+
+   Make sure you use the plugin from PortageII version 2.2 or later, and decide
+   whether you want English to French number translation when you install that
+   plugin, since the same plugin controls both features.
+
+ - Systems that were trained with old versions of PortageII or its predecessors
+   will often have the [bypass-marked] parameter in their canoe.ini.cow file.
+   This must be removed or replaced by [no-bypass-marked]:
+
+      sed -i 's/bypass-marked/no-bypass-marked/' /opt/PortageII/models/<system>/canoe.ini.cow
+
+Once the fixed-terms functionality is enabled, you can upload a fixed-terms
+database through the PortageLive API. This is meant to be called from a client
+application that should generate this file automatically from a more
+user-friendly database. We only give a brief description of the operations
+here; see the API documentation for more details.
+
+ - Use the updateFixedTerms() method to initialize or update the database. The
+   fixed-terms list must be prepared in a tab-separated file where the first
+   line contains:
+
+      source language code<TAB>the target language code
+
+   and each subsequent line contains:
+
+      a source term<TAB>the term's translation
+
+   e.g. (where <TAB> should be replace by literal tab characters):
+      eng<TAB>fra
+      this is a silly term<TAB>ce terme est stupide
+
+ - Use the removeFixedTerms() method to delete the fixed-terms list and turn
+   off fixed-terms handling.
+
+ - Use the getFixedTerms() method to query the system for its current
+   fixed-terms list.
+
+After all this, you should see the behaviour of your system changed to take
+into account the fixed terms you defined.
+
+Alternatively, you can manually compile and install the fixed-terms database on
+your PortageLive server:
+
+ - copy the fixed-terms list to the PortageLive server into file
+   /opt/PortageII/models/<system>/plugins/fixedTerms/fixedTerms
+
+ - compile the fixedTerms list into file
+   /opt/PortageII/models/<system>/plugins/fixedTerms/tm:
+
+      cd /opt/PortageII/models/<system>/plugins/fixedTerms/
+   for en->fr systems, assuming you place English in the first column:
+      fixed_term2tm.pl -source_column=1 -source=en -target=fr fixedTerms | sort --unique > tm
+   for fr->en systems, assuming you place English in the first column:
+      fixed_term2tm.pl -source_column=2 -source=fr -target=en fixedTerms | sort --unique > tm
+
+ - the example file above, compiled, will look like this if things worked correctly:
+   en->fr:
+      this is a silly term ||| <FT target="ce terme est stupide">this is a silly term</FT> ||| 1 1
+   fr->en:
+      ce terme est stupide ||| <FT target="this is a silly term">ce terme est stupide</FT> ||| 1 1

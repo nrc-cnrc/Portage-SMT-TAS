@@ -8,7 +8,7 @@
 sed -i 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot "\/var\/www\/html\/secure"/' /etc/httpd/conf.d/ssl.conf
 
 # 4.2 The WSDL file needs to be tailored to have the hostname or IP of this machine
-sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d : -f2`/g" /opt/PortageII/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`LC_ALL=C ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d : -f2`/g" /opt/PortageII/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
 
 # 4.3 These files are required to start serving soap requests
 ln -s /opt/PortageII/www/index.html /var/www/html/index.html
@@ -18,7 +18,7 @@ ln -s /opt/PortageII/www/test.php /var/www/html/test.php
 
 # 4.4 Creating the content available through the SSL variant
 mkdir /var/www/html/secure
-sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d : -f2`/g" /opt/PortageII/www/secure/PortageLiveAPI.wsdl > /var/www/html/secure/PortageLiveAPI.wsdl
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`LC_ALL=C ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d : -f2`/g" /opt/PortageII/www/secure/PortageLiveAPI.wsdl > /var/www/html/secure/PortageLiveAPI.wsdl
 ln -s /opt/PortageII/www/secure/index.html /var/www/html/secure/index.html
 ln -s /opt/PortageII/www/secure/PortageLiveAPI.php /var/www/html/secure/PortageLiveAPI.php
 ln -s /opt/PortageII/www/secure/soap.php /var/www/html/secure/soap.php

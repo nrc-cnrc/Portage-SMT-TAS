@@ -5,6 +5,6 @@
 #exec > /var/log/subsequentboot 2>&1
 
 # 5.1 Replace a placeholder with the current IP of the VA
-sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/g" /opt/PortageII/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
-sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/g" /opt/PortageII/www/secure/PortageLiveAPI.wsdl > /var/www/html/secure/PortageLiveAPI.wsdl
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`LC_ALL=C ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/g" /opt/PortageII/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`LC_ALL=C ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/g" /opt/PortageII/www/secure/PortageLiveAPI.wsdl > /var/www/html/secure/PortageLiveAPI.wsdl
 

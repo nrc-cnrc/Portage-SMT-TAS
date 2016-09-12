@@ -1,4 +1,4 @@
-                        PortageLive - PortageII 2.1
+                        PortageLive - PortageII 2.2
  
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
@@ -16,7 +16,7 @@ See NOTICE for the Copyright notices of 3rd party libraries.
                              Brief Description
 
 This CD contains the files required to install PortageLive from the
-PortageII-2.1 machine translation software suite.
+PortageII-2.2 machine translation software suite.
 
 Contents:
    bin/         PortageLive runtime software layout
@@ -30,7 +30,7 @@ Warnings:
  - These commands install files directly in /opt/ and /var/www/. Review their
    effects carefully before running them. They are appropriate if you are
    building a dedicated virtual appliance, but consider copying the files by
-   smaller units if the server is not dedicated to PortageII-2.1.
+   smaller units if the server is not dedicated to PortageII-2.2.
  - In particular, these commands assume you don't have any other web pages on
    the same server, and install pages in /var/www/html directly.
  - Will overwrite any previous version of PortageLive on the same server.
@@ -41,6 +41,8 @@ Warnings:
 
 Prerequisites:
  - Linux: RedHat or its derivatives are best (e.g., CentOS, Scientific Linux)
+   Versions 5.x or 6.x of these OSs are fine. Version 7.x can be used but will
+   require more adjustments and configuration.
  - Python 2.7.x. Older or more recent versions will not do.
  - Perl 5.10 or more recent.
  - Perl module XML::Twig (3.28 or more recent).
@@ -64,8 +66,8 @@ Configuration:
    adjusted. Run "bash subsequent-boot-script" to do so. As the name suggests,
    one option is to run it automatically each time the server is rebooted,
    e.g., by sourcing it in /etc/rc.d/rc.local on a CentOS or RedHat server.
- - Install the PortageII Generic Model v1.0 models, distributed separately, in
-   /opt/PortageII/models.
+ - Install the PortageII Generic Model v1.0 or v1.1 models, distributed
+   separately, in /opt/PortageII/models.
    rsync -arz DVD/models/generic1.0.en2fr /opt/PortageII/models/
    rsync -arz DVD/models/generic1.0.fr2en /opt/PortageII/models/
    When done, confirm each /opt/PortageII/models/<systemname>/ directory
@@ -76,6 +78,7 @@ Configuration:
  - For interactive command-line testing, setup your environment in your .bashrc:
    export PORTAGE=/opt/PortageII
    source ${PORTAGE}/SETUP.bash
+ - See README.fixed-terms for details on enabling the fixed-terms functionality.
 
 Testing:
  - Command line tests - make sure each of these commands displays a help message:
