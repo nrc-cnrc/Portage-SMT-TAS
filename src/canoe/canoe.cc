@@ -679,6 +679,47 @@ int MAIN(argc, argv)
    // Do this here until such a time as we might use argProcessor for canoe.
    Logging::init();
 
+   // Check if we have a canoe daemon to talk to; do this before processing the
+   // rest of the command line arguments so we report even those errors to the
+   // master. We do it before even initializing the ArgReader so that errors
+   // caught at that stage are also reported back to the master.
+   struct sigaction sigHandler;
+   string canoeDaemon;
+   for (int i = 1; i < argc; ++i) {
+      if (strcmp(argv[i],"-canoe-daemon") == 0 && i+1 < argc) {
+         canoeDaemon = argv[i+1];
+         break;
+      }
+   }
+   const bool useCanoeDaemon = !canoeDaemon.empty();
+   if (useCanoeDaemon) {
+      if (sendMessageToDaemon(canoeDaemon, "PING", true) == "PONG") {
+         // set signal handlers so we report errors to the daemon too.
+         sigHandler.sa_handler = reportSignalToDaemon;
+         sigemptyset(&sigHandler.sa_mask);
+         sigHandler.sa_flags = 0;
+
+         sigaction(0, &sigHandler, NULL);
+         sigaction(SIGINT, &sigHandler, NULL);
+         sigaction(SIGQUIT, &sigHandler, NULL);
+         sigaction(SIGILL, &sigHandler, NULL);
+         sigaction(SIGTRAP, &sigHandler, NULL);
+         sigaction(SIGABRT, &sigHandler, NULL);
+         sigaction(SIGFPE, &sigHandler, NULL);
+         sigaction(SIGUSR1, &sigHandler, NULL);
+         sigaction(SIGSEGV, &sigHandler, NULL);
+         sigaction(SIGUSR2, &sigHandler, NULL);
+         sigaction(SIGTERM, &sigHandler, NULL);
+
+         // Make error(ETFatal) use abort() so we can catch it with SIGABRT.
+         Error_ns::Current::errorCallback = Error_ns::abortOnErrorCallBack;
+         ugdiss::exit_1_use_abort = true;
+      } else {
+         error(ETFatal, "Error PINGing canoe daemon; job might already have been completed by other workers, so this error might not be a problem.");
+      }
+   }
+
+   // Regular command line and config file processing
    CanoeConfig c;
    static vector<string> args = c.getParamList();
    args.push_back("options");
@@ -695,8 +736,7 @@ int MAIN(argc, argv)
    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
    argReader.read(argc - 1, argv + 1);
 
-
-   if ( argReader.getSwitch("options") ) {
+   if (argReader.getSwitch("options")) {
       vector<string> help_lines;
       split(string(HELP), help_lines, "\n");
       for ( Uint i(0); i < help_lines.size(); ++i ) {
@@ -726,36 +766,6 @@ int MAIN(argc, argv)
 
    if (c.verbosity >= 2)
       c.write(cerr, 2);
-
-   // Check if we have a canoe daemon to talk to
-   struct sigaction sigHandler;
-   bool useCanoeDaemon = !c.canoeDaemon.empty();
-   if (useCanoeDaemon) {
-      if (sendMessageToDaemon(c.canoeDaemon, "PING", true) == "PONG") {
-         // set signal handlers so we report errors to the daemon too.
-         sigHandler.sa_handler = reportSignalToDaemon;
-         sigemptyset(&sigHandler.sa_mask);
-         sigHandler.sa_flags = 0;
-
-         sigaction(0, &sigHandler, NULL);
-         sigaction(SIGINT, &sigHandler, NULL);
-         sigaction(SIGQUIT, &sigHandler, NULL);
-         sigaction(SIGILL, &sigHandler, NULL);
-         sigaction(SIGTRAP, &sigHandler, NULL);
-         sigaction(SIGABRT, &sigHandler, NULL);
-         sigaction(SIGFPE, &sigHandler, NULL);
-         sigaction(SIGUSR1, &sigHandler, NULL);
-         sigaction(SIGSEGV, &sigHandler, NULL);
-         sigaction(SIGUSR2, &sigHandler, NULL);
-         sigaction(SIGTERM, &sigHandler, NULL);
-
-         // Make error(ETFatal) use abort() so we can catch it with SIGABRT.
-         Error_ns::Current::errorCallback = Error_ns::abortOnErrorCallBack;
-         ugdiss::exit_1_use_abort = true;
-      } else {
-         error(ETFatal, "Error PINGing canoe daemon; job might already have been completed by other workers, so this error might not be a problem.");
-      }
-   }
 
    // If the user request a single file, this object will keep track of the
    // required files
