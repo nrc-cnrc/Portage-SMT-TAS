@@ -55,14 +55,37 @@ Then, either copy the files manually to your translation server, if you have
 just one physical server, or build the RPM by running ../scripts/make-rpm.sh if
 you are using virtual appliances.
 
-Manual Installation
-===================
+Installation
+============
 
-To manually copy the files to your PortageLive translation server, you can use
-rsync:
+To copy the files to your PortageLive translation server, you can use rsync:
    rsync -arzv rpm.build.root/* root@<host>:/
 or, locally:
    rsync -arv rpm.build.root/* /
+
+Verifying Symlinks
+==================
+
+After making the copy, please make sure the following symlinks were correctly
+re-created:
+   /var/www/html/secure/images -> ../images
+   /var/www/html/secure/favicon.ico -> ../favicon.ico
+If not, fix them manually:
+   cd /var/www/html/secure
+   ln -s ../images .
+   ln -s ../favicon.ico .
+
+Permissions
+===========
+
+Make sure the apache process can access everything it needs to run PortageII:
+it should have read access to all of /var/www/html, execute access to all
+folders and cgi scripts therein, and write access to /var/www/html/plive.
+
+The installation instructions provided above should have accomplished that
+automatically, but if not, this will fix things:
+   chmod o+rX -r /var/www/html
+   chmod o+w /var/www/html/plive
 
 Next steps
 ==========
