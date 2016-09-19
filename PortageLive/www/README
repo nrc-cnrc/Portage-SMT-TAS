@@ -100,11 +100,18 @@ section of the PortageII User Manual.
 Notes
 =====
 
-Note: the scripts work for us, but rely on details of how the OS and Apache are
+The scripts work for us, but rely on details of how the OS and Apache are
 installed, among other things.  You should expect to have to adjust the
 procedure for your own environment.
 
-Note: If you are planing to use ssl/https, each place in the wsdl file that
-has http://__REPLACE_THIS_WITH_YOUR_IP__/ needs to have https instead of http.
+If you are planing to use ssl/https, each place in the wsdl file that has
+http://__REPLACE_THIS_WITH_YOUR_IP__/ needs to have https instead of http.
 ./prep-file-layout.sh does this automatically while copying the file to the
 rpm.build.root layout, under html/secure/ instead of just html/.
+
+When updating a PortageLive server from a previous version, you have to remove
+compiled WSDL files, e.g., /tmp/wsdl-b86d6725c76b46209ae173d4f02dd224, cached
+by Apache:
+   rm /tmp/wsdl-*
+Otherwise, you will get errors with Apache thinking you're using the previously
+installed version of the SOAP API.
