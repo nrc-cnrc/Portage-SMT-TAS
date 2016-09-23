@@ -243,6 +243,7 @@ Mandatory dependencies for all distributions:
       such as TMX or XLIFF
     - JSON
     - YAML
+    - Time::HiRes
     - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
@@ -250,9 +251,9 @@ Mandatory dependencies for all distributions:
    "perldoc XML::XPath" or "perldoc JSON".
 
    If you're using yum or another Linux package manager, installing
-   perl-XML-XPath, perl-XML-Twig, perl-JSON, and perl-YAML, including all
-   dependencies, should do the trick.  This has to be done as root.  This is by
-   far the easiest way to go.
+   perl-XML-XPath, perl-XML-Twig, perl-JSON, perl-YAML, and perl-Time-HiRes,
+   including all dependencies, should do the trick.  This has to be done as
+   root.  This is by far the easiest way to go.
 
    Failing that, you can try using cpan.  Executed as root, or if you compiled
    Perl manually following the instructions above, this might work:
@@ -263,6 +264,7 @@ Mandatory dependencies for all distributions:
          install XML::Twig
          install JSON
          install YAML
+         install Time::HiRes
    You have to let cpan install all dependencies.  (Say y or yes to all
    questions.)  You mileage may vary because various compilation steps are
    required.

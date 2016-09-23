@@ -49,8 +49,9 @@ perl_version:
 
 .PHONY: perl_modules
 perl_modules:
-	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env; do \
-		perldoc -l $$module > /dev/null || rc=1; \
+	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env Time::HiRes; do \
+		echo -n Perl module $$module: '' ; \
+		if perldoc -l $$module > /dev/null; then echo OK; else echo NOT FOUND; rc=1; fi; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing." >&2
 	@perl -e 'use XML::Twig 3.32;' || ! echo "Portage requires XML::Twig version 3.32 or greater." >&2
 
@@ -63,6 +64,8 @@ python_version:
 .PHONY: python_modules
 python_modules:
 	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string shlex shutil tempfile; do \
+		echo -n Python module $$module: '' ; \
+		if python -c "import $$module"; then echo OK; else echo NOT FOUND; rc=1; fi; \
 		python -c "import $$module" || rc=1;\
 	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing." >&2
 
@@ -124,7 +127,7 @@ ram_vs_swap:
 	@SWAP=`cat /proc/meminfo | grep SwapTotal | egrep -o '[0-9]+'`; \
 	RAM=`cat /proc/meminfo | grep MemTotal | egrep -o '[0-9]+'`; \
 	[[ $$SWAP -ge $$((2 * $$RAM * 1000 / 1024 * 1000 / 1024)) ]] \
-	|| echo "We strongly suggest that you have twice as much swap($$SWAP) than ram($$RAM)." >&2
+	|| echo "Warning: We strongly suggest that you have twice as much swap than ram." >&2
 
 
 ########################################
