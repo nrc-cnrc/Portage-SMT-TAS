@@ -36,19 +36,9 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version
-pre_installation: perl_modules
-pre_installation: python_version
-pre_installation: python_modules
-pre_installation: java_version
-pre_installation: make_version
 pre_installation: gcc_version
-pre_installation: mgiza
-pre_installation: word2vec
-pre_installation: libsvm
-pre_installation: xml_grep
-pre_installation: xmllint
-pre_installation: ram_vs_swap
+pre_installation: perl_version perl_modules python_version python_modules java_version
+pre_installation: make_version mgiza word2vec libsvm xml_grep xmllint ram_vs_swap
 pre_installation:
 	@echo "Prerequisites are correctly installed." >&2
 
@@ -59,8 +49,9 @@ perl_version:
 
 .PHONY: perl_modules
 perl_modules:
-	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env; do \
-		perldoc -l $$module > /dev/null || rc=1; \
+	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env Time::HiRes; do \
+		echo -n Perl module $$module: '' ; \
+		if perldoc -l $$module > /dev/null; then echo OK; else echo NOT FOUND; rc=1; fi; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing." >&2
 	@perl -e 'use XML::Twig 3.32;' || ! echo "Portage requires XML::Twig version 3.32 or greater." >&2
 
@@ -73,13 +64,15 @@ python_version:
 .PHONY: python_modules
 python_modules:
 	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string shlex shutil tempfile; do \
+		echo -n Python module $$module: '' ; \
+		if python -c "import $$module"; then echo OK; else echo NOT FOUND; rc=1; fi; \
 		python -c "import $$module" || rc=1;\
 	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing." >&2
 
 .PHONY: java_version
 java_version:
-	@[[ $$(echo "$$(java -version 2>&1 | egrep -o -m 1 '[0-9]+\.[0-9]+') >= 1.6" | bc) == 1 ]]  \
-	|| ! echo "Portage requires Java 1.6 or more recent." >&2
+	@[[ $$(echo "$$(java -Xmx1000m -version 2>&1 | egrep -o -m 1 '[0-9]+\.[0-9]+') >= 1.6" | bc) == 1 ]]  \
+	|| ! echo "Portage requires Java 1.6 or more recent." Found `java -Xmx1000m -version`. >&2
 
 .PHONY: make_version
 make_version:
@@ -134,7 +127,7 @@ ram_vs_swap:
 	@SWAP=`cat /proc/meminfo | grep SwapTotal | egrep -o '[0-9]+'`; \
 	RAM=`cat /proc/meminfo | grep MemTotal | egrep -o '[0-9]+'`; \
 	[[ $$SWAP -ge $$((2 * $$RAM * 1000 / 1024 * 1000 / 1024)) ]] \
-	|| echo "We strongly suggest that you have twice as much swap($$SWAP) than ram($$RAM)." >&2
+	|| echo "Warning: We strongly suggest that you have twice as much swap than ram." >&2
 
 
 ########################################
@@ -177,5 +170,5 @@ post_installation: check_structpred
 check_structpred: EXPLAIN:=Make sure Java is correctly installed.
 check_structpred:
 	@which structpred.jar &> /dev/null || ! echo "Can't locate structpred.jar in your PATH. Refer to \$$PORTAGE/INSTALL." >&2
-	@java -jar `which structpred.jar` JavaVersion 2>&1 | grep -q "StructPred version" \
+	@java -Xmx1000m -jar `which structpred.jar` JavaVersion 2>&1 | grep -q "StructPred version" \
 	|| ! echo "structpred.jar JavaVersion FAILED: ${EXPLAIN} Refer to \$$PORTAGE/INSTALL." >&2

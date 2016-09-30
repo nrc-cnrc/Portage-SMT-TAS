@@ -67,14 +67,35 @@ Warnings for other compiled dependencies
   environment where it doesn't have access to all software and is limited to
   /opt/PortageII/{bin,lib}.
 
-Manual Installation
-===================
+Installation
+============
 
-To manually copy the files to your PortageLive translation server, you can use
-rsync:
+To copy the files to your PortageLive translation server, you can use rsync:
    rsync -arzv rpm.build.root/* root@<host>:/
 or, locally:
    rsync -arv rpm.build.root/* /
+
+Verifying Symlinks
+==================
+
+After making the copy, please make sure the following symlink was correctly
+re-created:
+   /opt/PortageII/lib/libstdc++.so -> libstdc++.so.<some digit, usually 6>
+If not, fix it manually:
+   cd /opt/PortageII/lib
+   ln -s libstdc++.so.6 libstdc++.so
+
+Permissions
+===========
+
+Make sure the apache process can access everything it needs to run PortageII:
+it should have read access to all of /opt/PortageII, execute access to all
+folders and programs therein, and write access to /opt/PortageII/logs/accounting.
+
+The installation instructions provided above should have accomplished that
+automatically, but if not, this will fix things:
+   chmod -R o+rX /opt/PortageII
+   chmod o+w /opt/PortageII/logs/accounting
 
 Notes
 =====

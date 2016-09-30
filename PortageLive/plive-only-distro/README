@@ -1,0 +1,122 @@
+                        PortageLive - PortageII 3.0
+
+Traitement multilingue de textes / Multilingual Text Processing
+Technologies de l'information et des communications /
+   Information and Communications Technologies
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2016, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+See NOTICE for the Copyright notices of 3rd party libraries.
+
+
+                             Brief Description
+
+This CD contains the files required to install PortageLive from the
+PortageII-3.0 machine translation software suite.
+
+Contents:
+   plive.bin.PortageII-3.0.tar.gz  PortageLive runtime software layout
+   plive.www.PortageII-3.0.tar.gz  Web service software
+   NOTICE                          3rd party Copyright notices
+   first-boot-script               Commands needed before first use
+   subsequent-boot-script          Commands needed when the IP address changes
+   sha1                            Checksums for the contents of this CD
+   README                          This file
+   README.fixed-terms              How to turn of the fixed terms feature
+
+Please verify the integrity of your copy of this CD:
+   sha1sum -c sha1
+
+Our recommended structure is to install PortageLive in /opt/PortageII/{bin,lib}
+and the models in /opt/PortageII/models/<systemname>/. The bin/ and www/
+directories on this CD are built according to that layout.
+
+To install PortageLive on a server, you can run the following commands:
+   mkdir bin; cd bin; tar -xzf ../plive.bin.PortageII-3.0.tar.gz; cd ..
+   mkdir www; cd www; tar -xzf ../plive.www.PortageII-3.0.tar.gz; cd ..
+   rsync -arz bin/* hostname:/
+   rsync -arz www/* hostname:/
+or equivalently, if you're already working on the destination host:
+   tar -xzf plive.bin.PortageII-3.0.tar.gz --diretory=/
+   tar -xzf plive.www.PortageII-3.0.tar.gz --diretory=/
+
+Notes:
+ - These commands install files directly in /opt/ and /var/www/. Review their
+   effects carefully before running them. They are appropriate if you are
+   building a dedicated virtual appliance, but consider copying the files by
+   smaller units if the server is not dedicated to PortageII-3.0.
+ - In particular, these commands assume you don't have any other web pages on
+   the same server, and install pages directly in /var/www/html.
+ - Will overwrite any previous version of PortageLive on the same server.
+   To run multiple versions of PortageLive on the same server, manually place
+   the web service software in a subdirectory and adjust all URL references
+   accordingly; adjust first-boot-script and subsequent-boot-script; install
+   the software in an alterate location like /opt/PortageII-dev; search for the
+   string /opt/PortageII in all files under www and adjust them accordingly.
+
+Prerequisites:
+ - Linux: RedHat or its derivatives are best (e.g., CentOS, Scientific Linux)
+   Versions 5.x or 6.x of these OSs are fine. Version 7.x works but might
+   require more adjustments and configuration.
+ - Python 2.7.x. Older or more recent versions will not work.
+ - Perl 5.14 or more recent.
+ - Perl module XML::Twig (3.32 or more recent).
+ - Apache. Make sure it is running by calling "chkconfig httpd on".
+ - httpd, httpd php, httpd php-cli, httpd php-common, httpd php-soap, mod_ssl.
+ - Make sure the timezone is set, e.g., by running
+      ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
+ - Disable SELinux because PortageLive doesn't work with the default SELinux
+   security settings, by setting SELINUX=disabled in /etc/selinux/config.
+   Alternatively, if you know how, configure SELinux to allow each required
+   component to run. But be warned, PortageLive has many components.
+
+Configuration:
+ - After copying the contents of www/, a few files need to be linked into
+   /var/www, and the server's IP address must be hard-coded into the WSDL.
+   Run "bash first-boot-script" once to do this.
+   Warning: the script modifies /etc/httpd/conf.d/ssl.conf and files in
+   /var/www/html directly. Review its effects before running it.
+ - Each time the IP address is changed on the server, the WSDL must be
+   adjusted. Run "bash subsequent-boot-script" to do so. As the name suggests,
+   one option is to run it automatically each time the server is rebooted,
+   e.g., by sourcing it in /etc/rc.d/rc.local on a CentOS or RedHat server.
+ - Install the models provided to you separately, e.g., the PortageII Generic
+   Model v1.0 or v1.1 models, in /opt/PortageII/models.
+      rsync -arz DVD/models/generic1.0.en2fr /opt/PortageII/models/
+      rsync -arz DVD/models/generic1.0.fr2en /opt/PortageII/models/
+   When done, confirm each /opt/PortageII/models/<systemname>/ directory
+   contains its tuned canoe.ini.cow, among other files.
+ - Set one system as default by symlinking it as /opt/PortageII/models/context.
+   E.g., to pick one arbitrarily:
+      ln -s `ls /opt/PortageII/models | head -1` /opt/PortageII/models/context
+ - For interactive command-line testing, setup your environment in your .bashrc:
+      export PORTAGE=/opt/PortageII
+      source $PORTAGE/SETUP.bash
+ - See README.fixed-terms for details on enabling the fixed-terms functionality.
+ - IMPORTANT: To keep your translation system responsive, you need to prime it
+   every so often using:
+      /opt/PortageII/models/<systemname>/prime.sh full
+   This will load all the models for that system in memory and guarantee faster
+   responses for your users. It is recommended to run this command in a crontab
+   on an hourly basis, as long as the server has enough RAM to hold all the
+   models in memory.
+
+Testing:
+ - Command line tests - make sure each of these commands displays a help message:
+      canoe -h
+      utokenize.pl -h
+      translate.pl -h
+      ce_tmx.pl -h
+      casemark.py -h
+ - Make sure the PortageLive back-end software works:
+      /opt/PortageII/models/<systemname>/soap-translate.sh -decode-only <<< 'This is a test.'
+ - Make sure PortageLive works: try http://<server>/cgi-bin/plive.cgi (or
+   http://<server>/), a simple cgi interface for interactive use.
+ - To test the SOAP API, you can try http://<server>/soap.php, the SOAP API
+   unit testing page. It's ugly and only for testing; don't show it to end
+   users! Here, some errors are expected; refer to the API documentation in the
+   WSDL to interpret the output.

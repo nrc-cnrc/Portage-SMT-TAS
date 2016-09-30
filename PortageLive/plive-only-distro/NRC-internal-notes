@@ -1,0 +1,19 @@
+Contents:
+ - bin:
+      make DO_EXTERNAL_LIBS=1
+   in PortageII-3.0/PortageLive/bin, on tag PortageII-3.0, commit a5e11efa03,
+   on machine ilt-build02.
+ - plive.bin.PortageII-3.0.tar.gz:
+      cd bin/rpm.build.root; tar -czf ../../plive.bin.PortageII-3.0.tar.gz opt
+ - www:
+      ./prep-file-layout.sh -dynamic-ip
+   in PortageII-3.0/PortageLive/www, on tag PortageII-3.0, commit a5e11efa03.
+ - plive.www.PortageII-3.0.tar.gz:
+      cd www/rpm.build.root; tar -czf ../../plive.www.PortageII-3.0.tar.gz opt var
+ - first-boot-script and subsequent-boot-script: scripts for configuring stuff automatically
+ - NOTICE: third party copyrights copied from PortageII-3.0/NOTICE
+ - README: general information and installation instructions.
+ - sha1:
+      sha1sum plive.*.tar.gz first-boot-script subsequent-boot-script NOTICE > sha1
+ - ISO file:
+      mkisofs -V PII-3.0-live -joliet-long -D -r -o ../PortageII-3.0-PortageLive.iso first-boot-script NOTICE plive.bin.PortageII-3.0.tar.gz plive.www.PortageII-3.0.tar.gz README README.fixed-terms sha1 subsequent-boot-script

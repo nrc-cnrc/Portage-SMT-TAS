@@ -155,7 +155,8 @@ is now provided: review doc/PortageAPIComparison.pdf when upgrading.
 The PortageLive SOAP API has changed significantly with version 3.0 as well.
 Review the updated PortageLiveAPI.wsdl, doc/PortageAPIComparison.pdf and the
 php scripts in PortageLive/www/soap when updating your applications to work
-with the PortageII 3.0.
+with the PortageII 3.0. When installing the updated API, remove compiled WSDL
+files cached by Apache in /tmp/wsdl-*.
 
 
                                Contacting us

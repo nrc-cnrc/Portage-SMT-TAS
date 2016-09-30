@@ -571,23 +571,35 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
 
 static bool debugDaemon = false;
 
+/// Singleton socket object to talk to the canoe daemon.
+static const SocketUtils *canoeDaemonSocket = NULL;
+
+/**
+ * Init the singleton daemon socket object from the canoeDaemonSpec, thus
+ * saving the specs for all connections to the canoe daemon.
+ * @param canoeDaemonSpec  value of -canoe-daemon command line option
+ */
+static void setDaemonSpecs(const string& canoeDaemonSpec) {
+   assert(canoeDaemonSocket == NULL);
+   canoeDaemonSocket = new SocketUtils(canoeDaemonSpec);
+}
+
 /**
  * Send a command to the canoe daemon
- * @param canoeDaemonSpec  c.canoeDaemon
  * @param message          message to send (e.g., GET, DONE, PING)
  * @param responseExpected set this iff you expect a non-empty answer from the daemon
  * @return the daemon's response
  */
-static string sendMessageToDaemon(const string& canoeDaemonSpec, const string& message, bool responseExpected)
+static string sendMessageToDaemon(const string& message, bool responseExpected)
 {
    if (debugDaemon) cerr << "Send message to daemon: " << message << endl;
-   static const SocketUtils daemon(canoeDaemonSpec);
+   assert(canoeDaemonSocket != NULL);
 
    string response;
-   bool success = daemon.sendRecv(message + daemon.selfDescription(), response);
+   bool success = canoeDaemonSocket->sendRecv(message + canoeDaemonSocket->selfDescription(), response);
    if ((!success || response.empty()) && responseExpected)
       error(ETWarn, "No response for message %s to %s",
-            message.c_str(), canoeDaemonSpec.c_str());
+            message.c_str(), canoeDaemonSocket->remoteDescription().c_str());
    trim(response, "\n");
    if (debugDaemon) cerr << "Received response from daemon: " << response << endl;
 
@@ -614,16 +626,16 @@ void reportSignalToDaemon(int s) {
    } else {
       oss << "SIGNALED ***(rc=" << s << ")*** (signal=" << s << ")";
    }
-   sendMessageToDaemon("", oss.str(), false);
+   sendMessageToDaemon(oss.str(), false);
    cerr << "reporting signal to daemon and exiting: " << oss.str() << endl;
    exit(128+s);
 }
 
 /// Get the next sentence number to translate, from the canoe daemon
 /// Returns next sentence to translate, or Uint(-1) if the daemon said done.
-static Uint getNextSentenceIDFromDaemon(const string& canoeDaemonSpec)
+static Uint getNextSentenceIDFromDaemon()
 {
-   string response = sendMessageToDaemon(canoeDaemonSpec, "GET", false);
+   string response = sendMessageToDaemon("GET", false);
    if (response == "***EMPTY***" || response == "")
       return Uint(-1);
 
@@ -679,6 +691,48 @@ int MAIN(argc, argv)
    // Do this here until such a time as we might use argProcessor for canoe.
    Logging::init();
 
+   // Check if we have a canoe daemon to talk to; do this before processing the
+   // rest of the command line arguments so we report even those errors to the
+   // master. We do it before even initializing the ArgReader so that errors
+   // caught at that stage are also reported back to the master.
+   struct sigaction sigHandler;
+   string canoeDaemon;
+   for (int i = 1; i < argc; ++i) {
+      if (strcmp(argv[i],"-canoe-daemon") == 0 && i+1 < argc) {
+         canoeDaemon = argv[i+1];
+         break;
+      }
+   }
+   const bool useCanoeDaemon = !canoeDaemon.empty();
+   if (useCanoeDaemon) {
+      setDaemonSpecs(canoeDaemon);
+      if (sendMessageToDaemon("PING", true) == "PONG") {
+         // set signal handlers so we report errors to the daemon too.
+         sigHandler.sa_handler = reportSignalToDaemon;
+         sigemptyset(&sigHandler.sa_mask);
+         sigHandler.sa_flags = 0;
+
+         sigaction(0, &sigHandler, NULL);
+         sigaction(SIGINT, &sigHandler, NULL);
+         sigaction(SIGQUIT, &sigHandler, NULL);
+         sigaction(SIGILL, &sigHandler, NULL);
+         sigaction(SIGTRAP, &sigHandler, NULL);
+         sigaction(SIGABRT, &sigHandler, NULL);
+         sigaction(SIGFPE, &sigHandler, NULL);
+         sigaction(SIGUSR1, &sigHandler, NULL);
+         sigaction(SIGSEGV, &sigHandler, NULL);
+         sigaction(SIGUSR2, &sigHandler, NULL);
+         sigaction(SIGTERM, &sigHandler, NULL);
+
+         // Make error(ETFatal) use abort() so we can catch it with SIGABRT.
+         Error_ns::Current::errorCallback = Error_ns::abortOnErrorCallBack;
+         ugdiss::exit_1_use_abort = true;
+      } else {
+         error(ETFatal, "Error PINGing canoe daemon; job might already have been completed by other workers, so this error might not be a problem.");
+      }
+   }
+
+   // Regular command line and config file processing
    CanoeConfig c;
    static vector<string> args = c.getParamList();
    args.push_back("options");
@@ -695,8 +749,7 @@ int MAIN(argc, argv)
    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
    argReader.read(argc - 1, argv + 1);
 
-
-   if ( argReader.getSwitch("options") ) {
+   if (argReader.getSwitch("options")) {
       vector<string> help_lines;
       split(string(HELP), help_lines, "\n");
       for ( Uint i(0); i < help_lines.size(); ++i ) {
@@ -726,36 +779,6 @@ int MAIN(argc, argv)
 
    if (c.verbosity >= 2)
       c.write(cerr, 2);
-
-   // Check if we have a canoe daemon to talk to
-   struct sigaction sigHandler;
-   bool useCanoeDaemon = !c.canoeDaemon.empty();
-   if (useCanoeDaemon) {
-      if (sendMessageToDaemon(c.canoeDaemon, "PING", true) == "PONG") {
-         // set signal handlers so we report errors to the daemon too.
-         sigHandler.sa_handler = reportSignalToDaemon;
-         sigemptyset(&sigHandler.sa_mask);
-         sigHandler.sa_flags = 0;
-
-         sigaction(0, &sigHandler, NULL);
-         sigaction(SIGINT, &sigHandler, NULL);
-         sigaction(SIGQUIT, &sigHandler, NULL);
-         sigaction(SIGILL, &sigHandler, NULL);
-         sigaction(SIGTRAP, &sigHandler, NULL);
-         sigaction(SIGABRT, &sigHandler, NULL);
-         sigaction(SIGFPE, &sigHandler, NULL);
-         sigaction(SIGUSR1, &sigHandler, NULL);
-         sigaction(SIGSEGV, &sigHandler, NULL);
-         sigaction(SIGUSR2, &sigHandler, NULL);
-         sigaction(SIGTERM, &sigHandler, NULL);
-
-         // Make error(ETFatal) use abort() so we can catch it with SIGABRT.
-         Error_ns::Current::errorCallback = Error_ns::abortOnErrorCallBack;
-         ugdiss::exit_1_use_abort = true;
-      } else {
-         error(ETFatal, "Error PINGing canoe daemon; job might already have been completed by other workers, so this error might not be a problem.");
-      }
-   }
 
    // If the user request a single file, this object will keep track of the
    // required files
@@ -887,7 +910,7 @@ int MAIN(argc, argv)
 
       Uint save_i = i;
       if (useCanoeDaemon) {
-         i = getNextSentenceIDFromDaemon(c.canoeDaemon);
+         i = getNextSentenceIDFromDaemon();
          /*
          if (i == 0)
             error(ETFatal, "Testing fatal error catching");
@@ -1062,7 +1085,7 @@ int MAIN(argc, argv)
 
       if (useCanoeDaemon) {
          const string response =
-            sendMessageToDaemon(c.canoeDaemon, "DONE " + toString(i) + " (rc=0)", false);
+            sendMessageToDaemon("DONE " + toString(i) + " (rc=0)", false);
          if (response.substr(0,10) == "ALLSTARTED")
             break;
       }

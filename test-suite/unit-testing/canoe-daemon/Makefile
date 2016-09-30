@@ -11,7 +11,7 @@
 
 SHELL=bash
 
-all: diff-shuf diff-subset diff-subset-lf cmp-long
+all: diff-shuf diff-subset diff-subset-lf cmp-long cli-errors
 
 TEMP_FILES=shuf subset subset-lf log.* long-*
 D=daemon-dir
@@ -53,3 +53,17 @@ long-bysent: input-long canoe.ini
 diff-%: %
 	sort $* | diff ref/$*-sort -
 
+.PHONY: cli-errors
+cli-errors: cli-bad-opt cli-bad-value cli-file-not-found cli-bad-canoe-ini
+
+cli-bad-opt:
+	! canoe-parallel.sh -rp-j 2 -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini -lm-file foo < input &> log.$@
+
+cli-bad-value:
+	! canoe-parallel.sh -rp-j 2 -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini -basdf < input &> log.$@
+
+cli-file-not-found:
+	! canoe-parallel.sh -rp-j 2 -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini -lmodel-file /no/such/file < input &> log.$@
+
+cli-bad-canoe-ini:
+	! canoe-parallel.sh -rp-j 2 -v -v -d -lb-by-sent -n 4 canoe -f canoe.ini-foo < input &> log.$@

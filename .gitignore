@@ -25,7 +25,7 @@ _log.cvs*
 
 # patterns for files created while running the unit test suites
 _log.run-test
-.log.run-all-tests-parallel
+.log.run-all-tests-parallel*
 *.[ejo][0-9][0-9][0-9][0-9]*
 run-p.*/
 
