@@ -8,8 +8,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009 - 2015, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009 - 2015, Her Majesty in Right of Canada
+# Copyright 2009 - 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2016, Her Majesty in Right of Canada
 
 
 # Server configuration options
@@ -539,8 +539,51 @@ class PortageLiveAPI {
 
    # Returns the current API's version.
    public function getVersion() {
-      return "PortageII-3.0";
+      return "PortageII-3.0.1";
    }
+
+   # ==========================================================
+   # Deprecated functions kept for backwards compatibility only
+   # ==========================================================
+   function getTranslation($src_string, $newline, $xtags) {
+      if (!isset($newline)) $newline = "p"; # newline arg was added in PortageII 2.1
+      if (!isset($xtags)) $xtags = false; # xtags arg was added in PortageII 2.1
+      return $this->translate($src_string, "context", $newline, $xtags, false);
+   }
+   function getTranslation2($src_string, $context, $newline, $xtags) {
+      if (!isset($newline)) $newline = "p"; # newline arg was added in PortageII 2.1
+      if (!isset($xtags)) $xtags = false; # xtags arg was added in PortageII 2.1
+      return $this->translate($src_string, $context, $newline, $xtags, false);
+   }
+   function getTranslationCE($src_string, $context, $newline, $xtags) {
+      if (!isset($newline)) $newline = "p"; # newline arg was added in PortageII 2.1
+      if (!isset($xtags)) $xtags = false; # xtags arg was added in PortageII 2.1
+      return $this->translate($src_string, $context, $newline, $xtags, true);
+   }
+   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
+      if (!isset($xtags)) $xtags = false; # xtags arg was added in PortageII 2.0
+      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, true, $ce_threshold, $xtags, "tmx");
+   }
+   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, true, $ce_threshold, $xtags, "sdlxliff");
+   }
+   function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename, $context, true, $ce_threshold, $xtags, "plaintext");
+   }
+   function translateTMXCE_Status($monitor_token) {
+      return $this->translateFileStatus($monitor_token);
+   }
+   function translateSDLXLIFFCE_Status($monitor_token) {
+      return $this->translateFileStatus($monitor_token);
+   }
+   function translatePlainTextCE_Status($monitor_token) {
+      return $this->translateFileStatus($monitor_token);
+   }
+   # ==============================================================
+   # End deprecated functions kept for backwards compatibility only
+   # ==============================================================
+
+
 }
 
 try {

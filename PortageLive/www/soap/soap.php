@@ -192,7 +192,8 @@ function primeTestCase($WSDL, $context, $PrimeMode) {
       $client = new SoapClient($WSDL);
       $rc = $client->primeModels($context, $PrimeMode);
       print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
-      if ($rc === true)
+      # For backwards-compatibility, test the old ("OK") and new (true) return value
+      if ($rc === true || $rc == "OK")
          print "<div class=\"PRIME SUCCESS\">Primed successfully!</div>";
       else {
          // This case should never happen since primeModels either returns true or a soapFault.

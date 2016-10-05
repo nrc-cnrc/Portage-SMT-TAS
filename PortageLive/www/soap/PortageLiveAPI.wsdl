@@ -18,9 +18,9 @@
 
   ChangeLog
   </documentation>
-  <!-- ============================================================
+  <!-- ===========================================================
                          M E S S A G E S
-============================================================ -->
+  ============================================================ -->
   <message name="primeModelsRequest">
     <part name="context" type="xsd:string"/>
     <part name="PrimeMode" type="xsd:string"/>
@@ -101,9 +101,31 @@
   <message name="getVersionResponse">
     <part name="version" type="xsd:string"/>
   </message>
+
   <!-- ============================================================
+       Deprecated message types for backward compatibility only
+  ============================================================= -->
+  <message name="getTranslationRequestDepr">
+    <part name="srcString" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <message name="getTranslation2RequestDepr">
+    <part name="srcString" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <message name="translateFileCERequestDepr">
+    <part name="ContentsBase64" type="xsd:string"/>
+    <part name="Filename" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="CETreshold" type="xsd:decimal"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <!-- ===========================================================
                       P O R T   T Y P E S
-============================================================ -->
+  ============================================================ -->
   <portType name="PortageLive_Interface">
     <!--
     <wsdl:documentation>
@@ -382,10 +404,63 @@
       <input message="tns:getVersionRequest"/>
       <output message="tns:getVersionResponse"/>
     </operation>
+
+    <!-- =============================================================
+         Deprecated operations kept for backwards compability only
+    ============================================================== -->
+    <operation name="getTranslation">
+      <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
+      <input message="tns:getTranslationRequestDepr"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <operation name="getTranslation2">
+      <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
+      <input message="tns:getTranslation2RequestDepr"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <operation name="getTranslationCE">
+      <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
+      <input message="tns:getTranslation2RequestDepr"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <operation name="translateTMXCE">
+      <documentation>Deprecated since PortageII-3.0; use translateTMX() instead.</documentation>
+      <input message="tns:translateFileCERequestDepr"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translateTMXCE_Status">
+      <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <operation name="translateSDLXLIFFCE">
+      <documentation>Deprecated since PortageII-3.0; use translateSDLXLIFF() instead.</documentation>
+      <input message="tns:translateFileCERequestDepr"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translateSDLXLIFFCE_Status">
+      <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <operation name="translatePlainTextCE">
+      <documentation>Deprecated since PortageII-3.0; use translatePlainText() instead.</documentation>
+      <input message="tns:translateFileCERequestDepr"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translatePlainTextCE_Status">
+      <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:translateResponse"/>
+    </operation>
+    <!-- =================================================================
+         End deprecated operations kept for backwards compability only
+    ================================================================== -->
+
   </portType>
-  <!-- ============================================================
+  <!-- ===========================================================
                          B I N D I N G S
-============================================================ -->
+  ============================================================ -->
   <binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
     <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
     <operation name="primeModels">
@@ -493,10 +568,70 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+    <!-- ===========================================================
+         Deprecated bindings kept for backwards compability only
+    ============================================================ -->
+    <operation name="getTranslation">
+      <soap:operation soapAction="getTranslation"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getTranslation2">
+      <soap:operation soapAction="getTranslation2"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getTranslationCE">
+      <soap:operation soapAction="getTranslationCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateTMX">
+      <soap:operation soapAction="translateTMX"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateSDLXLIFF">
+      <soap:operation soapAction="translateSDLXLIFF"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translatePlainText">
+      <soap:operation soapAction="translatePlainText"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <!-- ===============================================================
+         End deprecated bindings kept for backwards compability only
+    ================================================================ -->
   </binding>
-  <!-- ============================================================
+  <!-- ===========================================================
                          S E R V I C E
-============================================================ -->
+  ============================================================ -->
   <service name="PortageLive_Service">
     <documentation>
       Definition of the PortageLive Service, providing an API to the PortageII
