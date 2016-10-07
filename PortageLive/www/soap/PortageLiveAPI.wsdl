@@ -105,18 +105,18 @@
   <!-- ============================================================
        Deprecated message types for backward compatibility only
   ============================================================= -->
-  <message name="getTranslationRequestDepr">
+  <message name="getTranslationRequestDeprecated">
     <part name="srcString" type="xsd:string"/>
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
-  <message name="getTranslation2RequestDepr">
+  <message name="getTranslation2RequestDeprecated">
     <part name="srcString" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
-  <message name="translateFileCERequestDepr">
+  <message name="translateFileCERequestDeprecated">
     <part name="ContentsBase64" type="xsd:string"/>
     <part name="Filename" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
@@ -410,22 +410,22 @@
     ============================================================== -->
     <operation name="getTranslation">
       <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
-      <input message="tns:getTranslationRequestDepr"/>
+      <input message="tns:getTranslationRequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
     <operation name="getTranslation2">
       <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
-      <input message="tns:getTranslation2RequestDepr"/>
+      <input message="tns:getTranslation2RequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
     <operation name="getTranslationCE">
       <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
-      <input message="tns:getTranslation2RequestDepr"/>
+      <input message="tns:getTranslation2RequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
     <operation name="translateTMXCE">
       <documentation>Deprecated since PortageII-3.0; use translateTMX() instead.</documentation>
-      <input message="tns:translateFileCERequestDepr"/>
+      <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
     <operation name="translateTMXCE_Status">
@@ -435,7 +435,7 @@
     </operation>
     <operation name="translateSDLXLIFFCE">
       <documentation>Deprecated since PortageII-3.0; use translateSDLXLIFF() instead.</documentation>
-      <input message="tns:translateFileCERequestDepr"/>
+      <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
     <operation name="translateSDLXLIFFCE_Status">
@@ -445,7 +445,7 @@
     </operation>
     <operation name="translatePlainTextCE">
       <documentation>Deprecated since PortageII-3.0; use translatePlainText() instead.</documentation>
-      <input message="tns:translateFileCERequestDepr"/>
+      <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
     <operation name="translatePlainTextCE_Status">
