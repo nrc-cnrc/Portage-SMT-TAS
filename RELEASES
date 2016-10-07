@@ -19,6 +19,11 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
+PortageII 3.0.1 2016-10-07
+ This maintenance release makes the SOAP API backwards compatible, so that
+ clients written against the SOAP API from Portage 1.4.3 or PortageII 1.0,
+ 2.0, 2.1, 2.2 or 3.0 will work with the PortageII 3.0.1 API.
+
 PortageII 3.0 2016-07-26
  This release incorporates significant improvements from the research world
  into the core machine translation engine. Although end users will not see
