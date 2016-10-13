@@ -273,7 +273,7 @@ bool InputParser::readMark(vector<string> &sent,
    // new attribute is the class name.
    string class_name("");
    if (toLower(tagName, buf) == "rule") {
-      readClassAttribute(c, class_name);
+      if (!readClassAttribute(c, class_name)) return false;
 
       // If the user asked for the class name's list, add the class name to the list
       if (class_names != NULL) {
@@ -285,7 +285,7 @@ bool InputParser::readMark(vector<string> &sent,
 
    // Read "english" or "target"
    buf.clear();
-   readString(buf, c, '=');
+   if (!readString(buf, c, '=')) return false;
    skipSpaces(c);
    if (buf != "english" && buf != "target")
    {
@@ -322,7 +322,7 @@ bool InputParser::readMark(vector<string> &sent,
       {
          skipSpaces(c);
          phrases.back().push_back(string());
-         readString(phrases.back().back(), c, '|', '"');
+         if (!readString(phrases.back().back(), c, '|', '"')) return false;
          if (phrases.back().back().length() == 0)
          {
             phrases.back().pop_back();
@@ -528,6 +528,11 @@ bool InputParser::readString(string &s, char &c, char stopFor1, char
             error(ETWarn, "Format error in input line %d: "
                   "unexpected '%c' after '%s' (use \\%c).",
                   lineNum, c, s.c_str(), c);
+            // PTG-71: skip the offending character so that if the false return
+            // value is ignored, at least we don't go into an infinite loop
+            // Also, where important, do catch the false return value.
+            s.append(1, c);
+            in >> c;
             return false;
          }
       }
@@ -596,7 +601,7 @@ bool InputParser::readClassAttribute(char& c, string& class_name)
    // Read the attribute's tag
    string buf;
    buf.clear();
-   readString(buf, c, '=');
+   if (!readString(buf, c, '=')) return false;
    skipSpaces(c);
 
    if (buf != "class") {
@@ -622,7 +627,7 @@ bool InputParser::readClassAttribute(char& c, string& class_name)
    }
    in >> c;  // eat "\""
 
-   readString(class_name, c, '"');
+   if (!readString(class_name, c, '"')) return false;
    if (in.eof() || c != '"') {
       error(ETWarn, "Format error in input line %d: invalid mark format "
             "('\"' expected after '%s=').",
