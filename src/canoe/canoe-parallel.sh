@@ -608,7 +608,7 @@ if [ -n "$APPEND" ]; then
    FFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-ffvals'`
    SFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-sfvals'`
    PAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-palign' -e '-t ' -e '-trace'`
-   WAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-walign' -e '-t ' -e '-trace'`
+   WAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-walign'`
 
    K=${NBEST_SIZE#:}
    K=${K:-100}
