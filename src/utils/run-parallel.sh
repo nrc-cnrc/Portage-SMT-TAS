@@ -137,7 +137,8 @@ Cluster mode options:
   -local L      run L jobs locally [calculated automatically]
   -noc(luster)  force non-cluster mode [auto-detect if we're on a cluster]
   -j J          submit J workers per psub job using psub's -j J option
-  -quota T      When workers have done T minutes of work, re-psub them [30]
+  -quota T      When workers have done T minutes of work, re-psub them;
+                0 means no quota [30, or 0 if -j is specified]
   -psub         Provide custom psub options.
   -qsub         Provide custom qsub options.
 
@@ -311,6 +312,10 @@ while (( $# > 0 )); do
    esac
    shift
 done
+
+# EJJ Oct2016: -j is not really compatible with -quota: -j disabled quota by
+# default, unless the user explicitly specified  quota value.
+[[ $OPT_J && ! $QUOTA ]] && QUOTA=0
 
 # Special commands pre-empt normal operation
 if [[ "$1" = add || "$1" = quench || "$1" = kill || "$1" = num_worker ]]; then
@@ -821,6 +826,7 @@ fi
 DAEMON_PID=$!
 
 MY_PORT=`cat $WORKDIR/port`
+rm -f $WORKDIR/port # Clean this right away so we never leave a fifo behind
 [[ $DEBUG ]] && echo "MY_PORT=$MY_PORT" >&2
 if [[ $MY_PORT = FAIL ]]; then
    error_exit "Daemon had a fatal error"

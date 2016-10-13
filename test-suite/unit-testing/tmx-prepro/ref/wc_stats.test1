@@ -1,19 +1,19 @@
 #Lines	filename
+24	tmx-prepro-test1/template/corpora/all.id
 24	tmx-prepro-test1/template/corpora/all_en.raw.gz
 24	tmx-prepro-test1/template/corpora/all_fr.raw.gz
-24	tmx-prepro-test1/template/corpora/all.id
+24	tmx-prepro-test1/template/corpora/corpus.id
 24	tmx-prepro-test1/template/corpora/corpus_en.al
 24	tmx-prepro-test1/template/corpora/corpus_fr.al
-24	tmx-prepro-test1/template/corpora/corpus.id
+3	tmx-prepro-test1/template/corpora/dev1.id
 3	tmx-prepro-test1/template/corpora/dev1_en.raw
 3	tmx-prepro-test1/template/corpora/dev1_fr.raw
-3	tmx-prepro-test1/template/corpora/dev1.id
+3	tmx-prepro-test1/template/corpora/test.id
 3	tmx-prepro-test1/template/corpora/test_en.raw
 3	tmx-prepro-test1/template/corpora/test_fr.raw
-3	tmx-prepro-test1/template/corpora/test.id
+18	tmx-prepro-test1/template/corpora/train.id
 18	tmx-prepro-test1/template/corpora/train_en.raw.gz
 18	tmx-prepro-test1/template/corpora/train_fr.raw.gz
-18	tmx-prepro-test1/template/corpora/train.id
 
 216	TOTAL
 

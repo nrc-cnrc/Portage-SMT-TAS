@@ -1,25 +1,25 @@
 #Lines	filename
+11	tmx-prepro-test2/template/corpora/all.id
 11	tmx-prepro-test2/template/corpora/all_en.raw.gz
 11	tmx-prepro-test2/template/corpora/all_fr.raw.gz
-11	tmx-prepro-test2/template/corpora/all.id
+14	tmx-prepro-test2/template/corpora/corpus+al.all.id
 14	tmx-prepro-test2/template/corpora/corpus+al.all_en.raw.gz
 14	tmx-prepro-test2/template/corpora/corpus+al.all_fr.raw.gz
-14	tmx-prepro-test2/template/corpora/corpus+al.all.id
+8	tmx-prepro-test2/template/corpora/corpus+al.train.id
 8	tmx-prepro-test2/template/corpora/corpus+al.train_en.raw.gz
 8	tmx-prepro-test2/template/corpora/corpus+al.train_fr.raw.gz
-8	tmx-prepro-test2/template/corpora/corpus+al.train.id
+11	tmx-prepro-test2/template/corpora/corpus.id
 11	tmx-prepro-test2/template/corpora/corpus_en.al
 11	tmx-prepro-test2/template/corpora/corpus_fr.al
-11	tmx-prepro-test2/template/corpora/corpus.id
+3	tmx-prepro-test2/template/corpora/dev1.id
 3	tmx-prepro-test2/template/corpora/dev1_en.raw
 3	tmx-prepro-test2/template/corpora/dev1_fr.raw
-3	tmx-prepro-test2/template/corpora/dev1.id
+3	tmx-prepro-test2/template/corpora/test.id
 3	tmx-prepro-test2/template/corpora/test_en.raw
 3	tmx-prepro-test2/template/corpora/test_fr.raw
-3	tmx-prepro-test2/template/corpora/test.id
+5	tmx-prepro-test2/template/corpora/train.id
 5	tmx-prepro-test2/template/corpora/train_en.raw.gz
 5	tmx-prepro-test2/template/corpora/train_fr.raw.gz
-5	tmx-prepro-test2/template/corpora/train.id
 
 165	TOTAL
 
