@@ -249,7 +249,7 @@ my $hashtag_word_re = qr/#[\p{Word}\-#_]+/;
 
 =head2 Usage example
 
-perl -nle 'BEGIN{use encoding "UTF-8"; use hashtags;} print tokenizeHashtags($_) , "\n"' <<<  "Getting my Oktoberfest on #münchen"
+perl -nle 'BEGIN{binmode(STDIN, ":encoding(UTF-8)"); binmode(STDOUT, ":encoding(UTF-8)");} use hashtags; print tokenizeHashtags($_) , "\n"' <<<  "Getting my Oktoberfest on #münchen"
 
 =head2 tokenizeHashtags doctest
 

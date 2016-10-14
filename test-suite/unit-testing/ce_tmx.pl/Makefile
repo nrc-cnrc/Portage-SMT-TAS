@@ -113,12 +113,12 @@ logitransoutput/%/Q.txt logitransoutput/%/Q.tags:  %.LogiTransOutput
 %/P.txt:  %/Q.tags %/Q.txt
 	! LC_ALL=C egrep '&#x1[eEfF];' $+
 	sed 's/^/TRANSLATION: /' $< > $@
-	#perl -nle 'BEGIN{use encoding "UTF-8";}; print scalar reverse' < $< > $@
+	#perl -nle 'BEGIN{binmode(STDIN, ":encoding(UTF-8)"); binmode(STDOUT, ":encoding(UTF-8)");}; print scalar reverse' < $< > $@
 
 
 # Let's pretend the line number is our confidence estimation (must be deterministic for unittesting).
 %/pr.ce:  %/Q.txt
-	perl -nle 'BEGIN{use encoding "UTF-8";}; print $$./100' < $< > $@
+	perl -nle 'BEGIN{binmode(STDIN, ":encoding(UTF-8)"); binmode(STDOUT, ":encoding(UTF-8)");}; print $$./100' < $< > $@
 
 
 # Insert translation back into either a TMX or a LogiTransOutput or a SDLXLIFF file.
