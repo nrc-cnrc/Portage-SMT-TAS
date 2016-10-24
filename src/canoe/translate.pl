@@ -367,7 +367,8 @@ my $verbose = 0;
 my $saved_command_line = "$0 @ARGV";
 
 Getopt::Long::GetOptions(
-   'help'           => sub { displayHelp(); exit 0 },
+   "help"           => sub { displayHelp(); exit 0 },
+   "h"              => sub { displayHelp(); exit 0 },
    "verbose+"       => \$verbose,
    "quiet"          => \my $quiet,
    "debug"          => \my $debug,
