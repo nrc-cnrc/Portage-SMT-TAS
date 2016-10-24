@@ -799,7 +799,7 @@ int MAIN(argc, argv)
    BasicModelGenerator *gen;
    VectorPSrcSent sents;
    iSafeMagicStream input(c.input);
-   InputParser reader(input, c.bLoadBalancing);
+   InputParser reader(input, c.bLoadBalancing, c.quietEmptyLines);
    if (c.checkInputOnly) {
       cerr << "Checking input sentences for markup errors." << endl;
       Uint error_count(0);

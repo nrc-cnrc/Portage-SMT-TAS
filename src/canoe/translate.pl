@@ -873,6 +873,7 @@ TRANS:{
          $decoder = "cd $dir && canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
+      $decoder_opts .= " -quiet-empty-lines";
       $decoder_opts .= " -walign -palign";
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";

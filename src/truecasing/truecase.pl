@@ -255,7 +255,7 @@ if ($use_srilm) { # using disambig
    my $vb = $verbose > 1 ? $verbose - 1 : 0;
    $cmd_part1 = "set -o pipefail; "
                 . "cat $in_file | canoe-escapes.pl -add "
-                . "| canoe -f /dev/null -v $vb -load-first"
+                . "| canoe -f /dev/null -v $vb -load-first -quiet-empty-lines"
                 . " -ttable-$ttable_type $ttable_file -lmodel-file $model_file"
                 . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
                 . " -ttable-limit 100 -regular-stack 100"

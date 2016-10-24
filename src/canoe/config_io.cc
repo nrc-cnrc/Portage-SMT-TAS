@@ -155,6 +155,7 @@ CanoeConfig::CanoeConfig()
    sparseModelAllowNonLocalWts = false;
    masse                  = false;
    verbosity              = 1;
+   quietEmptyLines        = false;
    latticeFilePrefix      = "";
    latticeOut             = false;
    latticeOutputOptions   = "carmel";
@@ -259,6 +260,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("sparse-model-allow-non-local-wts", "bool", &sparseModelAllowNonLocalWts));
    param_infos.push_back(ParamInfo("masse", "bool", &masse));
    param_infos.push_back(ParamInfo("verbose v", "Uint", &verbosity));
+   param_infos.push_back(ParamInfo("quiet-empty-lines", "bool", &quietEmptyLines));
    param_infos.push_back(ParamInfo("lattice", "lat", &latticeFilePrefix));
    param_infos.push_back(ParamInfo("lattice-output-options", "string", &latticeOutputOptions));
    param_infos.push_back(ParamInfo("lattice-density", "double", &latticeDensity));

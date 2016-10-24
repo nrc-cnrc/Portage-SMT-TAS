@@ -216,6 +216,7 @@ public:
    bool sparseModelAllowNonLocalWts;///< Whether canoe is allowed to look for non-local sparse weights
    bool masse;                      ///< Whether to output total lattice weight
    Uint verbosity;                  ///< Verbosity level
+   bool quietEmptyLines;            ///< if set, consider empty input lines as normal
    string latticeFilePrefix;        ///< Prefix for all lattice output files
    bool latticeOut;                 ///< Whether to output the lattices
    string latticeOutputOptions;     ///< Style of lattice output

@@ -631,6 +631,8 @@ Options (in command-line format):\n\
  -verbose|-v V                          Verbosity level  [1]\n\
      The verbosity level (1 to 4).  Verbose output is written to std error.\n\
 \n\
+ -quiet-empty-lines                     Don't report empty input lines  pdo]\n\
+\n\
  -timing                                Show per-sentence timing  [don't unless V >= 2]\n\
 \n\
  -options                               Show the brief help message\n\

@@ -30,8 +30,8 @@ all:  tmx
 all:  other_tests
 
 
-TEMP_FILES = U*.sdlxliff T*.tmx U*.sdlxliff.P.txt T*.tmx.P.txt log.*
-TEMP_DIRS = workdir.*
+TEMP_FILES = U*.sdlxliff T*.tmx U*.sdlxliff.P.txt T*.tmx.P.txt log.* out.*
+TEMP_DIRS = workdir.* translate_work_*
 include ../Makefile.incl
 
 
@@ -223,5 +223,11 @@ bad_locale:  TestMemory_Unknown.tmx  | workdir.bad_locale.tmx
 		$< \
 		2> log.$@ \
 	|| ! echo "Error: invalid locale not detected."
-	grep "Error: Invalid locale" log.$@ || ! echo "Error: invalid locale not detected." 
+	grep "Error: Invalid locale" log.$@ || ! echo "Error: invalid locale not detected."
 
+# Check that we not longer pointlessly report on empty input lines (PTGSH-347)
+.PHONY:  empty_input_lines
+other_tests: empty_input_lines
+empty_input_lines: paragraph-in
+	${SOAP_TRANSLATE} -decode-only -nl=p $< > out.$@ 2> log.$@
+	! grep Empty log.$@

@@ -3,8 +3,6 @@
  * @file inputparser.h  This file contains canoe's InputParser, which reads and
  *                      parses input that may contain marked phrases.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -34,13 +32,13 @@ namespace Portage
    friend class TestInputParser;
    private:
       istream &in;   ///< Stream we are reading from
-
       Uint lineNum;  ///< Current line number
-
       bool _done;    ///< set when readMarkedSent() has nothing to return because of eof()
 
       /// Doing load balancing thus each source sentence has an id
       const bool withId;
+      /// if set, don't warn on empty input lines
+      const bool quietEmptyLines;
 
       /**
        * Counters for warnings that have been issued already and that should
@@ -146,8 +144,9 @@ namespace Portage
        * @param in        The input stream to read from.
        * @param withId    indicates that each source sentence is preceded
        *                  by it source sentence id
+       * @param quietEmptyLines  if set, don't warn on empty input lines
        */
-      InputParser(istream &in, bool withId=false);
+      InputParser(istream &in, bool withId=false, bool quietEmptyLines=false);
 
       /**
        * Tests whether all input sentences have been processed.

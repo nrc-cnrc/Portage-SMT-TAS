@@ -3,8 +3,6 @@
  * @file inputparser.cc Implementation of canoe's InputParser, which reads and
  *                      parses input that may contain marked phrases.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -23,11 +21,12 @@
 using namespace Portage;
 using namespace std;
 
-InputParser::InputParser(istream &in, bool withId)
+InputParser::InputParser(istream &in, bool withId, bool quietEmptyLines)
    : in(in)
    , lineNum(0)
    , _done(false)
    , withId(withId)
+   , quietEmptyLines(quietEmptyLines)
 {
    in.unsetf(ios::skipws);
 }
@@ -229,7 +228,7 @@ bool InputParser::readMarkedSent(newSrcSentInfo& nss,
       return false;
    }
 
-   if (sent.empty() and !in.eof())
+   if (sent.empty() and !in.eof() and !quietEmptyLines)
       error(ETWarn, "Empty input on line %d.", lineNum);
 
    if (in.eof() && sent.empty())
