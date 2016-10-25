@@ -170,8 +170,8 @@ arpalm.encode: EXPLAIN:=Check that all boost libraries are installed.
 ${VALIDATE_PGMS}:
 	@$(call check,$@ installed,which $@ &> /dev/null,\
 		"NOT FOUND. Cannot locate PortageII program $@ in your PATH. Refer to \$$PORTAGE/INSTALL.")
-	-@$(call check,$@ runs,$@ -h >& /dev/null,"$@ -h FAILED TO RUN: ${EXPLAININSTALL}")
-	-@$(call check,$@ help,$@ -h 2>&1 | head -5 | diff - ref/$@.ref,\
+	@$(call check,$@ runs,$@ -h >& /dev/null,"$@ -h FAILED TO RUN: ${EXPLAININSTALL}")
+	@$(call check,$@ help,$@ -h 2>&1 | head -5 | diff - ref/$@.ref,\
 		"$@ -h did not produce the expected output: Is it the right version? ${EXPLAININSTALL}")
 
 post_installation: check_casemark
