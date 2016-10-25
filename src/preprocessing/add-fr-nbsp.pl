@@ -55,7 +55,7 @@ Options:
 
   -h(elp)       print this help message
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;
@@ -69,7 +69,7 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 binmode( STDIN,  ":encoding(UTF-8)" );
 binmode( STDOUT, ":encoding(UTF-8)" );

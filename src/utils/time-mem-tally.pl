@@ -46,7 +46,7 @@ Options:
   -ignore|-no-ignore Turn on/off ignoring of Master-Wall-Time [-no-ignore]
   -m(eta) NAME   Label the tally line with NAME, e.g., for hierarchical reports.
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

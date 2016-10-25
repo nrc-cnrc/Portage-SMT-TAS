@@ -63,7 +63,7 @@ sub usage {
      -skipTokenization  Do not perform tokenization on latin words.
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

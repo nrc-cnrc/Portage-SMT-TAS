@@ -45,7 +45,7 @@ Options:
               $0 log.cow | second-to-hms.pl | expand-auto.pl
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

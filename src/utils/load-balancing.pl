@@ -57,7 +57,7 @@ Options:
    -ref       reference file
    -output    output filename pattern [input]
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

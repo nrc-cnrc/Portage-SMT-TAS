@@ -35,7 +35,7 @@ Options:
   -h(elp)    Print this help message
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 our ($help, $h, $add, $a, $remove, $r);

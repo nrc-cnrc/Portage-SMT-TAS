@@ -46,7 +46,7 @@ Options:
 -s s Set output probabilities to int(s * p) + 1, where p is the input
      (IBM/HMM) probability. [0]
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

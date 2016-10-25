@@ -34,15 +34,15 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-$0 [-val v] [in [out]]
+Usage: $0 [-val v] [in [out]]
 
-Add column with fixed indictor values to a multiprob phrasetable.
+Add column with fixed indicator values to a multiprob phrasetable.
 
 Options:
   -val  Use <v> as indicator [2.7183]
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

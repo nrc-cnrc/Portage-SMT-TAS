@@ -38,7 +38,7 @@ Usage: $0 [in [out]]
 Filter out invalid characters from an iso-latin1 encoded file.
 
 ";
-    exit 1;
+    exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

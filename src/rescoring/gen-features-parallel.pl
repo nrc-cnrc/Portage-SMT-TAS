@@ -130,7 +130,7 @@ sub usage {
    by the user.
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 # Rename an existing file to avoid accidentally re-using old data from an

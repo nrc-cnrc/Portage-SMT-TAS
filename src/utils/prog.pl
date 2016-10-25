@@ -26,6 +26,11 @@ BEGIN {
 use portage_utils;
 
 
+# Synopsis:
+# Display help when pgm called with -h/-help, and exit with 0 status:
+#    usage
+# For errors: output messages, show the help, and exit with non-zero status:
+#    usage msg [msg2 [msg3]]
 sub usage {
    local $, = "\n";
    print STDERR @_, "";
@@ -45,7 +50,7 @@ Options:
   -v(erbose)    increment the verbosity level by 1 (may be repeated)
   -d(ebug)      print debugging information
 ";
-   exit 1;
+   exit $_ ? 1 : 0;
 }
 
 use Getopt::Long;

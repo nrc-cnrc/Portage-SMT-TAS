@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 #
 # @file parse-monitor.pl 
 # @brief Extract useful information from the output of monitor-process.sh
@@ -66,7 +65,7 @@ Options:
 
 ";
   #-v(erbose):   increment the verbosity level by 1 (may be repeated)
-    exit 1;
+    exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;
@@ -86,7 +85,7 @@ GetOptions(
     "only=s"    => \my @only,
     "period=i"  => \$period,
     "cpu-window=i" => \$smoothing_window,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 if ( $debug ) {
     no warnings;

@@ -53,7 +53,7 @@ Options:
 
   -h(elp)       print this help message
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

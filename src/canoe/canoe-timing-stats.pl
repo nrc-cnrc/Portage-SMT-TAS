@@ -42,7 +42,7 @@ Usage: $0 LOGFILE(S)
   Use cow-timing.pl to get detailed timing information for cow.sh.
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

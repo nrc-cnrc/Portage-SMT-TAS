@@ -53,7 +53,7 @@ our ($help, $h);
 if (defined $h or defined $help)
 {
     print $HELP;
-    exit 1;
+    exit 0;
 } # if
 
 my $wordfile = shift || die "Error: No word list given.  Use -h for help.";

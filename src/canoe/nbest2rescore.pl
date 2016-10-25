@@ -76,7 +76,7 @@ Note: all output can be directed to stdout by specifying '-' as output file;
 each translation then produces up to four lines of output: translation, phrase
 alignment info, word alignment info, and ff values (in that order).
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

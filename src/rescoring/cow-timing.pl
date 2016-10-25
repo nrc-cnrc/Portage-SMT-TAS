@@ -40,7 +40,7 @@ Usage: $0 LOGFILE(S)
   Use canoe-timing-stats.pl to get decoder load vs translation time.
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

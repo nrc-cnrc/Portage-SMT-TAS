@@ -42,7 +42,7 @@ Usage: $0 [IN [OUT]]
   Performs ad-hoc post-processing after ictclas.
 
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 use Getopt::Long;

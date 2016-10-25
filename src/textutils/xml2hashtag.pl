@@ -43,7 +43,7 @@ Usage: $0 < IN > OUT
  tokenize_plugin, and tags are transfered via Portage's tag-transfer mechanism
  (translate.pl -xtags).
 ";
-   exit 1;
+   exit @_ ? 1 : 0;
 }
 
 usage() if (@ARGV && $ARGV[0] eq "-h");
