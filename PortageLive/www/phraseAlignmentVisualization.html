@@ -1,141 +1,164 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>
-Phrase Alignment and Out-Of-Vocabulary
-</title>
-<style type="text/css">
-  .alignment {
-     background-color: cyan;
-  }
+  <!--
+  vim:ts=2:sw=2:expandtab
+  -->
+  <head>
 
-  .oov {
-     color: red;
-     font-style: italic;
-  }
+    <title>
+      Phrase Alignment and Out-Of-Vocabulary
+    </title>
 
-  div {
-     background-color: Gainsboro;
-  }
+    <style type="text/css">
+      .alignment {
+         background-color: cyan;
+      }
 
-  noscript > p {
-     color: red;
-     font-style: italic;
-     border: 25px solid red;
-     padding: 25px;
-     margin: 25px;
-  }
-</style>
+      .oov {
+         color: red;
+         font-style: italic;
+      }
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script type="text/javascript">
-var phraseAlignment = {
-   highlight: function() {
-      // This indexing is hacky but for now I don't know how to get the class palX elements that also are OOVs.
-      $('.'+this.classList[0]).addClass('alignment');
-   },
+      div {
+         background-color: Gainsboro;
+      }
 
-   unhighlight: function() {
-      $('.alignment').removeClass('alignment');
-   },
+      noscript > p {
+         color: red;
+         font-style: italic;
+         border: 25px solid red;
+         padding: 25px;
+         margin: 25px;
+      }
+    </style>
 
-   // Keep track of phrase count across multiple sentences.
-   phraseCount: 0,
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
-   // Creates all spans/phrases for a given sentence in a given language.
-   buildSentence: function(sentence, getter) {
-      var p = $('<p>');
-      sentence.phrases.forEach(function(phrase, index) {
-         var span = $('<span>')
-            .addClass("pal" + phrase.index)
-            .text(getter(phrase))
+    <!--
+    PTGSH-381: If the user has no internet access, the administrator can download jquery-2.1.1.min.js in /var/www/html/
+    wget -O /var/www/html/jquery-2.1.1.min.js 'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js
+    source:
+    http://stackoverflow.com/questions/5257923/how-to-load-local-script-files-as-fallback-in-cases-where-cdn-are-blocked-unavai
+    -->
+    <script>
+      window.$ || document.write('<script src="/jquery-2.1.1.min.js">\x3C/script>');
+      var message = "window.$ || alert(\"There was an error loading JQuery's library, ask your webmaster to add jquery to the root of this server.\");";
+      window.$ || document.write('<script>' + message + '\x3C/script>');
+    </script>
 
-         if (phrase.oov === "O") {
-            span.addClass("oov");
-         }
+  </head>
 
-         // each span MUST be followed by a space.
-         p.append(span, " ");
-      });
+  <body>
 
-      return p;
-   },
+    <h1>
+      Phrase Alignments and Out-Of-Vocabulary words
+    </h1>
 
-   // Extends the phrases with a global index and also extracts each source phrases.
-   extendSentencePhraseInfo: function(sentence) {
-      sentence.phrases.forEach(function(phrase, index) {
-         phrase.index = (phraseAlignment.phraseCount + index).toString();
-         var b = parseInt(phrase.begin);
-         var e = parseInt(phrase.end) + 1;
-         phrase.source = sentence.source.slice(b, e);
-      });
-   },
-
-   // Creates a pair of source / target sentences.
-   displaySentence: function(sentence) {
-      // Extract the source phrases.
-      phraseAlignment.extendSentencePhraseInfo(sentence);
-
-      // Build the target sentence phrases.
-      var target = phraseAlignment.buildSentence(sentence, function(phrase) {
-         return phrase.phrase.join(" ");
-      });
-
-      // Make sure we display the source in the correct order.
-      sentence.phrases.sort(function(a, b) {
-         return parseInt(a.begin) - parseInt(b.begin);
-      });
-
-      // Build the source sentence phrases.
-      var source = phraseAlignment.buildSentence(sentence, function(phrase) {
-         return phrase.source.join(" ");
-      });
-
-      // Let's get ready for the next sentence.
-      phraseAlignment.phraseCount += sentence.phrases.length;
-
-      return [source, target];
-   },
-
-   displaySentences: function(sentences) {
-      sentences.forEach(function(sentence, index) {
-         if (sentence.phrases.length > 0) {
-            var div = $('<div>').append(phraseAlignment.displaySentence(sentence));
-            $('body').append(div);
-         }
-      });
-
-      // Once we have all the phrase pairs created, we can make them
-      // highlightable by registering the proper event handlers.
-      phraseAlignment.registerEvents();
-   },
-
-   // Retrives phrase alignment data from the server.
-   getData: function() {
-      $.getJSON("p.json", phraseAlignment.displaySentences);
-   },
-
-   // Registers event handlers for highlighting phrase pair alignments.
-   registerEvents: function() {
-      $('span').mouseover(phraseAlignment.highlight).mouseout(phraseAlignment.unhighlight);
-   }
-}
-
-$(phraseAlignment.getData);
-</script>
-</head>
-
-<body>
-  <h1>
-    Phrase Alignments and Out-Of-Vocabulary words
-  </h1>
-  <p>
-    Mouse over words or phrases to see their alignment with their counter parts.
-  </p>
-  <noscript>
-    <p id="thereIsNoScript">
-      To enable interactive phrase alignment highlights, you need javavascipt.
+    <p>
+      Mouse over words or phrases to see their alignment with their counter parts.
     </p>
-  </noscript>
+
+    <noscript>
+      <p id="thereIsNoScript">
+        To enable interactive phrase alignment highlights, you need javavascipt.
+      </p>
+    </noscript>
+
+    <script type="text/javascript">
+      var phraseAlignment = {
+         highlight: function() {
+            // This indexing is hacky but for now I don't know how to get the class palX elements that also are OOVs.
+            $('.'+this.classList[0]).addClass('alignment');
+         },
+
+         unhighlight: function() {
+            $('.alignment').removeClass('alignment');
+         },
+
+         // Keep track of phrase count across multiple sentences.
+         phraseCount: 0,
+
+         // Creates all spans/phrases for a given sentence in a given language.
+         buildSentence: function(sentence, getter) {
+            var p = $('<p>');
+            sentence.phrases.forEach(function(phrase, index) {
+               var span = $('<span>')
+                  .addClass("pal" + phrase.index)
+                  .text(getter(phrase))
+
+               if (phrase.oov === "O") {
+                  span.addClass("oov");
+               }
+
+               // each span MUST be followed by a space.
+               p.append(span, " ");
+            });
+
+            return p;
+         },
+
+         // Extends the phrases with a global index and also extracts each source phrases.
+         extendSentencePhraseInfo: function(sentence) {
+            sentence.phrases.forEach(function(phrase, index) {
+               phrase.index = (phraseAlignment.phraseCount + index).toString();
+               var b = parseInt(phrase.begin);
+               var e = parseInt(phrase.end) + 1;
+               phrase.source = sentence.source.slice(b, e);
+            });
+         },
+
+         // Creates a pair of source / target sentences.
+         displaySentence: function(sentence) {
+            // Extract the source phrases.
+            phraseAlignment.extendSentencePhraseInfo(sentence);
+
+            // Build the target sentence phrases.
+            var target = phraseAlignment.buildSentence(sentence, function(phrase) {
+               return phrase.phrase.join(" ");
+            });
+
+            // Make sure we display the source in the correct order.
+            sentence.phrases.sort(function(a, b) {
+               return parseInt(a.begin) - parseInt(b.begin);
+            });
+
+            // Build the source sentence phrases.
+            var source = phraseAlignment.buildSentence(sentence, function(phrase) {
+               return phrase.source.join(" ");
+            });
+
+            // Let's get ready for the next sentence.
+            phraseAlignment.phraseCount += sentence.phrases.length;
+
+            return [source, target];
+         },
+
+         displaySentences: function(sentences) {
+            sentences.forEach(function(sentence, index) {
+               if (sentence.phrases.length > 0) {
+                  var div = $('<div>').append(phraseAlignment.displaySentence(sentence));
+                  $('body').append(div);
+               }
+            });
+
+            // Once we have all the phrase pairs created, we can make them
+            // highlightable by registering the proper event handlers.
+            phraseAlignment.registerEvents();
+         },
+
+         // Retrives phrase alignment data from the server.
+         getData: function() {
+            $.getJSON("p.json", phraseAlignment.displaySentences);
+         },
+
+         // Registers event handlers for highlighting phrase pair alignments.
+         registerEvents: function() {
+            $('span').mouseover(phraseAlignment.highlight).mouseout(phraseAlignment.unhighlight);
+         }
+      }
+
+      $(phraseAlignment.getData);
+    </script>
+
   </body>
 </html>
