@@ -112,8 +112,12 @@ void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
    assert(f > toks.begin() + 1);
 
    a = f;
-   if ((*(a-1)).compare(0, 2, "c=") == 0) --a;
-   if ((*(a-1)).compare(0, 2, "a=") == 0) --a;
+   // look for a= and c= fields in any order
+   while (true) {
+      if ((*(a-1)).compare(0, 2, "c=") == 0) --a;
+      else if ((*(a-1)).compare(0, 2, "a=") == 0) --a;
+      else break;
+   }
 
    int value_count((a - toks.begin()) - seps[1] - 1);
    if ( tolerate_multi_vals ) {
