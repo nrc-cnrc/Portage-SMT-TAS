@@ -10,9 +10,9 @@
 .SECONDARY:
 
 .PHONY: all
-all: test1 test2 test3 test4 test_PI
+all: test1 test2 test3 test4 test_PI ac_fields
 
-TEMP_FILES=cpt.mix.test* log.cpt.mix.test*
+TEMP_FILES=cpt.mix.test* log.cpt.mix.test* out.*
 include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
@@ -69,3 +69,22 @@ jpt.dev.en-fr.gz: jpt.%.en-fr.gz: cpt.hans1.en2fr.gz
 		ibm2.hans1.fr_given_en.gz ibm2.hans1.en_given_fr.gz $*_en.lc $*_fr.lc \
 		2> log.jpt.dev.en-fr \
 		| LC_ALL=C sort -s | gzip > $@
+
+######################################
+# train_tm_mixture generating the a= and c= fields
+
+.PHONY: ac_fields
+ac_fields: ac_fields.normal ac_fields.reversed ac_fields.swap
+
+ac_fields.normal:
+	train_tm_mixture -o out.$@ in/cpt-1b in/cpt-2b in/cpt-3 in/jpt
+	-diff out.$@ ref/out.ac_fields
+
+ac_fields.swap:
+	train_tm_mixture -o out.$@ in/cpt-2b in/cpt-1b in/cpt-3 in/jpt
+	-diff out.$@ ref/out.ac_fields
+
+# We gotta be able to parse a= and c= in either direction, really! (We didn't use to).
+ac_fields.reversed:
+	train_tm_mixture -o out.$@ in/cpt-1 in/cpt-2 in/cpt-3 in/jpt
+	-diff out.$@ ref/out.ac_fields
