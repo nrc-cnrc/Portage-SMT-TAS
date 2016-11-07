@@ -300,6 +300,9 @@ struct Datum {
    string p1, p2;               ///< source and target phrases
    vector<double> probs;        ///< phrase's probabilities
    vector<double> unwtd_probs;  ///< unweighted probs, used if smooth_cpts set 
+   bool has_count;              ///< wether a count field was found
+   double count;                ///< c= field (phrase pair joint count)
+   vector_map<string,double> alignments; ///< a= field (phrase's alignments)
    Uint  stream_positional_id;  ///< This Datum is from what positional stream?
    vector<bool> ids_added;      ///< ids from streams +='ed to this one
 
@@ -307,7 +310,7 @@ struct Datum {
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
 
    Datum()
-   : probs(1), stream_positional_id(0) {}
+   : probs(1), has_count(false), count(1), stream_positional_id(0) {}
 
    const string& getKey() const { return key; }
 
@@ -367,7 +370,11 @@ struct Datum {
                   probs[j] += unwtd_probs[j] * cpt_wts[j][i];
          }
       }
-      PhraseTableBase::writePhrasePair(out, p1.c_str(), p2.c_str(), NULL, probs, false, 0.0);
+      PhraseTableBase::writePhrasePair(
+            out, p1.c_str(), p2.c_str(), // phrase pair
+            alignments.empty() ? NULL : alignments.max()->first.c_str(), // a= field, if any
+            probs, // probability values
+            has_count, count); // c= field, if any
    }
 
    bool parse(const string& buffer, Uint pId) {
@@ -378,6 +385,9 @@ struct Datum {
       key = p1 + PHRASE_TABLE_SEP + p2 + PHRASE_TABLE_SEP;
       probs.clear();
       unwtd_probs.clear();
+      has_count = false;
+      count = 1;
+      alignments.clear();
       ids_added.assign(num_cpts, 0);
       ids_added[stream_positional_id] = true;
       assert((Uint)(a - v) == cpt_wts.size());
@@ -385,6 +395,42 @@ struct Datum {
          probs.push_back(cpt_wts[i][stream_positional_id] * conv<float>(*v));
          if (smooth_cpts) unwtd_probs.push_back(conv<float>(*v));
       }
+      for (PhraseTableBase::ToksIter named_field = a; named_field < f; ++named_field) {
+         if (named_field->compare(0,2,"a=") == 0) {
+            // parse the a= field
+            vector<string> all_alignments;
+            split(named_field->substr(2), all_alignments, ";");
+            for ( Uint i = 0; i < all_alignments.size(); ++i ) {
+               string::size_type colon_pos = all_alignments[i].find(':');
+               if ( colon_pos == string::npos ) {
+                  alignments[all_alignments[i]] += 1;
+               }
+               else {
+                  Uint intcount = 0;
+                  if ( !convT(all_alignments[i].substr(colon_pos+1).c_str(), intcount) )
+                     error(ETWarn, "Count %s is not a number in a= field of %s",
+                           all_alignments[i].substr(colon_pos+1).c_str(), buffer.c_str());
+                  else
+                     alignments[all_alignments[i].substr(0,colon_pos)] += intcount;
+               }
+            }
+         } else if (named_field->compare(0,2,"c=") == 0) {
+            // parse the c= field
+            Uint intcount = 0;
+            if (!convT(named_field->substr(2).c_str(), intcount)) {
+               error(ETWarn, "Count is not a number %s in c= field of %s",
+                     named_field->substr(2).c_str(), buffer.c_str());
+            } else {
+               has_count = true;
+               count = intcount;
+            }
+         }
+      }
+      // Typical case: the phrase pair has just one alignment, without count.
+      // In that case, set the count to the c= field value.
+      if (alignments.size() == 1 && alignments.begin()->second == 1)
+         alignments.begin()->second = count;
+
       return true;
    }
 
@@ -397,6 +443,9 @@ struct Datum {
          for (Uint i = 0; i < unwtd_probs.size(); ++i) 
             unwtd_probs[i] += other.unwtd_probs[i];
       ids_added[other.stream_positional_id] = true;
+      if (other.has_count) has_count = true;
+      count += other.count;
+      alignments += other.alignments;
       return *this;
    }
 
