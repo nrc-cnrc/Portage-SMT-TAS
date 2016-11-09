@@ -74,17 +74,20 @@ jpt.dev.en-fr.gz: jpt.%.en-fr.gz: cpt.hans1.en2fr.gz
 # train_tm_mixture generating the a= and c= fields
 
 .PHONY: ac_fields
-ac_fields: ac_fields.normal ac_fields.reversed ac_fields.swap
+ac_fields: _fields.normal _fields.reversed _fields.swap
 
-ac_fields.normal:
-	train_tm_mixture -o out.$@ in/cpt-1b in/cpt-2b in/cpt-3 in/jpt
-	-diff out.$@ ref/out.ac_fields
+AC_PREFIX=ac
+AC_OPTS=-write-count -write-al top
 
-ac_fields.swap:
-	train_tm_mixture -o out.$@ in/cpt-2b in/cpt-1b in/cpt-3 in/jpt
-	-diff out.$@ ref/out.ac_fields
+_fields.normal:
+	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-1b in/cpt-2b in/cpt-3 in/jpt
+	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
+
+_fields.swap:
+	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-2b in/cpt-1b in/cpt-3 in/jpt
+	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
 
 # We gotta be able to parse a= and c= in either direction, really! (We didn't use to).
-ac_fields.reversed:
-	train_tm_mixture -o out.$@ in/cpt-1 in/cpt-2 in/cpt-3 in/jpt
-	-diff out.$@ ref/out.ac_fields
+_fields.reversed:
+	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-1 in/cpt-2 in/cpt-3 in/jpt
+	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
