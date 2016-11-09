@@ -10,7 +10,7 @@
 .SECONDARY:
 
 .PHONY: all
-all: test1 test2 test3 test4 test_PI ac_fields
+all: test1 test2 test3 test4 test_PI all_ac_fields
 
 TEMP_FILES=cpt.mix.test* log.cpt.mix.test* out.*
 include ../Makefile.incl
@@ -73,6 +73,13 @@ jpt.dev.en-fr.gz: jpt.%.en-fr.gz: cpt.hans1.en2fr.gz
 ######################################
 # train_tm_mixture generating the a= and c= fields
 
+.PHONY: all_ac_fields
+all_ac_fields:
+	${MAKE} ac_fields AC_PREFIX=no AC_OPTS=""
+	${MAKE} ac_fields AC_PREFIX=a AC_OPTS="-write-al top"
+	${MAKE} ac_fields AC_PREFIX=c AC_OPTS="-write-count"
+	${MAKE} ac_fields AC_PREFIX=ac AC_OPTS="-write-al top -write-count"
+
 .PHONY: ac_fields
 ac_fields: _fields.normal _fields.reversed _fields.swap
 
@@ -81,13 +88,13 @@ AC_OPTS=-write-count -write-al top
 
 _fields.normal:
 	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-1b in/cpt-2b in/cpt-3 in/jpt
-	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
+	-diff out.${AC_PREFIX}$@ ref/out.${AC_PREFIX}_fields
 
 _fields.swap:
 	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-2b in/cpt-1b in/cpt-3 in/jpt
-	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
+	-diff out.${AC_PREFIX}$@ ref/out.${AC_PREFIX}_fields
 
 # We gotta be able to parse a= and c= in either direction, really! (We didn't use to).
 _fields.reversed:
 	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-1 in/cpt-2 in/cpt-3 in/jpt
-	-diff out.${AC_PREFIX}$@ ref/out.ac_fields
+	-diff out.${AC_PREFIX}$@ ref/out.${AC_PREFIX}_fields
