@@ -102,6 +102,13 @@ Options:\n\
             where df is the number of cpts the pair occurs in.\n\
 -idf        During EM, multiply the jpt count of each phrase pair by log(T/df),\n\
             where df is the number of cpts the pair occurs in, out of T total.\n\
+-write-al A Write alignment information for all phrase pairs having alignments\n\
+            in input cpts, after summing frequencies across cpts. If A is 'top',\n\
+            write the most frequent alignment without frequency; if 'keep' or\n\
+            'all', write all alignments with summed frequencies; if 'none',\n\
+            write nothing. [none]\n\
+-write-count Write the tallied joint count for each phrase pair in c=<cnt>\n\
+            format. [don't]\n\
 -o outfile  Write output to outfile. If cpt.bkoff files exist, and -nobkoff is\n\
             not given, then write mixed backoff probabilities to outfile.bkoff.\n\
             [write to stdout, with no backoff probabilities]\n\
@@ -128,6 +135,9 @@ static vector< vector<double> > fixed_weights;  // col -> wt vect (empty if none
 static vector<string> input_cpt_files;
 static string input_jpt_file;
 static string indomain_model_file = "";
+static string store_alignment_option = "";
+static Uint display_alignments = 0; // 0=none, 1=top, 2=all/keep
+static bool write_count(false);
 static string outfile = "-";
 const string PHRASE_TABLE_SEP = PhraseTableBase::sep + PhraseTableBase::psep +
                                 PhraseTableBase::sep;
@@ -300,6 +310,9 @@ struct Datum {
    string p1, p2;               ///< source and target phrases
    vector<double> probs;        ///< phrase's probabilities
    vector<double> unwtd_probs;  ///< unweighted probs, used if smooth_cpts set 
+   bool has_count;              ///< wether a count field was found
+   double count;                ///< c= field (phrase pair joint count)
+   vector_map<string,Uint> alignments; ///< a= field (phrase's alignments)
    Uint  stream_positional_id;  ///< This Datum is from what positional stream?
    vector<bool> ids_added;      ///< ids from streams +='ed to this one
 
@@ -307,7 +320,7 @@ struct Datum {
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
 
    Datum()
-   : probs(1), stream_positional_id(0) {}
+   : probs(1), has_count(false), count(1), stream_positional_id(0) {}
 
    const string& getKey() const { return key; }
 
@@ -367,7 +380,27 @@ struct Datum {
                   probs[j] += unwtd_probs[j] * cpt_wts[j][i];
          }
       }
-      PhraseTableBase::writePhrasePair(out, p1.c_str(), p2.c_str(), NULL, probs, false, 0.0);
+      static string a_field;
+      a_field = "";
+      if (display_alignments && !alignments.empty()) {
+         if (display_alignments == 1) {
+            a_field = alignments.max()->first;
+         } else {
+            ostringstream out;
+            for (vector_map<string,Uint>::const_iterator it(alignments.begin()), end(alignments.end());
+                  it != end;) {
+               out << it->first;
+               if (it->second != 1 || alignments.size() != 1)
+                  out << ":" << it->second;
+               if (++it != end) out << ";";
+            }
+         }
+      }
+      PhraseTableBase::writePhrasePair(
+            out, p1.c_str(), p2.c_str(), // phrase pair
+            a_field.empty() ? NULL : a_field.c_str(), // a= field, if any
+            probs, // probability values
+            write_count && has_count, count); // c= field, if any
    }
 
    bool parse(const string& buffer, Uint pId) {
@@ -378,6 +411,9 @@ struct Datum {
       key = p1 + PHRASE_TABLE_SEP + p2 + PHRASE_TABLE_SEP;
       probs.clear();
       unwtd_probs.clear();
+      has_count = false;
+      count = 1;
+      alignments.clear();
       ids_added.assign(num_cpts, 0);
       ids_added[stream_positional_id] = true;
       assert((Uint)(a - v) == cpt_wts.size());
@@ -385,6 +421,44 @@ struct Datum {
          probs.push_back(cpt_wts[i][stream_positional_id] * conv<float>(*v));
          if (smooth_cpts) unwtd_probs.push_back(conv<float>(*v));
       }
+      for (PhraseTableBase::ToksIter named_field = a; named_field < f; ++named_field) {
+         if (display_alignments != 0 && named_field->compare(0,2,"a=") == 0) {
+            // parse the a= field
+            vector<string> all_alignments;
+            split(named_field->substr(2), all_alignments, ";");
+            for ( Uint i = 0; i < all_alignments.size(); ++i ) {
+               string::size_type colon_pos = all_alignments[i].find(':');
+               if ( colon_pos == string::npos ) {
+                  alignments[all_alignments[i]] += 1;
+               }
+               else {
+                  Uint intcount = 0;
+                  if ( !convT(all_alignments[i].substr(colon_pos+1).c_str(), intcount) )
+                     error(ETWarn, "Count %s is not a number in a= field of %s",
+                           all_alignments[i].substr(colon_pos+1).c_str(), buffer.c_str());
+                  else
+                     alignments[all_alignments[i].substr(0,colon_pos)] += intcount;
+               }
+            }
+         } else if (named_field->compare(0,2,"c=") == 0) {
+            // parse the c= field
+            // note that we do so even if !write_count, because it is used
+            // when display_alignments != 0 to weigh each CPT's vote.
+            Uint intcount = 0;
+            if (!convT(named_field->substr(2).c_str(), intcount)) {
+               error(ETWarn, "Count is not a number %s in c= field of %s",
+                     named_field->substr(2).c_str(), buffer.c_str());
+            } else {
+               has_count = true;
+               count = intcount;
+            }
+         }
+      }
+      // Typical case: the phrase pair has just one alignment, without count.
+      // In that case, set the count to the c= field value.
+      if (alignments.size() == 1 && alignments.begin()->second == 1)
+         alignments.begin()->second = count;
+
       return true;
    }
 
@@ -397,6 +471,9 @@ struct Datum {
          for (Uint i = 0; i < unwtd_probs.size(); ++i) 
             unwtd_probs[i] += other.unwtd_probs[i];
       ids_added[other.stream_positional_id] = true;
+      if (other.has_count) has_count = true;
+      count += other.count;
+      alignments += other.alignments;
       return *this;
    }
 
@@ -788,7 +865,7 @@ END_MAIN
 void getArgs(int argc, const char* const argv[])
 {
    const char* switches[] = {"v", "r", "s", "sc:", "df", "idf", "eq:", 
-                             "e:", "nobkoff", "mixbkoff", 
+                             "e:", "nobkoff", "mixbkoff", "write-count", "write-al:",
                              "wb_in:", "wb_out:", "prec:", "n:", "w:", "o:", "im:"};
 
    vector<string> fixed_weights_strs;
@@ -812,6 +889,8 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("prec", prec);
    arg_reader.testAndSet("w", fixed_weights_strs);
    arg_reader.testAndSet("o", outfile);
+   arg_reader.testAndSet("write-al", store_alignment_option);
+   arg_reader.testAndSet("write-count", write_count);
    arg_reader.testAndSet("im", indomain_model_file);
 
    arg_reader.getVars(0, input_cpt_files);
@@ -841,4 +920,20 @@ void getArgs(int argc, const char* const argv[])
 
    if (smooth_cpts && input_cpt_files.size() > MAX_CPTS_WITH_S)
       error(ETFatal, "At most %d cpts can be used with -s", MAX_CPTS_WITH_S);
+
+   if (!store_alignment_option.empty()) {
+      if ( store_alignment_option == "top" ) {
+         // display_alignments==1 means display only top one, without freq
+         display_alignments = 1;
+      } else if ( store_alignment_option == "keep" || store_alignment_option == "all" ) {
+         // display_alignments==2 means display all alignments with freq.  In
+         // joint2cond_phrase_tables, this means preserving whatever was in jtable.
+         display_alignments = 2;
+      } else if ( store_alignment_option == "none" ) {
+         display_alignments = 0;
+      } else {
+         error(ETFatal, "Invalid -write-al value: %s; expected top or keep.",
+               store_alignment_option.c_str());
+      }
+   }
 }
