@@ -440,8 +440,10 @@ struct Datum {
                      alignments[all_alignments[i].substr(0,colon_pos)] += intcount;
                }
             }
-         } else if (write_count && named_field->compare(0,2,"c=") == 0) {
+         } else if (named_field->compare(0,2,"c=") == 0) {
             // parse the c= field
+            // note that we do so even if !write_count, because it is used
+            // when display_alignments != 0 to weigh each CPT's vote.
             Uint intcount = 0;
             if (!convT(named_field->substr(2).c_str(), intcount)) {
                error(ETWarn, "Count is not a number %s in c= field of %s",
