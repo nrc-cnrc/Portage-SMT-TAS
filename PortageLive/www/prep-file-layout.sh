@@ -99,7 +99,7 @@ fi
 # Create directory structure
 mkdir -p ${HTML_DIR}/plive   # working directory
 mkdir -p ${HTML_DIR}/images  # to hold all images
-mkdir -p ${HTML_DIR}/secure  # to hold all images
+mkdir -p ${HTML_DIR}/secure/images  # to hold secure files and images
 mkdir -p ${ROOT_DIR}/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
@@ -110,13 +110,12 @@ cp cgi/*.{pm,cgi} ${ROOT_DIR}/var/www/cgi-bin
 cp cgi/*.css ${HTML_DIR}
 
 # Copy the images needed by the CGI scripts
-cp images/*.{gif,jpg,png} ${HTML_DIR}/images
+cp images/*.{gif,jpg,png} ${HTML_DIR}/images/
+cp images/*.{gif,jpg,png} ${HTML_DIR}/secure/images/
 
 # Copy the icon needed by the CGI scripts
 cp images/*.ico ${HTML_DIR}
-
-ln -s ../images ${HTML_DIR}/secure/
-ln -s ../favicon.ico ${HTML_DIR}/secure/
+cp images/*.ico ${HTML_DIR}/secure/
 
 # Copy the phrase alignment visualization page.
 cp phraseAlignmentVisualization.html ${HTML_DIR}/

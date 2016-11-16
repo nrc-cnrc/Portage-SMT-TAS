@@ -198,7 +198,7 @@ all: install_lib
 install_lib: ${INSTALL_LIB_LIST}
 install_lib: ${DEST_LIB_DIR}/CE
 ifdef DO_EXTERNAL_LIBS
-	$(if $(wildcard ${DEST_LIB_DIR}/libstdc++.so.*), ln -fs $(firstword $(notdir $(wildcard ${DEST_LIB_DIR}/libstdc++.so.*))) ${DEST_LIB_DIR}/libstdc++.so)
+	$(if $(wildcard ${DEST_LIB_DIR}/libstdc++.so.*), cp $(firstword $(wildcard ${DEST_LIB_DIR}/libstdc++.so.*)) ${DEST_LIB_DIR}/libstdc++.so)
 endif
 	chmod 0755 $(filter-out %.pm, $+)
 	chmod 0644 $(filter %.pm, $+)
