@@ -250,36 +250,24 @@ function processQuery() {
       // There are no query_string, should it be an error or should we return some documentation?
       throw new Exception( json_encode(array("ERROR" => array("message" => "There is no query."))));
    }
-   $query_string = $_SERVER['QUERY_STRING'];
-   $query_string = urldecode($query_string);
-   //print $query_string . "\n";
+   $q = $_GET['q'];
+   $q = html_entity_decode($q);
 
-   $source = '';
-   $target = '';
-   $prettyprint = true;
-   $key = '';
-   $q = array();
-   foreach (split('&', $query_string) as $a) {
-      list($k, $v) = split('=', $a, 2);
-      switch($k) {
-      case "key":
-         $key = $v;
-         break;
-      case "prettyprint":
-         $prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-         break;
-      case "q":
-         array_push($q, $v);
-         break;
-      case "source":
-         $source = $v;
-         break;
-      case "target":
-         $target = $v;
-         break;
-      default:
-      }
+
+   $key = $_GET['key'];
+   $target = $_GET['target'];
+
+   if (isset($_GET['source'])){
+      $source = $_GET['source'];
    }
+  
+   if (isset($_GET['prettyprint'])){
+      $prettyprint = $_GET['prettyprint'];
+      }
+
+   if (!isset($_GET['prettyprint'])){
+      $prettyprint = "false";
+      }
 
    if (!isset($target) || empty($target)) {
       throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a target using target=X."))));
@@ -298,9 +286,7 @@ function processQuery() {
    $newline = "p";
    $context = "$key" . $source . "-" . $target;
 
-   if ((int)$q > 0) {
-      // For efficiency, let's glue all queries into a single request for Portage.
-      $q = join("\n", $q);
+   if ($q) {
       // Translate the queries.
       $translations = translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
       // Divide the translations into the original queries.
@@ -309,7 +295,14 @@ function processQuery() {
       $translations = array_filter($translations);
       // Transform the translations into the proper JSON format.
       $translations = array_map($prep, $translations);
-      print json_encode(array("data" => array("translations" => $translations)), $prettyprint ? JSON_PRETTY_PRINT : 0);
+
+      if ( $prettyprint === "true" ) {
+         print json_encode(array("data" => array("translations" => $translations)), $prettyprint ? JSON_PRETTY_PRINT : 0);
+      }
+      if ( $prettyprint === "false" ) {
+         print json_encode(array("data" => array("translations" => $translations)));
+      }
+
    }
    else {
       throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
