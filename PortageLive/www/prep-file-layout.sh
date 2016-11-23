@@ -82,14 +82,14 @@ done
 [[ $# -gt 0 ]] && usage "Superfluous argument(s) $*"
 
 ROOT_DIR="rpm.build.root"
-HTML_DIR="${ROOT_DIR}/var/www/html"
+HTML_DIR="$ROOT_DIR/var/www/html"
 
 # Set to the IP address if it is going to fixed, leave blank for a machine
 # using DHCP or a VM.
 if [[ $FIXED_IP ]]; then
-   SOAP_DEST=${HTML_DIR}
+   SOAP_DEST=$HTML_DIR
 elif [[ $DYNAMIC_IP ]]; then
-   SOAP_DEST=${ROOT_DIR}/opt/PortageII/www
+   SOAP_DEST=$ROOT_DIR/opt/PortageII/www
 else
    error_exit "Please provide your server's static IP address via -ip," \
       "or use -dynamic-ip to enable the dynamic IP mechanism" \
@@ -97,31 +97,31 @@ else
 fi
 
 # Create directory structure
-mkdir -p ${HTML_DIR}/plive   # working directory
-mkdir -p ${HTML_DIR}/images  # to hold all images
-mkdir -p ${HTML_DIR}/secure/images  # to hold secure files and images
-mkdir -p ${ROOT_DIR}/var/www/cgi-bin      # cgi scripts
+mkdir -p $HTML_DIR/plive   # working directory
+mkdir -p $HTML_DIR/images  # to hold all images
+mkdir -p $HTML_DIR/secure/images  # to hold secure files and images
+mkdir -p $ROOT_DIR/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
 # Copy the CGI scripts
-cp cgi/*.{pm,cgi} ${ROOT_DIR}/var/www/cgi-bin
+cp cgi/*.{pm,cgi} $ROOT_DIR/var/www/cgi-bin
 
 # Copy the css
-cp cgi/*.css ${HTML_DIR}
+cp cgi/*.css $HTML_DIR
 
 # Copy the images needed by the CGI scripts
-cp images/*.{gif,jpg,png} ${HTML_DIR}/images/
-cp images/*.{gif,jpg,png} ${HTML_DIR}/secure/images/
+cp images/*.{gif,jpg,png} $HTML_DIR/images/
+cp images/*.{gif,jpg,png} $HTML_DIR/secure/images/
 
 # Copy the icon needed by the CGI scripts
-cp images/*.ico ${HTML_DIR}
-cp images/*.ico ${HTML_DIR}/secure/
+cp images/*.ico $HTML_DIR
+cp images/*.ico $HTML_DIR/secure/
 
 # Copy the phrase alignment visualization page.
-cp phraseAlignmentVisualization.html ${HTML_DIR}/
+cp phraseAlignmentVisualization.html $HTML_DIR/
 
 # Copy notices
-cp html/portage_notices.php ${HTML_DIR}/
+cp html/portage_notices.php $HTML_DIR/
 
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST
@@ -148,11 +148,11 @@ for wsdl in `find $SOAP_DEST -name PortageLiveAPI.wsdl`; do
 done
 
 # Set proper permissions on the directory and file structure
-find ${ROOT_DIR} -type d | xargs chmod 755
-find ${ROOT_DIR} -type f | xargs chmod 644
+find $ROOT_DIR -type d | xargs chmod 755
+find $ROOT_DIR -type f | xargs chmod 644
 find -name \*.cgi | xargs chmod o+x
-chmod o+w ${HTML_DIR}/plive
+chmod o+w $HTML_DIR/plive
 
 # Create a tarball of portagelive's www.
-cd ${ROOT_DIR} && tar zchvf ../portagelive.www.tgz * && cd ..
+cd $ROOT_DIR && tar zchvf ../portagelive.www.tgz * && cd ..
 
