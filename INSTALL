@@ -663,6 +663,15 @@ Warnings for PortageLive
   /opt/PortageII/{bin,lib}.
 
 
+jQuery:
+  jQuery is used by $PORTAGE/PortageLive/www/phraseAlignmentVisualization.html
+  when a user wants to visualize phrase alignments after having translated a
+  sentence using plive.cgi.
+    mkdir $PORTAGE/third-party/jquery
+    wget -O $PORTAGE/third-party/jquery/jquery-2.1.1.min.js \
+      'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+
+
 
 
                               Acknowledgments

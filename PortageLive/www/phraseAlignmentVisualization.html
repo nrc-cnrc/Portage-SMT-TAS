@@ -32,17 +32,29 @@
       }
     </style>
 
+    <!--
+    For safety reasons, we should add integrity checking when we fetch third-party resources from a CDN.
+    https://hacks.mozilla.org/2015/09/subresource-integrity-in-firefox-43/
+    https://www.srihash.org/
+    openssl dgst -sha384 -binary FILENAME.js | openssl base64 -A
+    -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
     <!--
     PTGSH-381: If the user has no internet access, the administrator can download jquery-2.1.1.min.js in /var/www/html/
-    wget -O /var/www/html/jquery-2.1.1.min.js 'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js
+      wget -O /var/www/html/jquery-2.1.1.min.js 'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+      mkdir -p $PORTAGE/third-party/jquery
+      cp /var/www/html/jquery-2.1.1.min.js $PORTAGE/third-party/jquery/
+    -->
+
+    <!--
     source:
-    http://stackoverflow.com/questions/5257923/how-to-load-local-script-files-as-fallback-in-cases-where-cdn-are-blocked-unavai
+    How to load local script files as fallback in cases where CDN are blocked/unavailable?
+    http://stackoverflow.com/a/5531821
     -->
     <script>
       window.$ || document.write('<script src="/jquery-2.1.1.min.js">\x3C/script>');
-      var message = "window.$ || alert(\"There was an error loading JQuery's library, ask your webmaster to add jquery to the root of this server.\");";
+      var message = "window.$ || alert(\"There was an error loading jQuery's library, ask your webmaster to add jQuery to the root of this server.\");";
       window.$ || document.write('<script>' + message + '\x3C/script>');
     </script>
 

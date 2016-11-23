@@ -119,6 +119,17 @@ cp images/*.ico $HTML_DIR/secure/
 
 # Copy the phrase alignment visualization page.
 cp phraseAlignmentVisualization.html $HTML_DIR/
+PORTAGE_JQUERY_DIR=../../third-party/jquery
+PORTAGE_JQUERY=$PORTAGE_JQUERY_DIR/jquery-2.1.1.min.js
+if [[ ! -s $PORTAGE_JQUERY ]];
+then
+   echo "Fetching jQuery from the web." >&2
+   mkdir -p $PORTAGE_JQUERY_DIR
+   wget -O $PORTAGE_JQUERY \
+       'http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+fi
+cp  $PORTAGE_JQUERY  $HTML_DIR/ \
+|| echo "Warining: We cannot find jquery which is optional but if you want to visualize phrase alignment and don't have access to the internet, you will need it." >&2
 
 # Copy notices
 cp html/portage_notices.php $HTML_DIR/
