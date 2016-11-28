@@ -9,29 +9,19 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2015, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2015, Her Majesty in Right of Canada
+ * Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2016, Her Majesty in Right of Canada
  */
 
-/*
- * TODO:
- * - The following functions were extracted from PortageLiveAPI.php's class
- *    methods and should be factorized out with the original into a library.
- *      - getContextInfo
- *      - validateContext
- *      - normalizeName
- *      - makeWorkDir
- *      - runCommand
- *      - translate
- * - This was hack rather quickly and should be revised for robustness.
- */
+// curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
+// curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
+// curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q=car --data target=fr  --data key=toy-regress- --data prettyprint=false
 
-// curl -G http://132.246.128.219/language/translate/v3.php -d q=hello  -d q=tree  -d q=car
-// curl -G http://132.246.128.219/language/translate/v3.php -d q=hello  -d q=tree  -d q=car -d target=fr  -d key=toy-regress-
 // QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
-// QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php -e -r 'parse_str($_SERVER["QUERY_STRING"], $_GET); include "translate.php";'
+// QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
 
 /*
+ * This is a sample of the expected output format.
 {
     "data": {
         "translations": [
@@ -42,6 +32,25 @@
         ]
     }
 }
+
+or
+
+{
+   "data": {
+      "translations": [
+         {
+            "translatedText": "hello"
+         },
+         {
+            "translatedText": "tree & Lake"
+         },
+         {
+            "translatedText": "car"
+         }
+      ]
+   }
+}
+
 */
 
 require 'basicTranslator.php';
@@ -52,12 +61,16 @@ class RestTranlator extends BasicTranslator {
    protected $target = '';
    protected $prettyprint = true;
    protected $key = '';
-   protected $q;
+   protected $q = array();
 
 
+   /**
+    * This function is necessary in order to properly extract multiple q(ueries) from the url.
+    * Simply relying on $_GET['q'] is not sufficient since it will only return
+    * the last q(uery) value.
+    */
    public function parseRequest() {
       //print_r($_SERVER['QUERY_STRING']."\n");
-      $this->q = array();
       foreach (split('&', $_SERVER['QUERY_STRING']) as $a) {
          list($k, $v) = split('=', $a, 2);
          switch($k) {
@@ -84,8 +97,12 @@ class RestTranlator extends BasicTranslator {
    }
 
 
-   public function processQuery() {
-      $prep = function ($t) {
+   public function translate() {
+      /**
+       * This is a help function that wraps Portage's translations into the
+       * appropriate google spec format.
+       */
+      $wrapTranslation = function ($t) {
          return array("translatedText" => $t);
       };
 
@@ -117,15 +134,19 @@ class RestTranlator extends BasicTranslator {
          // For efficiency, let's glue all queries into a single request for Portage.
          $q = join("\n", $this->q);
          // Translate the queries.
-         $translations = $this->translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
+         $translations = parent::translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
          // Divide the translations into the original queries.
          $translations = split("\n", $translations);
          // Remove empty translations.
          $translations = array_filter($translations);
          // Transform the translations into the proper JSON format.
-         $translations = array_map($prep, $translations);
+         $translations = array_map($wrapTranslation, $translations);
+         // Let's bundle the translations into an object.
+         $translations = array("translations" => $translations);
+         // One last wrapping layer to reproduce google's return json format.
+         $translations = array("data" => $translations);
 
-         print json_encode(array("data" => array("translations" => $translations)), $this->prettyprint ? JSON_PRETTY_PRINT : 0);
+         print json_encode($translations, $this->prettyprint ? JSON_PRETTY_PRINT : 0) . PHP_EOL;
       }
       else {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
@@ -138,7 +159,7 @@ class RestTranlator extends BasicTranslator {
 
 try {
    $translator = new RestTranlator();
-   $translator -> processQuery();
+   $translator->translate();
 }
 catch (SoapFault $exception) {
    print json_encode(array("ERROR" => array("SOAPfault" => $exception))) . "\n";
