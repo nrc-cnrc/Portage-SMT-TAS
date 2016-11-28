@@ -48,6 +48,42 @@ require 'basicTranslator.php';
 
 class RestTranlator extends BasicTranslator {
 
+   protected $source = '';
+   protected $target = '';
+   protected $prettyprint = true;
+   protected $key = '';
+   protected $q;
+
+
+   public function parseRequest() {
+      //print_r($_SERVER['QUERY_STRING']."\n");
+      $this->q = array();
+      foreach (split('&', $_SERVER['QUERY_STRING']) as $a) {
+         list($k, $v) = split('=', $a, 2);
+         switch($k) {
+            case "key":
+               $this->key = $v;
+               break;
+            case "prettyprint":
+               $this->prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+               break;
+            case "q":
+               $v = urldecode($v);
+               $v = html_entity_decode($v);
+               array_push($this->q, $v);
+               break;
+            case "source":
+               $this->source = $v;
+               break;
+            case "target":
+               $this->target = $v;
+               break;
+            default:
+         }
+      }
+   }
+
+
    public function processQuery() {
       $prep = function ($t) {
          return array("translatedText" => $t);
@@ -58,56 +94,28 @@ class RestTranlator extends BasicTranslator {
          throw new Exception( json_encode(array("ERROR" => array("message" => "There is no query."))));
       }
 
-      $source = '';
-      $target = '';
-      $prettyprint = true;
-      $key = '';
-      $q = array();
-      //print_r($_SERVER['QUERY_STRING']."\n");
-      foreach (split('&', $_SERVER['QUERY_STRING']) as $a) {
-         list($k, $v) = split('=', $a, 2);
-         switch($k) {
-         case "key":
-            $key = $v;
-            break;
-         case "prettyprint":
-            $prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            break;
-         case "q":
-            $v = urldecode($v);
-            $v = html_entity_decode($v);
-            array_push($q, $v);
-            break;
-         case "source":
-            $source = $v;
-            break;
-         case "target":
-            $target = $v;
-            break;
-         default:
-         }
-      }
+      $this->parseRequest();
 
-      if (!isset($target) || empty($target)) {
+      if (!isset($this->target) || empty($this->target)) {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a target using target=X."))));
       }
 
       // Validate that source is a valid source language / supported source language.
 
       // Deduce and/or validate the target language.
-      if (!isset($source) || empty($source)) {
-         if ($target === "fr") $source = "en";
-         if ($target === "en") $source = "fr";
+      if (!isset($this->source) || empty($this->source)) {
+         if ($this->target === "fr") $this->source = "en";
+         if ($this->target === "en") $this->source = "fr";
       }
 
       $performTagTransfer = false;
       $useConfidenceEstimation = false;
       $newline = "p";
-      $context = "$key" . $source . "-" . $target;
+      $context = $this->key . $this->source . "-" . $this->target;
 
-      if ((int)$q > 0) {
+      if ((int)$this->q > 0) {
          // For efficiency, let's glue all queries into a single request for Portage.
-         $q = join("\n", $q);
+         $q = join("\n", $this->q);
          // Translate the queries.
          $translations = $this->translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
          // Divide the translations into the original queries.
@@ -117,7 +125,7 @@ class RestTranlator extends BasicTranslator {
          // Transform the translations into the proper JSON format.
          $translations = array_map($prep, $translations);
 
-         print json_encode(array("data" => array("translations" => $translations)), $prettyprint ? JSON_PRETTY_PRINT : 0);
+         print json_encode(array("data" => array("translations" => $translations)), $this->prettyprint ? JSON_PRETTY_PRINT : 0);
       }
       else {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
