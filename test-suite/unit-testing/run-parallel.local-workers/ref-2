@@ -50,9 +50,9 @@
    PARENT_VMEM    = 30
    NCPUS          = 2
    PARENT_NCPUS   = 5
-   LOCAL_JOBS     = 1
-   FIRST_PSUB     = 1
-   NUM            = 1
+   LOCAL_JOBS     = 2
+   FIRST_PSUB     = 2
+   NUM            = 2
    NUM       = 4
    NUM_OF_INSTR = 10
    NOLOCAL   = 
@@ -83,9 +83,9 @@
    PARENT_VMEM    = 36
    NCPUS          = 2
    PARENT_NCPUS   = 6
-   LOCAL_JOBS     = 1
-   FIRST_PSUB     = 1
-   NUM            = 1
+   LOCAL_JOBS     = 2
+   FIRST_PSUB     = 2
+   NUM            = 2
    NUM       = 4
    NUM_OF_INSTR = 10
    NOLOCAL   = 
