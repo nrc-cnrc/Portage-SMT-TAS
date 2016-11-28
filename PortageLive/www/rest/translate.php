@@ -57,24 +57,36 @@ class RestTranlator extends BasicTranslator {
          // There are no query_string, should it be an error or should we return some documentation?
          throw new Exception( json_encode(array("ERROR" => array("message" => "There is no query."))));
       }
-      $q = $_GET['q'];
-      $q = html_entity_decode($q);
 
-
-      $key = $_GET['key'];
-      $target = $_GET['target'];
-
-      if (isset($_GET['source'])){
-         $source = $_GET['source'];
+      $source = '';
+      $target = '';
+      $prettyprint = true;
+      $key = '';
+      $q = array();
+      //print_r($_SERVER['QUERY_STRING']."\n");
+      foreach (split('&', $_SERVER['QUERY_STRING']) as $a) {
+         list($k, $v) = split('=', $a, 2);
+         switch($k) {
+         case "key":
+            $key = $v;
+            break;
+         case "prettyprint":
+            $prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            break;
+         case "q":
+            $v = urldecode($v);
+            $v = html_entity_decode($v);
+            array_push($q, $v);
+            break;
+         case "source":
+            $source = $v;
+            break;
+         case "target":
+            $target = $v;
+            break;
+         default:
+         }
       }
-
-      if (isset($_GET['prettyprint'])){
-         $prettyprint = $_GET['prettyprint'];
-         }
-
-      if (!isset($_GET['prettyprint'])){
-         $prettyprint = "false";
-         }
 
       if (!isset($target) || empty($target)) {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a target using target=X."))));
@@ -93,7 +105,9 @@ class RestTranlator extends BasicTranslator {
       $newline = "p";
       $context = "$key" . $source . "-" . $target;
 
-      if ($q) {
+      if ((int)$q > 0) {
+         // For efficiency, let's glue all queries into a single request for Portage.
+         $q = join("\n", $q);
          // Translate the queries.
          $translations = $this->translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
          // Divide the translations into the original queries.
@@ -103,12 +117,7 @@ class RestTranlator extends BasicTranslator {
          // Transform the translations into the proper JSON format.
          $translations = array_map($prep, $translations);
 
-         if ( $prettyprint === "true" ) {
-            print json_encode(array("data" => array("translations" => $translations)), $prettyprint ? JSON_PRETTY_PRINT : 0);
-         }
-         if ( $prettyprint === "false" ) {
-            print json_encode(array("data" => array("translations" => $translations)));
-         }
+         print json_encode(array("data" => array("translations" => $translations)), $prettyprint ? JSON_PRETTY_PRINT : 0);
       }
       else {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
