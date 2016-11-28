@@ -465,6 +465,12 @@ trap '
          sleep 1
       done
    fi
+   for x in ${LOGFILEPREFIX}log.worker*; do
+      if ! grep -q "============ Starting job" $x; then
+         mkdir -p ~/.eqw-logs
+         cp -p $x ~/.eqw-logs
+      fi
+   done
    DID_SOME_LOG_OUTPUT=
    if [[ $DEBUG || ! $NORMAL_FINISH ]]; then
       for x in ${LOGFILEPREFIX}log.worker* ${LOGFILEPREFIX}psub-dummy-out.worker* $WORKDIR/err.worker-* $WORKDIR/mon.worker-*; do
@@ -738,6 +744,7 @@ if [[ $CLUSTER ]]; then
    # We use -exec rather than piping into xargs because it's much faster this
    # way when there are no files to delete, which will most often be the case.
    find $HOME/.run-parallel-logs/ -type f -mtime +7 -exec rm -f '{}' \; 2>&1 | grep -v 'No such file or directory' 1>&2
+   find $HOME/.eqw-logs/ -type f -mtime +14 -exec rm -f '{}' \; 2>&1 | grep -v 'No such file or directory' 1>&2
 
    # Can we write into $HOME/.run-parallel-logs/?
    TMPLOGFILEPREFIX=`mktemp $HOME/.run-parallel-logs/run-p.$SHORT_JOB_ID.XXX`
