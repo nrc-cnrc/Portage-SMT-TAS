@@ -97,7 +97,7 @@ class RestTranlator extends BasicTranslator {
    }
 
 
-   public function translate() {
+   public function bundleTranslations($translations) {
       /**
        * This is a help function that wraps Portage's translations into the
        * appropriate google spec format.
@@ -106,6 +106,23 @@ class RestTranlator extends BasicTranslator {
          return array("translatedText" => $t);
       };
 
+      // We want one translation per line.
+      $translations = split("\n", $translations);
+      // Remove empty translations.
+      $translations = array_filter($translations);
+      // Prepare the json structure.
+      // Transform the translations into the proper JSON format.
+      $translations = array_map($wrapTranslation, $translations);
+      // Let's bundle the translations into an object.
+      $translations = array("translations" => $translations);
+      // One last wrapping layer to reproduce google's return json format.
+      $translations = array("data" => $translations);
+
+      return json_encode($translations, $this->prettyprint ? JSON_PRETTY_PRINT : 0);
+   }
+
+
+   public function translate() {
       if (!isset($_SERVER['QUERY_STRING']) || empty($_SERVER['QUERY_STRING'])) {
          // There are no query_string, should it be an error or should we return some documentation?
          throw new Exception( json_encode(array("ERROR" => array("message" => "There is no query."))));
@@ -135,18 +152,8 @@ class RestTranlator extends BasicTranslator {
          $q = join("\n", $this->q);
          // Translate the queries.
          $translations = parent::translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
-         // Divide the translations into the original queries.
-         $translations = split("\n", $translations);
-         // Remove empty translations.
-         $translations = array_filter($translations);
-         // Transform the translations into the proper JSON format.
-         $translations = array_map($wrapTranslation, $translations);
-         // Let's bundle the translations into an object.
-         $translations = array("translations" => $translations);
-         // One last wrapping layer to reproduce google's return json format.
-         $translations = array("data" => $translations);
 
-         print json_encode($translations, $this->prettyprint ? JSON_PRETTY_PRINT : 0) . PHP_EOL;
+         print $this->bundleTranslations($translations) . PHP_EOL;
       }
       else {
          throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
