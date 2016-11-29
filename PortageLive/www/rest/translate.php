@@ -155,7 +155,7 @@ class RestTranlator extends BasicTranslator {
          // Translate the queries.
          $translations = parent::translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
 
-         print $this->bundleTranslations($translations) . PHP_EOL;
+         print $this->bundleTranslations($translations);
       }
       else {
          http_response_code(404);
