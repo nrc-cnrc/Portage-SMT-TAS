@@ -1,0 +1,8 @@
+globals:
+  variables:
+    http: "http://132.246.128.219/language/translate/v3.php"
+    
+test_cases:
+  - basic_validation.yaml
+  - multiple_queries.yaml
+  - ampersand.yaml

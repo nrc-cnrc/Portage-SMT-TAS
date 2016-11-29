@@ -1,0 +1,3 @@
+In order to run this testSuite, you need to deploy a mock translation system to
+a PortageLive server.
+rsync -Parz system/unittest.rev-en-fr server:/opt/PortageII/models/

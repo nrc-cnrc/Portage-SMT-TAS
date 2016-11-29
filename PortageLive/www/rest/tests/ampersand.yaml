@@ -1,0 +1,42 @@
+name: "Translate with ampersand"
+
+testSteps:
+  - name: "urlencode"
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: false
+      q: "home & hardware"  # => q=home+%26+hardware
+    apiUrl: "{http}"
+    method: "get"
+    asserts: 
+      headers: 
+        status: 200
+        Content-Type: "application/json"
+      payload:
+         data: "Object"
+         "data.translations": "Array"
+         "data.translations._length": 1
+         "data.translations[0]": "Object"
+         "data.translations[0].translatedText": "String"
+         "data.translations[0].translatedText": "erawdrah & emoh"
+
+  - name: "html_entity_encode & urlencode"
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: false
+      q: "tree &amp; lake"  # => q=tree+%26amp%3B+lake
+    apiUrl: "{http}"
+    method: "get"
+    asserts: 
+      headers: 
+        status: 200
+        Content-Type: "application/json"
+      payload:
+         data: "Object"
+         "data.translations": "Array"
+         "data.translations._length": 1
+         "data.translations[0]": "Object"
+         "data.translations[0].translatedText": "String"
+         "data.translations[0].translatedText": "ekal & eert"
