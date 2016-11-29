@@ -15,7 +15,7 @@
 
 // curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
 // curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
-// curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q=car --data target=fr  --data key=toy-regress- --data prettyprint=false
+// curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data key=toy-regress- --data prettyprint=false
 
 // QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
 // QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
@@ -125,13 +125,15 @@ class RestTranlator extends BasicTranslator {
    public function translate() {
       if (!isset($_SERVER['QUERY_STRING']) || empty($_SERVER['QUERY_STRING'])) {
          // There are no query_string, should it be an error or should we return some documentation?
-         throw new Exception(json_encode(array("ERROR" => array("message" => "There is no query."))));
+         http_response_code(404);
+         throw new Exception("There is no query.");
       }
 
       $this->parseRequest();
 
       if (!isset($this->target) || empty($this->target)) {
-         throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a target using target=X."))));
+         http_response_code(404);
+         throw new Exception("You need to provide a target using target=X.");
       }
 
       // Validate that source is a valid source language / supported source language.
@@ -156,7 +158,8 @@ class RestTranlator extends BasicTranslator {
          print $this->bundleTranslations($translations) . PHP_EOL;
       }
       else {
-         throw new Exception(json_encode(array("ERROR" => array("message" => "You need to provide a query using q=X."))));
+         http_response_code(404);
+         throw new Exception("You need to provide a query using q=X.");
       }
    }
 
@@ -170,10 +173,12 @@ try {
    $translator->translate();
 }
 catch (SoapFault $exception) {
+   http_response_code(404);
    print json_encode(array("ERROR" => array("SOAPfault" => $exception))) . "\n";
 }
 catch (Exception $exception) {
-   print $exception->getMessage() . "\n";
+   http_response_code(404);
+   print json_encode(array("ERROR" => array("message" => $exception->getMessage()))) . "\n";
 }
 
 ?>
