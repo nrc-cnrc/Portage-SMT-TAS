@@ -125,7 +125,7 @@ class RestTranlator extends BasicTranslator {
    public function translate() {
       if (!isset($_SERVER['QUERY_STRING']) || empty($_SERVER['QUERY_STRING'])) {
          // There are no query_string, should it be an error or should we return some documentation?
-         throw new Exception( json_encode(array("ERROR" => array("message" => "There is no query."))));
+         throw new Exception(json_encode(array("ERROR" => array("message" => "There is no query."))));
       }
 
       $this->parseRequest();
@@ -165,6 +165,7 @@ class RestTranlator extends BasicTranslator {
 
 
 try {
+   header('content-type: application/json');
    $translator = new RestTranlator();
    $translator->translate();
 }
