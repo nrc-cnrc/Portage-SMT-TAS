@@ -1,0 +1,31 @@
+# https://cloud.google.com/translate/docs/translating-text
+#source=en&target=de&q=Hello%20world&q=My%20name%20is%20Jeff
+name: "Translate more than one query at once."
+
+globals:
+  variables:
+    queries: "q=Hello%20world&q=My%20name%20is%20Jeff"
+
+testSteps:
+  - name: "Translate"
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: false
+    apiUrl: "{http}?{queries}"
+    method: "get"
+    asserts: 
+      headers: 
+        status: 200
+        Content-Type: "application/json"
+      payload:
+         data: "Object"
+         "data.translations": "Array"
+         "data.translations._length": 2
+         "data.translations[0]": "Object"
+         "data.translations[0].translatedText": "String"
+         "data.translations[0].translatedText": "dlrow olleH"
+         "data.translations[1]": "Object"
+         "data.translations[1].translatedText": "String"
+         "data.translations[1].translatedText": "ffeJ si eman yM"
+

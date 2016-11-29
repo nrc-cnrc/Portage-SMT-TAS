@@ -1,0 +1,129 @@
+# https://learnxinyminutes.com/docs/yaml/
+
+name: "Exercice validating the parameters."
+
+testSteps:
+  - name: "No query"
+    apiUrl: "{http}"
+    method: "get"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+         ERROR: "Object"
+         ERROR.message: "String"
+         ERROR.message: "There is no query."
+
+  - name: "No target"
+    apiUrl: "{http}"
+    method: "get"
+    params:
+      key: "unittest.rev-"
+      prettyprint: false
+      q: "home"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+         ERROR: "Object"
+         ERROR.message: "String"
+         ERROR.message: "You need to provide a target using target=X."
+
+  - name: "Empty target"
+    apiUrl: "{http}"
+    method: "get"
+    params:
+      key: "unittest.rev-"
+      target: ""
+      prettyprint: false
+      q: "home"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+         ERROR: "Object"
+         ERROR.message: "String"
+         ERROR.message: "You need to provide a target using target=X."
+
+  - name: "There should be a query."
+    apiUrl: "{http}"
+    method: "get"
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: false
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+         ERROR: "Object"
+         ERROR.message: "String"
+         ERROR.message: "You need to provide a query using q=X."
+
+  - name: "Generating a SOAPFault with an invalid context/key."
+    apiUrl: "{http}"
+    method: "get"
+    params:
+      key: "invalid_context"
+      target: "fr"
+      prettyprint: false
+      q: "home"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+         ERROR: "Object"
+         ERROR.SOAPfault: "Object"
+         ERROR.SOAPfault.faultactor: "String"
+         ERROR.SOAPfault.faultactor: "PortageLiveAPI"
+         ERROR.SOAPfault.faultcode: "String"
+         ERROR.SOAPfault.faultcode: "PortageContext"
+         ERROR.SOAPfault.faultstring: "String"
+         ERROR.SOAPfault.faultstring: 'exec value.strip() == "Context \"invalid_contexten-fr\" does not exist."'
+
+  - name: "Translate not pretty printed"
+    apiUrl: "{http}"
+    method: "get"
+    raw: true
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: false
+      q: "home"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        __raw__: '{"data":{"translations":[{"translatedText":"emoh"}]}}'
+
+  - name: "Translate pretty printed"
+    apiUrl: "{http}"
+    method: "get"
+    raw: true
+    params:
+      key: "unittest.rev-"
+      target: "fr"
+      prettyprint: true
+      q: "home"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        __raw__: |
+         {
+             "data": {
+                 "translations": [
+                     {
+                         "translatedText": "emoh"
+                     }
+                 ]
+             }
+         }
+
