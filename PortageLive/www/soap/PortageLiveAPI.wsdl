@@ -433,6 +433,7 @@
       <output message="tns:removeFixedTermResponse"/>
     </operation>
 
+
     <operation name="getVersion">
       <documentation>
          Returns the current API's version.
@@ -551,17 +552,6 @@
     </operation>
 
 
-    <operation name="translateFileStatus">
-      <soap:operation soapAction="translateFileStatus"/>
-      <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </input>
-      <output>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </output>
-    </operation>
-
-
     <operation name="translateTMX">
       <soap:operation soapAction="translateTMX"/>
       <input>
@@ -582,8 +572,20 @@
       </output>
     </operation>
 
+
     <operation name="translatePlainText">
       <soap:operation soapAction="translatePlainText"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+
+    <operation name="translateFileStatus">
+      <soap:operation soapAction="translateFileStatus"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -668,8 +670,8 @@
       </output>
     </operation>
 
-    <operation name="translateTMX">
-      <soap:operation soapAction="translateTMX"/>
+    <operation name="translateTMXCE">
+      <soap:operation soapAction="translateTMXCE"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -678,8 +680,8 @@
       </output>
     </operation>
 
-    <operation name="translateSDLXLIFF">
-      <soap:operation soapAction="translateSDLXLIFF"/>
+    <operation name="translateTMXCE_Status">
+      <soap:operation soapAction="translateTMXCE_Status"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -688,8 +690,8 @@
       </output>
     </operation>
 
-    <operation name="translatePlainText">
-      <soap:operation soapAction="translatePlainText"/>
+    <operation name="translateSDLXLIFFCE">
+      <soap:operation soapAction="translateSDLXLIFFCE"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -697,6 +699,37 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
+    <operation name="translateSDLXLIFFCE_Status">
+      <soap:operation soapAction="translateSDLXLIFFCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+    <operation name="translatePlainTextCE">
+      <soap:operation soapAction="translatePlainTextCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+    <operation name="translatePlainTextCE_Status">
+      <soap:operation soapAction="translatePlainTextCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
     <!-- ===============================================================
          End deprecated bindings kept for backwards compability only
     ================================================================ -->
