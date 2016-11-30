@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
-<definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" name="PortageLiveService" targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl">
+<definitions
+   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+   xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns="http://schemas.xmlsoap.org/wsdl/"
+   name="PortageLiveService"
+   targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl">
   <!-- Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx -->
-  <!-- http://www.w3.org/TR/wsdl20 -->
+  <!-- https://en.wikipedia.org/wiki/Web_Services_Description_Language -->
+  <!-- https://www.w3.org/TR/wsdl -->
+  <!--
+  Note that this is a WSDL-1.1 and not a WSDL-2.0 format but if you are
+  interested in the newer format:
+  http://www.w3.org/TR/wsdl20
+  -->
   <documentation>
     file: PortageLiveAPI.wsdl
     brief: Definition of the API to the Portage SMT software suite.
@@ -18,6 +30,9 @@
 
   ChangeLog
   </documentation>
+
+
+
   <!-- ===========================================================
                          M E S S A G E S
   ============================================================ -->
@@ -25,6 +40,7 @@
     <part name="context" type="xsd:string"/>
     <part name="PrimeMode" type="xsd:string"/>
   </message>
+
   <message name="primeModelsResponse">
     <part name="status" type="xsd:boolean"/>
   </message>
@@ -32,9 +48,11 @@
   <message name="getAllContextsRequest">
     <part name="verbose" type="xsd:boolean"/>
   </message>
+
   <message name="getAllContextsResponse">
     <part name="contexts" type="xsd:string"/>
   </message>
+
 
   <message name="translateRequest">
     <part name="srcString" type="xsd:string"/>
@@ -43,9 +61,11 @@
     <part name="xtags" type="xsd:boolean"/>
     <part name="useCE" type="xsd:boolean"/>
   </message>
+
   <message name="translateResponse">
     <part name="Result" type="xsd:string"/>
   </message>
+
 
   <message name="translateFileRequest">
     <part name="ContentsBase64" type="xsd:string"/>
@@ -54,6 +74,7 @@
     <part name="useCE" type="xsd:boolean"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+
   <message name="translateXmlFileRequest">
     <part name="ContentsBase64" type="xsd:string"/>
     <part name="Filename" type="xsd:string"/>
@@ -62,12 +83,15 @@
     <part name="CETreshold" type="xsd:decimal"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+
   <message name="translationToken">
     <part name="token" type="xsd:string"/>
   </message>
+
   <message name="translateFileStatusResponse">
     <part name="token" type="xsd:string"/>
   </message>
+
 
   <message name="updateFixedTermRequest">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
@@ -78,26 +102,33 @@
     <part name="sourceLanguage" type="xsd:string"/>
     <part name="targetLanguage" type="xsd:string"/>
   </message>
+
   <message name="updateFixedTermResponse">
     <part name="status" type="xsd:boolean"/>
   </message>
 
+
   <message name="getFixedTermRequest">
     <part name="context" type="xsd:string"/>
   </message>
+
   <message name="getFixedTermResponse">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
   </message>
 
+
   <message name="removeFixedTermRequest">
     <part name="context" type="xsd:string"/>
   </message>
+
   <message name="removeFixedTermResponse">
     <part name="status" type="xsd:boolean"/>
   </message>
 
+
   <message name="getVersionRequest">
   </message>
+
   <message name="getVersionResponse">
     <part name="version" type="xsd:string"/>
   </message>
@@ -110,12 +141,14 @@
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+
   <message name="getTranslation2RequestDeprecated">
     <part name="srcString" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+
   <message name="translateFileCERequestDeprecated">
     <part name="ContentsBase64" type="xsd:string"/>
     <part name="Filename" type="xsd:string"/>
@@ -123,6 +156,12 @@
     <part name="CETreshold" type="xsd:decimal"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+  <!-- ============================================================
+       End deprecated message types for backward compatibility only
+  ============================================================= -->
+
+
+
   <!-- ===========================================================
                       P O R T   T Y P E S
   ============================================================ -->
@@ -253,6 +292,7 @@
       <input message="tns:translateXmlFileRequest"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translateSDLXLIFF">
       <documentation>
         Does the same thing as translateTMX(), but for an SDLXLIFF file.
@@ -261,6 +301,7 @@
       <input message="tns:translateXmlFileRequest"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translatePlainText">
       <documentation>
         Submit a request to translate a plain text file using the specified context.
@@ -360,6 +401,7 @@
       <input message="tns:updateFixedTermRequest"/>
       <output message="tns:updateFixedTermResponse"/>
     </operation>
+
     <operation name="getFixedTerms">
       <documentation>
          Given a translation system that is instrumented to process fixed
@@ -375,6 +417,7 @@
       <input message="tns:getFixedTermRequest"/>
       <output message="tns:getFixedTermResponse"/>
     </operation>
+
     <operation name="removeFixedTerms">
       <documentation>
          Given a translation system that is instrumented to process fixed
@@ -413,41 +456,49 @@
       <input message="tns:getTranslationRequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
+
     <operation name="getTranslation2">
       <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
       <input message="tns:getTranslation2RequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
+
     <operation name="getTranslationCE">
       <documentation>Deprecated since PortageII-3.0; use translate() instead.</documentation>
       <input message="tns:getTranslation2RequestDeprecated"/>
       <output message="tns:translateResponse"/>
     </operation>
+
     <operation name="translateTMXCE">
       <documentation>Deprecated since PortageII-3.0; use translateTMX() instead.</documentation>
       <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translateTMXCE_Status">
       <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
       <input message="tns:translationToken"/>
       <output message="tns:translateResponse"/>
     </operation>
+
     <operation name="translateSDLXLIFFCE">
       <documentation>Deprecated since PortageII-3.0; use translateSDLXLIFF() instead.</documentation>
       <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translateSDLXLIFFCE_Status">
       <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
       <input message="tns:translationToken"/>
       <output message="tns:translateResponse"/>
     </operation>
+
     <operation name="translatePlainTextCE">
       <documentation>Deprecated since PortageII-3.0; use translatePlainText() instead.</documentation>
       <input message="tns:translateFileCERequestDeprecated"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translatePlainTextCE_Status">
       <documentation>Deprecated since PortageII-3.0; use translateFileStatus() instead.</documentation>
       <input message="tns:translationToken"/>
@@ -458,11 +509,15 @@
     ================================================================== -->
 
   </portType>
+
+
+
   <!-- ===========================================================
                          B I N D I N G S
   ============================================================ -->
   <binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
     <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+
     <operation name="primeModels">
       <soap:operation soapAction="primeModels"/>
       <input>
@@ -472,6 +527,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
+
     <operation name="getAllContexts">
       <soap:operation soapAction="getAllContexts"/>
       <input>
@@ -481,6 +538,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
+
     <operation name="translate">
       <soap:operation soapAction="translate"/>
       <input>
@@ -512,6 +571,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateSDLXLIFF">
       <soap:operation soapAction="translateSDLXLIFF"/>
       <input>
@@ -521,6 +581,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translatePlainText">
       <soap:operation soapAction="translatePlainText"/>
       <input>
@@ -531,6 +592,7 @@
       </output>
     </operation>
 
+
     <operation name="updateFixedTerms">
       <soap:operation soapAction="updateFixedTerms"/>
       <input>
@@ -540,6 +602,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getFixedTerms">
       <soap:operation soapAction="getFixedTerms"/>
       <input>
@@ -549,6 +612,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="removeFixedTerms">
       <soap:operation soapAction="removeFixedTerms"/>
       <input>
@@ -559,6 +623,7 @@
       </output>
     </operation>
 
+
     <operation name="getVersion">
       <soap:operation soapAction="getVersion"/>
       <input>
@@ -568,6 +633,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
+
     <!-- ===========================================================
          Deprecated bindings kept for backwards compability only
     ============================================================ -->
@@ -580,6 +647,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getTranslation2">
       <soap:operation soapAction="getTranslation2"/>
       <input>
@@ -589,6 +657,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getTranslationCE">
       <soap:operation soapAction="getTranslationCE"/>
       <input>
@@ -598,6 +667,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateTMX">
       <soap:operation soapAction="translateTMX"/>
       <input>
@@ -607,6 +677,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateSDLXLIFF">
       <soap:operation soapAction="translateSDLXLIFF"/>
       <input>
@@ -616,6 +687,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translatePlainText">
       <soap:operation soapAction="translatePlainText"/>
       <input>
@@ -629,6 +701,9 @@
          End deprecated bindings kept for backwards compability only
     ================================================================ -->
   </binding>
+
+
+
   <!-- ===========================================================
                          S E R V I C E
   ============================================================ -->
