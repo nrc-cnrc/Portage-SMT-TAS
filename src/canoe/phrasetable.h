@@ -168,9 +168,6 @@ protected:
    /// The total number of lexicalized distortion models that have been loaded.
    Uint numLexDisModels;
 
-   /// Whether forwards translation probabilities are available.
-   bool forwardsProbsAvailable;
-
    /// Pruning types
    typedef enum {
       /**

@@ -94,7 +94,6 @@ PhraseTable::PhraseTable(VocabFilter& _tgtVocab,
    numTransModels(0),
    numAdirTransModels(0),
    numLexDisModels(0),
-   forwardsProbsAvailable(true),
    num_sents(tgtVocab.getNumSourceSents())
 {
    if (pruningTypeStr == "forward-weights" || pruningTypeStr.empty()) {
@@ -921,9 +920,7 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
          TScore &tScores(iter->second);
          assert(numTransModels >= tScores.backward.size());
          tScores.backward.resize(numTransModels, log_almost_0);
-         if (forwardsProbsAvailable) {
-            tScores.forward.resize(numTransModels, log_almost_0);
-         }
+         tScores.forward.resize(numTransModels, log_almost_0);
       }
    }
 
@@ -955,16 +952,14 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
             TScore* tScores(&(*tgtTable)[tgtPhrase]);
             assert(tScores);
             tScores->backward.resize(numTransModels, log_almost_0);
-            if (forwardsProbsAvailable)
-               tScores->forward.resize(numTransModels, log_almost_0);
+            tScores->forward.resize(numTransModels, log_almost_0);
             if (numAdir)
                tScores->adir.resize(numAdirTransModels, log_almost_0);
 
             assert(it->score.size() == 2*numModels+numAdir);
             for (Uint j = 0; j < numModels; ++j) {
                tScores->backward[prob_offset+j] = shielded_log(it->score[j]);
-               if (forwardsProbsAvailable)
-                  tScores->forward[prob_offset+j] = shielded_log(it->score[j+numModels]);
+               tScores->forward[prob_offset+j] = shielded_log(it->score[j+numModels]);
             }
             for (Uint j = 0; j < numAdir; ++j)
                tScores->adir[adir_offset+j] = shielded_log(it->score[2*numModels+j]);
@@ -1056,25 +1051,19 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       TScore &tscore(it->second);
       assert(numTransModels >= tscore.backward.size());
       tscore.backward.resize(numTransModels, log_almost_0);
-      if (forwardsProbsAvailable) {
-         assert(numTransModels >= tscore.forward.size());
-         tscore.forward.resize(numTransModels, log_almost_0);
-      }
+      assert(numTransModels >= tscore.forward.size());
+      tscore.forward.resize(numTransModels, log_almost_0);
       tscore.adir.resize(numAdirTransModels, log_almost_0); //boxing
 
       double pruningScore = 0;
       if (pruningType != EXTERNAL_PRUNING) {
-         if (forwardsProbsAvailable) {
-            if (forward_weights && pruningType == FORWARD_WEIGHTS) {
-               pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
-            } else if (forward_weights && pruningType == COMBINED_SCORE) {
-               pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size())
-                            + dotProduct(weights, tscore.backward, weights.size());
-            } else {
-               pruningScore = dotProduct(weights, tscore.forward, weights.size());
-            }
+         if (forward_weights && pruningType == FORWARD_WEIGHTS) {
+            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+         } else if (forward_weights && pruningType == COMBINED_SCORE) {
+            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size())
+                         + dotProduct(weights, tscore.backward, weights.size());
          } else {
-            pruningScore = dotProduct(weights, tscore.backward, weights.size());
+            pruningScore = dotProduct(weights, tscore.forward, weights.size());
          }
       }
 
