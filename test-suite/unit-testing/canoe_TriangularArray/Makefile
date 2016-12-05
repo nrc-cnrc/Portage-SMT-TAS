@@ -41,4 +41,4 @@ triangularArray.out:  canoe.ini.cow  input
 	[[ -s triangularArray.out ]] || ! echo "Error: Missing the triangular array output." >&2
 
 triangularArray.check:  triangularArray.out  triangularArray.ref
-	diff $+  --brief
+	diff-round.pl -q -sort $+
