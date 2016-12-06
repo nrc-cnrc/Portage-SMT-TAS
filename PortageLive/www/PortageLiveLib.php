@@ -31,6 +31,10 @@ class PortageLiveLib {
 
    var $validLanguages = array('en' => 1, 'fr' => 1, 'es' => 1, 'da' =>1);
 
+   const MAGIC_UNITTEST_DOCUMENT_ID = 'PORTAGE_UNITTEST_4da35';
+   const unittest_incrementalTrainingScript = 'rm -f witness; sleep 2; echo "Training is done" > witness';
+   const incrementalTrainingScript = 'some script to figure out in the future.';
+
    private function validLanguagesToString() {
       return '{' . implode(", ", array_keys($this->validLanguages)) . '}';
    }
@@ -119,12 +123,12 @@ class PortageLiveLib {
       #error_log(print_r($env, true), 3, '/tmp/PortageLiveAPI.debug.log');
 
       $descriptorspec = array(
-         0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+         0 => array("pipe", "r"),  # stdin is a pipe that the child will read from
       );
       if ( $wantoutput ) {
-         // stdout is a pipe that the child will write to
+         # stdout is a pipe that the child will write to
          $descriptorspec[1] = array("pipe", "w");
-         // stderr is a file to write to
+         # stderr is a file to write to
          $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
       }
       else {
@@ -134,10 +138,10 @@ class PortageLiveLib {
       $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
       if (is_resource($process)) {
-         // $pipes now looks like this:
-         // 0 => writeable handle connected to child stdin
-         // 1 => readable handle connected to child stdout
-         // Any error output will be appended to /tmp/error-output.txt
+         # $pipes now looks like this:
+         # 0 => writeable handle connected to child stdin
+         # 1 => readable handle connected to child stdout
+         # Any error output will be appended to /tmp/error-output.txt
 
          fwrite($pipes[0], $src_string);
          fclose($pipes[0]);
@@ -148,8 +152,8 @@ class PortageLiveLib {
             fclose($pipes[1]);
          }
 
-         // It is important that you close any pipes before calling
-         // proc_close in order to avoid a deadlock
+         # It is important that you close any pipes before calling
+         # proc_close in order to avoid a deadlock
          $return_value = proc_close($process);
          if ( $return_value != 0 ) {
             if ( is_null($exit_status) )
@@ -185,6 +189,28 @@ class PortageLiveLib {
 	 return rtrim($dir);
       else
 	 throw new SoapFault("PortageServer", "can't create temp work dir for $filename: $dir : $base");
+   }
+
+   # Create a working directory based on $filename.
+   # Throws SoapFault (faultcode=PortageServer) in case of error.
+   # Returns the name of the directory created.
+   protected function makeDocumentLevelModelWorkDir($document_level_model_ID) {
+      global $base_web_dir;
+      $work_dir = $this->normalizeName("DOCUMENT_LEVEL_MODEL_{$document_level_model_ID}");
+      $work_dir = "$base_web_dir/plive/$work_dir";
+      #if (is_dir($work_dir) || @mkdir($work_dir))  # read comment below
+      if (is_dir($work_dir) || mkdir($work_dir, 0755, true))
+	 return $work_dir;
+      else
+         # Never gets here because we are using mkdir $recursive = true.
+         # mkdir($work_dir, 0755, true) will recursively make $work_dir but if we prefer to throw an exception instead,
+         # use @mkdir($work_dir).
+         throw new SoapFault(
+            "MkdirError",
+            "can't create temp work dir for $document_level_model_ID",
+            "PortageServer",
+            "mkdir was unable to create $document_level_model_ID in $work_dir.  Probable causes are that $work_dir doesn't exists or it is readonly."
+         );
    }
 
    # Normalize a name to keep only alphanumeric, dash, underscore, dot and plus
@@ -545,6 +571,71 @@ class PortageLiveLib {
    # Returns the current API's version.
    public function getVersion() {
       return "PortageII-3.0.1";
+   }
+
+
+   public function incrementalTrainingClearDocumentLevelModelWorkdir($document_level_model_ID = NULL) {
+      error_log('Not yet properly implemented');
+      assert(False);
+
+      if (!isset($document_level_model_ID) || empty($document_level_model_ID)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a valid document_level_model_ID.");
+      }
+
+      global $base_web_dir;
+      $work_dir = $this->normalizeName("DOCUMENT_LEVEL_MODEL_{$document_level_model_ID}");
+      $work_dir = "$base_web_dir/plive/$work_dir";
+
+      if (! is_dir($work_dir))
+	 throw new SoapFault("PortageServer", "$document_level_model_ID doesn't have a workdir: $work_dir");
+
+      if (! rmdir($work_dir))
+	 throw new SoapFault("PortageServer", "can't remove temp work dir for $document_level_model_ID: $work_dir");
+
+      return $work_dir;
+   }
+
+   public function incrementalTrainingAddSentencePair(
+      $document_level_model_ID = NULL,
+      $source_sentence = NULL,
+      $target_sentence = NULL)
+   {
+      # TODO: Validate that the document_level_model_ID is a valid one.
+      if (!isset($document_level_model_ID) || empty($document_level_model_ID)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a valid document_level_model_ID.");
+      }
+
+      if (!isset($source_sentence) || empty($source_sentence)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a source sentence.");
+      }
+
+      if (!isset($target_sentence) || empty($target_sentence)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a target sentence.");
+      }
+
+      # This is ugly, I know, but I don't know of any elegant way of using a
+      # stub to perform unittesting from a web SOAP call.
+      if ($document_level_model_ID === PortageLiveLib::MAGIC_UNITTEST_DOCUMENT_ID) {
+         $incrementalTrainingScript = PortageLiveLib::unittest_incrementalTrainingScript;
+      }
+      else {
+         $incrementalTrainingScript = PortageLiveLib::incrementalTrainingScript;
+      }
+
+      $source_sentence = escapeshellarg($source_sentence);
+      $target_sentence = escapeshellarg($target_sentence);
+      $incrementalTrainingScript = escapeshellarg($incrementalTrainingScript);
+      $work_dir = $this->makeDocumentLevelModelWorkDir($document_level_model_ID);
+
+      $command = "cd $work_dir && ";
+      $command .= "incremental-training-add-sentence-pair.sh $incrementalTrainingScript $source_sentence $target_sentence";
+      #error_log($command);
+
+      $dummy_context_info = array( 'context_dir' => '' );
+      $exit_status = False;
+      $result = $this->runCommand($command, "'$source_sentence'\t'$target_sentence'", $dummy_context_info, $exit_status, false);
+
+      return $exit_status == 0 ? True : False;
    }
 
 
