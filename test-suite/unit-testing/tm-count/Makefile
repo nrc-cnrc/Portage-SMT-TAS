@@ -121,5 +121,5 @@ filter_soft_online-%: canoe.ini-%.ONECPT
 	@${MAKE} --no-print-directory cmp_$*-cpt.soft.online.FILT
 
 cmp_%: %
-	diff-round.pl -sort $* ref/$* -q
+	diff-round.pl -sort $* ref/$* -q || diff-round.pl -sort $* ref/$*-alt -q
 
