@@ -9,8 +9,8 @@
 8	tmx-prepro-test2/template/corpora/corpus+al.train_en.raw.gz
 8	tmx-prepro-test2/template/corpora/corpus+al.train_fr.raw.gz
 11	tmx-prepro-test2/template/corpora/corpus.id
-11	tmx-prepro-test2/template/corpora/corpus_en.al
-11	tmx-prepro-test2/template/corpora/corpus_fr.al
+11	tmx-prepro-test2/template/corpora/corpus_en.extracted
+11	tmx-prepro-test2/template/corpora/corpus_fr.extracted
 3	tmx-prepro-test2/template/corpora/dev1.id
 3	tmx-prepro-test2/template/corpora/dev1_en.raw
 3	tmx-prepro-test2/template/corpora/dev1_fr.raw

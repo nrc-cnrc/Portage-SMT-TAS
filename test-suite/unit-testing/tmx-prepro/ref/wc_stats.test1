@@ -3,8 +3,8 @@
 24	tmx-prepro-test1/template/corpora/all_en.raw.gz
 24	tmx-prepro-test1/template/corpora/all_fr.raw.gz
 24	tmx-prepro-test1/template/corpora/corpus.id
-24	tmx-prepro-test1/template/corpora/corpus_en.al
-24	tmx-prepro-test1/template/corpora/corpus_fr.al
+24	tmx-prepro-test1/template/corpora/corpus_en.extracted
+24	tmx-prepro-test1/template/corpora/corpus_fr.extracted
 3	tmx-prepro-test1/template/corpora/dev1.id
 3	tmx-prepro-test1/template/corpora/dev1_en.raw
 3	tmx-prepro-test1/template/corpora/dev1_fr.raw
