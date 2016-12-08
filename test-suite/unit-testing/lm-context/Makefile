@@ -13,7 +13,7 @@ lat%.0000: canoe.ini cpt lm
 	   > out.$* 2> log.$*
 
 check%: lat%.0000
-	diff <(li-sort.sh lat$*.0000) <(zcat ref/lat$*.0000.gz | li-sort.sh) -q
+	diff <(cat lat$*.0000 | perl -ple 's/\(\d+/(N/g' | li-sort.sh) <(zcat ref/lat$*.0000.gz | perl -ple 's/\(\d+/(N/g' | li-sort.sh) -q
 	diff <(li-sort.sh nb$*.0000.1000best) <(zcat ref/nb.0000.1000best.gz) -q
 
 
