@@ -12,9 +12,9 @@
 # Stabilize the output
 export PORTAGE_INTERNAL_CALL=1
 
-all: testsuite
+all: all-multi
 
-testsuite: multi.probs.no-src-grep.gz multi.probs.src.gz
+all-multi: multi.probs.no-src-grep.gz multi.probs.src.gz
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.src log.multi.probs.src.ref
 

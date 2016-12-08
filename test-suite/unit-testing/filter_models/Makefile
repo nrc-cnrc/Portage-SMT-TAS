@@ -434,7 +434,7 @@ prune-full.T$T-L$L: canoe.ini.small phrases.small.fr2en
 	   -ttable-limit $L -ttable-threshold $T >& $@
 
 check_prune-full.%: prune-full.%
-	egrep '(candidate phrases|Keeping|Discarding|top candidate)' $< | diff - ref/$<
+	egrep '(candidate phrases|Keeping|Discarding|top candidate)' $< | diff-round.pl -q -sort - ref/$<
 
 prune-full: check_prune-full.T$T-L$L
 
@@ -445,8 +445,8 @@ test-dm: phrases.small.with-ldm.FILT phrases.small.with-tpldm.FILT
 phrases.small.with-ldm.FILT:  %.FILT:  FORCE canoe.ini.small.dm phrases.small.fr2en dm.small
 	echo ceci cela encore oov | \
 	   ${FILTER_MODELS} -f canoe.ini.small.dm -ttable-prune-type backward-weights -tm-soft-limit $* -ldm
-	diff-round.pl $@ ref/$@
-	diff-round.pl dm.small.FILT ref/dm.small.FILT
+	diff-round.pl -sort $@ ref/$@
+	diff-round.pl -sort dm.small.FILT ref/dm.small.FILT
 	diff-round.pl dm.small.FILT.bkoff ref/dm.small.FILT.bkoff
 
 dm.small: phrases.small.fr2en dm.small.bkoff
@@ -463,7 +463,7 @@ canoe.ini.small.dm: canoe.ini.small dm.small
 phrases.small.with-tpldm.FILT:  %.FILT:  FORCE canoe.ini.small.tpdm phrases.small.fr2en dm.small.tpldm
 	echo ceci cela encore oov | \
 	   ${FILTER_MODELS} -f canoe.ini.small.tpdm -ttable-prune-type backward-weights -tm-soft-limit $* -ldm
-	diff-round.pl $@ ref/$@
+	diff-round.pl -sort $@ ref/$@
 
 canoe.ini.small.tpdm: canoe.ini.small dm.small.tpldm
 	{ cat canoe.ini.small; \
