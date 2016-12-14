@@ -1,11 +1,27 @@
+# @file rest/tests/basic_validation.yaml
+# @brief Validates PortageLive REST API's handling of arguments for translate.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
+
+
 # https://learnxinyminutes.com/docs/yaml/
 
 name: "Exercice validating the parameters."
 
+globals:
+  variables:
+    service: "{base_url}/language/translate/v3.php"
+
 testSteps:
   - name: "No query"
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     asserts:
       headers:
         status: 404
@@ -17,8 +33,8 @@ testSteps:
 
 
   - name: "No target"
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     params:
       key: "unittest.rev-"
       prettyprint: false
@@ -34,8 +50,8 @@ testSteps:
 
 
   - name: "Empty target"
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     params:
       key: "unittest.rev-"
       target: ""
@@ -52,8 +68,8 @@ testSteps:
 
 
   - name: "There should be a query."
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     params:
       key: "unittest.rev-"
       target: "fr"
@@ -69,8 +85,8 @@ testSteps:
 
 
   - name: "Generating a SOAPFault with an invalid context/key."
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     params:
       key: "invalid_context"
       target: "fr"
@@ -89,7 +105,7 @@ testSteps:
 
 
   - name: "Translate not pretty printed"
-    apiUrl: "{http}"
+    apiUrl: "{service}"
     method: "get"
     raw: true
     params:
@@ -106,8 +122,8 @@ testSteps:
 
 
   - name: "Translate pretty printed"
-    apiUrl: "{http}"
     method: "get"
+    apiUrl: "{service}"
     raw: true
     params:
       key: "unittest.rev-"
