@@ -18,3 +18,4 @@ test_cases:
   - basic_validation.yaml
   - multiple_queries.yaml
   - ampersand.yaml
+  - incrementalTrainingAddSentencePair.yaml
