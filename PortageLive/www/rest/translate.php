@@ -13,12 +13,12 @@
  * Copyright 2016, Her Majesty in Right of Canada
  */
 
-// curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
-// curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
-// curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data key=toy-regress- --data prettyprint=false
+# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
+# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
+# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data key=toy-regress- --data prettyprint=false
 
-// QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
-// QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
 
 /*
  * This is a sample of the expected output format.
@@ -69,9 +69,15 @@ class RestTranlator extends BasicTranslator {
     * Simply relying on $_GET['q'] is not sufficient since it will only return
     * the last q(uery) value.
     */
-   public function parseRequest() {
-      //print_r($_SERVER['QUERY_STRING']."\n");
-      foreach (split('&', $_SERVER['QUERY_STRING']) as $a) {
+   protected function parseRequest($request) {
+      #print_r($request);
+      if (!isset($request) || empty($request)) {
+         # TODO: There are no query_string, should it be an error or should we
+         # return some documentation?
+         throw new Exception("There is no query.");
+      }
+
+      foreach (split('&', $request) as $a) {
          list($k, $v) = split('=', $a, 2);
          switch($k) {
             case "key":
@@ -92,12 +98,16 @@ class RestTranlator extends BasicTranslator {
                $this->target = $v;
                break;
             default:
+               # TODO: Should we really silently ignore invalid arguments?
          }
       }
    }
 
 
-   public function bundleTranslations($translations) {
+   /**
+    * Assembles the translations into the expected JSON structure.
+    */
+   protected function bundleTranslations($translations) {
       /**
        * This is a help function that wraps Portage's translations into the
        * appropriate google spec format.
@@ -106,16 +116,16 @@ class RestTranlator extends BasicTranslator {
          return array("translatedText" => $t);
       };
 
-      // We want one translation per line.
+      # We want one translation per line.
       $translations = split("\n", $translations);
-      // Remove empty translations.
+      # Remove empty translations.
       $translations = array_filter($translations);
-      // Prepare the json structure.
-      // Transform the translations into the proper JSON format.
+      # Prepare the json structure.
+      # Transform the translations into the proper JSON format.
       $translations = array_map($wrapTranslation, $translations);
-      // Let's bundle the translations into an object.
+      # Let's bundle the translations into an object.
       $translations = array("translations" => $translations);
-      // One last wrapping layer to reproduce google's return json format.
+      # One last wrapping layer to reproduce google's return json format.
       $translations = array("data" => $translations);
 
       return json_encode($translations, $this->prettyprint ? JSON_PRETTY_PRINT : 0);
@@ -123,22 +133,16 @@ class RestTranlator extends BasicTranslator {
 
 
    public function translate() {
-      if (!isset($_SERVER['QUERY_STRING']) || empty($_SERVER['QUERY_STRING'])) {
-         // There are no query_string, should it be an error or should we return some documentation?
-         http_response_code(404);
-         throw new Exception("There is no query.");
-      }
-
-      $this->parseRequest();
+      $this->parseRequest($_SERVER['QUERY_STRING']);
 
       if (!isset($this->target) || empty($this->target)) {
-         http_response_code(404);
          throw new Exception("You need to provide a target using target=X.");
       }
 
-      // Validate that source is a valid source language / supported source language.
+      # Validate that source is a valid source language / supported source
+      # language.
 
-      // Deduce and/or validate the target language.
+      # Deduce and/or validate the target language.
       if (!isset($this->source) || empty($this->source)) {
          if ($this->target === "fr") $this->source = "en";
          if ($this->target === "en") $this->source = "fr";
@@ -150,15 +154,14 @@ class RestTranlator extends BasicTranslator {
       $context = $this->key . $this->source . "-" . $this->target;
 
       if ((int)$this->q > 0) {
-         // For efficiency, let's glue all queries into a single request for Portage.
+         # For efficiency, let's glue all queries into a single request for Portage.
          $q = join("\n", $this->q);
-         // Translate the queries.
+         # Translate the queries.
          $translations = parent::translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
 
-         print $this->bundleTranslations($translations);
+         return $this->bundleTranslations($translations);
       }
       else {
-         http_response_code(404);
          throw new Exception("You need to provide a query using q=X.");
       }
    }
@@ -170,15 +173,26 @@ class RestTranlator extends BasicTranslator {
 try {
    header('content-type: application/json');
    $translator = new RestTranlator();
-   $translator->translate();
+   print $translator->translate();
 }
 catch (SoapFault $exception) {
    http_response_code(404);
-   print json_encode(array("ERROR" => array("SOAPfault" => $exception))) . "\n";
+   $error = array(
+      "Error" => array(
+         "message" => $exception->getMessage(),
+         "type" => $exception->faultcode
+      )
+   );
+   print json_encode($error);
 }
 catch (Exception $exception) {
    http_response_code(404);
-   print json_encode(array("ERROR" => array("message" => $exception->getMessage()))) . "\n";
+   $error = array(
+      "Error" => array(
+         "message" => $exception->getMessage()
+      )
+   );
+   print json_encode($error);
 }
 
 ?>

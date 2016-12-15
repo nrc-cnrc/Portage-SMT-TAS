@@ -11,9 +11,10 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         ERROR: "Object"
-         ERROR.message: "String"
-         ERROR.message: "There is no query."
+         Error: "Object"
+         Error.message: "String"
+         Error.message: "There is no query."
+
 
   - name: "No target"
     apiUrl: "{http}"
@@ -27,9 +28,10 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         ERROR: "Object"
-         ERROR.message: "String"
-         ERROR.message: "You need to provide a target using target=X."
+         Error: "Object"
+         Error.message: "String"
+         Error.message: "You need to provide a target using target=X."
+
 
   - name: "Empty target"
     apiUrl: "{http}"
@@ -44,9 +46,10 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         ERROR: "Object"
-         ERROR.message: "String"
-         ERROR.message: "You need to provide a target using target=X."
+         Error: "Object"
+         Error.message: "String"
+         Error.message: "You need to provide a target using target=X."
+
 
   - name: "There should be a query."
     apiUrl: "{http}"
@@ -60,9 +63,10 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         ERROR: "Object"
-         ERROR.message: "String"
-         ERROR.message: "You need to provide a query using q=X."
+         Error: "Object"
+         Error.message: "String"
+         Error.message: "You need to provide a query using q=X."
+
 
   - name: "Generating a SOAPFault with an invalid context/key."
     apiUrl: "{http}"
@@ -77,14 +81,12 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         ERROR: "Object"
-         ERROR.SOAPfault: "Object"
-         ERROR.SOAPfault.faultactor: "String"
-         ERROR.SOAPfault.faultactor: "PortageLiveAPI"
-         ERROR.SOAPfault.faultcode: "String"
-         ERROR.SOAPfault.faultcode: "PortageContext"
-         ERROR.SOAPfault.faultstring: "String"
-         ERROR.SOAPfault.faultstring: 'exec value.strip() == "Context \"invalid_contexten-fr\" does not exist."'
+         Error: "Object"
+         Error.type: "String"
+         Error.type: "PortageContext"
+         Error.message: "String"
+         Error.message: 'exec value.strip() == "Context \"invalid_contexten-fr\" does not exist."'
+
 
   - name: "Translate not pretty printed"
     apiUrl: "{http}"
@@ -101,6 +103,7 @@ testSteps:
         Content-Type: "application/json"
       payload:
         __raw__: '{"data":{"translations":[{"translatedText":"emoh"}]}}'
+
 
   - name: "Translate pretty printed"
     apiUrl: "{http}"
