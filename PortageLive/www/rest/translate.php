@@ -53,9 +53,9 @@ or
 
 */
 
-require 'basicTranslator.php';
+require 'PortageLiveLib.php';
 
-class RestTranlator extends BasicTranslator {
+class RestTranlator extends PortageLiveLib {
 
    protected $source = '';
    protected $target = '';

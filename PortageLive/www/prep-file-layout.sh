@@ -135,9 +135,9 @@ cp  $PORTAGE_JQUERY  $HTML_DIR/ \
 cp html/portage_notices.php $HTML_DIR/
 
 # Copy the php and SOAP files
-cp basicTranslator.php soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST
+cp PortageLiveLib.php soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST
 # Copy them into secure/ as well, for use with ssl/https.
-cp basicTranslator.php soap/{index.html,PortageLiveAPI.php,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST/secure
+cp PortageLiveLib.php soap/{index.html,PortageLiveAPI.php,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST/secure
 perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/g' \
    < soap/PortageLiveAPI.wsdl \
    > $SOAP_DEST/secure/PortageLiveAPI.wsdl

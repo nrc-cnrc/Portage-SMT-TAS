@@ -12,9 +12,9 @@
 # Copyright 2009 - 2016, Her Majesty in Right of Canada
 
 
-require 'basicTranslator.php';
+require 'PortageLiveLib.php';
 
-class PortageLiveAPI extends BasicTranslator {
+class PortageLiveAPI extends PortageLiveLib {
 
    var $validLanguages = array('en' => 1, 'fr' => 1, 'es' => 1, 'da' =>1);
 

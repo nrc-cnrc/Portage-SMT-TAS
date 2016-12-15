@@ -1,5 +1,5 @@
 <?php
-# @file basicTranslator.php
+# @file PortageLiveLib.php
 # @brief Implementation of the API to the PortageII SMT software suite.
 #
 # @author Samuel Larkin, Patrick Paul & Eric Joanis
@@ -27,7 +27,7 @@ function debug($i) {
    }
 }
 
-class BasicTranslator {
+class PortageLiveLib {
 
    # Gather all relevant information about translation context $context
    public function getContextInfo($context) {
