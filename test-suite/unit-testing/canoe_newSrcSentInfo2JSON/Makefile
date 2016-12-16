@@ -13,8 +13,10 @@
 
 CANOE := canoe
 
-JSON_PP := python -c "import sys, json; [sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sort_keys=True)) for d in sys.stdin]"
+#JSON_PP := python -c "import sys, json; [sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sort_keys=True)) for d in sys.stdin]"
 #JSON_PP := python -c "import sys, json; map(lambda d: sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sot_keys=True)), sys.stdin)"
+#JSON_PP := jq --sort-keys .
+JSON_PP := jq --sort-keys ".potential_phrases[]|= [.[] | sort_by(.phrase)]"
 
 -include Makefile.params
 
