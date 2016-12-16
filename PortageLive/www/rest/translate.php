@@ -63,6 +63,8 @@ class RestTranlator extends PortageLiveLib {
    protected $key = '';
    protected $q = array();
 
+   protected $invalid_url_arguments = array();
+
 
    /**
     * This function is necessary in order to properly extract multiple q(ueries) from the url.
@@ -72,8 +74,6 @@ class RestTranlator extends PortageLiveLib {
    protected function parseRequest($request) {
       #print_r($request);
       if (!isset($request) || empty($request)) {
-         # TODO: There are no query_string, should it be an error or should we
-         # return some documentation?
          throw new Exception("There is no query.");
       }
 
@@ -98,7 +98,7 @@ class RestTranlator extends PortageLiveLib {
                $this->target = $v;
                break;
             default:
-               # TODO: Should we really silently ignore invalid arguments?
+               array_push($this->invalid_url_arguments, "$k=$v");
          }
       }
    }
@@ -127,6 +127,17 @@ class RestTranlator extends PortageLiveLib {
       $translations = array("translations" => $translations);
       # One last wrapping layer to reproduce google's return json format.
       $translations = array("data" => $translations);
+
+      if (count($this->invalid_url_arguments) > 0) {
+         $invalid_url_arguments_warning = array(
+            'message' => 'You used invalid options',
+            'options' => $this->invalid_url_arguments
+         );
+         if (!isset($translations['warnings'])) {
+            $translations['warnings'] = array();
+         }
+         array_push($translations['warnings'], $invalid_url_arguments_warning);
+      }
 
       return json_encode($translations, $this->prettyprint ? JSON_PRETTY_PRINT : 0);
    }
