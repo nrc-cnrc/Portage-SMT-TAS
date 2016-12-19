@@ -485,12 +485,6 @@ public:
    }
 
    /**
-    * Same as above, but outputs to a vector of tokens (returns ref to <res>).
-    * (Needed for DynTM stuff)
-    */
-   vector<string>& getVectorStringPhrase(const Phrase& p, vector<string>& res) const;
-
-   /**
     * Determine if the table contains a given source phrase.
     * This looks only in the text table, i.e., it doesn't check TPPTs.
     * @param num_tokens number of tokens in the phrase

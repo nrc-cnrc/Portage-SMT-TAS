@@ -1170,16 +1170,6 @@ bool PhraseTable::PhraseScorePairGreaterThan::operator()(
    return PhraseScorePairLessThan::operator()(ph2, ph1);
 }
 
-
-vector<string>&
-PhraseTable::getVectorStringPhrase(const Phrase& p, vector<string>& res) const
-{
-   res.resize(p.size());
-   for (Uint i = 0; i < p.size(); ++i)
-      res[i] = tgtVocab.word(p[i]);
-   return res;
-}
-
 // partially redundant with some code in readFile(), but kept separate to avoid
 // de-optimizing that method.
 bool PhraseTable::containsSrcPhrase(Uint num_tokens, char* tokens[])
