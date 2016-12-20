@@ -44,8 +44,8 @@ while true; do
       sleep 1
       break
    fi
-   if [[ $COUNTER -gt 100 ]]; then
-      echo "Still waiting on output files after $((COUNTER*60)) seconds. Giving up."
+   if [[ $COUNTER -gt 200 ]]; then
+      echo "Still waiting on output files after $((COUNTER*5)) seconds. Giving up."
       break
    fi
    COUNTER=$((COUNTER+1))
