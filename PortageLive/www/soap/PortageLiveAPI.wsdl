@@ -133,6 +133,18 @@
     <part name="version" type="xsd:string"/>
   </message>
 
+
+  <message name="incrementalTrainingAddSentencePairRequest">
+    <part name="document_level_model_ID" type="xsd:string"/>
+    <part name="source_sentence" type="xsd:string"/>
+    <part name="target_sentence" type="xsd:string"/>
+  </message>
+
+  <message name="incrementalTrainingAddSentencePairResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
+
+
   <!-- ============================================================
        Deprecated message types for backward compatibility only
   ============================================================= -->
@@ -449,6 +461,15 @@
       <output message="tns:getVersionResponse"/>
     </operation>
 
+
+    <operation name="incrementalTrainingAddSentencePair">
+      <documentation>
+      </documentation>
+      <input message="tns:incrementalTrainingAddSentencePairRequest"/>
+      <output message="tns:incrementalTrainingAddSentencePairResponse"/>
+    </operation>
+
+
     <!-- =============================================================
          Deprecated operations kept for backwards compability only
     ============================================================== -->
@@ -628,6 +649,17 @@
 
     <operation name="getVersion">
       <soap:operation soapAction="getVersion"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+
+    <operation name="incrementalTrainingAddSentencePair">
+      <soap:operation soapAction="incrementalTrainingAddSentencePair"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
