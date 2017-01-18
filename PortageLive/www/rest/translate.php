@@ -162,6 +162,11 @@ class RestTranlator extends PortageLiveLib {
       $performTagTransfer = false;
       $useConfidenceEstimation = false;
       $newline = "p";
+      # System's format:
+      #   <key> dot <source> dash <target>
+      if (substr($this->key, -1) !== '.') {
+         $this->key .= '.';
+      }
       $context = $this->key . $this->source . "-" . $this->target;
 
       if ((int)$this->q > 0) {
