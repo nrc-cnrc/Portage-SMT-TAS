@@ -16,7 +16,9 @@
 [[ $DEPLOY ]] && cp ../PortageLiveLib.php /var/www/html/
 [[ $DEPLOY ]] && cp incrementalTrainingAddSentencePair.php /var/www/html/
 [[ $DEPLOY ]] && cp translate.php /var/www/html/language/translate/
+[[ $DEPLOY ]] && cp ../../../src/utils/incremental-training-add-sentence-pair.sh /opt/PortageII/bin/
 
 php -d 'include_path=.:..' $PHPUNIT_HOME/phpunit-4.8.phar  --colors=always  tests/incrementalTrainingAddSentencePair.php
 
+# Runnig https://github.com/chitamoor/Rester
 apirunner --ts tests/testSuite.yaml

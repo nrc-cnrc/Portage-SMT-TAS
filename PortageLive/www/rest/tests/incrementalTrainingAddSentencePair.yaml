@@ -216,3 +216,19 @@ testSteps:
         warnings.InvalidArgument.options[0]: "String"
         warnings.InvalidArgument.options[0]: "wrong=Invalid"
 
+
+  - name: "Providing extra data"
+    method: "get"
+    apiUrl: "{service}"
+    raw: true
+    params:
+      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+      extra: "{\"a\":1}"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        __raw__: '{"result":true}'
