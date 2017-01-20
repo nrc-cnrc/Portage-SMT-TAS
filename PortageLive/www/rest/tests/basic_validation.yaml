@@ -27,9 +27,9 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         Error: "Object"
-         Error.message: "String"
-         Error.message: "There is no query."
+         error: "Object"
+         error.message: "String"
+         error.message: "There is no query."
 
 
   - name: "No target"
@@ -44,9 +44,9 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         Error: "Object"
-         Error.message: "String"
-         Error.message: "You need to provide a target using target=X."
+         error: "Object"
+         error.message: "String"
+         error.message: "You need to provide a target using target=X."
 
 
   - name: "Empty target"
@@ -62,9 +62,9 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         Error: "Object"
-         Error.message: "String"
-         Error.message: "You need to provide a target using target=X."
+         error: "Object"
+         error.message: "String"
+         error.message: "You need to provide a target using target=X."
 
 
   - name: "There should be a query."
@@ -79,9 +79,9 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         Error: "Object"
-         Error.message: "String"
-         Error.message: "You need to provide a query using q=X."
+         error: "Object"
+         error.message: "String"
+         error.message: "You need to provide a query using q=X."
 
 
   - name: "Generating a SOAPFault with an invalid context/key."
@@ -97,11 +97,11 @@ testSteps:
         status: 404
         Content-Type: "application/json"
       payload:
-         Error: "Object"
-         Error.type: "String"
-         Error.type: "PortageContext"
-         Error.message: "String"
-         Error.message: 'exec value.strip() == "Context \"invalid_contexten-fr\" does not exist."'
+         error: "Object"
+         error.type: "String"
+         error.type: "PortageContext"
+         error.message: "String"
+         error.message: 'exec value.strip() == "Context \"invalid_context.en-fr\" does not exist."'
 
 
   - name: "Translate not pretty printed"

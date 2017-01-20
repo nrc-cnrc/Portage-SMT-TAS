@@ -162,7 +162,7 @@ if (!count(debug_backtrace())) {
       http_response_code(404);
       $error = array(
          "result" => False,
-         "Error" => array(
+         "error" => array(
             "message" => $exception->getMessage(),
             "type" => $exception->faultcode
          )
@@ -173,7 +173,7 @@ if (!count(debug_backtrace())) {
       http_response_code(404);
       $error = array(
          "result" => False,
-         "Error" => array(
+         "error" => array(
             "message" => $exception->getMessage()
          )
       );
