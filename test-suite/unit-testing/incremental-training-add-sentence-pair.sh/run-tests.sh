@@ -82,6 +82,24 @@ function no_script() {
 
 
 
+function with_extra_data() {
+   set -o errexit
+   testcaseDescritption "Adding extra data"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      -extra-data '{"a": 1}' \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "source_extra" \
+      "translation_extra"
+   sleep $TRAINING_TIME
+   grep --quiet $'source_extra\ttranslation_extra\t{"a": 1}' $CORPORA \
+   || ! error_message "Can't find the translation pair with its extra data."
+}
+
+
+
 function unable_to_write_to_the_queue(){
    set -o errexit
    testcaseDescritption "Unable to write to the queue"
@@ -219,6 +237,7 @@ which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
 
 no_script
 unable_to_write_to_the_queue
+with_extra_data
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
 
