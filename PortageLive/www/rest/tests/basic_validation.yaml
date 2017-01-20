@@ -36,7 +36,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       prettyprint: false
       q: "home"
     asserts:
@@ -53,7 +53,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: ""
       prettyprint: false
       q: "home"
@@ -71,7 +71,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
     asserts:
@@ -109,7 +109,7 @@ testSteps:
     method: "get"
     raw: true
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "home"
@@ -126,7 +126,7 @@ testSteps:
     apiUrl: "{service}"
     raw: true
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: true
       q: "home"
@@ -151,7 +151,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "home"
@@ -173,7 +173,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "home"
@@ -202,7 +202,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "home"

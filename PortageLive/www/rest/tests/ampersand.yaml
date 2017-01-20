@@ -24,7 +24,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "home & hardware"  # => q=home+%26+hardware
@@ -45,7 +45,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
-      key: "unittest.rev-"
+      key: "unittest.rev"
       target: "fr"
       prettyprint: false
       q: "tree &amp; lake"  # => q=tree+%26amp%3B+lake
