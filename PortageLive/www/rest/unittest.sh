@@ -15,6 +15,7 @@
 
 [[ $DEPLOY ]] && cp ../PortageLiveLib.php /var/www/html/
 [[ $DEPLOY ]] && cp incrementalTrainingAddSentencePair.php /var/www/html/
+[[ $DEPLOY ]] && cp translate.php /var/www/html/language/translate/
 
 php -d 'include_path=.:..' $PHPUNIT_HOME/phpunit-4.8.phar  --colors=always  tests/incrementalTrainingAddSentencePair.php
 
