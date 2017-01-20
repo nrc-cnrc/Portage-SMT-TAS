@@ -598,7 +598,8 @@ class PortageLiveLib {
    public function incrementalTrainingAddSentencePair(
       $document_level_model_ID = NULL,
       $source_sentence = NULL,
-      $target_sentence = NULL)
+      $target_sentence = NULL,
+      $extra_data = NULL)
    {
       # TODO: Validate that the document_level_model_ID is a valid one.
       if (!isset($document_level_model_ID) || empty($document_level_model_ID)) {
@@ -628,7 +629,11 @@ class PortageLiveLib {
       $work_dir = $this->makeDocumentLevelModelWorkDir($document_level_model_ID);
 
       $command = "cd $work_dir && ";
-      $command .= "incremental-training-add-sentence-pair.sh $incrementalTrainingScript $source_sentence $target_sentence";
+      $command .= "incremental-training-add-sentence-pair.sh";
+      if (isset($extra_data) && ! empty($extra_data)) {
+         $command .= " -extra-data " . $extra_data;
+      }
+      $command .= " $incrementalTrainingScript $source_sentence $target_sentence";
       #error_log($command);
 
       $dummy_context_info = array( 'context_dir' => '' );

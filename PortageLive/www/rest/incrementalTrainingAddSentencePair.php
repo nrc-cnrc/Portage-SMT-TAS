@@ -78,6 +78,7 @@ class IncrementalTrainor extends PortageLiveLib {
    protected $document_level_model_ID = NULL;
    protected $source = NULL;
    protected $target = NULL;
+   protected $extra  = NULL;
 
    protected $warnings = NULL;  # This will keep track of warnings for us.
 
@@ -118,6 +119,9 @@ class IncrementalTrainor extends PortageLiveLib {
             case "target":
                $this->target = $this->decodeArgument($v);
                break;
+            case "extra":
+               $this->extra = $this->decodeArgument($v);
+               break;
             default:
                $this->warnings->addInvalidArgument("$k=$v");
          }
@@ -133,7 +137,8 @@ class IncrementalTrainor extends PortageLiveLib {
       $result = $this->incrementalTrainingAddSentencePair(
          $this->document_level_model_ID,
          $this->source,
-         $this->target
+         $this->target,
+         $this->extra
       );
 
       $message = array('result' => $result);
@@ -153,8 +158,8 @@ class IncrementalTrainor extends PortageLiveLib {
 # if this wasn't loaded as a library by phpunit, execute a main function.
 # This is the equivalent of Python's if __name__ == '__main__':
 if (!count(debug_backtrace())) {
+   header('content-type: application/json');
    try {
-      header('content-type: application/json');
       $incrementalTrainor = new IncrementalTrainor();
       print json_encode($incrementalTrainor->addSentencePair());
    }
