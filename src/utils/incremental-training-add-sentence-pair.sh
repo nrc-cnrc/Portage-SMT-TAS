@@ -96,8 +96,8 @@ while [ $# -gt 0 ]; do
 done
 
 readonly INCREMENTAL_TRAINING=$1
-readonly SOURCE_SENTENCE=$2
-readonly TARGET_SENTENCE=$3
+readonly SOURCE_SENTENCE=`tr "\t" " " <<< $2`
+readonly TARGET_SENTENCE=`tr "\t" " " <<< $3`
 
 # When running in unittest mode, it should automatically trigger verbose.
 [[ $UNITTEST ]] && VERBOSE=$(( $VERBOSE + 1 ))
@@ -121,7 +121,10 @@ if [[ -n "$SOURCE_SENTENCE" && -n "$TARGET_SENTENCE" ]]; then
    verbose 1 "Adding to the queue: $SOURCE_SENTENCE $TARGET_SENTENCE"
    [[ -z $UNITTEST ]] && usleep 300000  # Unittest delay
    {
-      echo -ne "$SOURCE_SENTENCE\t$TARGET_SENTENCE";
+      #echo -n $SOURCE_SENTENCE$'\t'$TARGET_SENTENCE;
+      echo -n $SOURCE_SENTENCE;
+      echo -n $'\t';
+      echo -n $TARGET_SENTENCE;
       [[ -z "$EXTRA_DATA" ]] || echo -ne "\t$EXTRA_DATA";
       echo
    } >> $QUEUE

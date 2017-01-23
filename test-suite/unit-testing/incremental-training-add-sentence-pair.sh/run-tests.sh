@@ -117,6 +117,23 @@ function with_utf8() {
 
 
 
+function with_tab() {
+   set -o errexit
+   testcaseDescritption "Let's use UTF-8"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      $'source\tsource\tsource' \
+      "target\ttarget\ttarget"
+   sleep $TRAINING_TIME
+   grep --quiet $'source source source\ttarget\\\\ttarget\\\\ttarget' $CORPORA \
+   || ! error_message "We can't find TABs."
+}
+
+
+
 function unable_to_write_to_the_queue(){
    set -o errexit
    testcaseDescritption "Unable to write to the queue"
@@ -256,6 +273,7 @@ no_script
 unable_to_write_to_the_queue
 with_extra_data
 with_utf8
+with_tab
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
 
