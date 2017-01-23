@@ -623,6 +623,11 @@ class PortageLiveLib {
          $incrementalTrainingScript = PortageLiveLib::incrementalTrainingScript;
       }
 
+      # We need to set LC_ALL or else escapeshellarg will strip out unicode.
+      # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
+      # http://positon.org/php-escapeshellarg-function-utf8-and-locales
+      # http://markushedlund.com/dev/php-escapeshellarg-with-unicodeutf-8-support
+      setlocale(LC_ALL, 'en_US.utf8');
       $source_sentence = escapeshellarg($source_sentence);
       $target_sentence = escapeshellarg($target_sentence);
       $incrementalTrainingScript = escapeshellarg($incrementalTrainingScript);
