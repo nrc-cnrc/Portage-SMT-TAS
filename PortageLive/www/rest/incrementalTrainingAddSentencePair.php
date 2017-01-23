@@ -141,7 +141,11 @@ class IncrementalTrainor extends PortageLiveLib {
          $this->extra
       );
 
-      $message = array('result' => $result);
+      if (!$result) {
+         throw new Exception('Unable to add sentence pair');
+      }
+
+      $message = array('result' => True);
 
       # Warnings should not cause failure but should at the very least be
       # reported to the user.
@@ -168,6 +172,7 @@ if (!count(debug_backtrace())) {
       $error = array(
          "result" => False,
          "error" => array(
+            "code" => -3,
             "message" => $exception->getMessage(),
             "type" => $exception->faultcode
          )
@@ -179,6 +184,7 @@ if (!count(debug_backtrace())) {
       $error = array(
          "result" => False,
          "error" => array(
+            "code" => -3,
             "message" => $exception->getMessage()
          )
       );
