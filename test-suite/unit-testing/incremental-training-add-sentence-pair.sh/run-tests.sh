@@ -100,6 +100,23 @@ function with_extra_data() {
 
 
 
+function with_utf8() {
+   set -o errexit
+   testcaseDescritption "Let's use UTF-8"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "source_utf8_É" \
+      "⅀translation_utf8_¿"
+   sleep $TRAINING_TIME
+   grep --quiet $'source_utf8_É\t⅀translation_utf8_¿' $CORPORA \
+   || ! error_message "Can't UTF-8 characters."
+}
+
+
+
 function unable_to_write_to_the_queue(){
    set -o errexit
    testcaseDescritption "Unable to write to the queue"
@@ -238,6 +255,7 @@ which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
 no_script
 unable_to_write_to_the_queue
 with_extra_data
+with_utf8
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
 
