@@ -54,21 +54,36 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
 fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
-# Command line processing [Remove irrelevant parts of this code when you use
-# this template]
+function usage() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
+   cat <<==EOF== >&2
+
+Usage: $PROG [options] INCREMENTAL_SCRIPT  SOURCE TRANSLATION
+
+  Brief description
+
+Options:
+
+  -unittest         special flag when performing unittesting.
+  -extra-data  ARG  translation pair extra data preferably a json object.
+
+  -h(elp)     print this help message
+  -v(erbose)  increment the verbosity level by 1 (may be repeated)
+  -d(ebug)    print debugging information
+
+==EOF==
+
+   exit 1
+}
+
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
-   -flag)               FLAG=1;;
-#   -option-with-1arg)   arg_check 1 $# $1; OPTION_WITH_1ARG_VALUE=$2; shift;;
-#   -option-with-2args)  arg_check 2 $# $1
-#                        OPTION_WITH_2ARGS_ARG1=$2;
-#                        OPTION_WITH_2ARGS_ARG2=$3;
-#                        shift; shift;;
-#   -int-opt)            arg_check 1 $# $1; arg_check_int $2 $1
-#                        INT_ARG=$2; shift;;
-#   -pos-int-opt)        arg_check 1 $# $1; arg_check_pos_int $2 $1
-#                        POS_INT_ARG=$2; shift;;
+   -extra-data)         arg_check 1 $# $1; readonly EXTRA_DATA=$2; shift;;
+
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -u|-unittest)        UNITTEST=1;;
@@ -81,8 +96,8 @@ while [ $# -gt 0 ]; do
 done
 
 readonly INCREMENTAL_TRAINING=$1
-readonly SOURCE_SENTENCE=$2
-readonly TARGET_SENTENCE=$3
+readonly SOURCE_SENTENCE=`tr "\t" " " <<< $2`
+readonly TARGET_SENTENCE=`tr "\t" " " <<< $3`
 
 # When running in unittest mode, it should automatically trigger verbose.
 [[ $UNITTEST ]] && VERBOSE=$(( $VERBOSE + 1 ))
@@ -105,7 +120,14 @@ flock --exclusive $QUEUE_FD
 if [[ -n "$SOURCE_SENTENCE" && -n "$TARGET_SENTENCE" ]]; then
    verbose 1 "Adding to the queue: $SOURCE_SENTENCE $TARGET_SENTENCE"
    [[ -z $UNITTEST ]] && usleep 300000  # Unittest delay
-   echo -e "$SOURCE_SENTENCE\t$TARGET_SENTENCE" >> $QUEUE
+   {
+      #echo -n $SOURCE_SENTENCE$'\t'$TARGET_SENTENCE;
+      echo -n $SOURCE_SENTENCE;
+      echo -n $'\t';
+      echo -n $TARGET_SENTENCE;
+      [[ -z "$EXTRA_DATA" ]] || echo -ne "\t$EXTRA_DATA";
+      echo
+   } >> $QUEUE
    if [[ $? -ne 0 ]];
    then
       echo "Error writing sentence pair to the queue" >&2

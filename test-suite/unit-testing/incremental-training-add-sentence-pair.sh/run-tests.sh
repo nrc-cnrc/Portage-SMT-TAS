@@ -10,15 +10,16 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
+readonly BoldRed='\e[01;31m'
+readonly Red='\e[0;31m'
+readonly Bold='\e[1m'
+readonly Reset='\e[00m'
 
 trap "trap - EXIT; echo Test FAILED" ERR
 trap "echo All tests PASSED." EXIT
 
 
 readonly INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR=${INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR:-incremental-training-add-sentence-pair.sh}
-
-which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
-|| { ! echo "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
 
 readonly CORPORA=corpora
 readonly QUEUE=queue
@@ -42,13 +43,25 @@ function cleanup() {
 
 
 
+function testcaseDescritption() {
+   echo -e "${Bold}Testcase:${Reset} $@" >&2
+}
+
+
+
+function error_message() {
+   echo -e "${BoldRed}Error: ${Red}$@${Reset}" >&2
+}
+
+
+
 function add_sentence_pair_to_queue() {
    echo "Manually adding a sentence pair to the queue" >&2
    echo -e "source\ttarget" > $QUEUE
 
    echo "Making sure the queue holds a sentence pair" >&2
    [[ `wc -l < $QUEUE` -eq 1 ]] \
-   || ! echo "The queue is corrupted" >&2
+   || ! error_message "The queue is corrupted"
 }
 
 
@@ -61,17 +74,69 @@ function trigger_single_training() {
 
 function no_script() {
    set -o errexit
-   echo "Testcase: No incremental training script" >&2
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest 2>&1 \
-   | grep --quiet 'Error: You must provide an incremental training script.' \
-   || ! echo "Error: There should be an error message about missing incremental training script missing." >&2
+   testcaseDescritption "No incremental training script"
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest \
+   |& grep --quiet 'Error: You must provide an incremental training script.' \
+   || ! error_message "There should be an error message about missing incremental training script missing."
+}
+
+
+
+function with_extra_data() {
+   set -o errexit
+   testcaseDescritption "Adding extra data"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      -extra-data '{"a": 1}' \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "source_extra" \
+      "translation_extra"
+   sleep $TRAINING_TIME
+   grep --quiet $'source_extra\ttranslation_extra\t{"a": 1}' $CORPORA \
+   || ! error_message "Can't find the translation pair with its extra data."
+}
+
+
+
+function with_utf8() {
+   set -o errexit
+   testcaseDescritption "Let's use UTF-8"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "source_utf8_É" \
+      "⅀translation_utf8_¿"
+   sleep $TRAINING_TIME
+   grep --quiet $'source_utf8_É\t⅀translation_utf8_¿' $CORPORA \
+   || ! error_message "Can't UTF-8 characters."
+}
+
+
+
+function with_tab() {
+   set -o errexit
+   testcaseDescritption "Let's use UTF-8"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      $'source\tsource\tsource' \
+      "target\ttarget\ttarget"
+   sleep $TRAINING_TIME
+   grep --quiet $'source source source\ttarget\\\\ttarget\\\\ttarget' $CORPORA \
+   || ! error_message "We can't find TABs."
 }
 
 
 
 function unable_to_write_to_the_queue(){
    set -o errexit
-   echo "Testcase: Unable to write to the queue" >&2
+   testcaseDescritption "Unable to write to the queue"
    cleanup
    touch $QUEUE
    chmod a-w $QUEUE
@@ -80,15 +145,15 @@ function unable_to_write_to_the_queue(){
       -unittest \
       "$INCREMENTAL_TRAINING_SCRIPT" \
       "$i-S-$$ `date +'%T:%N'`" \
-      "$i-T-$$ `date +'%T:%N'`"  2>&1 \
-   | grep --quiet 'Error writing sentence pair to the queue' \
-   || ! echo "Error: We shouldn't be able to write to the queue." >&2
+      "$i-T-$$ `date +'%T:%N'`" \
+   |& grep --quiet 'Error writing sentence pair to the queue' \
+   || ! error_message "We shouldn't be able to write to the queue."
 }
 
 
 
 function multiple_add_and_multiple_trigger() {
-   echo "Testcase: Multiple add and multiple training triggers."
+   testcaseDescritption "Multiple add and multiple training triggers."
    cleanup
 
    # Let's prepopulate the queue with at least one sentence pair and then let
@@ -130,39 +195,39 @@ function multiple_add_and_multiple_trigger() {
    set -o errexit
 
    [[ `find -name $LOG.\* | wc -l` -eq $((2 * $MAX_CONCURRENT_CALLS)) ]] \
-   || ! echo "We should have got $((2 * $MAX_CONCURRENT_CALLS)) log files." >&2
+   || ! error_message "We should have got $((2 * $MAX_CONCURRENT_CALLS)) log files."
 
    [[ `wc -l < $CORPORA` -eq $(($MAX_CONCURRENT_CALLS + 1)) ]] \
-   || ! echo "We should have got $(($MAX_CONCURRENT_CALLS + 1)) sentence pairs in the corpus." >&2
+   || ! error_message "We should have got $(($MAX_CONCURRENT_CALLS + 1)) sentence pairs in the corpus."
 
    # Let's make sure the sentence pairs have the format that we expect.
    [[ `grep --count --perl-regexp '^\d{2}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{2}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
-   || ! echo "Some sentence pairs are corrupted." >&2
+   || ! error_message "Some sentence pairs are corrupted."
 
    [[ `wc -l < $QUEUE` -eq 0 ]] \
-   || ! echo "All elements of the queue should have been procesed." >&2
+   || ! error_message "All elements of the queue should have been procesed."
 
    # All except one process should claim that training is already ongoing.
    [[ `grep 'Training is already in progress' $LOG.* | wc -l` -eq $((2 * $MAX_CONCURRENT_CALLS - 1)) ]] \
-   || ! echo "All except one process should claim that training is already ongoing." >&2
+   || ! error_message "All except one process should claim that training is already ongoing."
 
    # We expect the first process to add to queue will start training then, the
    # same process will have to redo training since the other 9 processes will have
    # added their sentence pair.
    [[ `grep --files-with-matches 'is training' $LOG.* | wc -l` -eq 1 ]] \
-   || ! echo "Only one training should be ongoing at once." >&2
+   || ! error_message "Only one training should be ongoing at once."
 
    [[ `grep --count 'is training' $LOG.* | grep --count --invert-match ':0$'` -eq 1 ]] \
-   || ! echo "Only one process should have trained multiple times." >&2
+   || ! error_message "Only one process should have trained multiple times."
 
    [[ `wc -l < $WITNESS` -eq 2 ]] \
-   || ! echo "The witness should report 2." >&2
+   || ! error_message "The witness should report 2."
 }
 
 
 
 function insert_and_multiple_trigger_training() {
-   echo "Testcase: Multiple simultaneous triggers for training."
+   testcaseDescritption "Multiple simultaneous triggers for training."
    cleanup
    add_sentence_pair_to_queue
 
@@ -189,18 +254,26 @@ function insert_and_multiple_trigger_training() {
    set -o errexit
 
    [[ `grep --files-with-matches 'is training' $LOG.trigger.* | wc -l` -eq 1 ]] \
-   || ! echo "Only one training should be ongoing at once." >&2
+   || ! error_message "Only one training should be ongoing at once."
 
    # All except one process should claim that training is already ongoing.
    [[ `grep 'Training is already in progress' $LOG.trigger.* | wc -l` -eq $(($MAX_CONCURRENT_CALLS - 1)) ]] \
-   || ! echo "Only one process should have trained multiple times." >&2
+   || ! error_message "Only one process should have trained multiple times."
 
    [[ `wc -l < $WITNESS` -eq 1 ]] \
-   || ! echo "The witness should report 1." >&2
+   || ! error_message "The witness should report 1."
 }
+
+
+
+which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
+|| { ! error_message "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
 
 no_script
 unable_to_write_to_the_queue
+with_extra_data
+with_utf8
+with_tab
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
 

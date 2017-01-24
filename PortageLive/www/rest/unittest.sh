@@ -13,9 +13,53 @@
 
 
 
-[[ $DEPLOY ]] && cp ../PortageLiveLib.php /var/www/html/
-[[ $DEPLOY ]] && cp incrementalTrainingAddSentencePair.php /var/www/html/
+function deploy_code() {
+   cp ../PortageLiveLib.php /var/www/html/
+   cp incrementalTrainingAddSentencePair.php /var/www/html/
+   cp translate.php /var/www/html/language/translate/
+   cp ../../../src/utils/incremental-training-add-sentence-pair.sh /opt/PortageII/bin/
+}
 
-php -d 'include_path=.:..' $PHPUNIT_HOME/phpunit-4.8.phar  --colors=always  tests/incrementalTrainingAddSentencePair.php
+function local_testase() {
+   php \
+      -d 'include_path=.:..' \
+      $PHPUNIT_HOME/phpunit-4.8.phar  \
+      --colors=always  \
+      tests/incrementalTrainingAddSentencePair.php
+}
 
-apirunner --ts tests/testSuite.yaml
+function remote_testcase() {
+   # Runnig https://github.com/chitamoor/Rester
+   apirunner --ts tests/testSuite.yaml
+}
+
+function curl_testcase() {
+   # Web request using unicode.
+   export CORPORA=/var/www/html/plive/DOCUMENT_LEVEL_MODEL_curl/corpora
+   #[[ -s $CORPORA ]] && rm -f $CORPORA
+   tag=`date +"%T"`
+   curl \
+      --silent \
+      --get \
+      --data 'source=SÉ' \
+      --data "target=T$tag" \
+      --data 'document_level_model_ID=curl' \
+      http://localhost/incrementalTrainingAddSentencePair.php \
+      | grep --quiet '{"result":true}' \
+      || ! echo "Error" &>2
+   grep --quiet "T$tag" $CORPORA \
+   || ! echo "Error: Can't find entry." >&2
+}
+
+
+[[ $DEPLOY ]] && deploy_code
+local_testase
+remote_testcase
+curl_testcase
+
+exit
+
+# CLI php will fail because it can't create a directory under /var/www/html/
+#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php incrementalTrainingAddSentencePair.php
+#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php -e -r 'parse_str(getenv("QUERY_STRING"), $_GET); include "incrementalTrainingAddSentencePair.php";'
+

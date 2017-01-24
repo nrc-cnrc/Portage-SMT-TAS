@@ -53,6 +53,14 @@ class IncrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
    }
 
 
+   protected function setUp() {
+      if (! is_dir('plive')) {
+         mkdir('plive');
+      }
+      chmod('plive', 0755);
+   }
+
+
    /**
     * @test
     * @expectedException Exception
@@ -190,4 +198,34 @@ class IncrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
          json_encode($result),
          'In the returned message, we should see a warning about invalid arguments and we should also see the two invalid arguments.');
    }
+
+
+   /**
+    * @test
+    */
+   public function pliveDirectoryNotWritable() {
+      $this->markTestSkipped( 'Unable to properly handle read-only plive folder.');
+
+      IncrementalTrainingAddSentencePair_Test::deleteDir('plive');
+      $this->assertFalse(is_dir('plive'));
+      mkdir('plive', 0500);
+      $this->assertTrue(is_dir('plive'));
+
+      $request = $this->basicRequest;
+      $request['source'] .= __FUNCTION__;
+      $request['target'] .= __FUNCTION__;
+
+      $service = new IncrementalTrainor();
+
+      $_SERVER['QUERY_STRING'] = http_build_query($request);
+
+      $result = $service->addSentencePair();
+
+      $this->assertTrue(isset($result), 'Adding a sentence pair is supposed to return us something.');
+      $this->assertTrue(isset($result['result']), 'There should be a result field.');
+      $this->assertFalse($result['result'], 'The returned result should indicate success.');
+
+      $this->assertFalse(isset($result['warnings']), 'There should be absolutely no warnings.');
+   }
+
 };

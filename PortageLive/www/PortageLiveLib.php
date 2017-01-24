@@ -598,7 +598,8 @@ class PortageLiveLib {
    public function incrementalTrainingAddSentencePair(
       $document_level_model_ID = NULL,
       $source_sentence = NULL,
-      $target_sentence = NULL)
+      $target_sentence = NULL,
+      $extra_data = NULL)
    {
       # TODO: Validate that the document_level_model_ID is a valid one.
       if (!isset($document_level_model_ID) || empty($document_level_model_ID)) {
@@ -622,13 +623,23 @@ class PortageLiveLib {
          $incrementalTrainingScript = PortageLiveLib::incrementalTrainingScript;
       }
 
+      # We need to set LC_ALL or else escapeshellarg will strip out unicode.
+      # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
+      # http://positon.org/php-escapeshellarg-function-utf8-and-locales
+      # http://markushedlund.com/dev/php-escapeshellarg-with-unicodeutf-8-support
+      setlocale(LC_ALL, 'en_US.utf8');
       $source_sentence = escapeshellarg($source_sentence);
       $target_sentence = escapeshellarg($target_sentence);
       $incrementalTrainingScript = escapeshellarg($incrementalTrainingScript);
       $work_dir = $this->makeDocumentLevelModelWorkDir($document_level_model_ID);
 
       $command = "cd $work_dir && ";
-      $command .= "incremental-training-add-sentence-pair.sh $incrementalTrainingScript $source_sentence $target_sentence";
+      $command .= "incremental-training-add-sentence-pair.sh";
+      if (isset($extra_data) && ! empty($extra_data)) {
+         $extra_data = escapeshellarg($extra_data);
+         $command .= " -extra-data " . $extra_data;
+      }
+      $command .= " $incrementalTrainingScript $source_sentence $target_sentence";
       #error_log($command);
 
       $dummy_context_info = array( 'context_dir' => '' );

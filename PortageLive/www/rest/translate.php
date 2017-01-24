@@ -194,9 +194,10 @@ try {
 catch (SoapFault $exception) {
    http_response_code(404);
    $error = array(
-      "Error" => array(
+      "error" => array(
          "message" => $exception->getMessage(),
-         "type" => $exception->faultcode
+         "type" => $exception->faultcode,
+         "code" => -3
       )
    );
    print json_encode($error);
@@ -204,8 +205,9 @@ catch (SoapFault $exception) {
 catch (Exception $exception) {
    http_response_code(404);
    $error = array(
-      "Error" => array(
-         "message" => $exception->getMessage()
+      "error" => array(
+         "message" => $exception->getMessage(),
+         "code" => -3
       )
    );
    print json_encode($error);
