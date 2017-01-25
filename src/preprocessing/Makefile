@@ -33,3 +33,10 @@ BINSCRIPTS = $(wildcard *.pl *.py *.sh)
 PERL_LIBS = $(wildcard *.pm)
 
 include ../build/Makefile.incl
+
+
+test:  check_python_dependencies
+
+.PHONY:  check_python_dependencies
+check_python_dependencies:
+	test -d $$MADAMIRA_HOME && python -c 'import xmltodict'

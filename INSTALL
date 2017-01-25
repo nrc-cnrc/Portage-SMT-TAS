@@ -653,6 +653,17 @@ MADA and its dependencies
   release of PortageII will be based on MADAMIRA.
 
 
+MADAMIRA
+
+  unzip MADAMIRA-release-20160516-2.1-all.zip $PORTAGE/bin/
+  then edit $PORTAGE/bin/MADAMIRA-release-20160516-2.1/config/log4j.properties
+  --- original/MADAMIRA-release-20160516-2.1/config/log4j.properties  2016-05-16 18:00:40.000000000 -0400
+  +++ /opt/PortageII/bin/MADAMIRA-release-20160516-2.1/config/log4j.properties    2017-01-27 12:02:13.914211567 -0500
+  @@ -8 +8 @@
+  -log4j.appender.A1.File=log4j.log
+  +log4j.appender.A1.File=${PORTAGE_LOGS}/madamira.log4j.log
+
+
 Warnings for PortageLive
   We have previously mentionned having to symbolic link Perl & Python into
   /opt/PortageII/{bin,lib}.  Be aware that, if you had to compile some other
