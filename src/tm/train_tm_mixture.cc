@@ -112,6 +112,9 @@ Options:\n\
 -o outfile  Write output to outfile. If cpt.bkoff files exist, and -nobkoff is\n\
             not given, then write mixed backoff probabilities to outfile.bkoff.\n\
             [write to stdout, with no backoff probabilities]\n\
+-dynout outfile  Instead of a mixed CPT, output the dynamic mixtm specification\n\
+            in outfile.mixtm; disables writing the static mix file unless you\n\
+            also specify -o. [write only a statically mixed TM]\n\
 ";
 
 // globals
@@ -139,6 +142,8 @@ static string store_alignment_option = "";
 static Uint display_alignments = 0; // 0=none, 1=top, 2=all/keep
 static bool write_count(false);
 static string outfile = "-";
+static bool explicit_outfile = false;
+static string dynout;
 const string PHRASE_TABLE_SEP = PhraseTableBase::sep + PhraseTableBase::psep +
                                 PhraseTableBase::sep;
 
@@ -820,44 +825,62 @@ int MAIN(argc, argv)
       for (Uint i = 0; i < 6; ++i)
          dupwts[i] = wts[i < 3 ? 0 : 1];
       wts = dupwts;
+      num_cols = 6;
    }
 
-   // Read the cpts again, merging them using the weights computed above, and
-   // write the output cpt.
-
-   Datum::init(input_cpt_files.size(), wts, probs.bkoff_probs, mixbkoff, wb_out / wb_in);
-   mergeStream<Datum> ms(input_cpt_files);
-   oSafeMagicStream ostr(outfile);
-   Uint num_pairs_written = 0;
-   while (!ms.eof()) {
-      ms.next().print(ostr);
-      ++num_pairs_written;
-   }
-
-   // Optionally write weighted backoff probs
-
-   if (!nobkoff && num_bkoff_files) {
-      vector<double> mix_bkoff_probs(wts.size(), 0.0);
-      for (Uint i = 0; i < wts.size(); ++i)
-         for (Uint j = 0; j < wts[i].size(); ++j)
-            mix_bkoff_probs[i] += wts[i][j] * probs.bkoff_probs[j][i] / wb_in;
-      if (outfile != "-") {
-         string bkoff_file(removeZipExtension(outfile)+".bkoff");
-         oSafeMagicStream os(bkoff_file);
-         copy(mix_bkoff_probs.begin(), mix_bkoff_probs.end(),
-              ostream_iterator<float>(os, " "));
-         os << endl;
-     }
-      if (verbose) {
-         cerr << "weighted backoff probs: ";
-         copy(mix_bkoff_probs.begin(), mix_bkoff_probs.end(),
-              ostream_iterator<float>(cerr, " "));
-         cerr << endl;
+   if (!dynout.empty()) {
+      // In -dynout mode, we write the model parameters out as a dynamic .mixtm model
+      oSafeMagicStream dynoutFile(dynout == "-" ? "-" : dynout+".mixtm");
+      dynoutFile << "Portage dynamic MixTM v1.0" << endl;
+      for (Uint k = 0; k < input_cpt_files.size(); ++k) {
+         dynoutFile << input_cpt_files[k] << "\t";
+         for (Uint i = 0; i < num_cols; ++i) {
+            if (i > 0) dynoutFile << " ";
+            assert(wts[i].size() == input_cpt_files.size());
+            dynoutFile << wts[i][k];
+         }
+         dynoutFile << endl;
       }
    }
 
-   if (verbose)
-      cerr << "wrote " << num_pairs_written << " phrase pairs" << endl;
+   if (dynout.empty() || explicit_outfile) {
+      // Read the cpts again, merging them using the weights computed above, and
+      // write the output cpt.
+
+      Datum::init(input_cpt_files.size(), wts, probs.bkoff_probs, mixbkoff, wb_out / wb_in);
+      mergeStream<Datum> ms(input_cpt_files);
+      oSafeMagicStream ostr(outfile);
+      Uint num_pairs_written = 0;
+      while (!ms.eof()) {
+         ms.next().print(ostr);
+         ++num_pairs_written;
+      }
+
+      // Optionally write weighted backoff probs
+
+      if (!nobkoff && num_bkoff_files) {
+         vector<double> mix_bkoff_probs(wts.size(), 0.0);
+         for (Uint i = 0; i < wts.size(); ++i)
+            for (Uint j = 0; j < wts[i].size(); ++j)
+               mix_bkoff_probs[i] += wts[i][j] * probs.bkoff_probs[j][i] / wb_in;
+         if (outfile != "-") {
+            string bkoff_file(removeZipExtension(outfile)+".bkoff");
+            oSafeMagicStream os(bkoff_file);
+            copy(mix_bkoff_probs.begin(), mix_bkoff_probs.end(),
+                 ostream_iterator<float>(os, " "));
+            os << endl;
+        }
+         if (verbose) {
+            cerr << "weighted backoff probs: ";
+            copy(mix_bkoff_probs.begin(), mix_bkoff_probs.end(),
+                 ostream_iterator<float>(cerr, " "));
+            cerr << endl;
+         }
+      }
+
+      if (verbose)
+         cerr << "wrote " << num_pairs_written << " phrase pairs" << endl;
+   }
 }
 END_MAIN
 
@@ -866,7 +889,7 @@ void getArgs(int argc, const char* const argv[])
 {
    const char* switches[] = {"v", "r", "s", "sc:", "df", "idf", "eq:", 
                              "e:", "nobkoff", "mixbkoff", "write-count", "write-al:",
-                             "wb_in:", "wb_out:", "prec:", "n:", "w:", "o:", "im:"};
+                             "wb_in:", "wb_out:", "prec:", "n:", "w:", "o:", "im:", "dynout:"};
 
    vector<string> fixed_weights_strs;
 
@@ -888,10 +911,11 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("n", maxiter);
    arg_reader.testAndSet("prec", prec);
    arg_reader.testAndSet("w", fixed_weights_strs);
-   arg_reader.testAndSet("o", outfile);
+   explicit_outfile = arg_reader.getSwitch("o", &outfile);
    arg_reader.testAndSet("write-al", store_alignment_option);
    arg_reader.testAndSet("write-count", write_count);
    arg_reader.testAndSet("im", indomain_model_file);
+   arg_reader.testAndSet("dynout", dynout);
 
    arg_reader.getVars(0, input_cpt_files);
    input_jpt_file = input_cpt_files.back();
@@ -936,4 +960,15 @@ void getArgs(int argc, const char* const argv[])
                store_alignment_option.c_str());
       }
    }
+
+   /*
+   if (!dynout.empty()) {
+      if (arg_reader.getSwitch("o"))
+         error(ETWarn, "Ignoring -o switch when using -dynout.");
+      if (!store_alignment_option.empty())
+         error(ETWarn, "Ignoring -write-al switch when using -dynout.");
+      if (write_count)
+         error(ETWarn, "Ignoring -write-count switch when using -dynout.");
+   }
+   */
 }
