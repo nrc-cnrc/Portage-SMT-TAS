@@ -12,7 +12,7 @@
 .PHONY: all
 all: test1 test2 test3 test4 test_PI all_ac_fields
 
-TEMP_FILES=cpt.mix.test* log.cpt.mix.test* out.*
+TEMP_FILES=cpt.mix.test* log.* out.* dyn.mixtm
 include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
@@ -97,4 +97,14 @@ _fields.swap:
 # We gotta be able to parse a= and c= in either direction, really! (We didn't use to).
 _fields.reversed:
 	train_tm_mixture ${AC_OPTS} -o out.${AC_PREFIX}$@ in/cpt-1 in/cpt-2 in/cpt-3 in/jpt
-	-diff out.${AC_PREFIX}$@ ref/out.${AC_PREFIX}_fields
+	diff out.${AC_PREFIX}$@ ref/out.${AC_PREFIX}_fields
+
+
+######################################
+# train_tm_mixture generating just the config file for a dynamic mixtm
+
+all: test_dyn_mixtm
+
+test_dyn_mixtm:
+	train_tm_mixture -dynout dyn -v in/cpt-1 in/cpt-2 in/cpt-3 in/jpt >& log.$@
+	diff dyn.mixtm ref/
