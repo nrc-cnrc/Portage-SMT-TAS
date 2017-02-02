@@ -14,6 +14,7 @@
 #include "vocab_filter.h"
 #include "config_io.h"
 #include "tppt_feature.h"
+#include "mixtm_feature.h"
 #include "multiprob_pt_feature.h"
 
 /********************* TScore **********************/
@@ -56,6 +57,8 @@ PhraseTableFeature::PCreator PhraseTableFeature::getCreator(const string& modelN
 {
    if (TPPTFeature::isA(modelName)) {
       return PCreator(new TPPTFeature::Creator(modelName));
+   } else if (MixTMFeature::isA(modelName)) {
+      return PCreator(new MixTMFeature::Creator(modelName));
    } else if (MultiProbPTFeature::isA(modelName)) {
       return PCreator(new MultiProbPTFeature::Creator(modelName));
    } else {

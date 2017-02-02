@@ -1,0 +1,5 @@
+Portage dynamic MixTM v1.0
+# this is a comment
+cpt3.tppt	.1 .2 .3
+# cpt4 has 2 3rd col and 1 4th col
+cpt4.tppt	.9 .8 .7
