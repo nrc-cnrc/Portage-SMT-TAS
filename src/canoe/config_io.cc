@@ -1004,6 +1004,9 @@ void CanoeConfig::check()
 
    if (tolerateMarkupErrors)
       error(ETFatal, "The -tolerate-markup-errors switch is no longer supported.  Instead, pipe your input through canoe-escapes.pl before passing it to canoe, if you don't use a rule parser that already introduces such escapes.");
+
+   if (appendJointCounts && !allNonMultiProbPTs.empty())
+      error(ETFatal, "The -append-joint-counts option is only supported with multi-prob phrase tables, and no other types of phrase tables.");
 } //check()
 
 void CanoeConfig::check_all_files() const

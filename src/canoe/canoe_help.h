@@ -78,8 +78,8 @@ Options (in command-line format):\n\
      Append joint counts from 'c=' fields in multiple successive phrase tables,\n\
      using negative table index as start marker for all tables after the 0th.\n\
      For example, if a phrase has count vectors [5], [1,2], and [4,2] in tables\n\
-     0, 2, and 3 respectively, the result will be [5,-2,1,2,-3,4,2]. NB: not yet\n\
-     implemented for TPPTs.\n\
+     0, 2, and 3 respectively, the result will be [5,-2,1,2,-3,4,2]. NB: only\n\
+     implemented for multi-prob phrase tables.\n\
 \n\
  -ttable TTABLE1[:TTABLE2[:..]]         Phrase table(s) other than multi-prob\n\
      Work in progress: -ttable is to replace -ttable-tppt, -ttable-dynamic, and\n\
