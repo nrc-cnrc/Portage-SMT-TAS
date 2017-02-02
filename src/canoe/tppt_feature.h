@@ -13,7 +13,7 @@
 #ifndef __TPPT_FEATURE_H__
 #define __TPPT_FEATURE_H__
 
-#include "phrasetable.h"
+#include "phrasetable_feature.h"
 #include "tppt.h"
 
 namespace Portage {
@@ -51,9 +51,9 @@ public:
    virtual Uint getNumCounts()  const { return tppt.numCounts(); }
    virtual bool hasAlignments() const { return tppt.hasAlignments(); }
    virtual void newSrcSent(const vector<string>& sentence);
-   void clearCache() { tppt.clearCache(); }
+   virtual void clearCache() { tppt.clearCache(); }
    virtual shared_ptr<TargetPhraseTable> find(Range r);
 }; // TPPTFeature
 
 } // namespace Portage
-#endif // __TPFEATURE_H__
+#endif // __TPPT_FEATURE_H__

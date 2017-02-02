@@ -132,8 +132,8 @@ protected:
       virtual Uint64 totalMemmapSize() = 0;
 
       /**
-       * Efficiently load model in memory. This is only applicable to memory
-       * mapped models.
+       * Efficiently pre-load model in memory. This only has an effect for memory-
+       * mapped models and should be a no-op for models that load in memory.
        * @param full load all model's parts in memory, not just the most
        *             essential ones.
        * @return true unless there was a problem.
