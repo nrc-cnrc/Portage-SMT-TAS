@@ -429,6 +429,13 @@ test: $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), legacy_$(legacy_test))
 	$(COMPILE.cc) $(OUTPUT_OPTION) $< -MT $@ -MMD -MP -MF .deps/$(subst /,__,$*).Td
 	@mv -f .deps/$(subst /,__,$*).Td .deps/$(subst /,__,$*).d
 
+# Run Python's unittests
+test:  test_python_unittest
+.PHONY:  test_python_unittest
+test_python_unittest:
+	test ! -d tests || PYTHONPATH=.:../utils:$PYTHONPATH python -m unittest discover -s tests -p 'test*.py'
+
+
 # Load up any dependencies thus previously saved.
 -include .deps/*.d
 
