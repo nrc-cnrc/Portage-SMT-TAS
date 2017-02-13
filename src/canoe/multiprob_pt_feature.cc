@@ -56,9 +56,8 @@ bool MultiProbPTFeature::Creator::checkFileExists(vector<string>* list)
 
 bool MultiProbPTFeature::isA(const string& modelName)
 {
-   // We don't have a test for MultiProbPTFeature, it's the final fall back in the
-   // if/then/else logic.
-   return true;
+   PCreator creator = PhraseTableFeature::getCreator(modelName);
+   return (dynamic_cast<MultiProbPTFeature::Creator*>(creator.get()) != NULL);
 }
 
 shared_ptr<TargetPhraseTable> MultiProbPTFeature::find(Range r)

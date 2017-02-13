@@ -15,6 +15,7 @@
 #include "alignment_annotation.h"
 #include "file_utils.h"
 #include "str_utils.h"
+#include "multiprob_pt_feature.h"
 
 // =============================================== MixTMFeature::Creator
 
@@ -124,6 +125,10 @@ bool MixTMFeature::Creator::checkFileExists(vector<string>* list)
 
    for (Uint i = 0; i < componentNames.size(); ++i) {
       if (!PhraseTableFeature::checkFileExists(componentNames[i], list)) {
+         ok = false;
+      } else if (MultiProbPTFeature::isA(componentNames[i])) {
+         error(ETWarn, "Invalid MixTM file %s: component %s is a multi-prob phrase table; convert it to a tppt",
+               modelName.c_str(), componentNames[i].c_str());
          ok = false;
       } else {
          Uint componentNumModels, componentNumAdir;

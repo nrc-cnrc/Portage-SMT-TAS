@@ -1,5 +1,5 @@
 Portage dynamic MixTM v1.0
 # invalid because cpt1 has 4 3rd col and 0 4th col, while cpt3 has 2 3rd col
 # and 1 4th col.
-cpt1	.1 .2 .3 .4
-cpt3	.9 .8 .7 .6
+cpt1.tppt	.1 .2 .3 .4
+cpt3.tppt	.9 .8 .7 .6

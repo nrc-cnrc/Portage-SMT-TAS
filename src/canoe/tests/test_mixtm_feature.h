@@ -66,10 +66,12 @@ public:
    }
 
    void testCheckFileExists() {
-      TS_ASSERT(PhraseTableFeature::checkFileExists("tests/data/mix12.mixtm"));
-      TS_ASSERT(PhraseTableFeature::checkFileExists("tests/data/mix34.mixtm"));
-      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix12-bad.mixtm"));
-      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix13.mixtm"));
+      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix12.mixtm"));
+      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix34.mixtm"));
+      TS_ASSERT(PhraseTableFeature::checkFileExists("tests/data/mixtppt12.mixtm"));
+      TS_ASSERT(PhraseTableFeature::checkFileExists("tests/data/mixtppt34.mixtm"));
+      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mixtppt12-bad.mixtm"));
+      TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mixtppt13.mixtm"));
       TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix0.mixtm"));
       TS_ASSERT(PhraseTableFeature::checkFileExists(mixtppt));
    }
@@ -85,7 +87,7 @@ public:
 
       numScores = numAdir = numCounts = Uint(-1);
       hasAlignments = true;
-      PhraseTableFeature::getNumScores("tests/data/mix12.mixtm", numScores, numAdir, numCounts, hasAlignments);
+      PhraseTableFeature::getNumScores("tests/data/mixtppt12.mixtm", numScores, numAdir, numCounts, hasAlignments);
       TS_ASSERT_EQUALS(numScores, 2);
       TS_ASSERT_EQUALS(numAdir, 0);
       TS_ASSERT_EQUALS(numCounts, 0);
@@ -93,7 +95,7 @@ public:
 
       numScores = numAdir = numCounts = Uint(-1);
       hasAlignments = false;
-      PhraseTableFeature::getNumScores("tests/data/mix34.mixtm", numScores, numAdir, numCounts, hasAlignments);
+      PhraseTableFeature::getNumScores("tests/data/mixtppt34.mixtm", numScores, numAdir, numCounts, hasAlignments);
       TS_ASSERT_EQUALS(numScores, 1);
       TS_ASSERT_EQUALS(numAdir, 1);
       TS_ASSERT_EQUALS(numCounts, 1);
@@ -101,7 +103,7 @@ public:
 
       numScores = numAdir = numCounts = Uint(-1);
       hasAlignments = true;
-      PhraseTableFeature::getNumScores("tests/data/mix12-bad.mixtm", numScores, numAdir, numCounts, hasAlignments);
+      PhraseTableFeature::getNumScores("tests/data/mixtppt12-bad.mixtm", numScores, numAdir, numCounts, hasAlignments);
       TS_ASSERT_EQUALS(numScores, 0);
       TS_ASSERT_EQUALS(numAdir, 0);
       TS_ASSERT_EQUALS(numCounts, 0);
@@ -109,7 +111,7 @@ public:
 
       numScores = numAdir = numCounts = Uint(-1);
       hasAlignments = true;
-      PhraseTableFeature::getNumScores("tests/data/mix13.mixtm", numScores, numAdir, numCounts, hasAlignments);
+      PhraseTableFeature::getNumScores("tests/data/mixtppt13.mixtm", numScores, numAdir, numCounts, hasAlignments);
       TS_ASSERT_EQUALS(numScores, 0);
       TS_ASSERT_EQUALS(numAdir, 0);
       TS_ASSERT_EQUALS(numCounts, 0);
@@ -132,8 +134,8 @@ public:
       CanoeConfig c;
       Voc v;
       TS_ASSERT(PhraseTableFeature::create(filename, c, v) == NULL);
-      TS_ASSERT(PhraseTableFeature::create("tests/data/mix13.mixtm", c, v) == NULL);
-      TS_ASSERT(PhraseTableFeature::create("tests/data/mix12-bad.mixtm", c, v) == NULL);
+      TS_ASSERT(PhraseTableFeature::create("tests/data/mixtppt13.mixtm", c, v) == NULL);
+      TS_ASSERT(PhraseTableFeature::create("tests/data/mixtppt12-bad.mixtm", c, v) == NULL);
    }
       
    string displayAnnotation(TScore &tscore) {

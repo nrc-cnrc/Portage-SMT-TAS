@@ -147,10 +147,9 @@ protected:
    //    static bool isA(modelName);
    // which will return true iff modelName describes a model of that subclass's type
 
-private:
+   /// Get a creator of the right type for modelName
    static PCreator getCreator(const string& modelName);
 
-protected:
    /// Constructor
    PhraseTableFeature(Voc &vocab) : vocab(vocab) {}
 
