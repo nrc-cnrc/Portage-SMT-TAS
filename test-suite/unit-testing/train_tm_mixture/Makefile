@@ -12,7 +12,8 @@
 .PHONY: all
 all: test1 test2 test3 test4 test_PI all_ac_fields
 
-TEMP_FILES=cpt.mix.test* log.* out.* dyn.mixtm
+TEMP_FILES=log.* out.* dyn.mixtm trivial.lm triang.cpt*
+TEMP_DIRS=cpt*.tppt* cpt.mix.test*
 include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
@@ -28,7 +29,7 @@ test3: MIX_OPTS = -w 1,0.1,0.9 -w 2,0.2,0.8 -w 3,0.7,0.3 -w 4,0.6,0.4
 test4: MIX_OPTS = -w 1,0.2,0.8 -prec .0001
 
 test1 test2 test3 test4: %: in/cpt.hans1.en2fr.gz in/cpt.hans2.en2fr.gz in/jpt.dev.en-fr.gz
-	train_tm_mixture -v ${MIX_OPTS} -o cpt.mix.$*.en2fr.gz $+ >& log.cpt.mix.$*.en2fr
+	train_tm_mixture -v ${MIX_OPTS} -o cpt.mix.$*.en2fr.gz -dynout cpt.mix.$*.en2fr $+ >& log.cpt.mix.$*.en2fr
 	diff-round.pl log.cpt.mix.$*.en2fr ref/log.cpt.mix.$*.en2fr -q
 	diff-round.pl cpt.mix.$*.en2fr.gz ref/cpt.mix.$*.en2fr.gz -q
 
@@ -108,3 +109,47 @@ all: test_dyn_mixtm
 test_dyn_mixtm:
 	train_tm_mixture -dynout dyn -v in/cpt-1 in/cpt-2 in/cpt-3 in/jpt >& log.$@
 	diff dyn.mixtm ref/
+
+######################################
+# decode with a mixture model as a dynamic MixTM vs a static mix one
+
+all: test_decoding diff_decoding
+test_decoding: decode.ttmp.cpt.mix.test1.en2fr.gz
+test_decoding: decode.tt.cpt.mix.test1.en2fr.tppt
+test_decoding: decode.tt.cpt.mix.test1.en2fr.tppt.mixtm
+
+cpt.mix.test1.en2fr.gz: test1
+cpt.mix.test1.en2fr.mixtm: test1
+
+diff_decoding: test_decoding
+	diff-round.pl -sort triang.cpt.mix.test1.en2fr.gz triang.cpt.mix.test1.en2fr.tppt
+	diff-round.pl -p 5 -sort triang.cpt.mix.test1.en2fr.gz triang.cpt.mix.test1.en2fr.tppt.mixtm
+
+cpt%.tppt: cpt%.gz
+	textpt2tppt.sh $< >& log.$@
+
+cpt%.tppt.mixtm: cpt%.mixtm
+	perl -ple 's/in\/(.*?)(\.gz)?\t/\1.tppt\t/' < $< > $@
+	for CPT in `grep -o 'in\/.*\.gz' $<`; do textpt2tppt.sh $$CPT; done >& log.$@
+
+trivial.lm:
+	echo ceci est un test . | estimate-ngram -text /dev/stdin -write-lm $@
+
+decode.tt.%: % trivial.lm
+	canoe -f /dev/null -lmodel-file trivial.lm -ttable $* -triangularArrayFilename triang.$* <<<'this is a test .' 2> log.$@
+
+decode.ttmp.%: % trivial.lm
+	canoe -f /dev/null -lmodel-file trivial.lm -ttable-multi-prob $* -triangularArrayFilename triang.$* <<<'this is a test .' 2> log.$@
+
+all: test_errors
+test_errors: multiprob_in_ttable
+test_errors: multiprob_in_mixtm
+
+# Comment out to see the error messages from each case below
+QUIET_TEST_ERRORS=-q
+
+multiprob_in_ttable: cpt.mix.test1.en2fr.gz trivial.lm
+	canoe -f /dev/null -lmodel-file trivial.lm -ttable $< <<<'test' |& grep ${QUIET_TEST_ERRORS} Error:
+
+multiprob_in_mixtm: cpt.mix.test1.en2fr.mixtm trivial.lm
+	canoe -f /dev/null -lmodel-file trivial.lm -ttable $< <<<'test' |& grep ${QUIET_TEST_ERRORS} Error:
