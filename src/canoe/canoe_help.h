@@ -644,10 +644,10 @@ Options (in command-line format):\n\
  -options                               Show the brief help message\n\
      Produce a shorter help message with one line per option\n\
 \n\
- -nssiFilename <F>                    Write Source Sentence Info to <F> [don't]\n\
-     For every source sentence, write its newSrcSentInfo into <F> in json format.\
+ -nssiFilename <F>                      Write Source Sentence Info to <F> [don't]\n\
+     For every source sentence, write its newSrcSentInfo into <F> in json format.\n\
 \n\
- -triangularArrayFilename <F>        Write each triangular array [don't]\n\
+ -triangularArrayFilename <F>           Write each triangular array [don't]\n\
      For every source sentence, write to <F> canoe's triangular array as a CPT.\
 \n\
  NOTES:\n\
