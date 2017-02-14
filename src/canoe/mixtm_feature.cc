@@ -16,6 +16,7 @@
 #include "file_utils.h"
 #include "str_utils.h"
 #include "multiprob_pt_feature.h"
+#include <tr1/unordered_set>
 
 // =============================================== MixTMFeature::Creator
 
@@ -225,35 +226,67 @@ void MixTMFeature::clearCache()
 shared_ptr<TargetPhraseTable> MixTMFeature::find(Range r)
 {
    shared_ptr<TargetPhraseTable> tgtTable(new TargetPhraseTable);
-   
+
+   // The original design looped over components, then phrases, but rounded too
+   // much as it used the floats in TScore to store intermediate results.
+   // The difference between dynamic MixTMs and static ones was just too great,
+   // and we could not reproduce results, or BLEU scores in tuning.
+
+   // The new design first lists all the target phrases, so that we can loop
+   // over phrases, then loop over components, and store the intermediate
+   // results in doubles, casting back to float at the end only.  It's still
+   // not magic, though: the MixTM calculated this way is closer to the static
+   // one, but decoder output is still not identical and BLEU tuning is fickle
+   // as usual, sensitive to even the tinyest variability in decoding.
+
+   tr1::unordered_set<Phrase> tgtPhrases;
+   vector<shared_ptr<TargetPhraseTable> > t(components.size());
    for (Uint i = 0; i < components.size(); ++i) {
-      shared_ptr<TargetPhraseTable> t = components[i]->find(r);
-      for (TargetPhraseTable::iterator iter(t->begin()); iter != t->end(); ++iter) {
-         TScore* tScores = &((*tgtTable)[iter->first]);
+      t[i] = components[i]->find(r);
+      for (TargetPhraseTable::iterator iter(t[i]->begin()); iter != t[i]->end(); ++iter)
+         tgtPhrases.insert(iter->first);
+   }
 
-         if (tScores->backward.empty()) tScores->backward.resize(numModels, 0);
-         if (tScores->forward.empty()) tScores->forward.resize(numModels, 0);
-         for (Uint j = 0; j < numModels; ++j) {
-            tScores->backward[j] += iter->second.backward[j] * creator.weightMatrix[i][j];
-            tScores->forward[j] += iter->second.forward[j] * creator.weightMatrix[i][j+numModels];
-         }
+   for (tr1::unordered_set<Phrase>::iterator phraseIter(tgtPhrases.begin()); phraseIter != tgtPhrases.end(); ++phraseIter) {
+      vector<double> backward(numModels, 0);
+      vector<double> forward(numModels, 0);
+      vector<double> adir(numAdir, 0);
+      TScore* tScore = &((*tgtTable)[*phraseIter]);
 
-         if (tScores->adir.empty()) tScores->adir.resize(numAdir, 0);
-         for (Uint j = 0; j < numAdir; ++j)
-            tScores->adir[j] += iter->second.adir[j] * creator.weightMatrix[i][j+2*numModels];
+      for (Uint i = 0; i < components.size(); ++i) {
+         TargetPhraseTable::iterator iter = t[i]->find(*phraseIter);
+         if (iter != t[i]->end()) {
+            for (Uint j = 0; j < numModels; ++j) {
+               backward[j] += iter->second.backward[j] * creator.weightMatrix[i][j];
+               forward[j] += iter->second.forward[j] * creator.weightMatrix[i][j+numModels];
+            }
 
-         if (numCounts) {
-            CountAnnotation *counts = CountAnnotation::get(iter->second.annotations);
-            if (counts)
-               CountAnnotation::getOrCreate(tScores->annotations)->updateValue(counts->joint_counts);
-         }
+            for (Uint j = 0; j < numAdir; ++j)
+               adir[j] += iter->second.adir[j] * creator.weightMatrix[i][j+2*numModels];
 
-         if (hasAl) {
-            AlignmentAnnotation *al = AlignmentAnnotation::get(iter->second.annotations);
-            if (al)
-               tScores->annotations.initAnnotation("a", al->getAlignment());
+            if (numCounts) {
+               CountAnnotation *counts = CountAnnotation::get(iter->second.annotations);
+               if (counts)
+                  CountAnnotation::getOrCreate(tScore->annotations)->updateValue(counts->joint_counts);
+            }
+
+            if (hasAl) {
+               AlignmentAnnotation *al = AlignmentAnnotation::get(iter->second.annotations);
+               if (al)
+                  tScore->annotations.initAnnotation("a", al->getAlignment());
+            }
          }
       }
+
+      tScore->backward.resize(numModels);
+      tScore->forward.resize(numModels);
+      for (Uint j = 0; j < numModels; ++j) {
+         tScore->backward[j] = backward[j];
+         tScore->forward[j] = forward[j];
+      }
+      tScore->adir.resize(numAdir);
+      for (Uint j = 0; j < numAdir; ++j)
+         tScore->adir[j] = adir[j];
    }
 
    return tgtTable;

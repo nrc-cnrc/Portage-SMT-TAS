@@ -169,27 +169,27 @@ public:
       VectorPhrase phrase(1);
       phrase[0] = v.add("b");
       TScore tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.19, 0.00001);
-      TS_ASSERT_DELTA(tscore.backward[1], 0.28, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.37, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[1], 0.46, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.19, 0.000001);
+      TS_ASSERT_DELTA(tscore.backward[1], 0.28, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.37, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[1], 0.46, 0.000001);
       TS_ASSERT(tscore.adir.empty());
       TS_ASSERT_EQUALS(displayAnnotation(tscore), "");
 
       phrase[0] = v.add("c");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.00001);
-      TS_ASSERT_DELTA(tscore.backward[1], 0.04, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.09, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[1], 0.16, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.000001);
+      TS_ASSERT_DELTA(tscore.backward[1], 0.04, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.09, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[1], 0.16, 0.000001);
       TS_ASSERT(tscore.adir.empty());
 
       phrase[0] = v.add("e");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.00001);
-      TS_ASSERT_DELTA(tscore.backward[1], 0.24, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[1], 0.30, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.000001);
+      TS_ASSERT_DELTA(tscore.backward[1], 0.24, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[1], 0.30, 0.000001);
       TS_ASSERT(tscore.adir.empty());
 
       // find("b") -> {"d"}
@@ -197,20 +197,20 @@ public:
       TS_ASSERT_EQUALS(tpt->size(), 1);
       phrase[0] = v.add("d");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.00001);
-      TS_ASSERT_DELTA(tscore.backward[1], 0.04, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.09, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[1], 0.16, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.000001);
+      TS_ASSERT_DELTA(tscore.backward[1], 0.04, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.09, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[1], 0.16, 0.000001);
 
       // find("c") -> {"a"}
       tpt = pt->find(Range(2,3));
       TS_ASSERT_EQUALS(tpt->size(), 1);
       phrase[0] = v.add("a");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.00001);
-      TS_ASSERT_DELTA(tscore.backward[1], 0.24, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[1], 0.30, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.000001);
+      TS_ASSERT_DELTA(tscore.backward[1], 0.24, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[1], 0.30, 0.000001);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), "");
 
       // find("d") -> {}
@@ -243,33 +243,33 @@ public:
       VectorPhrase phrase(1);
       phrase[0] = v.add("a");
       TScore tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.19, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.37, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.19, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.28, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.37, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " a=0 c=8");
 
       phrase[0] = v.add("b");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " a=- c=10");
 
       phrase[0] = v.add("c");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.24, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.28, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.18, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.24, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.28, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " a=0 c=1");
 
       phrase[0] = v.add("d");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " a=0 c=1");
 
@@ -279,9 +279,9 @@ public:
       phrase[0] = v.add("e");
       phrase.push_back(v.add("f"));
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.01, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.04, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.09, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " a=0,1 c=1");
       phrase.pop_back();
@@ -291,9 +291,9 @@ public:
       TS_ASSERT_EQUALS(tpt->size(), 1);
       phrase[0] = v.add("f");
       tscore = tpt->find(phrase)->second;
-      TS_ASSERT_DELTA(tscore.backward[0], 0.9, 0.00001);
-      TS_ASSERT_DELTA(tscore.forward[0], 0.8, 0.00001);
-      TS_ASSERT_DELTA(tscore.adir[0], 0.7, 0.00001);
+      TS_ASSERT_DELTA(tscore.backward[0], 0.9, 0.000001);
+      TS_ASSERT_DELTA(tscore.forward[0], 0.8, 0.000001);
+      TS_ASSERT_DELTA(tscore.adir[0], 0.7, 0.000001);
       TS_ASSERT(tscore.backward.size() == 1 && tscore.forward.size() == 1 && tscore.adir.size() == 1);
       TS_ASSERT_EQUALS(displayAnnotation(tscore), " c=0");
 
