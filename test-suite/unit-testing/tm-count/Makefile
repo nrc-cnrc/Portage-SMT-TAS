@@ -23,7 +23,7 @@ TEMP_FILES=log.* 1sent.out-* *.fr2en.gz \
            1sent.out-* 1sent.out.2-* \
            canoe.ini-*.*FILT* *-cpt.*.FILT* cpt.*.FILT-G-* \
            canoe.ini-*.ONE* *-cpt.online-input.ONE*.gz
-TEMP_DIRS=*cpt.*.tppt*
+TEMP_DIRS=*cpt.*.tppt* trivial.lm.tplm
 include ../Makefile.incl
 
 clean: clean-deep
@@ -75,14 +75,17 @@ canoe-%: cmp_1sent.out-% cmp_1sent.out.2-%
 
 # Tight packing
 
-canoe.ini.tp-%.ONECPT: canoe.ini-%.ONECPT
+trivial.lm.tplm: trivial.lm
+	arpalm2tplm.sh $< >& log.$@
+
+canoe.ini.tp-%.ONECPT: canoe.ini-%.ONECPT trivial.lm.tplm
 	configtool -p tp $< $@
-	for x in `configtool list-tm $<`; do textpt2tppt.sh $$x; done
+	for x in `configtool list-tm $<`; do textpt2tppt.sh $$x >& log.$$x.tppt; done
 	configtool check $@
 
-canoe.ini.tp-%: canoe.ini-%
+canoe.ini.tp-%: canoe.ini-% trivial.lm.tplm
 	configtool -p tp $< $@
-	for x in `configtool list-tm $<`; do textpt2tppt.sh $$x; done
+	for x in `configtool list-tm $<`; do textpt2tppt.sh $$x >& log.$$x.tppt; done
 	configtool check $@
 
 1sent.out.tp-%: 1sent canoe.ini.tp-%

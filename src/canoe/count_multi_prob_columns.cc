@@ -50,8 +50,8 @@ int main(int argc, char* argv[])
 
    Uint n = 0;
    for (Uint i = 0; i < infiles.size(); ++i)
-      n += adir ? PhraseTable::countAdirScoreColumns(infiles[i].c_str())
-                : PhraseTable::countProbColumns(infiles[i].c_str());
+      n += adir ? PhraseTable::countAdirScoreColumns(infiles[i])
+                : PhraseTable::countProbColumns(infiles[i]);
 
    if (weights) {
       const Uint end = adir ? n : n / 2;

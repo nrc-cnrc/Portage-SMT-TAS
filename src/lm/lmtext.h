@@ -65,6 +65,8 @@ private:
 
 public:
    // Particular interface for this class
+   /// Verify that the file is indeed an LMText, i.e., an ARPA LM file
+   static bool isA(const string& file);
 
    /// Constructor.  See PLM::Create() for a description of the parameters.
    LMText(const string& lm_file_name,

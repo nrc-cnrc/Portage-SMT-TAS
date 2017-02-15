@@ -23,8 +23,8 @@
 ======================= check
 ok
 ======================= tp
-[lex-dist-model-file] models/ldm.tpldm.tpldm
-[ttable-tppt] models/cpt.tppt
+[ttable] models/cpt.tppt
+[lex-dist-model-file] models/ldm.tpldm
 [lmodel-file] models/lm.tplm
 [weight-l] 0.9360384345
 [weight-t] 1.679626052

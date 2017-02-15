@@ -151,8 +151,12 @@ public:
 
    string configFile;               ///< Name of the canoe config file
    vector<string> multiProbTMFiles; ///< Multi-prob phrase table file names
+   vector<string> tpptFiles;        ///< TPPT phrase table specified via -ttable-tppt
+   vector<string> TTables;          ///< TTables specified via -ttable
+   /// TMs that are subclasses of PhraseTableFeature, i.e., all but multiProbTMFiles.
+   /// allNonMultiProbPTs = tpptFiles + dynpt + TTables (initialized in check())
+   vector<string> allNonMultiProbPTs;
    vector<string> LDMFiles;         ///< Lexicalized distortion model file names
-   vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    string vocFile;                  ///< Vocabulary file name
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
@@ -319,7 +323,12 @@ public:
    void check_all_files() const;
 
    /**
-    * Count how many backward TMs there are, over all types.
+    * Move all phrase table features to the new [ttable] field, from old fields
+    */
+   void movePTsIntoTTable();
+
+   /**
+    * Count how many backward TMs there are, over all PT types.
     */
    Uint getTotalBackwardModelCount() const;
 
@@ -331,8 +340,7 @@ public:
    Uint getTotalMultiProbModelCount() const;
 
    /**
-    * Count the total number of translation models in multi-prob tables.
-    * Dies if any table has an odd number of probability columns.
+    * Count the total number of adirectional models, over all PT types
     * @return the number of models in files listed under ttable-multi-prob.
     */
    Uint getTotalAdirectionalModelCount() const; //boxing
@@ -466,10 +474,10 @@ private:
          lm_check_file_name         = check_file_name << 1,
          /// Specific file name check for BiLM
          bilm_check_file_name       = lm_check_file_name << 1,
-         /// Specific file name check for TPPTs
-         tppt_check_file_name       = bilm_check_file_name << 1,
+         /// Specific file name check for TTables of various types
+         ttable_check_file_name     = bilm_check_file_name << 1,
          /// Specific file name check for LDMs and TPLDMs
-         ldm_check_file_name        = tppt_check_file_name << 1,
+         ldm_check_file_name        = ttable_check_file_name << 1,
          /// Check that the name is an accessible directory
          check_dir_name             = ldm_check_file_name << 1,
          /// Indicates the number of groupings

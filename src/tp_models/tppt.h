@@ -183,8 +183,4 @@ namespace ugdiss
 
 } // end of namespace ugdiss 
 
-namespace Portage {
-   typedef ugdiss::TpPhraseTable TPPT;
-}
-
 #endif

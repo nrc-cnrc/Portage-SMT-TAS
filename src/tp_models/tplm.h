@@ -49,8 +49,8 @@
 #else
   typedef ugdiss::id_type Uint;
 #endif
-namespace Portage {
 namespace bio=boost::iostreams;
+namespace Portage {
 using namespace ugdiss;
 using namespace std;
 
@@ -149,6 +149,11 @@ public:
   TokenIndex tindex;
 
 #if IN_PORTAGE
+  /// Return true if lm_physical_filename describes a TPLM
+  static bool isA(const string& lm_physical_filename) {
+    return isSuffix(".tplm", lm_physical_filename) || isSuffix(".tplm/", lm_physical_filename);
+  }
+
   struct Creator : public PLM::Creator {
     Creator(const string& lm_physical_filename, Uint naming_limit_order);
     virtual bool checkFileExists(vector<string>* list);
@@ -165,6 +170,7 @@ public:
     const string basename;
     static string getBasename(const string& lm_physical_filename);
   };
+
 #endif
 
   /** Constructor

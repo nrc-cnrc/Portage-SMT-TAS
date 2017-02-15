@@ -1,7 +1,7 @@
 [lex-dist-model-file] models/ldm.tpldm
 [ttable-multi-prob] models/cpt
 [ttable-tppt] models/cpt.tppt
-[lmodel-file] models/lm models/lm.tplm
+[lmodel-file] models/lm models/lm.tplm models/lm.mixlm
 [use-ftm]
 [ttable-limit] 30
 [ttable-threshold] 0

@@ -25,6 +25,9 @@ all: all-commands.canoe.ini.text.good
 all: all-commands.canoe.ini.tp.good
 all: all-commands.canoe.ini.both
 all: all-commands.canoe.ini.test.unal.good
+all: tppt-in-ttable.canoe.ini.text.good
+all: tppt-in-ttable.canoe.ini.tp.good
+all: tppt-in-ttable.canoe.ini.both
 
 LINKS = models/cpt.tppt.ok models/ldm.tpldm.bad models/lm.tplm.bad
 
@@ -35,7 +38,7 @@ test.check.tp.bad: ${LINKS}
 models/%:
 	cp -r models/$(basename $*) models/$* && ${RM} -r models/$*/CVS
 
-TEMP_FILES=log.run-test canoe.ini.test.unal.good canoe.ini.test.unal.bad
+TEMP_FILES=log.run-test canoe.ini.test.unal.good canoe.ini.test.unal.bad out.*
 TEMP_DIRS=${LINKS}
 include ../Makefile.incl
 
@@ -65,4 +68,12 @@ all-commands.%: %
 	      rescore-model:ffvals; do \
 	   echo ======================= $$command; \
 	   configtool $$command $*; \
-	done | diff - ref/$@
+	done > out.$@
+	diff ref/$@ out.$@
+
+tppt-in-ttable.%: %
+	for command in applied-weights:appl.tppt:.9:.8 tp rep-multi-prob:rep.tppt rep-multi-prob:rep.gz; do \
+	   echo ======================= $$command; \
+	   configtool $$command $*; \
+	done > out.$@
+	diff ref/$@ out.$@

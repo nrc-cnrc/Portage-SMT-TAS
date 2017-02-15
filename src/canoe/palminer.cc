@@ -174,11 +174,6 @@ int main(int argc, char* argv[])
       c.check();
       c.verbosity = verbose;
       PhraseTable::log_almost_0 = c.phraseTableLogZero;
-      if ( !c.tpptFiles.empty() && !c.loadFirst ) {
-         error(ETWarn, "Setting -load-first option, %s.", 
-               "since dynamic filtering is not currently compatible with TPPTs");
-         c.loadFirst = true;
-      }
       if (c.bLoadBalancing)
          error(ETFatal, "palminer doesn't support load balancing / numbered source sentences");
    } else {

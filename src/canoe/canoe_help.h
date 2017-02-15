@@ -81,18 +81,26 @@ Options (in command-line format):\n\
      0, 2, and 3 respectively, the result will be [5,-2,1,2,-3,4,2]. NB: not yet\n\
      implemented for TPPTs.\n\
 \n\
+ -ttable TTABLE1[:TTABLE2[:..]]         Phrase table(s) other than multi-prob\n\
+     Work in progress: -ttable is to replace -ttable-tppt, -ttable-dynamic, and\n\
+     eventually -ttable-multi-prob, with automated detection of the type of\n\
+     each phrase table, among:\n\
+      - TPPT:  directory name ending in .tppt\n\
+     Requires backward, forward and adir weights matching the ttable contents.\n\
+\n\
  -ttable-tppt FILE1[:FILE2[:..]]        Tightly Packed phrase table(s)\n\
      Phrase translation model file(s) in TPPT format (Tightly Packed Phrase\n\
      Table), indexed on the source language, containing an even number of\n\
      models, considered to be backward models followed by the same number of\n\
      forward models.\n\
      Like a multi-prob phrase table, a TPPT contining 2*N probs requires N\n\
-     backward weights and, if they are supplied, N forward weights.\n\
+     backward weights and, if they are supplied, N forward weights, as well as\n\
+     the right number of adir weights if it contains adir scores.\n\
 \n\
  Phrase table notes:\n\
-     At least one translation model must be specified (through -ttable-multi-prob\n\
-     or -ttable-tppt).  The total number of translation models must match the\n\
-     total number of translation model weights.\n\
+     At least one translation model must be specified (through any of the\n\
+     -ttable* options). The total number of translation models must\n\
+     match the total number of translation model weights.\n\
 \n\
  -use-ftm                               Enable forward TMs  [don't, unless -ftm is used]\n\
      By default, forward translation model are only used as decoder features\n\
@@ -127,16 +135,14 @@ Options (in command-line format):\n\
  -weight-t|-tm W1[:W2[:..]]             Backward TM weight(s)  [1.0 for each feature]\n\
      The translation model weight(s).  If this option is used, the number of\n\
      weights must match the number of translation models specified.\n\
-\n\
-     If multi-prob and TPPT translation models are both specified, the weights\n\
-     of the multi-prob models come first, then the weights of the TPPT models.\n\
+     Weights are assigned, in order, to TTables of type multi-prob, TPPT,\n\
+     and finally those listed in -ttable in the order they are listed there.\n\
 \n\
  -weight-f|-ftm W1[:W2[:..]]            Forward TM weight(s)  [none]\n\
      The weight(s) for the forward probabilities in the translation models.\n\
-     If this option is used, it has the same requirements and ordering rules as\n\
-     -weight-t.  If neither this option nor -use-ftm are used, forward TM\n\
-     scores are not used, except possibly for pruning.  With -use-ftm, this\n\
-     option defaults to 1.0 for each feature.\n\
+     If used, this option follows the same rules as -weight-t.  If neither this\n\
+     option nor -use-ftm are used, forward TM scores are not used, except maybe\n\
+     for pruning.  With -use-ftm, this option defaults to 1.0 for each feature.\n\
 \n\
  -weight-a|-atm W1[:W2[:..]]            Adirectional TM weight(s)  [1.0 for each adir feat.]\n\
      The weight(s) for the adirectional scores in the translation models.\n\

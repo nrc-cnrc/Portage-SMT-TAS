@@ -366,7 +366,7 @@ canoe.ini.small.binlm:
 all: filter.binlm
 # This should fail with binlm
 filter.binlm:  canoe.ini.small.binlm src phrases.small.fr2en
-	${FILTER_MODELS} -f $< -lm < src 2>&1 | egrep 'Warning: Cannot filter Language Models of binlm type (.*)!  Skipping...' -q
+	${FILTER_MODELS} -f $< -lm < src 2>&1 | egrep 'Warning: Cannot filter Language Models.*!  Skipping...' -q
 
 
 canoe.ini.small.lm:

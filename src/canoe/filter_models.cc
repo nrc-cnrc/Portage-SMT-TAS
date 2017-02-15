@@ -22,8 +22,7 @@
 #include "inputparser.h"
 #include "basicmodel.h"
 #include "lm.h"
-#include "lmdynmap.h"
-#include "lmbin.h"  // LMBin::isA
+#include "lmtext.h"  // LMText::isA
 #include <sstream>
 
 
@@ -197,8 +196,8 @@ int MAIN(argc, argv)
    // CHECKING consistency in user's request.
    LOG_VERBOSE1(filter_models_Logger, "Consistency check of user's request");
    // Logic checking
-   if (arg.limit() and !c.tpptFiles.empty())
-      error(ETFatal, "You can't use limit aka filter30 with TPPTs");
+   if (arg.limit() and !c.allNonMultiProbPTs.empty())
+      error(ETFatal, "You can't use limit aka filter30 with ttables other than multi-prob ones");
    if (arg.limit() and !(c.phraseTableSizeLimit > NO_SIZE_LIMIT))
       error(ETFatal, "You're using filter TM, please set a value greater than 0 to [ttable-limit]");
    // When using tm hard limit, user must provide the tms-weights
@@ -206,27 +205,24 @@ int MAIN(argc, argv)
       error(ETFatal, "You must provide the TMs weights when doing a tm_hard_limit");
    if (src_sents.empty() and arg.limitPhrases())
       error(ETFatal, "You must provide source sentences when doing grep");
-   if (arg.filterLMs and !c.tpptFiles.empty())
-      error(ETFatal, "Filtering Language Models (-L) when using TPPTs is not implemented yet.");
+   if (arg.filterLMs and !c.allNonMultiProbPTs.empty())
+      error(ETFatal, "Filtering Language Models (-L) only works for multi-prob phrase tables");
    if (arg.filterLDMs and (!(arg.limit() or c.multiProbTMFiles.size() == 1))) {
       if (arg.limitPhrases())
          error(ETWarn, "Filtering LDMs with multiple CPTs and no hard/soft filtering; taking only source phrases into account for LDM filtering, not target phrases.");
       else
          error(ETFatal, "To filter LDMs, we must either have one cpt or use hard/soft filtering to produce one cpt before filtering LDMs.  Alternatively, use filter-grep mode, in which case LDM filtering takes into account source phrases, but not target phrases, as it would normally.");
    }
-   if (arg.filterLDMs and !c.tpptFiles.empty()) {
+   if (arg.filterLDMs and !c.allNonMultiProbPTs.empty()) {
       if (arg.limitPhrases())
-         error(ETWarn, "Filtering LDMs when using TPPTs takes only source phrases into account for LDM filtering, not target phrases.");
+         error(ETWarn, "Filtering LDMs when using phrase tables other than multi-prob takes only source phrases into account for LDM filtering, not target phrases.");
       else
-         error(ETFatal, "Filtering LDMs when using TPPTs and not limiting phrases is not supported.");
+         error(ETFatal, "Filtering LDMs when using phrase tables other than multi-prob and not limiting phrases is not supported.");
    }
 
 
    // online mode only applies to tm_hard_limit or tm_soft_limit.
    if (!arg.limit()) arg.tm_online = false;
-
-   if (c.multiProbTMFiles.empty() and c.tpptFiles.empty())
-      error(ETFatal, "You must provide at least one Translation Model.");
 
    // hack - rely on a side effect of maxSourceSentence4filtering to disable
    // per-sentence filtering
@@ -449,7 +445,7 @@ int MAIN(argc, argv)
    // In order to filter LMs, we need tgt_vocab to be populated at this point.
    if (arg.filterLMs and !c.lmFiles.empty()) {
       // We must get the vocab from the TPPTs first
-      if ( !c.tpptFiles.empty() && arg.limitPhrases() && c.lmFiles.size() > 0 ) {
+      if ( !c.allNonMultiProbPTs.empty() && arg.limitPhrases() && c.lmFiles.size() > 0 ) {
          LOG_VERBOSE1(filter_models_Logger, "Extracting vocabulary from TPPTs");
          const time_t start_time = time(NULL);
          if (arg.verbose)
@@ -473,20 +469,8 @@ int MAIN(argc, argv)
          const string flm = arg.prepareFilename(lm);
 
          // Let's skip Language Model types that we cannot filter.
-         if ( isPrefix(LMDynMap::header, lm) ) {
-            error(ETWarn, "Cannot filter Language Models of dynmap type (%s)!  Skipping...", lm.c_str());
-            continue;
-         }
-         if (isSuffix(".mixlm", lm)) {
-            error(ETWarn, "Cannot filter Language Models of mixlm type (%s)!  Skipping...", lm.c_str());
-            continue;
-         }
-         if (isSuffix(".tplm", lm)) {
-            error(ETWarn, "Cannot filter Language Models of tplm type (%s)!  Skipping...", lm.c_str());
-            continue;
-         }
-         if (LMBin::isA(lm)) {
-            error(ETWarn, "Cannot filter Language Models of binlm type (%s)!  Skipping...", lm.c_str());
+         if (!LMText::isA(lm)) {
+            error(ETWarn, "Cannot filter Language Models of types other than ARPA LM!  Skipping %s...", lm.c_str());
             continue;
          }
 
@@ -524,9 +508,9 @@ int MAIN(argc, argv)
       LOG_VERBOSE1(filter_models_Logger, "Processing Lexicalized Distortion Models");
 
       // There can only be one cpt to filter ldms.
-      if (c.multiProbTMFiles.size() != 1 or !c.tpptFiles.empty()) {
+      if (c.multiProbTMFiles.size() != 1 or !c.allNonMultiProbPTs.empty()) {
          if (arg.limitPhrases())
-            error(ETWarn, "There is more than one CPT or there are TPPTs, so LDM filtering can't look at target phrases; doing filter-grep only on the LDM(s).");
+            error(ETWarn, "There is more than one CPT or there are other types of phrase tables, so LDM filtering can't look at target phrases; doing filter-grep only on the LDM(s).");
          else
             error(ETFatal, "In order to filter LDMs, we must have only one CPT and no TPPTs, or do filter-grep.");
       }
@@ -555,7 +539,7 @@ int MAIN(argc, argv)
             error(ETWarn, "Cannot filter %s since %s is read-only.", file->c_str(), filtered_ldm.c_str());
          }
          else {
-            if (c.multiProbTMFiles.size() != 1 || !c.tpptFiles.empty()) {
+            if (c.multiProbTMFiles.size() != 1 || !c.allNonMultiProbPTs.empty()) {
                assert(arg.limitPhrases());
                PhraseTableFilterGrep phraseTable(arg.limitPhrases(),
                                                  tgt_vocab, arg.phraseTablePruneType, 

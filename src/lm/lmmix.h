@@ -1,7 +1,6 @@
 /**
  * @author GF
  * @file lmmix.h  Dynamic LM mixture model
- * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -48,6 +47,10 @@ class LMMix : public PLM
    double exp(float x) {return pow(10, x);}
 
 public:
+   /// Return true if lm_physical_filename describes an LMMix
+   static bool isA(const string& lm_physical_filename) {
+      return isSuffix(".mixlm", lm_physical_filename);
+   }
 
    struct Creator : public PLM::Creator {
       Creator(const string& lm_physical_filename, Uint naming_limit_order);

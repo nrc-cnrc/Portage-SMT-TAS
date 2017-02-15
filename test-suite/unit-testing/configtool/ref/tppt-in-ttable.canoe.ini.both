@@ -1,0 +1,65 @@
+======================= applied-weights:appl.tppt:.9:.8
+[ttable] appl.tppt
+[lex-dist-model-file] models/ldm.tpldm
+[lmodel-file] models/lm:models/lm.tplm:models/lm.mixlm
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[bypass-marked]
+[load-first]
+[cube-pruning]
+[use-ftm]
+[distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+======================= tp
+[ttable] models/cpt.tppt:models/cpt.tppt
+[lex-dist-model-file] models/ldm.tpldm
+[lmodel-file] models/lm.tplm:models/lm.tplm:models/lm.mixlm
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[bypass-marked]
+[load-first]
+[cube-pruning]
+[use-ftm]
+[distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+======================= rep-multi-prob:rep.tppt
+[ttable] rep.tppt:models/cpt.tppt
+[lex-dist-model-file] models/ldm.tpldm
+[lmodel-file] models/lm:models/lm.tplm:models/lm.mixlm
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[bypass-marked]
+[load-first]
+[cube-pruning]
+[use-ftm]
+[distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+======================= rep-multi-prob:rep.gz
+[ttable-multi-prob] rep.gz
+[ttable] models/cpt.tppt
+[lex-dist-model-file] models/ldm.tpldm
+[lmodel-file] models/lm:models/lm.tplm:models/lm.mixlm
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[bypass-marked]
+[load-first]
+[cube-pruning]
+[use-ftm]
+[distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d

@@ -14,10 +14,17 @@
 
 #include "lmtext.h"
 #include "file_utils.h"
+#include "lmbin.h"
 
 using namespace Portage;
 using namespace std;
 
+
+bool LMText::isA(const string& file)
+{
+   shared_ptr<PLM::Creator> creator = PLM::getCreator(file);
+   return (dynamic_cast<LMTrie::Creator*>(creator.get()) && !LMBin::isA(file));
+}
 
 LMText::LMText(const string& lm_file_name, VocabFilter *vocab,
                OOVHandling oov_handling, double oov_unigram_prob,
@@ -27,6 +34,7 @@ LMText::LMText(const string& lm_file_name, VocabFilter *vocab,
 {
    assert(vocab);
    read(lm_file_name, limit_vocab, limit_order, os_filtered, quiet);
+   //LOG_VERBOSE2(Logger_lmtext, "LM\'s trie stats: %s", trie.getStats().c_str());
    //dump_trie_to_cerr();
 }
 

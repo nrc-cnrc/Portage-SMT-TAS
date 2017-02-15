@@ -1,11 +1,11 @@
 ======================= weights
- -d 1:1:1:1:1:1:1 -w 0 -lm 1:1 -tm 1:1 -ftm 1:1
+ -d 1:1:1:1:1:1:1 -w 0 -lm 1:1:1 -tm 1:1 -ftm 1:1
 ======================= nf
-14
+15
 ======================= nb
 8
 ======================= nl
-2
+3
 ======================= nt
 2
 ======================= na
@@ -23,9 +23,9 @@
 ======================= check
 ok
 ======================= tp
-[lex-dist-model-file] models/ldm.tpldm.tpldm
-[ttable-tppt] models/cpt.tppt:models/cpt.tppt
-[lmodel-file] models/lm:models/lm.tplm
+[ttable] models/cpt.tppt:models/cpt.tppt
+[lex-dist-model-file] models/ldm.tpldm
+[lmodel-file] models/lm.tplm:models/lm.tplm:models/lm.mixlm
 [ttable-limit] 30
 [ttable-threshold] 0
 [stack] 20000
@@ -39,7 +39,7 @@ ok
 [use-ftm]
 [distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
 ======================= list-lm
-models/lm models/lm.tplm
+models/lm models/lm.tplm models/lm.mixlm
 ======================= list-ldm
 models/ldm.tpldm
 ======================= list-tm
@@ -59,6 +59,7 @@ models/cpt models/cpt.tppt
 11 1
 12 1
 13 1
+14 1
 ======================= rescore-model:ffvals
 FileFF:ffvals,1 1
 FileFF:ffvals,2 1
@@ -74,3 +75,4 @@ FileFF:ffvals,11 1
 FileFF:ffvals,12 1
 FileFF:ffvals,13 1
 FileFF:ffvals,14 1
+FileFF:ffvals,15 1

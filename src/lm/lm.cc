@@ -115,14 +115,16 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
    Creator* cr;
    if (LMDynMap::isA(lm_physical_filename)) {
       cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
-   } else if (isSuffix(".mixlm", lm_physical_filename)) {
+   } else if (LMMix::isA(lm_physical_filename)) {
       cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
-   } else if (isSuffix(".tplm", lm_physical_filename) or
-              isSuffix(".tplm/", lm_physical_filename)) {
+   } else if (TPLM::isA(lm_physical_filename)) {
       cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
    } else if (LMRestCost::isA(lm_physical_filename)) {
       cr = new LMRestCost::Creator(lm_physical_filename, naming_limit_order);
    } else {
+      // EJJ Important note: we must not call LMText::isA() here, because it
+      // calls this function! We could call LMBin::isA(), but that would be
+      // pointless since LMBin and LMText share the same Creator implementation.
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }
    assert(cr);

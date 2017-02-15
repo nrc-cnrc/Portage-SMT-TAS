@@ -114,13 +114,13 @@ BasicModelGenerator* BasicModelGenerator::create(
    for ( Uint i = 0; i < c.multiProbTMFiles.size(); ++i )
       result->phraseTable->readMultiProb(c.multiProbTMFiles[i].c_str(), result->limitPhrases, c.describeModelOnly);
 
-   // We load TPPTs next, with their weights after the multi-prob weights.
-   for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
+   // Load all other types of phrase tables
+   for (Uint i = 0; i < c.allNonMultiProbPTs.size(); ++i) {
       result->vocab_read_from_TPPTs = false;
-      result->phraseTable->openTPPT(c.tpptFiles[i].c_str());
+      result->phraseTable->openTTable(c.allNonMultiProbPTs[i], c);
    }
 
-   //////////// loading LDMs
+   // Load LDMs
    if (!c.describeModelOnly) {
       for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
          const string ldm_filename = c.LDMFiles[i];

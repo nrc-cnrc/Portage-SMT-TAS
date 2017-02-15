@@ -33,6 +33,7 @@
 #include "tm_entry.h"
 #include "annotation_list.h"
 #include "new_src_sent_info.h"
+#include "phrasetable_feature.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -48,73 +49,13 @@ namespace ugdiss {
 
 namespace Portage
 {
+class TPPTFeature;
 class Voc;
 class CanoeConfig;
 struct PhraseTableEntry;
 
 /// Token that seperates items in a phrase table
 extern const char *PHRASE_TABLE_SEP; // = " ||| "
-
-
-
-/// Leaf sub-structure for phrase tables: holds the probs for the phrase pair.
-struct TScore
-{
-   /// Forward probs from all TMText phrase tables
-   vector<float> forward;
-   /// Backward probs from all TMText phrase tables
-   vector<float> backward;
-
-   /// Adirectional scores from all TMText phrase tables
-   vector<float> adir; //boxing
-
-   /// lexicalized distortion scores from all DM tables
-   vector<float> lexdis; //boxing
-
-   /// Annotation trail left by various features, to find their way later, stored
-   /// for each phrase pair in an annotation list.
-   AnnotationList annotations;
-
-   /**
-    * Display the content of a TScore in ascii format.
-    * Mainly for debugging purposes.
-    * @param  os  where to output this TScore.
-    */
-   void print(ostream& os = cerr) const;
-
-   /// Resets all values.  Call clear() before re-using a TScore object.
-   void clear() {
-      forward.clear();
-      backward.clear();
-      adir.clear();
-      lexdis.clear();
-      annotations.clear();
-   } //boxing
-}; // TScore
-
-/// Leaf structure for phrase tables: map target phrase to probs.
-class TargetPhraseTable : public unordered_map<Phrase, TScore> {
-private:
-   typedef unordered_map<Phrase, TScore> Parent;
-public:
-   /// Set of input sentences in which the source phrase occurs.
-   /// Only relevant in limitPhrases mode, will be empty otherwise.
-   boost::dynamic_bitset<> input_sent_set;
-
-   /// Swaps two TargetPhraseTables.
-   /// @param o  other TargetPhraseTables.
-   void swap(TargetPhraseTable& o);
-
-   /**
-    * Display the content of a TargetPhraseTable in ascii format, for debugging
-    * purposes.
-    * @param  os  where to output this TargetPhraseTable.
-    * @param  tgtVocab  the vocabulary to be able to output in a Human redable
-    *         form.
-    */
-   void print(ostream& os = cerr, const VocabFilter* const tgtVocab = NULL) const;
-};
-//typedef vector_map<Phrase, TScore> TargetPhraseTable;
 
 /// Phrase Table structure - holds together info from all phrase tables
 class PhraseTable : private NonCopyable
@@ -151,10 +92,8 @@ protected:
    /// The number of adirectional models that have been loaded from text files.
    Uint numTextAdirModels;
 
-   /// Translation models opened in TPPT format.
-   /// The number of models can be obtained by summing over calls to
-   /// TPPT::numThirdCol() (forward+backward) and TPPT::numFourthCol() (adir).
-   vector<shared_ptr<ugdiss::TpPhraseTable> > tpptTables;
+   /// Translation models of any kind in the PhraseTableFeature hierarchy
+   vector<shared_ptr<PhraseTableFeature> > phraseTableFeatures;
 
    /// Lexicalized Distortion Models in TPLDM format.
    vector<shared_ptr<ugdiss::TpPhraseTable> > tpldmTables;
@@ -275,13 +214,13 @@ public:
    }
 
    /**
-    * Open a TPPT format phrase table.
+    * open a phrase table in any format that is part of the PhraseTableFeature
+    * hierarchy, i.e., all but plain-text, multi-prob phrase tables
     * Note: all text based phrase tables must be loaded first.
-    * @param tppt_filename      The path of the TPPT file to open.
-    *                           Must be a source_lang 2 target_lang TPPT.
-    * @return The total number of probability columns in the model.
+    * @param modelName  Name or descriptor of the phrase table or model to open
+    * @param c          CanoeConfig object
     */
-   Uint openTPPT(const char *tppt_filename);
+   void openTTable(const string &modelName, const CanoeConfig &c);
 
    /**
     * Open a Lexicalized Distortion Model in memory map form.
@@ -324,43 +263,21 @@ public:
                           string* physical_filename = NULL);
 
    /**
-    * Count the number of probabilities in a multi-prob phrase table file.
-    * Reads the first line of a multi-prob phrase table file to determine the
-    * number of probability columns it contains, and therefore the number of
-    * models is contains.
-    * @param multi_prob_TM_filename file name; a "#REVERSED" suffix will be
-    *                               removed if present.
+    * Count the number of probabilities in phrase table in any format.
+    * @param modelName file name
     * @return the number of probabilities per row, i.e., the number of models;
-    *         0 if multi_prob_TM_filename can't be opened or if its first line
-    *         is not valid.
+    *         0 if multi_prob_TM_filename can't be opened or if it is not valid.
     */
-   static Uint countProbColumns(const char* multi_prob_TM_filename);
+   static Uint countProbColumns(const string& modelName);
 
    /**
-    * Count the number of adirectional scores in a multi-prob phrase table file.
-    * Reads the first line of a multi-prob phrase table file to determine the
-    * number of adirectional scores columns it contains, and therefore the number
-    * of models is contains.
-    * @param multi_prob_TM_filename file name; a "#REVERSED" suffix will be
-    *                               removed if present.
+    * Count the number of adirectional scores in a phrase table in any format.
+    * @param modelName file name
     * @return the number of "4th column" scores per row, i.e., the number of
     *         adirectional models;
-    *         0 if multi_prob_TM_filename can't be opened or if its first line
-    *         is not valid.
+    *         0 if modelName can't be opened or if it is not valid.
     */
-   static Uint countAdirScoreColumns(const char* multi_prob_TM_filename); //boxing
-
-   /**
-    * Count the number of probabilities in a TPPT phrase table file.
-    * @param tppt_filename  Model to inspect
-    * @return the total number of probability models in model tppt_filename
-    */
-   static Uint countTPPTProbModels(const char* tppt_filename);
-
-   /**
-    * Count the number of adirectional scores in a TPPT phrase table file.
-    */
-   static Uint countTPPTAdirModels(const char* tppt_filename);
+   static Uint countAdirScoreColumns(const string& modelName);
 
    /**
     * Read a multi-prob phrase table file.  The file must be formatted as for

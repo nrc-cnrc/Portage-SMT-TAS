@@ -287,7 +287,6 @@ protected:
                           bool quiet) = 0;
    }; // Creator
 
-private:
    /**
     * Get the appropriate Creator for lm_filename, and parse the filename to
     * extract any marker requesting to limit the order.
@@ -296,6 +295,7 @@ private:
     */
    static shared_ptr<Creator> getCreator(const string& lm_filename);
 
+private:
    /**
     * PLMs are not safely assignable.
     */
@@ -347,7 +347,7 @@ public:
    static Uint64 totalMemmapSize(const string& lm_filename);
 
    /**
-    * Efficiently language model in memory.  This is only applicable to memory
+    * Efficiently load model in memory.  This is only applicable to memory
     * mapped language models.
     * @param full load all model's parts in memory not just the most
     *             essential ones.

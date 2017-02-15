@@ -19,6 +19,7 @@
 #include "file_utils.h"
 #include "voc.h"
 #include "tppt.h"
+#include "tppt_feature.h"
 #include "pruning_style.h"
 #include <cmath>
 #include <algorithm>
@@ -47,39 +48,6 @@ Logging::logger ptLogger(Logging::getLogger("debug.canoe.phraseTable"));
 Logging::logger ptLogger_filterLM(Logging::getLogger("debug.canoe.phraseTable.filterLM"));
 
 const char *Portage::PHRASE_TABLE_SEP = " ||| ";
-
-/********************* TScore **********************/
-void TScore::print(ostream& os) const
-{
-   os << "forward: " << join(forward) << endl;
-   os << "backward: " << join(backward) << endl;
-   if (!adir.empty())
-      os << "adirectional: " << join(adir) << endl;
-   if (!lexdis.empty())
-      os << "lexicalized distortion: " << join(lexdis) << endl;
-   annotations.display(os);
-}
-
-
-/********************* TargetPhraseTable **********************/
-void TargetPhraseTable::swap(TargetPhraseTable& o) {
-   Parent::swap(o);
-   input_sent_set.swap(o.input_sent_set);
-}
-
-
-void TargetPhraseTable::print(ostream& os, const VocabFilter* const tgtVocab) const {
-   for (const_iterator it(begin()); it!=end(); ++it) {
-      os << join(it->first) << nf_endl;
-      if (tgtVocab) {
-         for (Uint i(0); i<it->first.size(); ++i)
-            os << tgtVocab->word(it->first[i]) << " ";
-         os << "\n";
-      }
-      it->second.print(os);
-   }
-}
-
 
 /********************* PhraseTable **********************/
 double PhraseTable::log_almost_0 = LOG_ALMOST_0;
@@ -129,9 +97,9 @@ void PhraseTable::registerAnnotator(PhrasePairAnnotator* annotator)
 
 void PhraseTable::clearCache()
 {
-   for ( Uint i = 0; i < tpptTables.size(); ++i ) {
-      assert(tpptTables[i]);
-      tpptTables[i]->clearCache();
+   for ( Uint i = 0; i < phraseTableFeatures.size(); ++i ) {
+      assert(phraseTableFeatures[i]);
+      phraseTableFeatures[i]->clearCache();
    }
    for ( Uint i = 0; i < tpldmTables.size(); ++i ) {
       assert(tpldmTables[i]);
@@ -139,42 +107,38 @@ void PhraseTable::clearCache()
    }
 }
 
-
-Uint PhraseTable::openTPPT(const char *tppt_filename)
+void PhraseTable::openTTable(const string &modelName, const CanoeConfig &c)
 {
-   cerr << "opening TPPT phrase table " << tppt_filename << endl;
-   shared_ptr<TPPT> p_tppt(new TPPT(tppt_filename));
-   tpptTables.push_back(p_tppt);
+   cerr << "Opening phrase table " << modelName << endl;
+   PhraseTableFeature* phraseTableFeature = PhraseTableFeature::create(modelName, c, tgtVocab);
+   assert(phraseTableFeature);
+   phraseTableFeatures.push_back(shared_ptr<PhraseTableFeature>(phraseTableFeature));
 
-   const Uint num_probs = p_tppt->numThirdCol();
-   assert(num_probs % 2 == 0);
-   const Uint model_count = num_probs / 2;
+   const Uint model_count = phraseTableFeature->getNumModels();
    numTransModels += model_count;
 
-   const Uint adir_scores = p_tppt->numFourthCol();
+   const Uint adir_scores = phraseTableFeature->getNumAdir();
    numAdirTransModels += adir_scores;
 
    ostringstream back_description, for_description, adir_description;
    for (Uint i = 0; i < model_count; ++i) {
-      back_description << "TranslationModel:" << tppt_filename
+      back_description << "TranslationModel:" << modelName
          << "(col=" << i << ")" << endl;
-      for_description << "ForwardTranslationModel:" << tppt_filename
+      for_description << "ForwardTranslationModel:" << modelName
          << "(col=" << (i + model_count) << ")" << endl;
    }
    for (Uint i = 0; i < adir_scores; ++i)
-      adir_description << "AdirectionalModel:" << tppt_filename
+      adir_description << "AdirectionalModel:" << modelName
          << "(col=" << i << ")" << endl;
    backwardDescription += back_description.str();
    forwardDescription  += for_description.str();
    adirDescription += adir_description.str();
-
-   return num_probs;
 }
 
 void PhraseTable::openTPLDM(const char *lexicalized_dm_file)
 {
    cerr << "opening TPLDM lexicalized distortion " << lexicalized_dm_file << endl;
-   shared_ptr<TPPT> p_tppt(new TPPT(lexicalized_dm_file));
+   shared_ptr<ugdiss::TpPhraseTable> p_tppt(new ugdiss::TpPhraseTable(lexicalized_dm_file));
    tpldmTables.push_back(p_tppt);
 }
 
@@ -218,7 +182,7 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(PhraseTableEntry& entry, bo
 // as fast as the previous implementation.
 Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 {
-   assert(tpptTables.empty());
+   assert(phraseTableFeatures.empty());
    Uint numKept(0);
    Uint numFiltered(0);
    PhraseTableEntry entry(d, limitPhrases, file);
@@ -458,50 +422,20 @@ bool PhraseTable::isReversed(const string& multi_prob_TM_filename,
 } // PhraseTable::isReversed()
 
 
-Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
+Uint PhraseTable::countProbColumns(const string& modelName)
 {
-   iMagicStream in(multi_prob_TM_filename, true);  // make this a silent stream
-   if (in.fail()) return 0;
-   TMEntry entry(multi_prob_TM_filename);
-   string line;
-   if (!getline(in, line)) {
-      error(ETWarn, "Multi-prob phrase table %s is empty.", multi_prob_TM_filename);
-      return 0;
-   }
-   entry.newline(line);
-   return entry.ThirdCount();
+   Uint numModels, numAdir, numCounts;
+   bool hasAlignments;
+   PhraseTableFeature::getNumScores(modelName, numModels, numAdir, numCounts, hasAlignments);
+   return numModels * 2;
 }
 
-Uint PhraseTable::countAdirScoreColumns(const char* multi_prob_TM_filename)
+Uint PhraseTable::countAdirScoreColumns(const string& modelName)
 {
-   iMagicStream in(multi_prob_TM_filename, true);  // make this a silent stream
-   if (in.fail()) return 0;
-   TMEntry entry(multi_prob_TM_filename);
-   string line;
-   if (!getline(in, line)) {
-      error(ETWarn, "Multi-prob phrase table %s is empty.", multi_prob_TM_filename);
-      return 0;
-   }
-   entry.newline(line);
-   return entry.FourthCount();
-}
-
-// Not inlined so as to keep TPPT code completely encapsulated within this .cc
-// file, and thus avoid propagating dependencies unecessarily.
-Uint PhraseTable::countTPPTProbModels(const char* tppt_filename)
-{
-   Uint third, fourth, counts;
-   bool al;
-   TPPT::numScores(tppt_filename, third, fourth, counts, al);
-   return third;
-}
-
-Uint PhraseTable::countTPPTAdirModels(const char* tppt_filename)
-{
-   Uint third, fourth, counts;
-   bool al;
-   TPPT::numScores(tppt_filename, third, fourth, counts, al);
-   return fourth;
+   Uint numModels, numAdir, numCounts;
+   bool hasAlignments;
+   PhraseTableFeature::getNumScores(modelName, numModels, numAdir, numCounts, hasAlignments);
+   return numAdir;
 }
 
 Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
@@ -565,8 +499,8 @@ Uint PhraseTable::readLexicalizedDist(const char* lexicalized_DM_filename,
 
 
 void PhraseTable::extractVocabFromTPPTs(Uint verbosity) {
-   if (!tpptTables.empty())
-      error(ETFatal, "operation not implemented yet: can't extract vocab from TPPTs");
+   if (!phraseTableFeatures.empty())
+      error(ETFatal, "extractVocabFromTPPTs not supported for anything by plain-text multi-prob phrase tables.");
 }
 
 void PhraseTable::tgtStringToPhraseIndex(VectorPhrase& tgtPhrase, const char* tgtString)
@@ -799,6 +733,9 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos,
       i_curKey[i] = tgtVocab.add(s_curKey[i]);
    }
 
+   for (Uint i = 0; i < phraseTableFeatures.size(); ++i)
+      phraseTableFeatures[i]->newSrcSent(sent);
+
    // Create an iterator to track which phrases not to look for.  Since we will
    // find phrases from the end of the sentence first, we iterate through the
    // ranges in reverse.
@@ -902,7 +839,7 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
    if (!textTable.find(i_key + range.start, range.end - range.start, textTgtTable))
       textTgtTable = NULL;
 
-   if (tpptTables.empty() && tpldmTables.empty()) {
+   if (phraseTableFeatures.empty() && tpldmTables.empty()) {
       // If there are no TPPTs/TPLDMs, this function is a mere wrapper around
       // textTable.find().  We use NullDeleter as the custom deleter for the
       // returned shared_ptr, which does nothing and will therefore not affect
@@ -924,83 +861,90 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
       }
    }
 
-   VectorPhrase tgtPhrase;
-
    // For each TPPT phrase table, find each tgt canditate in the TPPT phrase
    // table for src_phrase and merge it into tgtTable
    Uint prob_offset = numTextTransModels;
    Uint adir_offset = numTextAdirModels;
-   for ( Uint i = 0; i < tpptTables.size(); ++i ) {
-      const Uint numModels = tpptTables[i]->numThirdCol() / 2;
-      const Uint numAdir = tpptTables[i]->numFourthCol();
-      const Uint numCounts = tpptTables[i]->numCounts();
-      const bool hasAlignments = tpptTables[i]->hasAlignments();
-      assert(tpptTables[i]);
-      TPPT::val_ptr_t targetPhrases =
-         tpptTables[i]->lookup(str_key, range.start, range.end);
-      if (targetPhrases) {
-         // results are not empty.
-         for ( vector<TPPT::TCand>::iterator
-                  it(targetPhrases->begin()), end(targetPhrases->end());
-               it != end; ++it ) {
-            // Convert target phrase to global vocab
-            tgtPhrase.resize(it->words.size());
-            for ( Uint j = 0; j < tgtPhrase.size(); ++j )
-               tgtPhrase[j] = tgtVocab.add(it->words[j].c_str());
 
-            // merge and/or insert the values into tgtTable
-            TScore* tScores(&(*tgtTable)[tgtPhrase]);
-            assert(tScores);
-            tScores->backward.resize(numTransModels, log_almost_0);
-            tScores->forward.resize(numTransModels, log_almost_0);
-            if (numAdir)
-               tScores->adir.resize(numAdirTransModels, log_almost_0);
-
-            assert(it->score.size() == 2*numModels+numAdir);
+   for (Uint i = 0; i < phraseTableFeatures.size(); ++i) {
+      bool firstTable = (tgtTable->empty() && prob_offset == 0 && adir_offset == 0);
+      bool lastTable = (i+1 == phraseTableFeatures.size() && tpldmTables.empty());
+      shared_ptr<TargetPhraseTable> t = phraseTableFeatures[i]->find(range);
+      const Uint numModels = phraseTableFeatures[i]->getNumModels();
+      const Uint numAdir = phraseTableFeatures[i]->getNumAdir();
+      const Uint numCounts = phraseTableFeatures[i]->getNumCounts();
+      const Uint hasAlignments = phraseTableFeatures[i]->hasAlignments();
+      if (firstTable && lastTable) {
+         // Our current model only has this table, no need to do any kind of merging.
+         tgtTable = t;
+         for (TargetPhraseTable::iterator iter(t->begin()); iter != t->end(); ++iter) {
             for (Uint j = 0; j < numModels; ++j) {
-               tScores->backward[prob_offset+j] = shielded_log(it->score[j]);
-               tScores->forward[prob_offset+j] = shielded_log(it->score[j+numModels]);
+               iter->second.backward[j] = shielded_log(iter->second.backward[j]);
+               iter->second.forward[j] = shielded_log(iter->second.forward[j]);
             }
             for (Uint j = 0; j < numAdir; ++j)
-               tScores->adir[adir_offset+j] = shielded_log(it->score[2*numModels+j]);
-
+               iter->second.adir[j] = shielded_log(iter->second.adir[j]);
+         }
+      } else {
+         // We need to merge the numbers from this table into the tgtTable to return.
+         for (TargetPhraseTable::iterator iter(t->begin()); iter != t->end(); ++iter) {
+            TScore* tScores = &((*tgtTable)[iter->first]);
+            tScores->backward.resize(numTransModels, log_almost_0);
+            tScores->forward.resize(numTransModels, log_almost_0);
+            for (Uint j = 0; j < numModels; ++j) {
+               tScores->backward[prob_offset+j] = shielded_log(iter->second.backward[j]);
+               tScores->forward[prob_offset+j] = shielded_log(iter->second.forward[j]);
+            }
+            tScores->adir.resize(numAdirTransModels, log_almost_0);
+            for (Uint j = 0; j < numAdir; ++j)
+               tScores->adir[adir_offset+j] = shielded_log(iter->second.adir[j]);
             if (numCounts) {
                // Joint counts have a vector addition semantics, if they appear
-               // in multiple phrase tables.
-               assert(it->counts.size() == numCounts);
-               CountAnnotation::getOrCreate(tScores->annotations)->updateValue(it->counts);
+               // in multiple phrase tables. Get the ones from the new table
+               // and add them into the table we're building to return.
+               CountAnnotation *counts = CountAnnotation::get(iter->second.annotations);
+               if (counts)
+                  CountAnnotation::getOrCreate(tScores->annotations)->updateValue(counts->joint_counts);
             }
-
-            if (hasAlignments && !it->alignment.empty())
-               tScores->annotations.initAnnotation("a", it->alignment.c_str());
-
-            // Call all the registered annotators to do what they need with the phrase pair
-            for (AnnotatorRegistry::iterator it(annotatorRegistry.begin()), end(annotatorRegistry.end());
-                 it != end; ++it)
-               it->second->annotate(tScores, s_key + range.start, range.size(), tgtPhrase);
+            if (hasAlignments) {
+               AlignmentAnnotation *al = AlignmentAnnotation::get(iter->second.annotations);
+               if (al)
+                  tScores->annotations.initAnnotation("a", al->getAlignment());
+            }
          }
       }
       prob_offset += numModels;
       adir_offset += numAdir;
    }
-   assert (prob_offset == numTransModels);
+
+   // Call all the registered annotators to do what they need with the phrase pair
+   for (TargetPhraseTable::iterator iter(tgtTable->begin()); iter != tgtTable->end(); ++iter) {
+      TScore *tScores(&(iter->second));
+      for (AnnotatorRegistry::iterator reg_it(annotatorRegistry.begin()), reg_end(annotatorRegistry.end());
+           reg_it != reg_end; ++reg_it)
+         reg_it->second->annotate(tScores, s_key + range.start, range.size(), iter->first);
+   }
+
+   assert(prob_offset == numTransModels);
+   assert(adir_offset == numAdirTransModels);
 
    // ZERO's value depends on the subclass's implementation of convertFromRead
    const float ZERO(convertFromRead(0.0f));
 
-   // Lexicalized Distortion models.
+   // TPLDM Lexicalized Distortion models.
+   VectorPhrase tgtPhrase;
    for (Uint tpldm = 0; tpldm < tpldmTables.size(); ++tpldm) {
       const Uint currentNumLexDisModels = numLexDisModels + tpldm*6;
       // Get all lexicalized distortion score for the source phrase.
       assert(range.start <= range.end);
-      TPPT::val_ptr_t targetPhrases =
+      ugdiss::TpPhraseTable::val_ptr_t targetPhrases =
          tpldmTables[tpldm]->lookup(str_key, range.start, range.end);
 
       if (targetPhrases) {
          // Ok, this tpldm has some values for this source phrase, let's keep
          // the values for the target phrases that our cpts know about.
          TScore* tScores(NULL);
-         for ( vector<TPPT::TCand>::iterator
+         for ( vector<ugdiss::TpPhraseTable::TCand>::iterator
                   it(targetPhrases->begin()), end(targetPhrases->end());
                it != end; ++it ) {
             // Convert target phrase to global vocab
@@ -1170,7 +1114,6 @@ bool PhraseTable::containsSrcPhrase(Uint num_tokens, char* tokens[])
    TargetPhraseTable *tgtTable = NULL;
    return textTable.find(srcWords, num_tokens, tgtTable);
 }
-
 
 Uint PhraseTable::processTargetPhraseTable(const string&, Uint, TargetPhraseTable*)
 {

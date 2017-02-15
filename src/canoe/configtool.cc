@@ -24,7 +24,9 @@
 #include "config_io.h"
 #include "logging.h"
 #include "lm.h"
-#include "tppt.h"
+#include "lmbin.h"
+#include "lmtext.h"
+#include "tppt_feature.h"
 #include "basicmodel.h"
 #include "printCopyright.h"
 #include "bilm_model.h"
@@ -98,7 +100,7 @@ depending on <cmd>, one of:\n\
   rep-ldm:ldm        - Replace all ldms with ldm.\n\
   applied-weights:tppt:w-tm:w-ftm\n\
                      - Change the forward and backward weights to w-tm and w-ftm\n\
-                       respectively and replaces multi-probs for tppt.\n\
+                       respectively and replaces all phrase tables by tppt.\n\
   tp                 - Change multiprobs, language models and lexicalized\n\
                        distortion models to their tightly packed version for\n\
                        portageLive.\n\
@@ -200,13 +202,13 @@ int main(int argc, char* argv[])
       os << c.featureGroup("sm")->size() << endl;
    } else if (cmd == "memmap") {
       Uint64 total_memmap_size = 0;
-      for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
-         total_memmap_size += TPPT::totalMemmapSize(c.tpptFiles[i]);
+      for ( Uint i = 0; i < c.allNonMultiProbPTs.size(); ++i )
+         total_memmap_size += PhraseTableFeature::totalMemmapSize(c.allNonMultiProbPTs[i]);
       for ( Uint i = 0; i < c.lmFiles.size(); ++i )
          total_memmap_size += PLM::totalMemmapSize(c.lmFiles[i]);
       for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
          if (isSuffix(".tpldm", c.LDMFiles[i])) {
-            total_memmap_size += TPPT::totalMemmapSize(c.LDMFiles[i]);
+            total_memmap_size += ugdiss::TpPhraseTable::totalMemmapSize(c.LDMFiles[i]);
          }
       }
       for (CanoeConfig::FeatureGroupMap::const_iterator it(c.features.begin()),
@@ -226,8 +228,7 @@ int main(int argc, char* argv[])
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;
    } else if (cmd == "nt") {
-      os << (c.getTotalMultiProbModelCount() +
-             c.getTotalTPPTModelCount()) << endl;
+      os << c.getTotalBackwardModelCount() << endl;
    } else if (cmd == "na") {
       os << c.getTotalAdirectionalModelCount() << endl;
    } else if (cmd == "nt-tppt") {
@@ -394,14 +395,18 @@ int main(int argc, char* argv[])
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-multi-prob command");
 
+      c.movePTsIntoTTable();
       const string& cpt = toks[1];
       c.multiProbTMFiles.clear();
-      if (isSuffix(".tppt", cpt)) {
+      if (TPPTFeature::isA(cpt)) {
          c.readStatus("ttable-multi-prob") = false;
-         c.readStatus("ttable-tppt") = true;
-         c.tpptFiles.push_back(cpt);
+         c.readStatus("ttable") = true;
+         c.TTables.insert(c.TTables.begin(), cpt);
+         c.loadFirst = true;
+         c.readStatus("load-first") = true;
       } else {
          c.multiProbTMFiles.push_back(cpt);
+         c.readStatus("ttable-multi-prob") = true;
       }
       c.write(os, 0, pretty);
    } else if (isPrefix("rep-ldm:", cmd)) {
@@ -415,15 +420,23 @@ int main(int argc, char* argv[])
       if (split(cmd, toks, ":") != 4)
          error(ETFatal, "bad format for applied-weights command");
 
+      c.movePTsIntoTTable();
+
       const string& cpt = toks[1];
       c.multiProbTMFiles.clear();
-      if (isSuffix(".tppt", cpt)) {
-         c.readStatus("ttable-multi-prob") = false;
-         c.readStatus("ttable-tppt") = true;
-         c.tpptFiles.push_back(cpt);
+      c.readStatus("ttable-multi-prob") = false;
+      c.TTables.clear();
+      c.readStatus("ttable") = false;
+
+      if (TPPTFeature::isA(cpt)) {
+         c.TTables.insert(c.TTables.begin(), cpt);
+         c.readStatus("ttable") = true;
+         c.loadFirst = true;
+         c.readStatus("load-first") = true;
       }
       else {
          c.multiProbTMFiles.push_back(cpt);
+         c.readStatus("ttable-multi-prob") = true;
       }
 
       c.transWeights.clear();
@@ -432,27 +445,35 @@ int main(int argc, char* argv[])
       c.forwardWeights.push_back(conv<double>(toks[3]));
 
       c.write(os, 0, pretty);
-   } else if (isPrefix("tp", cmd)) {
+   } else if (cmd == "tp") {
       // Translation models.
-      for (Uint i=0; i<c.multiProbTMFiles.size(); ++i) {
-         c.tpptFiles.push_back(removeZipExtension(c.multiProbTMFiles[i]) + ".tppt");
-      }
-
-      c.multiProbTMFiles.clear();
+      c.movePTsIntoTTable();
+      vector<string> newTPPTs;
+      for (Uint i=0; i<c.multiProbTMFiles.size(); ++i)
+         newTPPTs.push_back(removeZipExtension(c.multiProbTMFiles[i]) + ".tppt");
+      c.TTables.insert(c.TTables.begin(), newTPPTs.begin(), newTPPTs.end());
       c.readStatus("ttable-multi-prob") = false;
-      if (!c.tpptFiles.empty()) c.readStatus("ttable-tppt") = true;
+      if (!c.TTables.empty()) c.readStatus("ttable") = true;
 
       // Lexicalized Distortion Models.
       for (Uint i=0; i<c.LDMFiles.size(); ++i) {
-         c.LDMFiles[i] = removeZipExtension(c.LDMFiles[i]) + ".tpldm";
+         if (! isSuffix(".tpldm", c.LDMFiles[i]))
+            c.LDMFiles[i] = removeZipExtension(c.LDMFiles[i]) + ".tpldm";
       }
 
       // Language Models.
       for (Uint i=0; i<c.lmFiles.size(); ++i) {
-         if (isSuffix(".binlm.gz", c.lmFiles[i])) {
-            c.lmFiles[i] = c.lmFiles[i].substr(0, c.lmFiles[i].size()-strlen(".binlm.gz")) + ".tplm";
+         if (LMBin::isA(c.lmFiles[i]) || LMText::isA(c.lmFiles[i])) {
+            if (isSuffix(".binlm.gz", c.lmFiles[i])) {
+               c.lmFiles[i] = c.lmFiles[i].substr(0, c.lmFiles[i].size()-strlen(".binlm.gz")) + ".tplm";
+            } else {
+               c.lmFiles[i] = removeZipExtension(c.lmFiles[i]) + ".tplm";
+            }
          }
       }
+
+      c.loadFirst = true;
+      c.readStatus("load-first") = true;
 
       c.write(os, 0, pretty);
    } else if (isPrefix("list-lm", cmd)) {
@@ -491,17 +512,22 @@ int main(int argc, char* argv[])
             BiLMModel::checkFileExists(bilm_args[i], &bilmlist) || (ok = false);
          cout << join(bilmlist, nf_endl) << nf_endl;
       }
+      // TTables
+      vector<string> ptlist = c.multiProbTMFiles;
+      for (Uint i = 0; i < c.allNonMultiProbPTs.size(); ++i)
+         PhraseTableFeature::checkFileExists(c.allNonMultiProbPTs[i], &ptlist) || (ok = false);
+      cout << join(ptlist, nf_endl) << nf_endl;
       // Other files
       vector<string> otherfiles;
-      otherfiles.insert(otherfiles.end(), c.multiProbTMFiles.begin(), c.multiProbTMFiles.end());
-      otherfiles.insert(otherfiles.end(), c.tpptFiles.begin(), c.tpptFiles.end());
       otherfiles.insert(otherfiles.end(), c.featureGroup("sparse")->args.begin(), c.featureGroup("sparse")->args.end());
       otherfiles.insert(otherfiles.end(), c.featureGroup("ibm1f")->args.begin(), c.featureGroup("ibm1f")->args.end());
       otherfiles.insert(otherfiles.end(), c.featureGroup("nnjm")->args.begin(), c.featureGroup("nnjm")->args.end());
-      cout << join(otherfiles, nf_endl) << nf_endl;
+      if (!otherfiles.empty())
+         cout << join(otherfiles, nf_endl) << nf_endl;
       if (!c.sentWeights.empty()) cout << c.sentWeights << nf_endl;
       if (!c.srctags.empty()) cout << c.srctags << nf_endl;
       if (!c.refFile.empty()) cout << c.refFile << nf_endl;
+
       if (!c.featureGroup("sparse")->args.empty()) {
          error(ETWarn, "list-all-files does not yet know how to list sparse model components");
          ok = false;

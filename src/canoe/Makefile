@@ -46,6 +46,7 @@ OBJECTS= \
     inputparser.o \
     levenshtein_feature.o \
     marked_translation.o \
+    multiprob_pt_feature.o \
     nbesttranslation.o \
     new_src_sent_info.o \
     ngrammatch_feature.o \
@@ -53,6 +54,7 @@ OBJECTS= \
     partialtranslation.o \
     phrasefinder.o \
     phrasetable.o \
+    phrasetable_feature.o \
     phrasetable_filter_grep.o \
     phrasetable_filter_joint.o \
     phrasetable_filter_lm.o \
@@ -63,6 +65,7 @@ OBJECTS= \
     shift_reducer.o \
     soft_filter_tm_visitor.o \
     sparsemodel.o \
+    tppt_feature.o \
     translationProb.o \
     unal_feature.o \
     walls_zones.o \
