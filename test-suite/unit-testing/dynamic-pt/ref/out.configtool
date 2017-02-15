@@ -1,0 +1,25 @@
+canoe.ini.static nf 7
+canoe.ini.static nb 2
+canoe.ini.static nt 2
+canoe.ini.static na 0
+canoe.ini.static nt-tppt 0
+canoe.ini.static nd 1
+canoe.ini.static memmap 0
+canoe.ini.static check ok
+canoe.ini.static list-all-files canoe.ini.static
+train_fr.lm
+cpt.ibm2.en2fr.gz
+../canoe.ini.static ok
+canoe.ini.tppt-textpt nf 11
+canoe.ini.tppt-textpt nb 2
+canoe.ini.tppt-textpt nt 4
+canoe.ini.tppt-textpt na 0
+canoe.ini.tppt-textpt nt-tppt 2
+canoe.ini.tppt-textpt nd 1
+canoe.ini.tppt-textpt memmap 1
+canoe.ini.tppt-textpt check ok
+canoe.ini.tppt-textpt list-all-files canoe.ini.tppt-textpt
+train_fr.lm
+cpt.no-le.en2fr.gz
+cpt.no-les.en2fr.tppt
+../canoe.ini.tppt-textpt ok

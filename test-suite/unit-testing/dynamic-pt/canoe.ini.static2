@@ -1,0 +1,11 @@
+[lmodel-file] train_fr.lm
+[use-ftm]
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[distortion-limit] 7
+[cube-pruning]
+[beam-threshold] 0.001
+[bypass-marked]
+[distortion-model] WordDisplacement
+[ttable-multi-prob] cpt.joint.en2fr.gz
