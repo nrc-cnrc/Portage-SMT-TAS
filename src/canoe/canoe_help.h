@@ -86,6 +86,7 @@ Options (in command-line format):\n\
      eventually -ttable-multi-prob, with automated detection of the type of\n\
      each phrase table, among:\n\
       - TPPT:  directory name ending in .tppt\n\
+      - MixTM: file name ending in .mixtm\n\
      Requires backward, forward and adir weights matching the ttable contents.\n\
 \n\
  -ttable-tppt FILE1[:FILE2[:..]]        Tightly Packed phrase table(s)\n\
