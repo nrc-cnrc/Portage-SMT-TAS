@@ -39,4 +39,5 @@ test:  check_python_dependencies
 
 .PHONY:  check_python_dependencies
 check_python_dependencies:
-	test -d $$MADAMIRA_HOME && python -c 'import xmltodict'
+	echo MADAMIRA_HOME: $$MADAMIRA_HOME
+	test ! -d "$$MADAMIRA_HOME" || python -c 'import xmltodict'
