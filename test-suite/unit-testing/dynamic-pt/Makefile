@@ -77,7 +77,7 @@ hmm.en_given_fr.gz: train_en.al.bz2 train_fr.al.bz2
 	train_ibm -bin -rv -mimic liang $@ $+ >& log.$@
 
 train_%.lm.gz: train_%.al.bz2
-	estimate-ngram -write-lm $@ -text $< >& log.$@
+	bzcat $< | estimate-ngram -write-lm $@ -text /dev/stdin >& log.$@
 
 in.10: train_en.al.bz2
 	bzcat $< | head -10 > $@
