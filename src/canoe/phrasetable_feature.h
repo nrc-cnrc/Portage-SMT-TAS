@@ -132,8 +132,8 @@ protected:
       virtual Uint64 totalMemmapSize() = 0;
 
       /**
-       * Efficiently load model in memory. This is only applicable to memory
-       * mapped models.
+       * Efficiently pre-load model in memory. This only has an effect for memory-
+       * mapped models and should be a no-op for models that load in memory.
        * @param full load all model's parts in memory, not just the most
        *             essential ones.
        * @return true unless there was a problem.
@@ -147,10 +147,9 @@ protected:
    //    static bool isA(modelName);
    // which will return true iff modelName describes a model of that subclass's type
 
-private:
+   /// Get a creator of the right type for modelName
    static PCreator getCreator(const string& modelName);
 
-protected:
    /// Constructor
    PhraseTableFeature(Voc &vocab) : vocab(vocab) {}
 

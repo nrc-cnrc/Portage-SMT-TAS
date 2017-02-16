@@ -46,6 +46,7 @@ OBJECTS= \
     inputparser.o \
     levenshtein_feature.o \
     marked_translation.o \
+    mixtm_feature.o \
     multiprob_pt_feature.o \
     nbesttranslation.o \
     new_src_sent_info.o \

@@ -25,6 +25,7 @@
 #include "bilm_model.h"
 #include "tppt.h"
 #include "sparsemodel.h"
+#include "multiprob_pt_feature.h"
 #include "tppt_feature.h"
 #include "nnjm.h"
 #include <boost/version.hpp>
@@ -970,7 +971,6 @@ void CanoeConfig::check()
         futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
       error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
 
-
    // Checking weights' value for valid numerical values
    vector<double> wts;
    getFeatureWeights(wts);
@@ -987,6 +987,12 @@ void CanoeConfig::check()
 
    if (distLimitExt && distLimitSimple)
       error(ETFatal, "Can't use both -dist-limit-ext and -dist-limit-simple.");
+
+   for (Uint i = 0; i < allNonMultiProbPTs.size(); ++i) {
+      if (MultiProbPTFeature::isA(allNonMultiProbPTs[i]))
+         error(ETFatal, "Multi-prob phrase table %s must be specified in [ttable-multi-prob], not other [ttable*] options.",
+               allNonMultiProbPTs[i].c_str());
+   }
 
    map<string,ParamInfo*>::iterator it_reg_stack = param_map.find("regular-stack");
    map<string,ParamInfo*>::iterator it_stack = param_map.find("stack");

@@ -14,6 +14,7 @@
 #include "vocab_filter.h"
 #include "config_io.h"
 #include "tppt_feature.h"
+#include "mixtm_feature.h"
 #include "multiprob_pt_feature.h"
 
 /********************* TScore **********************/
@@ -56,11 +57,12 @@ PhraseTableFeature::PCreator PhraseTableFeature::getCreator(const string& modelN
 {
    if (TPPTFeature::isA(modelName)) {
       return PCreator(new TPPTFeature::Creator(modelName));
-   } else if (MultiProbPTFeature::isA(modelName)) {
-      return PCreator(new MultiProbPTFeature::Creator(modelName));
+   } else if (MixTMFeature::isA(modelName)) {
+      return PCreator(new MixTMFeature::Creator(modelName));
    } else {
-      error(ETFatal, "Cannot determine Creator type for phrase table model %s", modelName.c_str());
-      return PCreator();
+      // We're not allowed to call MultiProbPTFeature::isA() here, since it
+      // calls this function.
+      return PCreator(new MultiProbPTFeature::Creator(modelName));
    }
 }
 
