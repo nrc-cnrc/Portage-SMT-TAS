@@ -45,7 +45,9 @@ which $MADAMIRA_PY &> /dev/null \
 function stop_madamira_server() {
    testcaseDescritption "Stopping MADAMIRA."
    PID=`pgrep -f MADAMIRA`
-   [[ -z $PID ]] || kill $PID
+   [[ -z $PID ]] \
+   || kill $PID &> /dev/null \
+   || echo "Cannot kill existing MADAMIRA instance; reusing it" >&2
 }
 
 
