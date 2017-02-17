@@ -92,9 +92,11 @@ def get_args():
 """
 """
 def tokenize(xml_request, url='http://localhost:8223'):
+   # The headers are used to send the request but also to prime MADAMIRA server.
+   headers  = {'Content-Type': 'application/xml'} # set what your server accepts
+
    def startMADAMIRA():
       print('Starting a MADAMIRA server.', file=sys.stderr)
-      from time import sleep
       import subprocess
       import os
       # How to start madamira
@@ -113,18 +115,33 @@ def tokenize(xml_request, url='http://localhost:8223'):
             cwd=madamira_home,  # MADAMIRA wants to be run from its installed directory.
             env={'PORTAGE': portage},  # Doesn't look like it's working for our command.
             preexec_fn=os.setpgrp)  # This will detach madamira from this process group.
+
+   def waitMADAMIRA():
+      from time import sleep
       # MADAMIRA takes about 11 seconds to load.
-      print('Waiting for MADAMIRA server...', file=sys.stderr)
-      sleep(13)
+      packager    = RequestPackager(None)
+      xml_request = packager(['Priming.'])
+      max_num_retries = 5
+      for _ in xrange(max_num_retries):
+         try:
+            response = requests.post(url, data=xml_request, headers=headers, timeout=5)
+            # TODO: Should we fatal_error if we can't start MADAMIRA server instead?
+            if response.status_code == 200:
+               break
+         except requests.exceptions.ConnectionError:
+            print('Waiting for MADAMIRA server...', file=sys.stderr)
+            sleep(4)
+         except:
+            print('WHAT!? some unforseen event occured', file=sys.stderr)
 
 
-   headers  = {'Content-Type': 'application/xml'} # set what your server accepts
    response = None
    try:
       response = requests.post(url, data=xml_request, headers=headers)
    except requests.exceptions.ConnectionError:
       # Can't connect to MADAMIRA server, may be it is not running, let's start it.
       startMADAMIRA()
+      waitMADAMIRA()
       response = requests.post(url, data=xml_request, headers=headers)
    except Exception as e:
       fatal_error(str(e))
