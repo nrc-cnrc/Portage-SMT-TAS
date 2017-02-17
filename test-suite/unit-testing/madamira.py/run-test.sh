@@ -33,7 +33,8 @@ function error_message() {
 
 if [[ ! -d $MADAMIRA_HOME ]]; then
    echo -e "${YELLOW}Skipping TestSuite since you don't have MADAMIRA installed${RESET}" >&2
-   exit 1
+   # It is not an error to skip madamira.py's testsuite.
+   exit 0
 fi
 
 MADAMIRA_PY=${MADAMIRA_PY:-madamira.py}
