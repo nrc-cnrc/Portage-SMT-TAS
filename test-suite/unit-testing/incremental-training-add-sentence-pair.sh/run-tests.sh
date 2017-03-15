@@ -4,8 +4,9 @@
 #
 # @author Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#    Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
@@ -27,7 +28,7 @@ readonly LOG=log
 readonly MAX_CONCURRENT_CALLS=25
 readonly INCREMENTAL_TRAINING_SCRIPT=./incremental_training.sh
 readonly DELAY=1
-readonly TRAINING_TIME=12
+readonly TRAINING_TIME=6
 readonly WITNESS=witness
 export TRAINING_TIME
 export WITNESS
@@ -93,7 +94,7 @@ function with_extra_data() {
       "$INCREMENTAL_TRAINING_SCRIPT" \
       "source_extra" \
       "translation_extra"
-   sleep $TRAINING_TIME
+   sleep $((TRAINING_TIME+1))
    grep --quiet $'source_extra\ttranslation_extra\t{"a": 1}' $CORPORA \
    || ! error_message "Can't find the translation pair with its extra data."
 }
@@ -110,16 +111,33 @@ function with_utf8() {
       "$INCREMENTAL_TRAINING_SCRIPT" \
       "source_utf8_É" \
       "⅀translation_utf8_¿"
-   sleep $TRAINING_TIME
+   sleep $((TRAINING_TIME+1))
    grep --quiet $'source_utf8_É\t⅀translation_utf8_¿' $CORPORA \
    || ! error_message "Can't UTF-8 characters."
 }
 
 
 
+function with_quotes() {
+   set -o errexit
+   testcaseDescritption "Let's include quotes and stuff"
+   cleanup
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+      -verbose \
+      -unittest \
+      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "double\"single'backtick\`left<right>quotes" \
+      "double\"single'backtick\`left<right>quotes"
+   sleep $((TRAINING_TIME+1))
+   grep --quiet "double\"single'backtick\`left<right>quotes	double\"single'backtick\`left<right>quotes" $CORPORA \
+   || ! error_message "Quotes got garbled."
+}
+
+
+
 function with_tab() {
    set -o errexit
-   testcaseDescritption "Let's use UTF-8"
+   testcaseDescritption "Let's include litteral tabs"
    cleanup
    $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
       -verbose \
@@ -127,7 +145,7 @@ function with_tab() {
       "$INCREMENTAL_TRAINING_SCRIPT" \
       $'source\tsource\tsource' \
       "target\ttarget\ttarget"
-   sleep $TRAINING_TIME
+   sleep $((TRAINING_TIME+1))
    grep --quiet $'source source source\ttarget\\\\ttarget\\\\ttarget' $CORPORA \
    || ! error_message "We can't find TABs."
 }
@@ -189,7 +207,7 @@ function multiple_add_and_multiple_trigger() {
    echo "Waiting for everyone to be done" >&2
    # Because $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR disowns the training
    # script, it is not sufficient to simply `wait` we need to sleep.
-   sleep $(( $DELAY + 2 * $TRAINING_TIME + 1 ))
+   sleep $(( $DELAY + 2 * $TRAINING_TIME + 2 ))
 
    echo "Validating..." >&2
    set -o errexit
@@ -201,7 +219,7 @@ function multiple_add_and_multiple_trigger() {
    || ! error_message "We should have got $(($MAX_CONCURRENT_CALLS + 1)) sentence pairs in the corpus."
 
    # Let's make sure the sentence pairs have the format that we expect.
-   [[ `grep --count --perl-regexp '^\d{2}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{2}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
+   [[ `grep --count --perl-regexp '^\d{1,}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{1,}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
    || ! error_message "Some sentence pairs are corrupted."
 
    [[ `wc -l < $QUEUE` -eq 0 ]] \
@@ -269,10 +287,14 @@ function insert_and_multiple_trigger_training() {
 which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
 || { ! error_message "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
 
+#with_quotes
+#exit
+
 no_script
 unable_to_write_to_the_queue
 with_extra_data
 with_utf8
+with_quotes
 with_tab
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
