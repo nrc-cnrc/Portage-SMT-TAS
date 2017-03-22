@@ -106,7 +106,7 @@ time utf8_casemap -c l < $WD/target.tok > $WD/target.lc
 
 # LM
 verbose 1 Train the incremental LM on target
-time estimate-ngram -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
+time estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
 verbose 1 Tightly pack the incremental LM
 time (
    cd $WD

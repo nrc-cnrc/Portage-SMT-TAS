@@ -19,7 +19,8 @@ set -o errexit
 set -v
 
 readonly TOY_SYSTEM=$PORTAGE/test-suite/systems/toy-regress-en2fr
-readonly INCREMENTAL_UPDATE=$HOME/sandboxes/PORTAGEshared/src/utils/incremental-update.sh
+#readonly INCREMENTAL_UPDATE=$HOME/sandboxes/PORTAGEshared/src/utils/incremental-update.sh
+readonly INCREMENTAL_UPDATE=incremental-update.sh
 
 ln -sf $TOY_SYSTEM/models .
 #cp $TOY_SYSTEM/canoe.ini.cow canoe.ini.cow
@@ -77,3 +78,4 @@ done
 
 bleumain dev1.out.0 dev1_fr.tok > log.dev1.out.0.bleu
 bleumain dev1.out.incr dev1_fr.tok > log.dev1.out.incr.bleu
+grep Human *.bleu
