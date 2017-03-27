@@ -4,14 +4,17 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
+
 try:
    import xmltodict
+   from mock import patch, MagicMock, Mock, mock_open
 except ImportError, e:
-   print("Skipping unittest for madamira since you don't have xmltodict installed.")
+   print("Warning: Skipping unittest for madamira because xmltodict and/or mock is not installed.", file=sys.stderr)
 else:
    import unittest
    import json
-   from mock import patch, MagicMock, Mock, mock_open
+   
    from cStringIO import StringIO
 
    from madamira import TokenizedSentenceExtractor, RequestPackager
