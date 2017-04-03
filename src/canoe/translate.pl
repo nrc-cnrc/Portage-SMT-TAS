@@ -775,7 +775,7 @@ unless ($dryrun) {
 
 # Let's provide the plugins the location of the working directory if they ever
 # need to create intermediate files.
-$ENV{PORTAGELIVE_WD} = $dir;
+$ENV{PORTAGELIVE_WORKDIR} = $dir;
 
 # File names - the naming scheme required for use with CE is adhered to.
 my $ostype = `uname -s`;
