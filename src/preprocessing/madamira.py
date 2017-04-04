@@ -181,7 +181,7 @@ class TokenizedSentenceExtractor():
       Token/word containing at least one latin letter is prefixed with `__ascii__`
       """
       if self.re_latin_characters.search(token) != None:
-	 token = '__ascii__' + token
+         token = '__ascii__' + token
       return token
 
 
@@ -211,7 +211,7 @@ class TokenizedSentenceExtractor():
       </out_seg>
       """
       if isinstance(segs, dict):
-	 segs = [segs]
+         segs = [segs]
       for seg in segs:
          word_info = seg['word_info']
          sentence = self._extractWords(word_info['word'])
@@ -227,17 +227,17 @@ class TokenizedSentenceExtractor():
       </word>
       """
       if isinstance(words, dict):
-	 words = [words]
+         words = [words]
       tokens = []
       for word in words:
          tokenized = word['tokenized']
-	 if isinstance(tokenized, dict):
-	    tokenized = [tokenized]
+         if isinstance(tokenized, dict):
+            tokenized = [tokenized]
          # Find the element with the desired scheme
          sc = next((t for t in tokenized if t['@scheme'] == self.scheme), None)
          tokens.extend(self._extractTokens(sc))
       if self.removeWaw and tokens[0] == u'و+':
-	 tokens = tokens[1:]
+         tokens = tokens[1:]
       return tokens
 
 
@@ -270,12 +270,12 @@ class TokenizedSentenceExtractor():
       madamira = xmltodict.parse(response.text)
       docs = madamira['madamira_output']['out_doc']
       try:
-	 self._extractDocument(docs)
+         self._extractDocument(docs)
       except TypeError as e:
-	 print(json.dumps(docs), file=sys.stderr)
-	 import traceback
-	 traceback.print_exc()
-	 raise e
+         print(json.dumps(docs), file=sys.stderr)
+         import traceback
+         traceback.print_exc()
+         raise e
 
 
 
@@ -298,8 +298,8 @@ class RequestPackager():
 
       self.config = None
       if self.config_filename != None and self.config_filename != '':
-	 with open(self.config_filename, 'r') as config_file:
-	    self.config = xmltodict.parse(config_file.read())
+         with open(self.config_filename, 'r') as config_file:
+            self.config = xmltodict.parse(config_file.read())
 
 
    def _escapeAscii(self, word):
@@ -307,7 +307,7 @@ class RequestPackager():
       If word contains at least on [a-zA-Z], prefix it with `__ascii__`.
       """
       if self.re_latin_characters.search(word) != None:
-	 word = u'__ascii__' + word
+         word = u'__ascii__' + word
       return word
 
 
@@ -315,13 +315,13 @@ class RequestPackager():
       """
       """
       if self.markNonArabic == False and self.xmlishifyHashtags == False:
-	 return sentence
+         return sentence
 
       sentence = sentence.split()
       if self.markNonArabic:
-	 sentence = map(self._escapeAscii, sentence)
+         sentence = map(self._escapeAscii, sentence)
       if self.xmlishifyHashtags:
-	 sentence = map(lambda w: self.re_hashtag.sub(lambda x: '<hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag>', w), sentence)
+         sentence = map(lambda w: self.re_hashtag.sub(lambda x: '<hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag>', w), sentence)
 
       return ' '.join(sentence)
 
@@ -332,10 +332,10 @@ class RequestPackager():
       request that can be send to MADAMIRA's server.
       """
       request = {
-	'madamira_input' : {
-	   '@xmlns' : "urn:edu.columbia.ccls.madamira.configuration:0.1"
-	    }
-	}
+        'madamira_input' : {
+           '@xmlns' : "urn:edu.columbia.ccls.madamira.configuration:0.1"
+            }
+        }
 
       if self.config != None:
          request['madamira_input'].update(self.config)
@@ -343,17 +343,17 @@ class RequestPackager():
 
       in_seg = []
       for i, sentence in enumerate(sentence_file):
-	 sentence = sentence.strip()
-	 sentence = self._escapeHashtags(sentence)
-	 in_seg.append({'@id': 'SENT{}'.format(i), '#text': sentence})
+         sentence = sentence.strip()
+         sentence = self._escapeHashtags(sentence)
+         in_seg.append({'@id': 'SENT{}'.format(i), '#text': sentence})
 
       if len(in_seg) == 0:
          warn('There is no sentence in your input.')
 
       request['madamira_input']['in_doc'] = {
-	    '@id': 'PortageLive',
-	    'in_seg': in_seg
-	    }
+            '@id': 'PortageLive',
+            'in_seg': in_seg
+            }
 
       return request
 
