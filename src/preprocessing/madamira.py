@@ -292,7 +292,7 @@ class RequestPackager():
       self.xmlishifyHashtags = xmlishifyHashtags
       # According to Mada's rules to mark latin words with \@\@LAT
       self.re_latin_characters = re.compile(r'[a-zA-Z]')
-      self.re_hashtag = re.compile(ur'(?<!__ascii__)#([^ ]+)')
+      self.re_hashtag = re.compile(ur'(?<!__ascii__)#([^ #]+)')
       #self.re_hashtag = re.compile(ur'#([^ ]+)')
       #self.re_hashtag = re.compile(r'#([^ a-zA-Z]+)')
 
@@ -321,7 +321,7 @@ class RequestPackager():
       if self.markNonArabic:
          sentence = map(self._escapeAscii, sentence)
       if self.xmlishifyHashtags:
-         sentence = map(lambda w: self.re_hashtag.sub(lambda x: '<hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag>', w), sentence)
+         sentence = map(lambda w: self.re_hashtag.sub(lambda x: ' <hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag> ', w), sentence)
 
       return ' '.join(sentence)
 
