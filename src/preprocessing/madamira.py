@@ -118,10 +118,10 @@ def tokenize(xml_request, url='http://localhost:8223'):
 
    def waitMADAMIRA():
       from time import sleep
-      # MADAMIRA takes about 11 seconds to load.
+      # MADAMIRA takes about 11 seconds to load; longer on the GPSC.
       packager    = RequestPackager(None)
       xml_request = packager(['Priming.'])
-      max_num_retries = 5
+      max_num_retries = 10
       for _ in xrange(max_num_retries):
          try:
             response = requests.post(url, data=xml_request, headers=headers, timeout=5)
