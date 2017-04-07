@@ -15,7 +15,6 @@ import xmltodict
 import json
 import re
 
-
 # If this script is run from within src/ rather than from the installed bin
 # directory, we add src/utils to the Python module include path (sys.path)
 # to arrange that portage_utils will be imported from src/utils.
@@ -88,7 +87,6 @@ def get_args():
    return cmd_args
 
 
-
 """
 """
 def tokenize(xml_request, url='http://localhost:8223'):
@@ -134,7 +132,6 @@ def tokenize(xml_request, url='http://localhost:8223'):
          except:
             print('WHAT!? some unforseen event occured', file=sys.stderr)
 
-
    response = None
    try:
       response = requests.post(url, data=xml_request, headers=headers)
@@ -159,7 +156,6 @@ def tokenize(xml_request, url='http://localhost:8223'):
    return response
 
 
-
 # The xml parser could have been untangle or BeautifulSoup but I chose
 # xmltodict for its ability to parse and produce xml.
 # https://github.com/stchris/untangle
@@ -169,12 +165,12 @@ Given a MADAMIRA response, TokenizedSentenceExtractor will produce one
 sentence per line for the tokenized Arabic.
 """
 class TokenizedSentenceExtractor():
-   def __init__(self, scheme='ATB', form='form0', removeWaw=False):
+   def __init__(self, scheme='ATB', form='form0', removeWaw=False, xmlishifyHashtags=False):
       self.scheme = scheme
       self.form = '@' + form
       self.removeWaw = removeWaw
+      self.xmlishifyHashtags = xmlishifyHashtags
       self.re_latin_characters = re.compile(r'[a-zA-Z]')
-
 
    def _markNonArabic(self, token):
       """
@@ -183,7 +179,6 @@ class TokenizedSentenceExtractor():
       if self.re_latin_characters.search(token) != None:
          token = '__ascii__' + token
       return token
-
 
    def _extractDocument(self, docs):
       """
@@ -197,7 +192,6 @@ class TokenizedSentenceExtractor():
          docs = [docs]
       for doc in docs:
          self._extractSegments(doc['out_seg'])
-
 
    def _extractSegments(self, segs):
       """
@@ -216,7 +210,6 @@ class TokenizedSentenceExtractor():
          word_info = seg['word_info']
          sentence = self._extractWords(word_info['word'])
          print(' '.join(sentence))
-
 
    def _extractWords(self, words):
       """
@@ -238,8 +231,14 @@ class TokenizedSentenceExtractor():
          tokens.extend(self._extractTokens(sc))
       if self.removeWaw and tokens[0] == u'و+':
          tokens = tokens[1:]
+      if self.xmlishifyHashtags:
+         for i, tok in enumerate(tokens):
+            if tok not in ("<hashtag>", "</hashtag>"):
+               tok = re.sub("&(?![a-zA-Z]+;)","&amp;",tok)
+               tok = re.sub("<","&lt;",tok)
+               tok = re.sub(">","&gt;",tok)
+               tokens[i] = tok
       return tokens
-
 
    def _extractTokens(self, tokens):
       """
@@ -255,7 +254,6 @@ class TokenizedSentenceExtractor():
          toks = [toks]
       return map(lambda t: t[self.form], toks)
       #return map(lambda t: self._markNonArabic(t[self.form]), toks)
-
 
    def __call__(self, response):
       """
@@ -278,11 +276,10 @@ class TokenizedSentenceExtractor():
          raise e
 
 
-
 """
 """
 class RequestPackager():
-   def __init__(self, config_filename, markNonArabic = False, xmlishifyHashtags = False):
+   def __init__(self, config_filename, markNonArabic=False, xmlishifyHashtags=False):
       """
       markNonArabic = True => prefix words containing at least one [a-zA-Z] with `__ascii`.
       xmlishifyHashtags = True => wraps hashtag that were not marked with `__ascii__` in <hashtag> your hashtag </hashtag>
@@ -301,7 +298,6 @@ class RequestPackager():
          with open(self.config_filename, 'r') as config_file:
             self.config = xmltodict.parse(config_file.read())
 
-
    def _escapeAscii(self, word):
       """
       If word contains at least on [a-zA-Z], prefix it with `__ascii__`.
@@ -309,7 +305,6 @@ class RequestPackager():
       if self.re_latin_characters.search(word) != None:
          word = u'__ascii__' + word
       return word
-
 
    def _escapeHashtags(self, sentence):
       """
@@ -321,10 +316,10 @@ class RequestPackager():
       if self.markNonArabic:
          sentence = map(self._escapeAscii, sentence)
       if self.xmlishifyHashtags:
-         sentence = map(lambda w: self.re_hashtag.sub(lambda x: ' <hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag> ', w), sentence)
+         sentence = map(lambda w: self.re_hashtag.sub(lambda x:
+                    ' <hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag> ', w), sentence)
 
       return ' '.join(sentence)
-
 
    def __call__(self, sentence_file):
       """
@@ -358,7 +353,6 @@ class RequestPackager():
       return request
 
 
-
 def main():
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
 
@@ -388,9 +382,8 @@ def main():
    if cmd_args.debug:
       print('MADAMIRA response:\n', response.text, file=sys.stderr)
 
-   extractor = TokenizedSentenceExtractor(cmd_args.scheme, cmd_args.form, cmd_args.removeWaw)
+   extractor = TokenizedSentenceExtractor(cmd_args.scheme, cmd_args.form, cmd_args.removeWaw, cmd_args.xmlishifyHashtags)
    extractor(response)
-
 
 
 if __name__ == '__main__':
