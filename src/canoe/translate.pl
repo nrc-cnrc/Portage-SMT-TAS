@@ -347,7 +347,7 @@ use portage_utils;
 printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-use ULexiTools qw(strip_xml_entities tokenize_file);
+use ULexiTools qw(strip_xml_entities tokenize_file detokenize_file);
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
@@ -1160,35 +1160,38 @@ sub tokenize {
    else {
       if ($lang eq "en" or $lang eq "fr" or $lang eq "es" or $lang eq "da") {
          # These languages are supported by utokenize.pl
-         my $tokopt = " -lang=${lang}";
-         for ($nl) {
-            $_ eq "s" and $tokopt .= " -noss";
-            $_ eq "w" and $tokopt .= " -ss -p";
-            $_ eq "p" and $tokopt .= " -ss -paraline -p";
-         }
-         $tokopt .= " -pretok" if !$tok;
-         $tokopt .= " -xtags" if $xtags;
-         my $u = $utf8 ? "u" : "";
-         if ($dryrun) {
-            call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
-         } else {
+         if ($utf8) {
             my $start = time if $timing;
             my $ss = ($nl ne "s");
-            tokenize_file(
-                $in,
-                $out,
-                $lang,
-                0,          # $v
-                $ss,        # $p
-                $ss,        # $ss
-                !$ss,       # $noss
-                0,          # $notok
-                !$tok,      # $pretok
-                $nl eq "p", # $paraline
-                $xtags      # $xtags
-            ) == 0
-               or cleanupAndDie("error calling tokenize_file()", $out);
-            (print STDERR "translate.pl: Running tokenize_file() took ", time - $start, " seconds.\n") if $timing;
+            verbose("call: tokenize_file($in, $out, $lang, nl=$nl, xtags=$xtags)");
+            if (!$dryrun) {
+               tokenize_file(
+                   $in,
+                   $out,
+                   $lang,
+                   0,          # $v
+                   $ss,        # $p
+                   $ss,        # $ss
+                   !$ss,       # $noss
+                   0,          # $notok
+                   !$tok,      # $pretok
+                   $nl eq "p", # $paraline
+                   $xtags      # $xtags
+               ) == 0
+                  or cleanupAndDie("error calling tokenize_file()", $out);
+               (print STDERR "translate.pl: Running tokenize_file() took ", time - $start, " seconds.\n") if $timing;
+            }
+         } else {
+            my $tokopt = " -lang=${lang}";
+            for ($nl) {
+               $_ eq "s" and $tokopt .= " -noss";
+               $_ eq "w" and $tokopt .= " -ss -p";
+               $_ eq "p" and $tokopt .= " -ss -paraline -p";
+            }
+            $tokopt .= " -pretok" if !$tok;
+            $tokopt .= " -xtags" if $xtags;
+            my $u = $utf8 ? "u" : "";
+            call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
          }
       }
       else {
@@ -1304,11 +1307,18 @@ sub detokenize {
          plugin("detokenize", $tgt, $in, $out);
       }
       else {
-         my $options = "";
-         # deparaline is now always done via sub deparaline() below.
-         #$options = " -deparaline" if ($nl eq "p");
-         my $u = $utf8 ? "u" : "";
-         call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
+         if ($utf8) {
+            my $start = time if $timing;
+            verbose("call: detokenize_file($in, $out, $lang)");
+            if (!$dryrun) {
+               detokenize_file($in, $out, $lang, 0, 0, 0, 0) == 0
+                  or cleanupAndDie("error calling detokenize_file()", $out);
+               (print STDERR "translate.pl: Running detokenize_file() took ", time - $start, " seconds.\n") if $timing;
+            }
+         } else {
+            my $u = $utf8 ? "u" : "";
+            call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
+         }
       }
    }
 }
