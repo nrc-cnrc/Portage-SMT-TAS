@@ -347,7 +347,7 @@ use portage_utils;
 printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-use ULexiTools qw(strip_xml_entities);
+use ULexiTools qw(strip_xml_entities tokenize_file);
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
@@ -1169,7 +1169,27 @@ sub tokenize {
          $tokopt .= " -pretok" if !$tok;
          $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
-         call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+         if ($dryrun) {
+            call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+         } else {
+            my $start = time if $timing;
+            my $ss = ($nl ne "s");
+            tokenize_file(
+                $in,
+                $out,
+                $lang,
+                0,          # $v
+                $ss,        # $p
+                $ss,        # $ss
+                !$ss,       # $noss
+                0,          # $notok
+                !$tok,      # $pretok
+                $nl eq "p", # $paraline
+                $xtags      # $xtags
+            ) == 0
+               or cleanupAndDie("error calling tokenize_file()", $out);
+            (print STDERR "translate.pl: Running tokenize_file() took ", time - $start, " seconds.\n") if $timing;
+         }
       }
       else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
