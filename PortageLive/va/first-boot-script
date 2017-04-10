@@ -4,6 +4,9 @@
 # Uncomment to send the output of this script to a logfile
 #exec > /opt/vmware/var/log/firstboot 2>&1
 
+# Protect this script's behaviour from the user locale
+export LC_ALL=C
+
 # 4.1 Allow SSL based web serving
 sed -i 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot "\/var\/www\/html\/secure"/' /etc/httpd/conf.d/ssl.conf
 

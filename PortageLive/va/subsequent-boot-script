@@ -4,6 +4,9 @@
 # Uncomment to send the output of this script to a logfile
 #exec > /opt/vmware/var/log/subsequentboot 2>&1
 
+# Protect this script's behaviour from the user locale
+export LC_ALL=C
+
 # 5.1 Replace a placeholder with the current IP of the VA
 sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/g" \
    /opt/PortageII/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
