@@ -117,7 +117,7 @@ Lowercase the input text. Use --nolc to skip lowercasing. [lc]
 
 Detokenize the text on output. Use --nodetok to skip detokenization. [detok]
 
-=item -[no]tc | -tctp
+=item -[no]tc | -tctp | -tc-plugin
 
 If -tc, truecase the text on output using a text LM and map for the truecasing
 model.
@@ -125,6 +125,10 @@ If -tctp, truecase using tightly packed LMs and map for the truecasing model.
 For -tc or -tctp, the LM and map files, if not specified using -tclm and -tcmap,
 are searched for in F<models/tc> relative to the F<canoe.ini> location.
 If -notc, skip truecasing.
+If -tc-plugin, call truecase_plugin to perform truecasing. This plugin should
+be installed in the system's plugins/ directory, not system-wide! It will be
+called like this:
+   truecase_plugin TGT_LANG < in > out
 [notc]
 
 =item -tclm=LM
@@ -393,6 +397,7 @@ Getopt::Long::GetOptions(
    "tclm=s"         => \my $tclm,
    "tcmap=s"        => \my $tcmap,
    "tcsrclm=s"      => \my $tcsrclm,
+   "tc-plugin"      => \my $tc_plugin,
 
    "src=s"          => \my $src,
    "tgt=s"          => \my $tgt,
@@ -432,6 +437,7 @@ $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
+$xtags = 0 unless defined $xtags;
 
 # To process hashtags, we use the xtags mechanism.
 $xtags = 1 if defined $hashtags;
@@ -524,7 +530,9 @@ $nl eq "w" or $nl eq "s" or $nl eq "p"
    or die "Error: -xml requires -nl=s.\nStopped";
 
 !defined $tc || !defined $tctp
-   or die "Error: Specify only one of: -notc, -tc, -tctp.\nStopped";
+   or die "Error: Specify only one of: -notc, -tc, -tctp, -tc-plugin.\nStopped";
+!defined $tc_plugin || !defined $tc && !defined $tctp
+   or die "Error: Specify only one of: -notc, -tc, -tctp, -tc-plugin.\nStopped";
 $tc = 0 unless defined $tc;
 $tctp = 0 unless defined $tctp;
 $tc = 1 if $tctp;
@@ -1406,7 +1414,10 @@ sub lowercase {
 
 sub truecase {
    my ($lang, $in, $out, $src_file, $pal) = @_;
-   unless ($tc) {
+   if ($tc_plugin) {
+      plugin("truecase", $tgt, $in, $out);
+   }
+   elsif (!$tc) {
       copy($in, $out);
    }
    else {
