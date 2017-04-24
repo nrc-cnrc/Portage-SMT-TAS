@@ -14,7 +14,7 @@
 # Copyright 2010, National Research Council of Canada
 
 ##
-## Usage: predecode_plugin SRC_LANG < in > out
+## Usage: predecode_plugin SRC_LANG-TGT_LANG < in > out
 ##
 ## Default predecoding plugin: to be called immediately prior to
 ## decoding (but after tokenization, lowercasing, etc.).

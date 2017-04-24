@@ -79,9 +79,12 @@ else:
          # ASCII
          r = RequestPackager(None, markNonArabic=False, xmlishifyHashtags=False)
          self.assertEqual(r._escapeHashtags(u'#la_tour_Eiffel'), u'#la_tour_Eiffel')
+         self.assertEqual(r._escapeHashtags(u'a #la_tour_Eiffel b'), u'a #la_tour_Eiffel b')
 
          r = RequestPackager(None, markNonArabic=False, xmlishifyHashtags=True)
-         self.assertEqual(r._escapeHashtags(u'#la_tour_Eiffel'), u'<hashtag> la tour Eiffel </hashtag>')
+         self.assertEqual(r._escapeHashtags(u'#la_tour_Eiffel'), u' <hashtag> la tour Eiffel </hashtag> ')
+         self.assertEqual(r._escapeHashtags(u'a #la_tour_Eiffel b'), u'a  <hashtag> la tour Eiffel </hashtag>  b')
+         self.assertEqual(r._escapeHashtags(u'a #la_tour_Eiffel#la_tour b'), u'a  <hashtag> la tour Eiffel </hashtag>  <hashtag> la tour </hashtag>  b')
 
          r = RequestPackager(None, markNonArabic=True, xmlishifyHashtags=False)
          self.assertEqual(r._escapeHashtags(u'#la_tour_Eiffel'), u'__ascii__#la_tour_Eiffel')
@@ -96,7 +99,7 @@ else:
          self.assertEqual(r._escapeHashtags(u'#ديسلر_بسبب'), u'#ديسلر_بسبب')
 
          r = RequestPackager(None, markNonArabic=True, xmlishifyHashtags=True)
-         self.assertEqual(r._escapeHashtags(u'#ديسلر_بسبب'), u'<hashtag> ديسلر بسبب </hashtag>')
+         self.assertEqual(r._escapeHashtags(u'#ديسلر_بسبب'), u' <hashtag> ديسلر بسبب </hashtag> ')
 
 
       @patch('__builtin__.open', spec=open)
