@@ -72,7 +72,7 @@ vpath %.al data
 vpath ibm2.% data
 vpath jpt.% data
 
-TEMP_FILES=cpt.ibm2-${SMOOTHERS_DESC}.train.prune1_fwd* \
+TEMP_FILES=cpt.ibm2-${SMOOTHERS_DESC}.train.prune1_fwd* sort*\
            cpt.*ibm2-*.train.en2fr* log.cpt.* log.out.* out.jpt.ibm2.train.en-fr* \
            stats.out classes.out.lang* valgrind. cpt.KN_stats.uu2vv
 include ../Makefile.incl
