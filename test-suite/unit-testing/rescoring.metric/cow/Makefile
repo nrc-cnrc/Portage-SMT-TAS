@@ -1,7 +1,11 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3
 
+# The different parts of this test file reuse the same output files, cannot run in parallel
 .NOTPARALLEL:
+# The cluster overhead in this case is an order of magnitude bigger than the work, so
+# force non-cluster mode.
+export PORTAGE_NOCLUSTER=1
 DATA_DIR ?= ../data
 
 .PHONY: all

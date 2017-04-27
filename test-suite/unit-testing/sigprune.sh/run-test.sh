@@ -11,6 +11,8 @@
 # Copyright 2011, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2011, Her Majesty in Right of Canada
 
+export PORTAGE_NOCLUSTER=1
+
 make clean
 make -j all
 

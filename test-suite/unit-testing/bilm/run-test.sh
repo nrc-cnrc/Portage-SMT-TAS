@@ -13,6 +13,9 @@
 
 #set -o errexit
 
+# Cluster overhead dominates in this suite, so disable it.
+export PORTAGE_NOCLUSTER=1
+
 make clean
 make gitignore
 BAD=

@@ -11,7 +11,7 @@
 
 make clean
 make SETUP
-make all
+make all -j 2
 RET=$?
 
 make -C histogram clean

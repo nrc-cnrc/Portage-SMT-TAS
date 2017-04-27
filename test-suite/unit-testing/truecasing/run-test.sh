@@ -10,7 +10,7 @@
 # Copyright 2009, Her Majesty in Right of Canada
 
 make clean
-if [[ $PBS_JOBID ]]; then
+if [[ $PBS_JOBID || $GECOSHEP_JOB_ID ]]; then
    make all
 else
    make all -j 4

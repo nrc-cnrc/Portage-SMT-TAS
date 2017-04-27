@@ -11,7 +11,7 @@ SHELL = bash
 
 export PORTAGE_INTERNAL_CALL=1
 FILTER_MODELS := filter_models
-HEAD_SIZE ?= 100
+HEAD_SIZE ?= 20
 FILES     ?= online.hard.complete online.hard.incomplete online.soft.complete online.soft.incomplete notonline.hard.complete notonline.hard.incomplete notonline.soft.complete notonline.soft.incomplete
 CLEAN_PATH ?= ~/sandBoxes/CleanVersion/Portage/src/canoe
 #PORTAGE ?= /home/portage
@@ -25,7 +25,7 @@ all: gitignore small test-dm prune-type-full check phrases-GT-ZN.fr2en.FILT.gz
 
 ############################################################
 ## CLEAN
-TEMP_FILES=log.* core.* tm.*.ttpt-* \
+TEMP_FILES=log.* core.* tm.*.ttpt-* src \
            notonline* online* \
            europarl.en.srilm.FILT \
            phrases-GT-ZN.fr2en.FILT.gz phrases-GT-ZN.fr2en.ORIG.GREP.gz phrases-GT-ZN.fr2en.ORIG.LIMIT.gz \

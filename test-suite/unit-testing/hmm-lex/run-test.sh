@@ -9,10 +9,7 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+export PORTAGE_NOCLUSTER=1
+
 make clean
-if [[ $PBS_JOBID ]]; then
-   make -B -j all
-else
-   make -B all
-fi
-exit
+make -B all

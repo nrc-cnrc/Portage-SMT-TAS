@@ -13,7 +13,7 @@
 
 make clean
 
-if [[ $PBS_JOBID ]]; then
+if [[ $PBS_JOBID || $GECOSHEP_JOB_ID ]]; then
    make all -j
 else
    make all
