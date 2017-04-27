@@ -99,19 +99,25 @@ numerous_chunks2:  output.numerous_chunks2
 numerous_chunks0 numerous_chunks1 numerous_chunks2:  hans3_fr.txt
 	zcmp $+
 
+# These test cases are very slow on the GPSC - speed them up by
+#  - running three in parallel
+#  - put the temporary files on the NFS file system if we can
+
+CWD:=$(shell pwd)
+
 output/numerous_chunks0.gz:  | output
 # Output to some file.
 output/numerous_chunks0.gz output.numerous_chunks1:  hans3_fr.txt
-	${PARALLELIZE_PL} -n 5000 -np 4 "cat < $+ > $@" 2> log.$(basename $(notdir $@))
+	cd /tmp; PORTAGE_NOCLUSTER=1 ${PARALLELIZE_PL} -n 5000 -np 4 "cat < $+ > ${CWD}/$@" 2> ${CWD}/log.$(basename $(notdir $@))
 
 # Output to stdout.
 output.numerous_chunks2:  hans3_fr.txt
-	${PARALLELIZE_PL} -n 5000 -np 4 "cat < $+" > $@ 2> log.$@
+	cd $$TMP_DIR; PORTAGE_NOCLUSTER=1 ${PARALLELIZE_PL} -n 5000 -np 4 "cat < $+" > ${CWD}/$@ 2> ${CWD}/log.$@
 
 
 
 ########################################
-# Unittest to validate the stip mode which use psplit.py to prevent creating
+# Unittest to validate the stripe mode which use psplit.py to prevent creating
 # temporary intermediate files.
 #testsuite: striped_mode
 

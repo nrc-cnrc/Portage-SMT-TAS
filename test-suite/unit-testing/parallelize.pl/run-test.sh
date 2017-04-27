@@ -10,6 +10,16 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
-\make all -B
+# Control where the 36000 temporary files get created...
+if [[ -d /space/group/nrc_ict/project/ ]]; then
+   # On the GPSC, we want the faster NFS file system, if we can get to it.
+   export TMP_DIR=/space/group/nrc_ict/project/`whoami`
+   mkdir -p $TMP_DIR
+else
+   export TMP_DIR=.
+fi
+
+make clean
+make all -B -j 3
 
 exit
