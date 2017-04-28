@@ -286,6 +286,9 @@ def move_bos_markup(src_line, tgt_line, pal_line, line_number):
     """
     src_toks = tok_re.findall(src_line)
     tgt_toks = split(tgt_line)
+    if len(tgt_toks) == 0:
+        return ""
+
     #Parse the phrase alignment record
     pal = []
     for m in pal_re.finditer(pal_line):

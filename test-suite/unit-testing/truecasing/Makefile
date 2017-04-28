@@ -29,7 +29,7 @@ all: tpt_utf8
 all: tpt_ucbos_cp1252
 all: tpt_ucbos_utf8
 
-TEMP_FILES=ref_* src_* vocabMap2tpt.* tc_tmp_* log.* testTC.out.tc buggy.*.out *_test_nbsp.*
+TEMP_FILES=ref_* src_* vocabMap2tpt.* tc_tmp_* log.* testTC.out.tc buggy.*.out *_test_nbsp.* boscap_test_empty_tgt.out.tc
 TEMP_DIRS=${LM}_* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
 include ../Makefile.incl
 
@@ -168,9 +168,9 @@ casemark_test_nbsp.cmark: src/test_nbsp.nc1
 
 .PHONY: boscap_tests
 all: boscap_tests
-boscap_tests: cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc
+boscap_tests: cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc cmp.boscap_test_empty_tgt.out.tc
 
-cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc: cmp.%: %
+cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc cmp.boscap_test_empty_tgt.out.tc: cmp.%: %
 	diff $< ref/$< -q
 
 boscap_test_nbsp.out.tc: src/test_nbsp.cmark.tc src/test_nbsp.nc1 src/test_nbsp.nc1 src/test_nbsp.pal
@@ -178,3 +178,6 @@ boscap_test_nbsp.out.tc: src/test_nbsp.cmark.tc src/test_nbsp.nc1 src/test_nbsp.
 
 boscap_nosrc_test_nbsp.out.tc: src/test_nbsp.cmark.tc
 	boscap-nosrc.py -v -enc UTF-8 $+ >$@
+
+boscap_test_empty_tgt.out.tc: src/test_empty_tgt.cmark.tc src/test_empty_tgt.nc1 src/test_empty_tgt.nc1 src/test_empty_tgt.pal
+	boscap.py -v -enc UTF-8 $+ >$@
