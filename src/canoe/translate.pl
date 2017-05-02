@@ -878,6 +878,15 @@ TRANS:{
       }
    }
 
+   # We need to modify our paths to run in the working directory.
+   if ($canoe_ini !~ /^\//) {
+      $dir =~ /^\//;
+      $canoe_ini = ($&) ? Cwd::realpath($canoe_ini) : "../$canoe_ini";
+      if ($with_rescoring) {
+         $rs_model = ($&) ? Cwd::realpath($rs_model) : "../$rs_model";
+      }
+   }
+
    unless ($with_rescoring) {
       my $decoder = "canoe";
       if ($n > 1) {
@@ -918,12 +927,6 @@ TRANS:{
       # so rat.sh can access its models as "models/subpath".
       symlink(Cwd::realpath("$models_dir/models"), "$dir/models");
 
-      # We need to modify our paths to run in the working directory.
-      if ($canoe_ini !~ /^\//) {
-         $dir =~ /^\//;
-         $canoe_ini = ($&) ? Cwd::realpath($canoe_ini) : "../$canoe_ini";
-         $rs_model = ($&) ? Cwd::realpath($rs_model) : "../$rs_model";
-      }
       my $cwd = cwd();
       chdir($dir);
       my $cp_opts = "-n $n $xtra_cp_opts";
