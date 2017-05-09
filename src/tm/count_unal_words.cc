@@ -70,9 +70,10 @@ int main(int argc, char* argv[])
 
       Voc alignment_voc;
       Uint lineno = 0;
+      vector<string> toks;
       while (getline(in, line)) {
          ++lineno;
-         vector<string> toks;
+         toks.clear();
          PhraseTableUint::ToksIter b1, e1, b2, e2, v, a, f;
          PhraseTableBase::extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
          stoks.assign(b1,e1);
