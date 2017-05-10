@@ -70,21 +70,23 @@ int main(int argc, char* argv[])
 
       Voc alignment_voc;
       Uint lineno = 0;
-      vector<string> toks;
+      vector<char *> toks;
       while (getline(in, line)) {
          ++lineno;
          toks.clear();
          PhraseTableUint::ToksIter b1, e1, b2, e2, v, a, f;
-         PhraseTableBase::extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+         char buffer[line.size()+1];
+         strcpy(buffer, line.c_str());
+         PhraseTableBase::extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f);
          stoks.assign(b1,e1);
          ttoks.assign(b2,e2);
          Uint jointFreq = 0;
          if (!conv(*v, jointFreq))
             error(ETFatal, "Cannot convert count %s to an integer on line %d of phrase table %s",
-                  v->c_str(), lineno, files[i].c_str());
+                  *v, lineno, files[i].c_str());
          if (a != f) {
             assert((*a)[0] == 'a');
-            string alignments = a->substr(2);
+            string alignments = (*a)+2;
             AlignmentFreqs<Uint> alignment_freqs;
             parseAndTallyAlignments(alignment_freqs, alignment_voc, alignments);
             displayAlignments(al, alignment_freqs, alignment_voc, stoks.size(), ttoks.size(), false, true);

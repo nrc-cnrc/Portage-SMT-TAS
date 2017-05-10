@@ -1216,13 +1216,15 @@ CoarseModel<T>::CoarseModel(PhraseSmootherFactory<T>& factory, const string& arg
 
    iSafeMagicStream cm_stream(toks[0]);
    string line;
-   vector<string> cm_toks;
+   vector<char*> cm_toks;
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
    Uint pp_index;
    Uint num_cols = 0;   // number of columns in coarse model CPT
    Uint num_phrase_pairs = 0;
    while (getline(cm_stream, line)) {
-      cm_pt.extractTokens(line, cm_toks, b1, e1, b2, e2, v, a, f, true);
+      char buffer[line.size()+1];
+      strcpy(buffer, line.c_str());
+      cm_pt.extractTokens(line, buffer, cm_toks, b1, e1, b2, e2, v, a, f, true);
       num_cols = static_cast<Uint>(a-v);
       if (num_cols != 2)
          error(ETFatal, "Coarse Model smoother requires 2 value columns in coarse model: found %d.", num_cols);

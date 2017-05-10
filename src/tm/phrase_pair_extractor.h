@@ -191,7 +191,7 @@ struct PhrasePairExtractor {
       string green_al(display_alignments > 0 ? " a=0" : "");
 
       tt.getSourceVoc(words);
-      for (vector<string>::const_iterator p = words.begin(); p != words.end(); ++p) {
+      for (vector<string>::iterator p = words.begin(); p != words.end(); ++p) {
          bool in_phrase_voc = lang == 1 ? pt.inVoc1(*p) : pt.inVoc2(*p);
          if (!in_phrase_voc && src_word_voc.index(p->c_str()) != src_word_voc.size()) {
             tt.getSourceDistnByDecrProb(*p, trans, probs);

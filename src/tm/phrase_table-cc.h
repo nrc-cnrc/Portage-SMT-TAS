@@ -36,7 +36,8 @@ void PhraseTableGen<T>::clear()
 }
 
 template<class T>
-bool PhraseTableGen<T>::exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T &val)
+template<class ToksIterT>
+bool PhraseTableGen<T>::exists(ToksIterT beg1, ToksIterT end1, ToksIterT beg2, ToksIterT end2, T &val)
 {
    string phrase1, phrase2;
    compressPhrase(beg1, end1, phrase1, wvoc1);
@@ -140,7 +141,8 @@ bool PhraseTableGen<T>::query(IndIter beg1, IndIter end1, vector<QueryObj>& qos)
 }
 
 template<class T>
-pair<Uint,Uint> PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val, 
+template<class ToksIterT>
+pair<Uint,Uint> PhraseTableGen<T>::addPhrasePair(ToksIterT beg1, ToksIterT end1, ToksIterT beg2, ToksIterT end2, T val, 
                                                  const char* green_alignment)
 {
    string phrase1, phrase2;
@@ -211,11 +213,13 @@ void PhraseTableGen<T>::attachAlignment(ToksIter beg1, ToksIter end1, ToksIter b
 template<class T>
 void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val, string& alignments)
 {
-   vector<string> toks;
+   vector<char*> toks;
    typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a, f;
    string phrase1, phrase2;
 
-   extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+   char buffer[line.size()+1];
+   strcpy(buffer, line.c_str());
+   extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f);
    if (limit_len_on_read && (e1-b1 > limit_len_on_read || e2-b1 > limit_len_on_read))
       return; // phrase pair too long
    if (swap_on_read) {
@@ -228,7 +232,7 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
    val = zero_counts_on_read ? T(0) : conv<T>(*v);
    if (a != f) {
       assert((*a)[0] == 'a');
-      alignments = a->substr(2);
+      alignments = (*a)+2;
       if (swap_on_read)
          error(ETFatal, 
                "swap-on-read not compatible with alignment info in jpt");
@@ -267,13 +271,15 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
 template<class T>
 void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val, string& alignments)
 {
-   vector<string> toks;
+   vector<char*> toks;
    typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a, f;
    string phrase2;
 
    assert(! keep_phrase_table_in_memory);
 
-   extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+   char buffer[line.size()+1];
+   strcpy(buffer, line.c_str());
+   extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f);
    if (limit_len_on_read && (e1-b1 > limit_len_on_read || e2-b1 > limit_len_on_read))
       return; // phrase pair too long
    if (swap_on_read) {
@@ -286,7 +292,7 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Ui
    val = zero_counts_on_read ? T(0) : conv<T>(*v);
    if (a != f) {
       assert((*a)[0] == 'a');
-      alignments = a->substr(2);
+      alignments = (*a)+2;
       if (swap_on_read)
          error(ETFatal, 
                "swap-on-read not compatible with alignment info in jpt");

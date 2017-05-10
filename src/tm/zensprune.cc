@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
    vector<Uint> tgt_counts;     // tgt-phrase index -> count
 
    string line, vals;
-   vector<string> toks;    
+   vector<char*> toks;
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
 
    // read original table to extract scoring info
@@ -143,7 +143,9 @@ int main(int argc, char* argv[])
    while (getline(istr, line)) {
       PhraseInfo pi;
       if (read_scores) getScore(line, &pi.vit_logpr);
-      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true, true);
+      char buffer[line.size()+1];
+      strcpy(buffer, line.c_str());
+      pt.extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f, true, true);
       pi.count = getJointCount(a, f, line);
       if (pi.count < min_count) {
          ++num_filtered;
@@ -182,8 +184,7 @@ int main(int argc, char* argv[])
          }
       }
       if (!low_mem) {  // need to store values string
-         vals.clear();
-         join_append(v, toks.end(), vals);
+         vals = join(v, PhraseTableBase::ToksIter(toks.end()));
          assert(pi.vals = strdup_new(vals.c_str()));
       }
       infos.push_back(pi);
@@ -326,8 +327,8 @@ Uint getJointCount(PhraseTableBase::ToksIter a, PhraseTableBase::ToksIter f,
                    const string& line)
 {
    for (; a < f; ++a)
-      if (isPrefix("c=", (*a).c_str())) {
-         float x = conv<float>(a->substr(2));
+      if (isPrefix("c=", *a)) {
+         float x = conv<float>((*a)+2);
          return static_cast<Uint>(x);
       }
    static Uint warn_count = 0;

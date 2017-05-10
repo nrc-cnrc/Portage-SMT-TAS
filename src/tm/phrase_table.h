@@ -45,7 +45,8 @@ namespace Portage {
  */
 struct PhraseTableBase
 {
-   typedef vector<string>::const_iterator ToksIter;
+   typedef vector<char*>::const_iterator ToksIter;
+   typedef vector<string>::const_iterator sToksIter;
    typedef vector<Uint>::const_iterator IndIter;  // voc indexes of tokens
 
    static const string sep;     // separate words in a phrase
@@ -63,6 +64,7 @@ struct PhraseTableBase
       string encodings of voc indexes of the tokens in the sequence.
     */
    static void compressPhrase(ToksIter beg, ToksIter end, string& coded, Voc& voc);
+   static void compressPhrase(sToksIter beg, sToksIter end, string& coded, Voc& voc);
    static void compressPhrase(IndIter beg, IndIter end, string& coded, Voc& voc);
 
    /**
@@ -135,7 +137,7 @@ struct PhraseTableBase
     * @param allow_fourth_column whether to allow a fourth column or consider
     * its presence an error.
     */
-   static void extractTokens(const string& line, vector<string>& toks,
+   static void extractTokens(const string& line, char* buffer, vector<char*>& toks,
                              ToksIter& b1, ToksIter& e1,
                              ToksIter& b2, ToksIter& e2,
                              ToksIter& v, ToksIter& a, ToksIter& f,
@@ -526,8 +528,9 @@ public:
     *                        phrase pair, and its count will be incremented by val.
     * @return pair of indexes for l1,l2 phrases
     */
-   pair<Uint,Uint> addPhrasePair(ToksIter beg1, ToksIter end1,
-                                 ToksIter beg2, ToksIter end2,
+   template<class ToksIterT>
+   pair<Uint,Uint> addPhrasePair(ToksIterT beg1, ToksIterT end1,
+                                 ToksIterT beg2, ToksIterT end2,
                                  T val=1, const char* green_alignment=NULL);
 
    /// Functor to add phrase pairs
@@ -602,7 +605,8 @@ public:
     * @param end2 end lang2 token
     * @param val set to frequency on return
     */
-   bool exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T &val);
+   template<class ToksIterT>
+   bool exists(ToksIterT beg1, ToksIterT end1, ToksIterT beg2, ToksIterT end2, T &val);
    bool exists(IndIter beg1, IndIter end1, IndIter beg2, IndIter end2, T &val);
 
    /**

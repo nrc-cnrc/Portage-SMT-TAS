@@ -182,12 +182,14 @@ int main(int argc, char* argv[])
    if (extern_phrasetable_fname != "") {
       iSafeMagicStream ifs(extern_phrasetable_fname);
 
-      vector<string>::const_iterator b1, e1, b2, e2, v, a, f;
-      vector<string> toks;
+      vector<char*>::const_iterator b1, e1, b2, e2, v, a, f;
+      vector<char*> toks;
       string line;
       while (getline(ifs, line)) {
-         if (!tgt_first) PhraseTableBase::extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
-         else PhraseTableBase::extractTokens(line, toks, b2, e2, b1, e1, v, a, f);
+         char buffer[line.size()+1];
+         strcpy(buffer, line.c_str());
+         if (!tgt_first) PhraseTableBase::extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f);
+         else PhraseTableBase::extractTokens(line, buffer, toks, b2, e2, b1, e1, v, a, f);
          float freq;
          if (pt.exists(b1, e1, b2, e2, freq))
             pt_filt.addPhrasePair(b1, e1, b2, e2, freq);

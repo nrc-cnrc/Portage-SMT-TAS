@@ -97,7 +97,7 @@ struct DistortionCount {
    bool operator!=(const DistortionCount& dc) const {return freq() == dc.freq();}
 
    // Read from a token sequence
-   void read(vector<string>::const_iterator b, vector<string>::const_iterator e) {
+   void read(vector<char*>::const_iterator b, vector<char*>::const_iterator e) {
       if (size_t(e - b) != size())
          error(ETFatal, "distortion count format error - expecting %d values", size());
       for (Uint i = 0; i < size(); ++i)
@@ -116,8 +116,10 @@ std::ostream& operator<<(std::ostream& os, const DistortionCount& dc);
 
 inline bool conv(const string& s, DistortionCount& dc)
 {
-   vector<string> toks;
-   if (split(s, toks) != dc.size())
+   vector<char*> toks;
+   char buffer[s.size()+1];
+   strcpy(buffer, s.c_str());
+   if (destructive_splitZ(buffer, toks) != dc.size())
       return false;
    dc.read(toks.begin(), toks.end());
    return true;

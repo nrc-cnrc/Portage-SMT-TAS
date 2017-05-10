@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
    Uint tgt_tok_count = 0;
    string line;
    PhraseTableBase::ToksIter b1, e1, b2, e2, v, a, f;
-   vector<string> toks;
+   vector<char*> toks;
    vector<Uint> sc, tc;
    while (getline(jpt_in, line)) {
       ++lineno;
@@ -87,11 +87,13 @@ int main(int argc, char* argv[])
       if (debug)
          cerr << "in(" << lineno << "): " << line << nf_endl;
 
-      PhraseTableBase::extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+      char buffer[line.size()+1];
+      strcpy(buffer, line.c_str());
+      PhraseTableBase::extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f);
 
       sc.clear();
       for (PhraseTableBase::ToksIter it=b1; it < e1; ++it) {
-         const Uint cl(src_classes.classOf(it->c_str()));
+         const Uint cl(src_classes.classOf(*it));
          if (cl == WordClasses::NoClass)
             ++src_map_errors;
          sc.push_back(cl);
@@ -100,7 +102,7 @@ int main(int argc, char* argv[])
 
       tc.clear();
       for (PhraseTableBase::ToksIter it=b2; it < e2; ++it) {
-         const Uint cl(tgt_classes.classOf(it->c_str()));
+         const Uint cl(tgt_classes.classOf(*it));
          if (cl == WordClasses::NoClass)
             ++tgt_map_errors;
          tc.push_back(cl);

@@ -321,11 +321,15 @@ struct Datum {
    Uint  stream_positional_id;  ///< This Datum is from what positional stream?
    vector<bool> ids_added;      ///< ids from streams +='ed to this one
 
-   vector<string> toks;         // scratch, but also used by parse if smooth_cpts
+   vector<char*> toks;         // scratch, but also used by parse if smooth_cpts
+   char* destructive_buffer;
+   Uint destructive_buffer_size;
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
 
+
    Datum()
-   : probs(1), has_count(false), count(1), stream_positional_id(0) {}
+   : probs(1), has_count(false), count(1), stream_positional_id(0)
+   , destructive_buffer(NULL), destructive_buffer_size(0) {}
 
    const string& getKey() const { return key; }
 
@@ -410,7 +414,13 @@ struct Datum {
 
    bool parse(const string& buffer, Uint pId) {
       stream_positional_id = pId;
-      PhraseTableBase::extractTokens(buffer, toks, b1, e1, b2, e2, v, a, f, true, false);
+      if (destructive_buffer_size < buffer.size()+1) {
+         if (destructive_buffer) delete [] destructive_buffer;
+         destructive_buffer_size = buffer.size()+1;
+         destructive_buffer = new char[destructive_buffer_size];
+      }
+      strcpy(destructive_buffer, buffer.c_str());
+      PhraseTableBase::extractTokens(buffer, destructive_buffer, toks, b1, e1, b2, e2, v, a, f, true, false);
       p1 = join(b1,e1);
       p2 = join(b2,e2);
       key = p1 + PHRASE_TABLE_SEP + p2 + PHRASE_TABLE_SEP;
@@ -427,10 +437,10 @@ struct Datum {
          if (smooth_cpts) unwtd_probs.push_back(conv<float>(*v));
       }
       for (PhraseTableBase::ToksIter named_field = a; named_field < f; ++named_field) {
-         if (display_alignments != 0 && named_field->compare(0,2,"a=") == 0) {
+         if (display_alignments != 0 && isPrefix("a=", *named_field)) {
             // parse the a= field
             vector<string> all_alignments;
-            split(named_field->substr(2), all_alignments, ";");
+            split((*named_field)+2, all_alignments, ";");
             for ( Uint i = 0; i < all_alignments.size(); ++i ) {
                string::size_type colon_pos = all_alignments[i].find(':');
                if ( colon_pos == string::npos ) {
@@ -445,14 +455,14 @@ struct Datum {
                      alignments[all_alignments[i].substr(0,colon_pos)] += intcount;
                }
             }
-         } else if (named_field->compare(0,2,"c=") == 0) {
+         } else if (isPrefix("c=", *named_field)) {
             // parse the c= field
             // note that we do so even if !write_count, because it is used
             // when display_alignments != 0 to weigh each CPT's vote.
             Uint intcount = 0;
-            if (!convT(named_field->substr(2).c_str(), intcount)) {
+            if (!convT((*named_field)+2, intcount)) {
                error(ETWarn, "Count is not a number %s in c= field of %s",
-                     named_field->substr(2).c_str(), buffer.c_str());
+                     (*named_field)+2, buffer.c_str());
             } else {
                has_count = true;
                count = intcount;
@@ -562,7 +572,7 @@ int MAIN(argc, argv)
    Uint num_phrases = 0;
 
    string line;
-   vector<string> toks;
+   vector<char*> toks;
    PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
    Uint phrase_index;
 
@@ -572,7 +582,9 @@ int MAIN(argc, argv)
    iSafeMagicStream is(input_jpt_file);
    Uint njcols = 0;   // number of cols in jpt: either 1 (jpt) or 6 (dct)
    while (getline(is, line)) {
-      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true);
+      char buffer[line.size()+1];
+      strcpy(buffer, line.c_str());
+      pt.extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f, true);
       if (rev) {
          swap(b1, b2);
          swap(e1, e2);
@@ -591,7 +603,9 @@ int MAIN(argc, argv)
       iSafeMagicStream is(indomain_model_file);
       Uint nimcols = 0;   // number of cols in indomain model
       while (getline(is, line)) {
-         pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true);
+         char buffer[line.size()+1];
+         strcpy(buffer, line.c_str());
+         pt.extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f, true);
          if (rev) {
             swap(b1, b2);
             swap(e1, e2);
@@ -642,7 +656,9 @@ int MAIN(argc, argv)
 
       while (getline(istr, line)) {
          ++orig_cpt_sizes[i];
-         pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true, false);
+         char buffer[line.size()+1];
+         strcpy(buffer, line.c_str());
+         pt.extractTokens(line, buffer, toks, b1, e1, b2, e2, v, a, f, true, false);
          if (num_cols != 0) {
             if (static_cast<Uint>(a - v) != num_cols)
                error(ETFatal, "phrasetables must have same numbers of columns!");

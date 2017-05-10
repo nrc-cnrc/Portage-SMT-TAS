@@ -1,9 +1,9 @@
 /**
  * @author George Foster
  * @file phrase_table.cc  Implementation of PhraseTableBase.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -22,7 +22,18 @@ const string PhraseTableBase::sep = " ";
 const string PhraseTableBase::psep = "|||";
 const string PhraseTableBase::psep_replacement = "___|||___";
 
-void PhraseTableBase::compressPhrase(ToksIter beg, ToksIter end, string& coded, Voc& voc) 
+void PhraseTableBase::compressPhrase(ToksIter beg, ToksIter end, string& coded, Voc& voc)
+{
+   coded.clear();
+   coded.reserve((end-beg) * num_code_bytes + 1);
+   for (; beg != end; ++beg) {
+      Uint code = voc.add(*beg);
+      assert (code <= max_code);
+      pack(code, coded, code_base, num_code_bytes);
+   }
+}
+
+void PhraseTableBase::compressPhrase(sToksIter beg, sToksIter end, string& coded, Voc& voc)
 {
    coded.clear();
    coded.reserve((end-beg) * num_code_bytes + 1);
@@ -87,21 +98,22 @@ Uint PhraseTableBase::phraseLength(const char* coded)
    return strlen(coded) / num_code_bytes;
 }
 
-void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
+void PhraseTableBase::extractTokens(const string& line, char* buffer, vector<char*>& toks,
 				    ToksIter& b1, ToksIter& e1,
 				    ToksIter& b2, ToksIter& e2,
 				    ToksIter& v, ToksIter& a, ToksIter& f,
                                     bool tolerate_multi_vals,
                                     bool allow_fourth_column)
 {
-   toks.clear();
    vector<Uint> seps;
-   split(line, toks);
+   seps.reserve(3);
+   destructive_splitZ(buffer, toks);
    for (Uint i = 0; i < toks.size(); ++i)
       if (toks[i] == psep) seps.push_back(i);
    if ((!allow_fourth_column && seps.size() != 2) ||
        ( allow_fourth_column && (seps.size() < 2 || seps.size() > 3)))
-      error(ETFatal, "incorrect format in phrase table (wrong number of separators: this program %s columns): %s",
+      error(ETFatal, "incorrect format in phrase table (wrong number of separators: found %d; this program %s columns): %s",
+            seps.size(),
             (allow_fourth_column ? "only allows 3 or 4" : "requires exactly 3"),
             line.c_str());
 
@@ -114,8 +126,8 @@ void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
    a = f;
    // look for a= and c= fields in any order
    while (true) {
-      if ((*(a-1)).compare(0, 2, "c=") == 0) --a;
-      else if ((*(a-1)).compare(0, 2, "a=") == 0) --a;
+      if (isPrefix("c=", *(a-1))) --a;
+      else if (isPrefix("a=", *(a-1))) --a;
       else break;
    }
 

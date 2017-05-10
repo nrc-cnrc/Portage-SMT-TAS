@@ -36,16 +36,14 @@ template <class T> class NgramMap {
    Voc voc;                     // string -> index
    PTrie<T, Empty, false> trie; // index sequence -> T
 
-public:
-   typedef vector<string>::const_iterator Witer;
-
 private:
 
+   template <class Witer>
    Uint* ngram2key(Witer b, Witer e) {
       static vector<Uint> key;
       key.resize(e-b);
       for (Uint i = 0; i < key.size(); ++i, ++b)
-         key[i] = voc.add(b->c_str());
+         key[i] = voc.add(*b);
       return &key[0];
    }
    
@@ -62,6 +60,7 @@ public:
     * @param p_val if not null, will be set to address of inserted val (valid
     * until next operation)
     */
+   template <class Witer>
    void insert(Witer b, Witer e, const T& val, T** p_val = NULL) {
       trie.insert(ngram2key(b, e), e-b, val, p_val);
    }
@@ -74,6 +73,7 @@ public:
     * operation)
     * @return true iff ngram exists
     */
+   template <class Witer>
    bool find(Witer b, Witer e, T*& p_val) {
       return trie.find(ngram2key(b, e), e-b, p_val);
    }
@@ -86,6 +86,7 @@ public:
     * operation) 
     * @return true iff ngram existed already
     */
+   template <class Witer>
    bool find_or_insert(Witer b, Witer e, T*& p_val) {
       return trie.find_or_insert(ngram2key(b, e), e-b, p_val);
    }
