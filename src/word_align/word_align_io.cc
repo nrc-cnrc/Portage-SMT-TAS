@@ -692,15 +692,19 @@ bool GreenReader::operator()(istream &in,
 
 void GreenReader::operator()(const string& line, vector< vector<Uint> >& sets) 
 {
-   vector<string> toks, subtoks;
+   vector<char*> toks, subtoks;
+   toks.reserve(10);
+   subtoks.reserve(5);
    const char seps[2] = {sep, '\0'};
-   split(line, toks, seps);
+   char buffer[line.size()+1];
+   strcpy(buffer, line.c_str());
+   destructive_splitZ(buffer, toks, seps);
    sets.resize(toks.size());
 
    for (Uint i = 0; i < sets.size(); ++i) {
       sets[i].clear();
-      if (toks[i] != "-") {
-         splitZ(toks[i], subtoks, ",");
+      if (strcmp(toks[i], "-") != 0) {
+         destructive_splitZ(toks[i], subtoks, ",");
          sets[i].resize(subtoks.size());
          for (Uint j = 0; j < subtoks.size(); ++j)
             sets[i][j] = conv<Uint>(subtoks[j]);
