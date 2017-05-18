@@ -39,6 +39,12 @@ function curl_testcase() {
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    tag=`date +"%T"`
    curl \
+      --get \
+      --data 'source=SÉ' \
+      --data "target=T$tag" \
+      --data 'document_level_model_ID=curl' \
+      http://localhost/incrementalTrainingAddSentencePair.php
+   curl \
       --silent \
       --get \
       --data 'source=SÉ' \
@@ -48,7 +54,7 @@ function curl_testcase() {
       | grep --quiet '{"result":true}' \
       || ! echo "Error" &>2
    grep --quiet "T$tag" $CORPORA \
-   || ! echo "Error: Can't find entry." >&2
+   || ! echo $'\nError: Cannot find entry.' >&2
 }
 
 
