@@ -22,6 +22,11 @@ source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exi
 print_nrc_copyright incremental-update.sh 2017
 export PORTAGE_INTERNAL_CALL=1
 
+INCREMENTAL_TM_BASE=cpt.incremental
+INCREMENTAL_LM_BASE=lm.incremental
+ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
+UPDATE_LOCK_FILE=incremental-update.lock
+
 function usage() {
    for msg in "$@"; do
       echo $msg >&2
@@ -29,7 +34,7 @@ function usage() {
    [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $PROG [options] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
+Usage: $PROG [options] [-f CONFIG] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
 
   Retrain the incremental corpus for a PortageLive module, given the
   incremental corpus INCREMENTAL_CORPUS which must contain one sentence pair
@@ -39,6 +44,14 @@ Usage: $PROG [options] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
   SRC_LANG and TGT_LANG are used to determine how to tokenize the corpus.
 
 Options:
+
+  -f CONFIG   read parameters from CONFIG.
+              Format: bash variable definitions
+              Supported/expected variables:
+                 INCREMENTAL_TM_BASE  [$INCREMENTAL_TM_BASE]
+                 INCREMENTAL_LM_BASE  [$INCREMENTAL_LM_BASE]
+                 UPDATE_LOCK_FILE     [$UPDATE_LOCK_FILE]
+                 ALIGNMENT_MODEL_BASE [$ALIGNMENT_MODEL_BASE]
 
   -h(elp)     print this help message
   -v(erbose)  increment the verbosity level by 1 (may be repeated)
@@ -52,7 +65,7 @@ Options:
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
-
+   -f)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -71,12 +84,14 @@ test $# -eq 0   && error_exit "Missing INCREMENTAL_CORPUS argument"
 INCREMENTAL_CORPUS=$1; shift
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
-readonly INCREMENTAL_TM_BASE=cpt.incremental
-readonly INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG
-readonly INCREMENTAL_LM_BASE=lm.incremental
-readonly INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
-readonly UPDATE_LOCK_FD=202
-readonly UPDATE_LOCK_FILE=incremental-update.lock
+if [[ $CONFIG_FILE ]]; then
+   [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE"
+   source $CONFIG_FILE || error_exit "Error reading config file $CONFIG_FILE"
+fi
+
+UPDATE_LOCK_FD=202
+INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG
+INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
 
 WD=`mktemp -d incremental-tmp.XXX` ||
    error_exit "Cannot create temporary working directory"
@@ -117,8 +132,8 @@ time (
 verbose 1 Train the incremental TM from source and target
 time gen_phrase_tables -o $WD/$INCREMENTAL_TM_BASE -1 $SRC_LANG -2 $TGT_LANG -multipr fwd \
    -s RFSmoother -s ZNSmoother -write-count -write-al top \
-   models/tm/hmm3.tm-train.${TGT_LANG}_given_$SRC_LANG.gz \
-   models/tm/hmm3.tm-train.${SRC_LANG}_given_$TGT_LANG.gz \
+   $ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz \
+   $ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz \
    $WD/source.lc $WD/target.lc
 ls $WD
 verbose 1 Tightly pack the incremental TM
