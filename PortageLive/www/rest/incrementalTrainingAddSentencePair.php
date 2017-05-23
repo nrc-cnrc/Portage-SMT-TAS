@@ -48,7 +48,8 @@
 
 require 'PortageLiveLib.php';
 
-class Warnings implements JsonSerializable {
+#class Warnings implements JsonSerializable {
+class Warnings {
    protected $warningIssued = False;
    protected $InvalidArgument = array(
       "message" => "You used invalid options",
@@ -150,13 +151,20 @@ class IncrementalTrainor extends PortageLiveLib {
       # Warnings should not cause failure but should at the very least be
       # reported to the user.
       if ($this->warnings->isWarningIssued()) {
-         $message['warnings'] = $this->warnings;
+         $message['warnings'] = $this->warnings->jsonSerialize();
       }
 
       return $message;
    }
 }
 
+# http_response_code() only exists starting with php 5.4, but we can simulate
+# it with older versions
+if (!function_exists('http_response_code')) {
+   function http_response_code($code) {
+      header('X-PHP-Response-Code: '.$code, true, $code);
+   }
+}
 
 
 # if this wasn't loaded as a library by phpunit, execute a main function.
