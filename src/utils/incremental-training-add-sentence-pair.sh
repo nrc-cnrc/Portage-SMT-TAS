@@ -169,7 +169,7 @@ fi
 
       # Train
       verbose 1 "$$ is training"
-      eval $INCREMENTAL_TRAINING
+      eval $INCREMENTAL_TRAINING $CORPORA &> incremental-update.log
 
       eval "exec $QUEUE_FD>$QUEUE_LOCK"
       verbose 1 "Locking the queue"
