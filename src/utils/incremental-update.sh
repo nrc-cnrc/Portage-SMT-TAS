@@ -39,7 +39,7 @@ Usage: $PROG [options] [-f CONFIG] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
   Retrain the incremental corpus for a PortageLive module, given the
   incremental corpus INCREMENTAL_CORPUS which must contain one sentence pair
   per line in the format:
-     SOURCE SENTENCE <tab> TARGET SENTENCE [<tab> EXTRA-DATA ]
+     DATE <tab> SOURCE SENTENCE <tab> TARGET SENTENCE [<tab> EXTRA-DATA ]
 
   SRC_LANG and TGT_LANG are used to determine how to tokenize the corpus.
 
