@@ -122,11 +122,12 @@ if [[ -n "$source_sentence" && -n "$target_sentence" ]]; then
    verbose 1 "Adding to the queue: $source_sentence $target_sentence"
    [[ -z $unittest ]] && usleep 300000  # Unittest delay
    {
-      #echo -n $source_sentence$'\t'$target_sentence;
-      echo -n $source_sentence;
-      echo -n $'\t';
-      echo -n $target_sentence;
-      [[ -z "$extra_data" ]] || echo -ne "\t$extra_data";
+      echo -n `date +"%F %T"`
+      echo -n $'\t'
+      echo -n $source_sentence
+      echo -n $'\t'
+      echo -n $target_sentence
+      [[ -z "$extra_data" ]] || echo -ne "\t$extra_data"
       echo
    } >> $queue
    if [[ $? -ne 0 ]];

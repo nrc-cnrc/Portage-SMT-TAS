@@ -58,7 +58,7 @@ function error_message() {
 
 function add_sentence_pair_to_queue() {
    echo "Manually adding a sentence pair to the queue" >&2
-   echo -e "source\ttarget" > $QUEUE
+   echo -e `date +"%F %T"`"\tsource\ttarget" > $QUEUE
 
    echo "Making sure the queue holds a sentence pair" >&2
    [[ `wc -l < $QUEUE` -eq 1 ]] \
@@ -95,8 +95,22 @@ function with_extra_data() {
       "source_extra" \
       "translation_extra"
    sleep $((TRAINING_TIME+1))
-   grep --quiet $'source_extra\ttranslation_extra\t{"a": 1}' $CORPORA \
-   || ! error_message "Can't find the translation pair with its extra data."
+
+   cut -f 1 $CORPORA \
+   | grep --quiet `date +"%F"` \
+   || ! error_message "Can't find the date."
+
+   cut -f 2 $CORPORA \
+   | grep --quiet 'source_extra' \
+   || ! error_message "Can't find the source."
+
+   cut -f 3 $CORPORA \
+   | grep --quiet 'translation_extra' \
+   || ! error_message "Can't find the translation."
+
+   cut -f 4 $CORPORA \
+   | grep --quiet '{"a": 1}' \
+   || ! error_message "Can't find the extra data."
 }
 
 
@@ -212,14 +226,17 @@ function multiple_add_and_multiple_trigger() {
    echo "Validating..." >&2
    set -o errexit
 
-   [[ `find -name $LOG.\* | wc -l` -eq $((2 * $MAX_CONCURRENT_CALLS)) ]] \
-   || ! error_message "We should have got $((2 * $MAX_CONCURRENT_CALLS)) log files."
+   [[ `find -name $LOG.add.\* | wc -l` -eq $MAX_CONCURRENT_CALLS ]] \
+   || ! error_message "We should have got $MAX_CONCURRENT_CALLS log.add files."
+
+   [[ `find -name $LOG.trigger.\* | wc -l` -eq $MAX_CONCURRENT_CALLS ]] \
+   || ! error_message "We should have got $MAX_CONCURRENT_CALLS log.trigger files."
 
    [[ `wc -l < $CORPORA` -eq $(($MAX_CONCURRENT_CALLS + 1)) ]] \
    || ! error_message "We should have got $(($MAX_CONCURRENT_CALLS + 1)) sentence pairs in the corpus."
 
    # Let's make sure the sentence pairs have the format that we expect.
-   [[ `grep --count --perl-regexp '^\d{1,}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{1,}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
+   [[ `grep --count --perl-regexp '^[0-9: -]+\t\d{1,}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{1,}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
    || ! error_message "Some sentence pairs are corrupted."
 
    [[ `wc -l < $QUEUE` -eq 0 ]] \

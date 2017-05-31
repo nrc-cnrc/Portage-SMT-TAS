@@ -100,8 +100,8 @@ verbose 1 Created working directory $WD
 # Separate the tab-separated corpus file into clean OSPL source and target files
 # Warning: don't call clean-utf8-text.pl before cut, since it replaces tab characters by spaces.
 verbose 1 Split the corpus into source and target
-time cut -f 1 $INCREMENTAL_CORPUS | clean-utf8-text.pl > $WD/source.raw
-time cut -f 2 $INCREMENTAL_CORPUS | clean-utf8-text.pl > $WD/target.raw
+time cut -f 2 $INCREMENTAL_CORPUS | clean-utf8-text.pl > $WD/source.raw
+time cut -f 3 $INCREMENTAL_CORPUS | clean-utf8-text.pl > $WD/target.raw
 
 # Tokenize -- TODO test the path through tokenize_plugin
 verbose 1 Tokenize the source
