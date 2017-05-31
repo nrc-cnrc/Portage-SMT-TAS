@@ -19,8 +19,9 @@ set -o errexit
 set -v
 
 TOY_SYSTEM=$PORTAGE/test-suite/systems/toy-regress-en2fr
-INCREMENTAL_UPDATE="$HOME/sandboxes/PORTAGEshared/src/utils/incremental-update.sh"
-#readonly INCREMENTAL_UPDATE=incremental-update.sh
+
+# To execute the src instead of bin version of incremental-update.sh, use, e.g.:
+#   PATH=$HOME/sandboxes/PORTAGEshared/src/utils:$PATH ./run-test.sh
 
 ln -sf $TOY_SYSTEM/models .
 #cp $TOY_SYSTEM/canoe.ini.cow canoe.ini.cow
@@ -29,13 +30,13 @@ utokenize.pl -noss -lang en < s1 | utf8_casemap -c l | canoe-escapes.pl > s1.rul
 
 # Create an empty incremental model, with only a dummy corpus
 echo `date +"%F %T"`'	__DUMMY__ __DUMMY__	__DUMMY__ __DUMMY__' > corpora
-time $INCREMENTAL_UPDATE -f config -v en fr corpora >& log.update-dummy
+time incremental-update.sh -f config -v en fr corpora >& log.update-dummy
 time canoe -f canoe.ini.incr -input s1.rules > s1.out 2> log.s1.out
 
 # Create a model with the s1 t1 sentence pair update, and redecode to see
 # "Mr. Boazek" correctly translated to "M. Baozeck".
 paste <(echo `date +"%F %T"`) s1 t1 > corpora
-time $INCREMENTAL_UPDATE -f config -v en fr corpora >& log.update-s1t1
+time incremental-update.sh -f config -v en fr corpora >& log.update-s1t1
 time canoe -f canoe.ini.incr -input s1.rules > s1.out.incr 2> log.s1.out.incr
 grep -i Baozeck s1.out.incr
 
@@ -72,7 +73,7 @@ for l in $(seq 1 `wc -l < dev1_fr.raw`); do
    if (($l / $UPDATE_FREQ * $UPDATE_FREQ == $l)); then
       echo Doing incremental update using $l lines
       paste <(yes `date +"%F %T"` | head -$l) <(head -$l dev1_en.raw) <(head -$l dev1_fr.raw) > corpora
-      time $INCREMENTAL_UPDATE -f config -v en fr corpora >& log.update-$l
+      time incremental-update.sh -f config -v en fr corpora >& log.update-$l
    fi
    #time canoe -f canoe.ini.incr -input dev1_en.rules > dev1.out.$l 2> log.dev1.out.$l
 done
