@@ -300,11 +300,42 @@ function insert_and_multiple_trigger_training() {
 }
 
 
+function integration_with_incremental_update_sh() {
+   cleanup
+
+   readonly TOY_SYSTEM=$PORTAGE/test-suite/systems/toy-regress-en2fr
+   ln -fs $TOY_SYSTEM/models .
+   #readonly IU=incremental-update.sh
+   readonly IU='bash -v ~/sandboxes/PORTAGEshared/bin/incremental-update.sh'
+
+   rm -fr incremental-tmp.???
+   incremental-training-add-sentence-pair.sh \
+      "$IU fr en" \
+      "Il faut aller à l'école." \
+      'We must go to school.'
+
+   sleep 1
+
+   # We should find a single entry in the corpora.
+   [[ `wc -l < $CORPORA` -eq 1 ]] \
+   || ! error_message "We should find a single entry in the corpora."
+
+   [[ `cut -f 1 $CORPORA` =~ `date +%F` ]] \
+   || ! error_message "Couldn't find the proper source sentence."
+
+   [[ `cut -f 2 $CORPORA` == "Il faut aller à l'école." ]] \
+   || ! error_message "Couldn't find the proper source sentence."
+
+   [[ `cut -f 3 $CORPORA` == 'We must go to school.' ]] \
+   || ! error_message "Couldn't find the proper translation sentence."
+}
+
+
 
 which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
 || { ! error_message "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
 
-#with_quotes
+#integration_with_incremental_update_sh
 #exit
 
 no_script
@@ -315,4 +346,5 @@ with_quotes
 with_tab
 multiple_add_and_multiple_trigger
 insert_and_multiple_trigger_training
+integration_with_incremental_update_sh
 
