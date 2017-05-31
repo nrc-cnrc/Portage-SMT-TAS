@@ -97,8 +97,8 @@ while [ $# -gt 0 ]; do
 done
 
 readonly incremental_training=$1
-readonly source_sentence=`tr "\t" " " <<< $2`
-readonly target_sentence=`tr "\t" " " <<< $3`
+readonly source_sentence=`clean-utf8-text.pl <<< $2`
+readonly target_sentence=`clean-utf8-text.pl <<< $3`
 
 # When running in unittest mode, it should automatically trigger verbose.
 [[ $unittest ]] && VERBOSE=$(( $VERBOSE + 1 ))
