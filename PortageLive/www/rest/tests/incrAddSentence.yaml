@@ -166,7 +166,7 @@ testSteps:
         warnings: "exec not value"
 
 
-  - name: "We should get a warining for using an invalid argument"
+  - name: "We should get a warning for using an invalid argument"
     method: "get"
     apiUrl: "{service}"
     params:
@@ -190,7 +190,7 @@ testSteps:
         warnings.InvalidArgument.options[0]: "bad=invalid"
 
 
-  - name: "We should get warinings for using an invalid arguments"
+  - name: "We should get warnings for using invalid arguments"
     method: "get"
     apiUrl: "{service}"
     params:

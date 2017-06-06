@@ -147,7 +147,7 @@ testSteps:
          }
 
 
-  - name: "We should not get any warning when all parameters are valid."
+  - name: "We should not get any warnings when all parameters are valid."
     method: "get"
     apiUrl: "{service}"
     params:
