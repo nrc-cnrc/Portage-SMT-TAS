@@ -11,9 +11,12 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
-
+function verbose() {
+   echo $'\n'============= $* =============
+}
 
 function deploy_code() {
+   verbose deploy_code
    cp ../PortageLiveLib.php /var/www/html/
    cp incrAddSentence.php /var/www/html/
    cp translate.php /var/www/html/language/translate/
@@ -21,6 +24,7 @@ function deploy_code() {
 }
 
 function local_testase() {
+   verbose local_testase
    php \
       -d 'include_path=.:..' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
@@ -29,11 +33,13 @@ function local_testase() {
 }
 
 function remote_testcase() {
+   verbose remote_testcase
    # Runnig https://github.com/chitamoor/Rester
    apirunner --ts tests/testSuite.yaml
 }
 
 function curl_testcase() {
+   verbose curl_testcase
    # Web request using unicode.
    export CORPORA=/var/www/html/plive/DOCUMENT_LEVEL_MODEL_curl/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
@@ -63,6 +69,7 @@ local_testase
 remote_testcase
 curl_testcase
 
+echo
 exit
 
 # CLI php will fail because it can't create a directory under /var/www/html/
