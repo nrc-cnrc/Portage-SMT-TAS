@@ -26,6 +26,7 @@ INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
 UPDATE_LOCK_FILE=incremental-update.lock
+readonly local_canoe_ini=canoe.ini
 
 function usage() {
    for msg in "$@"; do
@@ -34,7 +35,7 @@ function usage() {
    [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $PROG [options] [-f CONFIG] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
+Usage: $PROG [options] [-f CONFIG] [-c CANOE_INI] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
 
   Retrain the incremental corpus for a PortageLive module, given the
   incremental corpus INCREMENTAL_CORPUS which must contain one sentence pair
@@ -45,6 +46,7 @@ Usage: $PROG [options] [-f CONFIG] SRC_LANG TGT_LANG INCREMENTAL_CORPUS
 
 Options:
 
+  -c CANOEINI a canoe.ini to build incremental on-top of.
   -f CONFIG   read parameters from CONFIG.
               Format: bash variable definitions
               Supported/expected variables:
@@ -66,6 +68,7 @@ VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
    -f)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
+   -c)                  arg_check 1 $# $1; readonly base_canoe_ini=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -77,17 +80,39 @@ while [ $# -gt 0 ]; do
 done
 
 [[ $# -eq 0 ]]  && error_exit "Missing SRC_LANG argument"
-SRC_LANG=$1; shift
+readonly SRC_LANG=$1; shift
 test $# -eq 0   && error_exit "Missing TGT_LANG argument"
-TGT_LANG=$1; shift
+readonly TGT_LANG=$1; shift
 test $# -eq 0   && error_exit "Missing INCREMENTAL_CORPUS argument"
-INCREMENTAL_CORPUS=$1; shift
+readonly INCREMENTAL_CORPUS=$1; shift
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 if [[ $CONFIG_FILE ]]; then
    [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE"
    source $CONFIG_FILE || error_exit "Error reading config file $CONFIG_FILE"
 fi
+
+
+function initialize_incremental_directory() {
+   local readonly base_canoe_ini=$1
+
+   # Setup the model directory and the canoe.ini.
+   [[ -r $base_canoe_ini ]] || error_exit "Cannot read the CANOE_INI file $base_canoe_ini"
+
+   local readonly base_dir=`basename $base_canoe_ini`
+   [[ -s $local_canoe_ini ]] || cp $base_canoe_ini $local_canoe_ini
+   [[ -L "prime.sh" ]] || ln -s $base_dir/prime.sh .
+   [[ -L "soap-translate.sh" ]] || ln -s $base_dir/soap-translate.sh .
+   [[ -L models ]] || ln -s $base_dir/models models
+   if [[ -d "$base_dir/plugins" ]]; then
+      [[ -L plugins ]] || ln -s $base_dir/plugins .
+   fi
+}
+
+[[ -n "$base_canoe_ini" ]] && initialize_incremental_directory $base_canoe_ini
+
+# Don't try to make any models if there is nothing in the corpora.
+[[ `wc -l < $INCREMENTAL_CORPUS` -gt 0 ]] || exit 0
 
 UPDATE_LOCK_FD=202
 INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG

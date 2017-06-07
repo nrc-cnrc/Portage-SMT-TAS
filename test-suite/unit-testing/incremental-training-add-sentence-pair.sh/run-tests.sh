@@ -335,8 +335,8 @@ function integration_with_incremental_update_sh() {
 which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
 || { ! error_message "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
 
-#integration_with_incremental_update_sh
-#exit
+with_tab
+exit
 
 no_script
 unable_to_write_to_the_queue
