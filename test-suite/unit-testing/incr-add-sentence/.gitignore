@@ -3,3 +3,9 @@ istraining.lock
 log.*
 queue
 queue.lock
+witness
+
+incremental-tmp.*/
+incremental-update.lock
+models
+
