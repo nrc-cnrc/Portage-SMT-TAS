@@ -20,13 +20,13 @@ trap "trap - EXIT; echo Test FAILED" ERR
 trap "echo All tests PASSED." EXIT
 
 
-readonly INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR=${INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR:-incremental-training-add-sentence-pair.sh}
+readonly INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR=${INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR:-incr-add-sentence.sh}
 
 readonly CORPORA=corpora
 readonly QUEUE=queue
 readonly LOG=log
 readonly MAX_CONCURRENT_CALLS=25
-readonly INCREMENTAL_TRAINING_SCRIPT=./incremental_training.sh
+readonly INCREMENTAL_UPDATE_SCRIPT=./incr-update.sh
 readonly DELAY=1
 readonly TRAINING_TIME=6
 readonly WITNESS=witness
@@ -68,7 +68,7 @@ function add_sentence_pair_to_queue() {
 
 
 function trigger_single_training() {
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest  "$INCREMENTAL_TRAINING_SCRIPT" >&2 &
+   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest  "$INCREMENTAL_UPDATE_SCRIPT" >&2 &
 }
 
 
@@ -91,7 +91,7 @@ function with_extra_data() {
       -verbose \
       -unittest \
       -extra-data '{"a": 1}' \
-      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "$INCREMENTAL_UPDATE_SCRIPT" \
       "source_extra" \
       "translation_extra"
    sleep $((TRAINING_TIME+1))
@@ -122,7 +122,7 @@ function with_utf8() {
    $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
       -verbose \
       -unittest \
-      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "$INCREMENTAL_UPDATE_SCRIPT" \
       "source_utf8_É" \
       "⅀translation_utf8_¿"
    sleep $((TRAINING_TIME+1))
@@ -139,7 +139,7 @@ function with_quotes() {
    $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
       -verbose \
       -unittest \
-      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "$INCREMENTAL_UPDATE_SCRIPT" \
       "double\"single'backtick\`left<right>quotes" \
       "double\"single'backtick\`left<right>quotes"
    sleep $((TRAINING_TIME+1))
@@ -156,7 +156,7 @@ function with_tab() {
    $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
       -verbose \
       -unittest \
-      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "$INCREMENTAL_UPDATE_SCRIPT" \
       $'source\tsource\tsource' \
       "target\ttarget\ttarget"
    sleep $((TRAINING_TIME+1))
@@ -175,7 +175,7 @@ function unable_to_write_to_the_queue(){
    $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
       -verbose \
       -unittest \
-      "$INCREMENTAL_TRAINING_SCRIPT" \
+      "$INCREMENTAL_UPDATE_SCRIPT" \
       "$i-S-$$ `date +'%T:%N'`" \
       "$i-T-$$ `date +'%T:%N'`" \
    |& grep --quiet 'Error writing sentence pair to the queue' \
@@ -202,7 +202,7 @@ function multiple_add_and_multiple_trigger() {
          $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
             -verbose \
             -unittest \
-            "$INCREMENTAL_TRAINING_SCRIPT" \
+            "$INCREMENTAL_UPDATE_SCRIPT" \
             "$i-S-$$ `date +'%T:%N'`" \
             "$i-T-$$ `date +'%T:%N'`" \
             &> $LOG.add.$i;
@@ -213,7 +213,7 @@ function multiple_add_and_multiple_trigger() {
          $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
             -verbose \
             -unittest \
-            "$INCREMENTAL_TRAINING_SCRIPT" \
+            "$INCREMENTAL_UPDATE_SCRIPT" \
             &> $LOG.trigger.$i;
       } &
    done
@@ -275,7 +275,7 @@ function insert_and_multiple_trigger_training() {
          $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
             -verbose \
             -unittest \
-            "$INCREMENTAL_TRAINING_SCRIPT" \
+            "$INCREMENTAL_UPDATE_SCRIPT" \
             &> $LOG.trigger.$i;
       } &
    done
@@ -305,11 +305,12 @@ function integration_with_incremental_update_sh() {
 
    readonly TOY_SYSTEM=$PORTAGE/test-suite/systems/toy-regress-en2fr
    ln -fs $TOY_SYSTEM/models .
-   #readonly IU=incremental-update.sh
-   readonly IU='bash -v ~/sandboxes/PORTAGEshared/bin/incremental-update.sh'
+   #readonly IU=incr-update.sh
+   readonly IU='bash -v ~/sandboxes/PORTAGEshared/bin/incr-update.sh'
 
+   # Remove temporary directory created by incr-update.sh
    rm -fr incremental-tmp.???
-   incremental-training-add-sentence-pair.sh \
+   incr-add-sentence.sh \
       "$IU fr en" \
       "Il faut aller à l'école." \
       'We must go to school.'
