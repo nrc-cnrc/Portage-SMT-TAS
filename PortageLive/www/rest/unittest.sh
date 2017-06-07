@@ -15,9 +15,9 @@
 
 function deploy_code() {
    cp ../PortageLiveLib.php /var/www/html/
-   cp incrementalTrainingAddSentencePair.php /var/www/html/
+   cp incrAddSentence.php /var/www/html/
    cp translate.php /var/www/html/language/translate/
-   cp ../../../src/utils/incremental-training-add-sentence-pair.sh /opt/PortageII/bin/
+   cp ../../../src/utils/incr-add-sentence.sh /opt/PortageII/bin/
 }
 
 function local_testase() {
@@ -25,7 +25,7 @@ function local_testase() {
       -d 'include_path=.:..' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
       --colors=always  \
-      tests/incrementalTrainingAddSentencePair.php
+      tests/incrAddSentence.php
 }
 
 function remote_testcase() {
@@ -43,14 +43,14 @@ function curl_testcase() {
       --data 'source=SÉ' \
       --data "target=T$tag" \
       --data 'document_level_model_ID=curl' \
-      http://localhost/incrementalTrainingAddSentencePair.php
+      http://localhost/incrAddSentence.php
    curl \
       --silent \
       --get \
       --data 'source=SÉ' \
       --data "target=T$tag" \
       --data 'document_level_model_ID=curl' \
-      http://localhost/incrementalTrainingAddSentencePair.php \
+      http://localhost/incrAddSentence.php \
       | grep --quiet '{"result":true}' \
       || ! echo "Error" &>2
    grep --quiet "T$tag" $CORPORA \
@@ -66,6 +66,6 @@ curl_testcase
 exit
 
 # CLI php will fail because it can't create a directory under /var/www/html/
-#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php incrementalTrainingAddSentencePair.php
-#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php -e -r 'parse_str(getenv("QUERY_STRING"), $_GET); include "incrementalTrainingAddSentencePair.php";'
+#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php incrAddSentence.php
+#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php -e -r 'parse_str(getenv("QUERY_STRING"), $_GET); include "incrAddSentence.php";'
 
