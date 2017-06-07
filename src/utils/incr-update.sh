@@ -114,7 +114,6 @@ function initialize_incremental_directory() {
 # Don't try to make any models if there is nothing in the corpora.
 [[ `wc -l < $INCREMENTAL_CORPUS` -gt 0 ]] || exit 0
 
-UPDATE_LOCK_FD=202
 INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG
 INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
 
@@ -167,36 +166,38 @@ time (
    textpt2tppt.sh $INCREMENTAL_TM >& log.$INCREMENTAL_TM.tppt
 )
 
-# Get the lock to update the models
-verbose 1 "Get the update lock"
-eval "exec $UPDATE_LOCK_FD>$UPDATE_LOCK_FILE"
-flock --exclusive $UPDATE_LOCK_FD
-readonly BK=incremental-backup
-rm -rf $BK
-mkdir $BK
-#ls -l $WD $BK .
-time for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
-   if [[ -e $model ]]; then
-      echo mv $model $BK
-      mv $model $BK
-   fi
-   mv $WD/$model .
-done
-#ls -l $WD $BK .
+(
+   # Get the lock to update the models
+   verbose 1 "Get the update lock `date`"
+   flock --exclusive 202
+   verbose 1 "Got the update lock `date`"
 
-# validation
-verbose 1 "Checking the final config"
-if time configtool check canoe.ini.incr; then
-   verbose 1 "All good"
-else
-   verbose 1 "Problem with final canoe config, rolling back update"
-   for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
-      mv $model $WD || true
-      mv $BK/$model . || true
+   readonly BK=incremental-backup
+   rm -rf $BK
+   mkdir $BK
+   #ls -l $WD $BK .
+   time for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
+      if [[ -e $model ]]; then
+         echo mv $model $BK
+         mv $model $BK
+      fi
+      mv $WD/$model .
    done
-   exit 1
-fi
+   #ls -l $WD $BK .
 
-# sleep 5 # insert this to test whether the locking is really working
-verbose 1 "Releasing update lock"
-flock --unlock $UPDATE_LOCK_FD
+   # validation
+   verbose 1 "Checking the final config"
+   if time configtool check canoe.ini.incr; then
+      verbose 1 "All good"
+   else
+      verbose 1 "Problem with final canoe config, rolling back update"
+      for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
+         mv $model $WD || true
+         mv $BK/$model . || true
+      done
+      exit 1
+   fi
+
+   # sleep 5 # insert this to test whether the locking is really working
+   verbose 1 "Releasing update lock"
+) 202>$UPDATE_LOCK_FILE
