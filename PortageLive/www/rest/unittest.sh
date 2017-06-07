@@ -52,7 +52,7 @@ function curl_testcase() {
       --data 'document_level_model_ID=curl' \
       http://localhost/incrAddSentence.php \
       | grep --quiet '{"result":true}' \
-      || ! echo "Error" &>2
+      || ! echo "Error" >&2
    grep --quiet "T$tag" $CORPORA \
    || ! echo $'\nError: Cannot find entry.' >&2
 }

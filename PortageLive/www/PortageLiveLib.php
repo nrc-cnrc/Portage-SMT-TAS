@@ -574,7 +574,7 @@ class PortageLiveLib {
    }
 
 
-   public function incrementalTrainingClearDocumentLevelModelWorkdir($document_level_model_ID = NULL) {
+   public function incrClearDocumentLevelModelWorkdir($document_level_model_ID = NULL) {
       error_log('Not yet properly implemented');
       assert(False);
 
@@ -595,7 +595,7 @@ class PortageLiveLib {
       return $work_dir;
    }
 
-   public function incrementalTrainingAddSentencePair(
+   public function incrAddSentence(
       $document_level_model_ID = NULL,
       $source_sentence = NULL,
       $target_sentence = NULL,
@@ -634,7 +634,7 @@ class PortageLiveLib {
       $work_dir = $this->makeDocumentLevelModelWorkDir($document_level_model_ID);
 
       $command = "cd $work_dir && ";
-      $command .= "incremental-training-add-sentence-pair.sh";
+      $command .= "incr-add-sentence.sh";
       if (isset($extra_data) && ! empty($extra_data)) {
          $extra_data = escapeshellarg($extra_data);
          $command .= " -extra-data " . $extra_data;

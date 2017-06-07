@@ -1,5 +1,5 @@
 <?php
-# @file incrementalTrainingAddSentencePair.php
+# @file incrAddSentence.php
 # @brief Incremental Training REST API
 #
 # @author Samuel Larkin
@@ -11,13 +11,13 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
-require 'incrementalTrainingAddSentencePair.php';
+require 'incrAddSentence.php';
 
 # Let's change the web workdir to a local workdir.  It needs to be an absolute
 # path.
 $base_web_dir = getcwd();
 
-class IncrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
+class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
 {
    protected $basicRequest;
 
@@ -159,7 +159,7 @@ class IncrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
     * @test
     */
    public function pliveDirectoryMissing() {
-      IncrementalTrainingAddSentencePair_Test::deleteDir('plive');
+      IncrAddSentence_Test::deleteDir('plive');
       $this->assertFalse(is_dir('plive'));
 
       $service = new IncrementalTrainor();
@@ -206,7 +206,7 @@ class IncrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
    public function pliveDirectoryNotWritable() {
       $this->markTestSkipped( 'Unable to properly handle read-only plive folder.');
 
-      IncrementalTrainingAddSentencePair_Test::deleteDir('plive');
+      IncrAddSentence_Test::deleteDir('plive');
       $this->assertFalse(is_dir('plive'));
       mkdir('plive', 0500);
       $this->assertTrue(is_dir('plive'));

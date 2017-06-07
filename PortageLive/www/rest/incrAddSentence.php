@@ -1,5 +1,5 @@
 <?php
-# @file incrementalTrainingAddSentencePair.php
+# @file incrAddSentence.php
 # @brief Incremental Training REST API
 #
 # @author Samuel Larkin
@@ -133,9 +133,9 @@ class IncrementalTrainor extends PortageLiveLib {
    public function addSentencePair() {
       $this->parseRequest(@$_SERVER['QUERY_STRING']);
 
-      # We will let PortageLiveLib::incrementalTrainingAddSentencePair()
+      # We will let PortageLiveLib::incrAddSentence()
       # handle its arguments errors.
-      $result = $this->incrementalTrainingAddSentencePair(
+      $result = $this->incrAddSentence(
          $this->document_level_model_ID,
          $this->source,
          $this->target,

@@ -5,7 +5,7 @@ require 'PortageLiveLib.php';
 # path.
 $base_web_dir = getcwd();
 
-class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Framework_TestCase
+class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 {
    var $document_level_model_ID;
    var $unique_id;
@@ -23,7 +23,7 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
       $this->target = 'B_' . $this->unique_id;
 
       global $base_web_dir;
-      #$workdir = $service->incrementalTrainingClearDocumentLevelModelWorkdir($document_level_model_ID);
+      #$workdir = $service->incrClearDocumentLevelModelWorkdir($document_level_model_ID);
       $this->witnessFileName = $base_web_dir . "/plive/DOCUMENT_LEVEL_MODEL_{$this->document_level_model_ID}/witness";
       if (is_file($this->witnessFileName)) {
          $this->assertTrue(unlink($this->witnessFileName), 'Unable to delete the witness file.');
@@ -51,7 +51,7 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrementalTrainingAddSentencePair();
+      $result = $service->incrAddSentence();
 
       $this->assertFalse($result);
    }
@@ -67,7 +67,7 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrementalTrainingAddSentencePair($this->document_level_model_ID);
+      $result = $service->incrAddSentence($this->document_level_model_ID);
 
       $this->assertFalse($result);
    }
@@ -83,7 +83,7 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrementalTrainingAddSentencePair($this->document_level_model_ID, $this->source);
+      $result = $service->incrAddSentence($this->document_level_model_ID, $this->source);
 
       $this->assertFalse($result);
    }
@@ -95,7 +95,7 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrementalTrainingAddSentencePair($this->document_level_model_ID, $this->source, $this->target);
+      $result = $service->incrAddSentence($this->document_level_model_ID, $this->source, $this->target);
 
       # Assert
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
@@ -108,11 +108,17 @@ class PortageLiveLib_incrementalTrainingAddSentencePair_Test extends PHPUnit_Fra
 
       $this->assertFileExists($this->corporaFileName, "There should be a corpora file.");
       $corpora = file_get_contents($this->corporaFileName);
-      $this->assertEquals("$this->source\t$this->target", trim($corpora), "The corpora file should contain our sentence pair.");
+      #2017-06-07 15:24:19\tsource_sentence\ttranslation_sentence
+      $this->assertRegExp("/[0-p: -]+\t$this->source\t$this->target/",
+         trim($corpora),
+         "The corpora file should contain our sentence pair.");
 
-      $this->assertFileExists($this->witnessFileName, "There should be a witness that attests that training was completed.");
+      $this->assertFileExists($this->witnessFileName,
+         "There should be a witness that attests that training was completed.");
       $witness = file_get_contents($this->witnessFileName);
-      $this->assertEquals('Training is done', trim($witness), "We were expecting that training would've been done.");
+      $this->assertEquals('Training is done',
+         trim($witness),
+         "We were expecting that training would've been done.");
    }
 }
 ?>

@@ -20,15 +20,15 @@ logging.basicConfig(level=logging.CRITICAL)
 
 url = 'http://132.246.128.219'
 
-class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
+class TestIncrAddSentence(unittest.TestCase):
    """
    Using PortageLiveAPI's WSDL deployed on a web server, we test SOAP calls to
-   incrementalTrainingAddSentencePair().
+   incrAddSentence().
    """
 
 
    def __init__(self, *args, **kwargs):
-      super(TestIncrementalTrainingAddSentencePair, self).__init__(*args, **kwargs)
+      super(TestIncrAddSentence, self).__init__(*args, **kwargs)
 
       DocumentCache().clear()
       self.url = url
@@ -43,21 +43,21 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
 
    def test_no_argument(self):
       """
-      incrementalTrainingAddSentencePair() should warn the user that it needs
+      incrAddSentence() should warn the user that it needs
       some parameters.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair()
+         self.client.service.incrAddSentence()
       self.assertEqual(cm.exception.message, u"Server raised fault: 'Missing parameter'")
 
 
    def test_all_arguments_null(self):
       """
-      incrementalTrainingAddSentencePair() expects 3 arguments that cannot be
+      incrAddSentence() expects 3 arguments that cannot be
       None/NULL.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair(None, None, None)
+         self.client.service.incrAddSentence(None, None, None)
       self.assertEqual(cm.exception.message, u"Server raised fault: 'Missing parameter'")
 
 
@@ -66,7 +66,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
       It is invalid to use the empty string as document level model ID.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair('', '', '')
+         self.client.service.incrAddSentence('', '', '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_level_model_ID.'")
 
 
@@ -75,7 +75,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
       The source sentence cannot be empty.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair(self.document_level_model_id, '', '')
+         self.client.service.incrAddSentence(self.document_level_model_id, '', '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence.'")
 
 
@@ -84,7 +84,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
       The target sentence cannot be empty.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair(self.document_level_model_id, self.source_sentence, '')
+         self.client.service.incrAddSentence(self.document_level_model_id, self.source_sentence, '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence.'")
 
 
@@ -95,7 +95,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
       of arguments
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrementalTrainingAddSentencePair( \
+         self.client.service.incrAddSentence( \
                self.document_level_model_id, \
                self.source_sentence, \
                self.target_sentence,
@@ -105,7 +105,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
 
    def test_basic_valid_usage(self):
       """
-      This tests a valid call to incrementalTrainingAddSentencePair() where
+      This tests a valid call to incrAddSentence() where
       document_level_model_id is valid, source sentence is valid and target
       sentence is also valid.
       - The SOAP call should return true since it's supposed to be able to add
@@ -117,7 +117,7 @@ class TestIncrementalTrainingAddSentencePair(unittest.TestCase):
       UID = str(random.randint(0, 100000))
       source = self.source_sentence + str(time.time()) + UID
       target = self.target_sentence + str(time.time()) + UID
-      result = self.client.service.incrementalTrainingAddSentencePair(self.document_level_model_id, source, target)
+      result = self.client.service.incrAddSentence(self.document_level_model_id, source, target)
       self.assertEqual(result, True, \
             msg='SOAP call failed to add a sentence pair')
       # TODO:

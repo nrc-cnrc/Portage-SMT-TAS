@@ -134,13 +134,13 @@
   </message>
 
 
-  <message name="incrementalTrainingAddSentencePairRequest">
+  <message name="incrAddSentenceRequest">
     <part name="document_level_model_ID" type="xsd:string"/>
     <part name="source_sentence" type="xsd:string"/>
     <part name="target_sentence" type="xsd:string"/>
   </message>
 
-  <message name="incrementalTrainingAddSentencePairResponse">
+  <message name="incrAddSentenceResponse">
     <part name="status" type="xsd:boolean"/>
   </message>
 
@@ -462,11 +462,11 @@
     </operation>
 
 
-    <operation name="incrementalTrainingAddSentencePair">
+    <operation name="incrAddSentence">
       <documentation>
       </documentation>
-      <input message="tns:incrementalTrainingAddSentencePairRequest"/>
-      <output message="tns:incrementalTrainingAddSentencePairResponse"/>
+      <input message="tns:incrAddSentenceRequest"/>
+      <output message="tns:incrAddSentenceResponse"/>
     </operation>
 
 
@@ -658,8 +658,8 @@
     </operation>
 
 
-    <operation name="incrementalTrainingAddSentencePair">
-      <soap:operation soapAction="incrementalTrainingAddSentencePair"/>
+    <operation name="incrAddSentence">
+      <soap:operation soapAction="incrAddSentence"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>

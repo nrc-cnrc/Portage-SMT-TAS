@@ -1,5 +1,5 @@
-# @file rest/tests/incrementalTrainingAddSentencePair.yaml
-# @brief Test PortageLive REST API's incrementalTrainingAddSentencePair.
+# @file rest/tests/incrAddSentence.yaml
+# @brief Test PortageLive REST API's incrAddSentence.
 #
 # @author Samuel Larkin
 #
@@ -15,7 +15,7 @@ name: "Incremental Training Add Sentence Pair"
 
 globals:
   variables:
-    service: "{base_url}/incrementalTrainingAddSentencePair.php"
+    service: "{base_url}/incrAddSentence.php"
 
 
 testSteps:
