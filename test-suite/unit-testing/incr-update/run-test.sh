@@ -39,7 +39,7 @@ echo `date +"%F %T"`'	__DUMMY__ __DUMMY__	__DUMMY__ __DUMMY__' > corpora
 timeFormat "incr-update DUMMY"
 time incr-update.sh -f config -v en fr corpora >& log.update-dummy
 timeFormat "canoe DUMMY"
-time canoe -f canoe.ini.incr -input s1.rules > s1.out 2> log.s1.out
+time canoe -f canoe.ini -input s1.rules > s1.out 2> log.s1.out
 
 # Create a model with the s1 t1 sentence pair update, and redecode to see
 # "Mr. Boazek" correctly translated to "M. Baozeck".
@@ -47,7 +47,7 @@ paste <(echo `date +"%F %T"`) s1 t1 > corpora
 timeFormat "incr-update s1"
 time incr-update.sh -f config -v en fr corpora >& log.update-s1t1
 timeFormat "canoe s1"
-time canoe -f canoe.ini.incr -input s1.rules > s1.out.incr 2> log.s1.out.incr
+time canoe -f canoe.ini -input s1.rules > s1.out.incr 2> log.s1.out.incr
 grep -i Baozeck s1.out.incr
 
 # Prepare the dev1 files for passing to the decoder.
@@ -58,30 +58,20 @@ utokenize.pl -noss -lang fr < dev1_fr.raw | utf8_casemap -c l > dev1_fr.tok
 canoe-escapes.pl < dev1_en.tok > dev1_en.rules
 
 # Translate the dev set with the base model, with an empty incremental set.
-# Do it in the background with a read lock, to exercise incr-update.sh
-# having to wait on its write lock to do the update.
-# TODO: write a test for that... we see it works because the first update takes
-# 8 seconds instead of 5, which is due to waiting for the sleep 5 I inserted
-# here.  But how do I automate checking that?
+# Do it in the background with a shared lock (acquired by canoe itself), to
+# exercise incr-update.sh having to wait on its exclusive lock to do the update.
+# TODO: write a test for that... we see it works because the updates are
+# delayed to happen between individual canoe.0-i iterations.  But how do I
+# automate checking that?
 (
-   readonly UPDATE_LOCK_FD=202
-   readonly UPDATE_LOCK_FILE=incr-update.lock
-   eval "exec $UPDATE_LOCK_FD>$UPDATE_LOCK_FILE"
-   for n in 1 2; do
-      until flock --nonblock --shared $UPDATE_LOCK_FD; do
-         echo "canoe.0-$n failed to acquire incr-update.lock... retrying in 1 second." >&2
-         sleep 1
-      done
-      echo "canoe.0-$n acquired inc-update.lock" >&2
+   for n in 1 2 3 4 5; do
       timeFormat canoe.0-$n
-      time canoe -f canoe.ini.incr -input dev1_en.rules > dev1.out.0-$n 2> log.dev1.out.0-$n
+      echo "canoe.0-$n about to ask for lock on canoe.ini on" `date` >&2
+      time canoe -v 2 -f canoe.ini -input dev1_en.rules > dev1.out.0-$n 2> log.dev1.out.0-$n
+      echo "canoe.0-$n just released lock on canoe.ini on" `date` >&2
       if [[ $n == 1 ]]; then
          ln -sf dev1.out.0-1 dev1.out.0
-         echo "canoe.0-$n keeping incr-update.lock for 5 more seconds." >&2
-         sleep 5
       fi
-      echo "canoe.0-$n releasing incr-update.lock" >&2
-      flock --unlock $UPDATE_LOCK_FD
    done
 ) &
 
@@ -91,7 +81,7 @@ cat < /dev/null > dev1.out.incr
 for l in $(seq 1 `wc -l < dev1_fr.raw`); do
    timeFormat canoe.$l
    time select-line $l dev1_en.rules \
-      | canoe -f canoe.ini.incr \
+      | canoe -v 2 -f canoe.ini \
       >> dev1.out.incr 2> log.dev1.out.incr-$l
    if (($l % $UPDATE_FREQ == 0)); then
       echo Doing incremental update using $l lines
@@ -99,9 +89,11 @@ for l in $(seq 1 `wc -l < dev1_fr.raw`); do
       timeFormat "incr-update $l"
       time incr-update.sh -f config -v en fr corpora >& log.update-$l
    fi
-   #time canoe -f canoe.ini.incr -input dev1_en.rules > dev1.out.$l 2> log.dev1.out.$l
+   #time canoe -f canoe.ini -input dev1_en.rules > dev1.out.$l 2> log.dev1.out.$l
 done
 
 bleumain dev1.out.0 dev1_fr.tok > log.dev1.out.0.bleu
 bleumain dev1.out.incr dev1_fr.tok > log.dev1.out.incr.bleu
 grep Human *.bleu
+
+wait

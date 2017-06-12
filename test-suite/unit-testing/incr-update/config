@@ -1,4 +1,3 @@
 INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
-UPDATE_LOCK_FILE=incremental-update.lock
