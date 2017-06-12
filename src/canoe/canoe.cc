@@ -766,7 +766,9 @@ int MAIN(argc, argv)
 
    c.read(c.configFile.c_str()); // set parameters from config file
    c.setFromArgReader(argReader); // override from cmd line
+   if (c.need_lock) c.lock();
    c.check();
+
    PhraseTable::log_almost_0 = c.phraseTableLogZero;
 
    // we log the start time after the checks, so it's not produced when the

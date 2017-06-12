@@ -39,6 +39,7 @@
    using namespace boost::spirit;
 #endif
 #include <boost/bind.hpp>
+#include <sys/file.h>
 
 using namespace Portage;
 
@@ -189,6 +190,7 @@ CanoeConfig::CanoeConfig()
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
    bind_pid               = -1;
    timing                 = false;
+   need_lock              = false;
 
    // Parameter information, used for input and output. NB: doesn't necessarily
    // correspond 1-1 with actual parameters, as one ParamInfo can set several
@@ -299,6 +301,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
    param_infos.push_back(ParamInfo("timing", "bool", &timing));
    param_infos.push_back(ParamInfo("triangularArrayFilename", "string", &triangularArrayFilename));
+   param_infos.push_back(ParamInfo("lock", "bool", &need_lock));
 
 
 
@@ -657,6 +660,31 @@ void CanoeConfig::read(istream& configin)
       } else if (s != "")
          error(ETWarn, "ignoring unknown option %s in config file", s.c_str());
    }
+}
+
+/// For logging purposes
+static string curTime() {
+   time_t now = time(0);
+   string ret = asctime(localtime(&now));
+   return trim(ret, "\n \t");
+}
+
+void CanoeConfig::lock()
+{
+   int lock_fd = open(configFile.c_str(), O_RDONLY);
+   if (lock_fd < 0)
+      error(ETFatal, "Cannot open config file %s for locking.%s%s",
+         configFile.c_str(),
+         (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
+   if (flock(lock_fd, LOCK_SH|LOCK_NB) < 0) {
+      cerr << "Waiting for shared lock on " << configFile << " on " << curTime() << endl;
+      if (flock(lock_fd, LOCK_SH) < 0)
+         error(ETFatal, "Cannot obtain read lock on config file %s.%s%s",
+            configFile.c_str(),
+            (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
+   }
+   if (verbosity >= 1)
+      cerr << "Got shared lock on " << configFile << " on " << curTime() << endl;
 }
 
 void CanoeConfig::check()

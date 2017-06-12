@@ -257,6 +257,7 @@ public:
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
    int  bind_pid;                   ///< What pid to monitor.
    bool timing;                     ///< Show per-sentence timing information
+   bool need_lock;                  ///< Require a shared lock on config file
 
    /**
     * Constructor, sets default parameter values.
@@ -314,6 +315,11 @@ public:
     * needed.
     */
    void check();
+
+   /**
+    * Get a read lock on the current config file
+    */
+   void lock();
 
    /**
     * Check that all files listed in the parameter values are readable.
