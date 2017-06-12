@@ -128,7 +128,8 @@ class TestIncrAddSentence(unittest.TestCase):
             msg='Failed fetching the corpora file for '.format(self.document_level_model_id))
 
       reference_sentence_pair = source + '\t' + target
-      self.assertEqual(len(filter(lambda sp: sp == reference_sentence_pair, r.text.split('\n'))), 1, \
+      reference_in_corpora = filter(lambda sp: sp.find(reference_sentence_pair) != -1, r.text.split('\n'))
+      self.assertEqual(len(reference_in_corpora), 1, \
             msg='There should be exactly one occurence of our sentence pair in the corpora.')
 
 
