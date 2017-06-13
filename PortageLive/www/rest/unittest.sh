@@ -20,6 +20,7 @@ function deploy_code() {
    cp ../PortageLiveLib.php /var/www/html/
    cp incrAddSentence.php /var/www/html/
    cp translate.php /var/www/html/language/translate/
+   cp ../PortageLiveLib.php /var/www/html/language/translate/
    cp ../../../src/utils/incr-add-sentence.sh /opt/PortageII/bin/
 }
 
