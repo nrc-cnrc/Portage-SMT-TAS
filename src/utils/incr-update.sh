@@ -26,6 +26,7 @@ INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
 readonly local_canoe_ini=canoe.ini
+readonly incr_canoe_ini=canoe.ini.incr
 
 function usage() {
    for msg in "$@"; do
@@ -185,7 +186,7 @@ time (
 
    # validation
    verbose 1 "Checking the final config"
-   if time configtool check $local_canoe_ini; then
+   if time configtool check $incr_canoe_ini; then
       verbose 1 "All good"
    else
       verbose 1 "Problem with final canoe config, rolling back update"
@@ -198,4 +199,4 @@ time (
 
    # sleep 5 # insert this to test whether the locking is really working
    verbose 1 "Releasing update lock"
-) 202<$local_canoe_ini
+) 202<$incr_canoe_ini
