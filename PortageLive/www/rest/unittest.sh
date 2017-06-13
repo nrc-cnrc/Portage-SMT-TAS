@@ -85,8 +85,20 @@ function curl_testcase() {
    || ! echo $'\nError: Cannot find entry.' >&2
 }
 
+function lint_php() {
+   verbose lint_php
+   for c in ../PortageLiveLib.php incrAddSentence.php; do
+      php \
+         --define 'include_path=.:..' \
+         --syntax-check \
+         $c \
+      || ! echo "Error in linting $f" >&2
+   done
+}
+
 
 [[ $DEPLOY ]] && deploy_code
+lint_php
 start_php_server
 local_testase
 remote_testcase
