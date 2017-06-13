@@ -187,7 +187,7 @@ class RestTranlator extends PortageLiveLib {
 
 
 try {
-   header('content-type: application/json');
+   header('Content-Type: application/json');
    $translator = new RestTranlator();
    print $translator->translate();
 }

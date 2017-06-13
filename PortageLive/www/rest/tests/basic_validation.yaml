@@ -16,7 +16,7 @@ name: "Exercice validating the parameters."
 
 globals:
   variables:
-    service: "{base_url}/language/translate/v3.php"
+    service: "{base_url}/translate.php"
 
 testSteps:
   - name: "No query"

@@ -41,7 +41,6 @@ function start_php_server() {
    [[ -d plive ]] && rm -fr plive
    php \
       --define 'include_path=.:..' \
-      --define 'base_web_dir=.' \
       --server $server_ip:$server_port \
       --docroot . \
       &> log.server &
