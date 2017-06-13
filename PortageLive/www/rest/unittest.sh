@@ -11,6 +11,9 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
+readonly server_ip=127.0.0.1
+readonly server_port=8765
+
 function verbose() {
    echo $'\n'============= $* =============
 }
@@ -32,6 +35,22 @@ function local_testase() {
       tests/incrAddSentence.php
 }
 
+function start_php_server() {
+   verbose 'Starting php web server....'
+   # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_level_model_ID=5&source=S&target=T'
+   [[ -d plive ]] && rm -fr plive
+   php \
+      --define 'include_path=.:..' \
+      --define 'base_web_dir=.' \
+      --server $server_ip:$server_port \
+      --docroot . \
+      &> log.server &
+   server=$!
+   sleep 1
+   #trap "kill -9 $server; rm -fr plive" EXIT
+   trap "kill -9 $server" EXIT
+}
+
 function remote_testcase() {
    verbose remote_testcase
    # Runnig https://github.com/chitamoor/Rester
@@ -41,30 +60,34 @@ function remote_testcase() {
 function curl_testcase() {
    verbose curl_testcase
    # Web request using unicode.
-   export CORPORA=/var/www/html/plive/DOCUMENT_LEVEL_MODEL_curl/corpora
+   export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    tag=`date +"%T"`
    curl \
+      --silent \
       --get \
-      --data 'source=SÉ' \
+      --data 'source=S%C9' \
       --data "target=T$tag" \
-      --data 'document_level_model_ID=curl' \
-      http://localhost/incrAddSentence.php
+      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      "http://$server_ip:$server_port/incrAddSentence.php"
+
    curl \
       --silent \
       --get \
-      --data 'source=SÉ' \
+      --data 'source=S%C9' \
       --data "target=T$tag" \
-      --data 'document_level_model_ID=curl' \
-      http://localhost/incrAddSentence.php \
-      | grep --quiet '{"result":true}' \
-      || ! echo "Error" >&2
+      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      "http://$server_ip:$server_port/incrAddSentence.php" \
+   | grep --quiet '{"result":true}' \
+   || ! echo "Error Adding sentence pairs" >&2
+
    grep --quiet "T$tag" $CORPORA \
    || ! echo $'\nError: Cannot find entry.' >&2
 }
 
 
 [[ $DEPLOY ]] && deploy_code
+start_php_server
 local_testase
 remote_testcase
 curl_testcase
