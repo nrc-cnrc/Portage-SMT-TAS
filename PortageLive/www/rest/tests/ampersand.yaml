@@ -16,7 +16,7 @@ name: "Translate with ampersand"
 
 globals:
   variables:
-    service: "{base_url}/language/translate/v3.php"
+    service: "{base_url}/language/translate/translate.php"
 
 
 testSteps:
