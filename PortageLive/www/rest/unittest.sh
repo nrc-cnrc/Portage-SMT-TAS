@@ -69,7 +69,9 @@ function curl_testcase() {
       --data 'source=S%C9' \
       --data "target=T$tag" \
       --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
-      "http://$server_ip:$server_port/incrAddSentence.php"
+      "http://$server_ip:$server_port/incrAddSentence.php" \
+   | grep --quiet '{"result":true}' \
+   || ! echo "Error Adding sentence pairs" >&2
 
    curl \
       --silent \
