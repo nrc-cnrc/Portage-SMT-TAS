@@ -17,11 +17,12 @@ if (php_sapi_name() == 'cli-server') {
    # We need to specify a full path and not simply "." because the working 
    # directory has do be a absolute path since runCommand executes from /tmp.
    $base_web_dir = $_SERVER['DOCUMENT_ROOT'];
+   $base_portage_dir = $_SERVER['DOCUMENT_ROOT'] . '/tests/';
 }
 else {
    $base_web_dir = "/var/www/html";
+   $base_portage_dir = "/opt/PortageII";
 }
-$base_portage_dir = "/opt/PortageII";
 $base_url = "/";
 
 
