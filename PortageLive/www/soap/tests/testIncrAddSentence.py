@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.CRITICAL)
 # If you need to debug what is happening, uncomment the following line
 #logging.basicConfig(level=logging.DEBUG)
 
-url = 'http://132.246.128.219'
+url = 'http://127.0.0.1:8765'
 
 class TestIncrAddSentence(unittest.TestCase):
    """
