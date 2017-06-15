@@ -158,15 +158,6 @@ class IncrementalTrainor extends PortageLiveLib {
    }
 }
 
-# http_response_code() only exists starting with php 5.4, but we can simulate
-# it with older versions
-if (!function_exists('http_response_code')) {
-   function http_response_code($code) {
-      header('X-PHP-Response-Code: '.$code, true, $code);
-   }
-}
-
-
 # if this wasn't loaded as a library by phpunit, execute a main function.
 # This is the equivalent of Python's if __name__ == '__main__':
 if (!count(debug_backtrace())) {

@@ -34,6 +34,15 @@ function debug($i) {
    }
 }
 
+# http_response_code() only exists starting with php 5.4, but we can simulate
+# it with older versions
+if (!function_exists('http_response_code')) {
+   function http_response_code($code) {
+      header('X-PHP-Response-Code: '.$code, true, $code);
+   }
+}
+
+
 class PortageLiveLib {
 
    var $validLanguages = array('en' => 1, 'fr' => 1, 'es' => 1, 'da' =>1);
