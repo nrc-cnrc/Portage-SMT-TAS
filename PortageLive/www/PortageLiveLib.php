@@ -48,10 +48,6 @@ class PortageLiveLib {
 
    var $validLanguages = array('en' => 1, 'fr' => 1, 'es' => 1, 'da' =>1);
 
-   const MAGIC_UNITTEST_DOCUMENT_ID = 'PORTAGE_UNITTEST_4da35';
-   const unittest_incrementalTrainingScript = 'rm -f witness; sleep 2; echo "Training is done" > witness';
-   const incrementalTrainingScript = 'some script to figure out in the future.';
-
    private function validLanguagesToString() {
       return '{' . implode(", ", array_keys($this->validLanguages)) . '}';
    }
@@ -152,7 +148,12 @@ class PortageLiveLib {
          $descriptorspec[1] = array("file", "/dev/null", "a");
          $descriptorspec[2] = array("file", "/dev/null", "a");
       }
-      $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
+      if (php_sapi_name() === 'cli' or php_sapi_name() === 'cli-server') {
+         $process = proc_open($command, $descriptorspec, $pipes, $cwd, NULL);
+      }
+      else {
+         $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
+      }
 
       if (is_resource($process)) {
          # $pipes now looks like this:
@@ -631,15 +632,6 @@ class PortageLiveLib {
          throw new SoapFault("PortageBadArgs", "You must provide a target sentence.");
       }
 
-      # This is ugly, I know, but I don't know of any elegant way of using a
-      # stub to perform unittesting from a web SOAP call.
-      if ($document_level_model_ID === PortageLiveLib::MAGIC_UNITTEST_DOCUMENT_ID) {
-         $incrementalTrainingScript = PortageLiveLib::unittest_incrementalTrainingScript;
-      }
-      else {
-         $incrementalTrainingScript = PortageLiveLib::incrementalTrainingScript;
-      }
-
       # We need to set LC_ALL or else escapeshellarg will strip out unicode.
       # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
       # http://positon.org/php-escapeshellarg-function-utf8-and-locales
@@ -647,16 +639,16 @@ class PortageLiveLib {
       setlocale(LC_ALL, 'en_US.utf8');
       $source_sentence = escapeshellarg($source_sentence);
       $target_sentence = escapeshellarg($target_sentence);
-      $incrementalTrainingScript = escapeshellarg($incrementalTrainingScript);
       $work_dir = $this->makeDocumentLevelModelWorkDir($document_level_model_ID);
 
       $command = "cd $work_dir && ";
       $command .= "incr-add-sentence.sh";
+
       if (isset($extra_data) && ! empty($extra_data)) {
          $extra_data = escapeshellarg($extra_data);
          $command .= " -extra-data " . $extra_data;
       }
-      $command .= " $incrementalTrainingScript $source_sentence $target_sentence";
+      $command .= " $source_sentence $target_sentence";
       #error_log($command);
 
       $dummy_context_info = array( 'context_dir' => '' );

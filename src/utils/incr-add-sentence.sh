@@ -62,9 +62,11 @@ function usage() {
    [[ $0 =~ [^/]*$ ]] && prog=$BASH_REMATCH || prog=$0
    cat <<==EOF== >&2
 
-Usage: $prog [options] INCREMENTAL_SCRIPT  SOURCE TRANSLATION
+Usage: $prog [options] [SOURCE TRANSLATION]
 
-  Brief description
+  When called with SOURCE AND TRANSLATION, it adds the pair to a queue and then
+  tries to start an incremental update.
+  When simply called with no argument, triggers an incremental update.
 
 Options:
 
@@ -96,23 +98,14 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-readonly incremental_training=$1
-readonly source_sentence=`clean-utf8-text.pl <<< $2`
-readonly target_sentence=`clean-utf8-text.pl <<< $3`
-
-# When running in unittest mode, it should automatically trigger verbose.
-[[ $unittest ]] && VERBOSE=$(( $VERBOSE + 1 ))
-
-if [[ -z $incremental_training ]]; then
-   ! echo "Error: You must provide an incremental training script." >&2
-   exit 1
-fi
-
 # TODO:
 # - error if only one sentence is provided?
 # - error if either sentence is empty?
+readonly source_sentence=`clean-utf8-text.pl <<< $1 2> /dev/null`
+readonly target_sentence=`clean-utf8-text.pl <<< $2 2> /dev/null`
 
-
+# When running in unittest mode, it should automatically trigger verbose.
+[[ $unittest ]] && VERBOSE=$(( $VERBOSE + 1 ))
 
 eval "exec $queue_fd>$queue_lock"
 verbose 1 "Locking the queue"
@@ -170,7 +163,7 @@ fi
 
       # Train
       verbose 1 "$$ is training"
-      eval $incremental_training $corpora &> incremental-update.log
+      incr-update.sh 'fr' 'en' $corpora &> incremental-update.log
 
       eval "exec $queue_fd>$queue_lock"
       verbose 1 "Locking the queue"

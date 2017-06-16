@@ -17,7 +17,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    protected function setUp()
    {
-      $this->document_level_model_ID = PortageLiveLib::MAGIC_UNITTEST_DOCUMENT_ID;
+      $this->document_level_model_ID = 'cli_php';
       $this->unique_id = time() . rand(0, 100000);
       $this->source = 'A_' . $this->unique_id;
       $this->target = 'B_' . $this->unique_id;

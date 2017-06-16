@@ -20,13 +20,10 @@ trap "trap - EXIT; echo Test FAILED" ERR
 trap "echo All tests PASSED." EXIT
 
 
-readonly INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR=${INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR:-incr-add-sentence.sh}
-
 readonly CORPORA=corpora
 readonly QUEUE=queue
 readonly LOG=log
 readonly MAX_CONCURRENT_CALLS=25
-readonly INCREMENTAL_UPDATE_SCRIPT=./incr-update.sh
 readonly DELAY=1
 readonly TRAINING_TIME=6
 readonly WITNESS=witness
@@ -68,17 +65,9 @@ function add_sentence_pair_to_queue() {
 
 
 function trigger_single_training() {
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest  "$INCREMENTAL_UPDATE_SCRIPT" >&2 &
-}
-
-
-
-function no_script() {
-   set -o errexit
-   testcaseDescritption "No incremental training script"
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR -verbose -unittest \
-   |& grep --quiet 'Error: You must provide an incremental training script.' \
-   || ! error_message "There should be an error message about missing incremental training script missing."
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh -verbose -unittest >&2 &
 }
 
 
@@ -87,11 +76,12 @@ function with_extra_data() {
    set -o errexit
    testcaseDescritption "Adding extra data"
    cleanup
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
       -verbose \
       -unittest \
       -extra-data '{"a": 1}' \
-      "$INCREMENTAL_UPDATE_SCRIPT" \
       "source_extra" \
       "translation_extra"
    sleep $((TRAINING_TIME+1))
@@ -119,10 +109,11 @@ function with_utf8() {
    set -o errexit
    testcaseDescritption "Let's use UTF-8"
    cleanup
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
       -verbose \
       -unittest \
-      "$INCREMENTAL_UPDATE_SCRIPT" \
       "source_utf8_É" \
       "⅀translation_utf8_¿"
    sleep $((TRAINING_TIME+1))
@@ -136,10 +127,11 @@ function with_quotes() {
    set -o errexit
    testcaseDescritption "Let's include quotes and stuff"
    cleanup
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
       -verbose \
       -unittest \
-      "$INCREMENTAL_UPDATE_SCRIPT" \
       "double\"single'backtick\`left<right>quotes" \
       "double\"single'backtick\`left<right>quotes"
    sleep $((TRAINING_TIME+1))
@@ -153,10 +145,11 @@ function with_tab() {
    set -o errexit
    testcaseDescritption "Let's include litteral tabs"
    cleanup
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
       -verbose \
       -unittest \
-      "$INCREMENTAL_UPDATE_SCRIPT" \
       $'source\tsource\tsource' \
       "target\ttarget\ttarget"
    sleep $((TRAINING_TIME+1))
@@ -172,12 +165,13 @@ function unable_to_write_to_the_queue(){
    cleanup
    touch $QUEUE
    chmod a-w $QUEUE
-   $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
       -verbose \
       -unittest \
-      "$INCREMENTAL_UPDATE_SCRIPT" \
-      "$i-S-$$ `date +'%T:%N'`" \
-      "$i-T-$$ `date +'%T:%N'`" \
+      "S-$$ `date +'%T:%N'`" \
+      "T-$$ `date +'%T:%N'`" \
    |& grep --quiet 'Error writing sentence pair to the queue' \
    || ! error_message "We shouldn't be able to write to the queue."
 }
@@ -199,10 +193,11 @@ function multiple_add_and_multiple_trigger() {
       # Add sentence pair and trigger training.
       {
          sleep $DELAY;
-         $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+         # We want to use a stub for incr-update.sh.
+         PATH=.:$PATH \
+         incr-add-sentence.sh \
             -verbose \
             -unittest \
-            "$INCREMENTAL_UPDATE_SCRIPT" \
             "$i-S-$$ `date +'%T:%N'`" \
             "$i-T-$$ `date +'%T:%N'`" \
             &> $LOG.add.$i;
@@ -210,16 +205,17 @@ function multiple_add_and_multiple_trigger() {
       # Trigger training only.
       {
          sleep $DELAY;
-         $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+         # We want to use a stub for incr-update.sh.
+         PATH=.:$PATH \
+         incr-add-sentence.sh \
             -verbose \
             -unittest \
-            "$INCREMENTAL_UPDATE_SCRIPT" \
             &> $LOG.trigger.$i;
       } &
    done
 
    echo "Waiting for everyone to be done" >&2
-   # Because $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR disowns the training
+   # Because incr-add-sentence.sh disowns the training
    # script, it is not sufficient to simply `wait` we need to sleep.
    sleep $(( $DELAY + 2 * $TRAINING_TIME + 2 ))
 
@@ -272,16 +268,17 @@ function insert_and_multiple_trigger_training() {
    do
       {
          sleep $DELAY;
-         $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR \
+         # We want to use a stub for incr-update.sh.
+         PATH=.:$PATH \
+         incr-add-sentence.sh \
             -verbose \
             -unittest \
-            "$INCREMENTAL_UPDATE_SCRIPT" \
             &> $LOG.trigger.$i;
       } &
    done
 
    echo "Waiting for everyone to be done" >&2
-   # Because $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR disowns the training
+   # Because incr-add-sentence.sh disowns the training
    # script, it is not sufficient to simply `wait` we need to sleep.
    sleep $(( $DELAY + $TRAINING_TIME + 1 ))
 
@@ -305,13 +302,10 @@ function integration_with_incremental_update_sh() {
 
    readonly TOY_SYSTEM=$PORTAGE/test-suite/systems/toy-regress-en2fr
    ln -fs $TOY_SYSTEM/models .
-   #readonly IU=incr-update.sh
-   readonly IU='bash -v ~/sandboxes/PORTAGEshared/bin/incr-update.sh'
 
    # Remove temporary directory created by incr-update.sh
    rm -fr incremental-tmp.???
    incr-add-sentence.sh \
-      "$IU fr en" \
       "Il faut aller à l'école." \
       'We must go to school.'
 
@@ -333,13 +327,9 @@ function integration_with_incremental_update_sh() {
 
 
 
-which $INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR &> /dev/null \
-|| { ! error_message "INCREMENTAL_TRAINING_ADD_SENTENCE_PAIR not defined"; exit 1; }
+which incr-add-sentence.sh &> /dev/null \
+|| { ! error_message "incr-add-sentence.sh not defined"; exit 1; }
 
-with_tab
-exit
-
-no_script
 unable_to_write_to_the_queue
 with_extra_data
 with_utf8

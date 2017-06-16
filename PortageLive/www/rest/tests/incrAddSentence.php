@@ -23,7 +23,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    public function __construct() {
       $this->basicRequest = array(
-         'document_level_model_ID' => PortageLiveLib::MAGIC_UNITTEST_DOCUMENT_ID,
+         'document_level_model_ID' => 'rest_local',
          'source' => 'Source',
          'target' => 'Target'
          );

@@ -99,6 +99,7 @@ function lint_php() {
 }
 
 
+rm -fr plive
 [[ $DEPLOY ]] && deploy_code
 lint_php
 start_php_server
