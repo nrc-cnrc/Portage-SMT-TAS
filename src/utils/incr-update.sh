@@ -93,13 +93,13 @@ fi
 
 
 function initialize_incremental_directory() {
-   local readonly base_canoe_ini=$1
+   local readonly _base_canoe_ini=$1
 
    # Setup the model directory and the canoe.ini.
-   [[ -r $base_canoe_ini ]] || error_exit "Cannot read the CANOE_INI file $base_canoe_ini"
+   [[ -r $_base_canoe_ini ]] || error_exit "Cannot read the CANOE_INI file $_base_canoe_ini"
 
-   local readonly base_dir=`basename $base_canoe_ini`
-   [[ -s $local_canoe_ini ]] || cp $base_canoe_ini $local_canoe_ini
+   local readonly base_dir=`dirname $_base_canoe_ini`
+   [[ -s $local_canoe_ini ]] || cp $_base_canoe_ini $local_canoe_ini
    [[ -L "prime.sh" ]] || ln -s $base_dir/prime.sh .
    [[ -L "soap-translate.sh" ]] || ln -s $base_dir/soap-translate.sh .
    [[ -L models ]] || ln -s $base_dir/models models
