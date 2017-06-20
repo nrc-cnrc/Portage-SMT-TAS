@@ -484,7 +484,7 @@ int main(int argc, char* argv[])
       cout << join(c.LDMFiles, separator) << endl;
    } else if (isPrefix("list-tm", cmd)) {
       vector<string> alltms(c.multiProbTMFiles);
-      alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
+      alltms.insert(alltms.end(), c.allNonMultiProbPTs.begin(), c.allNonMultiProbPTs.end());
       cout << join(alltms, separator) << endl;
    } else if (isPrefix("list-all-files", cmd)) {
       // arghhh. I (EJ) wrote this, but it's gross.  I should use the ParamInfo
