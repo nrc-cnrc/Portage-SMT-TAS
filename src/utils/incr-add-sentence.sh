@@ -165,7 +165,6 @@ fi
       verbose 1 "$$ is training"
       incr-update.sh 'fr' 'en' $corpora &> incremental-update.log
 
-      eval "exec $queue_fd>$queue_lock"
       verbose 1 "Locking the queue"
       flock --exclusive $queue_fd
    done
