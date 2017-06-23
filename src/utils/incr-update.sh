@@ -171,7 +171,18 @@ time $TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc
 
 # LM
 verbose 1 Train the incremental LM on target
+set +o errexit
 time estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
+RC=$?
+set -o errexit
+#echo RC=$RC
+if [[ $RC == 139 ]]; then
+   echo "Warning: estimate-ngram core dumped; adding dummy tokens to the document LM corpus and trying again"
+   { echo __DUMMY__ __DUMMY__ __DUMMY__ __DUMMY__; cat $WD/target.lc; } > $WD/target.lc.forLM
+   time estimate-ngram -s ML -text $WD/target.lc.forLM -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
+elif [[ $RC != 0 ]]; then
+   error_exit "Cannot train document LM"
+fi
 verbose 1 Tightly pack the incremental LM
 time (
    cd $WD

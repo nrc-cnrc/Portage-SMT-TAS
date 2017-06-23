@@ -42,6 +42,13 @@ time incr-update.sh -f config -v corpora >& log.update-dummy
 timeFormat "canoe DUMMY"
 time canoe -f canoe.ini.incr -input s1.rules > s1.out 2> log.s1.out
 
+# Create an incremental model with too small a target corpus for regular LM
+# creation
+echo `date +"%F %T"`'	.	.' > corpora
+timeFormat "incr-update toosmall"
+time incr-update.sh -f config -v corpora >& log.update-toosmall
+grep -q __DUMMY__ lm.incremental_fr
+
 # Create a model with the s1 t1 sentence pair update, and redecode to see
 # "Mr. Boazek" correctly translated to "M. Baozeck".
 paste <(echo `date +"%F %T"`) s1 t1 > corpora
