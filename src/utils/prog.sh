@@ -71,11 +71,11 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-test $# -eq 0   && error_exit "Missing first argument argument"
+[[ $# -eq 0 ]]  && error_exit "Missing first argument argument"
 PROG_ARGUMENT1=$1; shift
-test $# -eq 0   && error_exit "Missing second argument argument"
+[[ $# -eq 0 ]]  && error_exit "Missing second argument argument"
 PROG_ARGUMENT2=$1; shift
-test $# -gt 0   && error_exit "Superfluous arguments $*"
+[[ $# -gt 0 ]]  && error_exit "Superfluous arguments $*"
 
 # [Update this block with your variables, or simply delete it, when you use
 # this template]
