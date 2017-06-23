@@ -51,6 +51,13 @@ timeFormat "canoe s1"
 time canoe -f canoe.ini.incr -input s1.rules > s1.out.incr 2> log.s1.out.incr
 grep -i Baozeck s1.out.incr
 
+# Use custom commands in the config and make sure they work
+timeFormat "incr-update custom cmds"
+time incr-update.sh -f config.custom-cmds -v corpora >& log.update-custom
+grep -q Boazek cpt.incremental.en2fr
+grep -q KCEZOAB cpt.incremental.en2fr
+grep -q "ERTSINIM UA ELLEVUON" lm.incremental_fr
+
 # Prepare the dev1 files for passing to the decoder.
 head -30 $PORTAGE/test-suite/tutorial-data/dev1_en.raw > dev1_en.raw
 head -30 $PORTAGE/test-suite/tutorial-data/dev1_fr.raw > dev1_fr.raw
