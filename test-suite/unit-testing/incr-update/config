@@ -1,3 +1,5 @@
 INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
+SRC_LANG=en
+TGT_LANG=fr
