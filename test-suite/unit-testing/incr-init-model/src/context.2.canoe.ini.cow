@@ -1,0 +1,31 @@
+[lex-dist-model-file]
+   models/ldm/hldm.hmm3+ibm2.en2fr.tpldm
+[ttable-tppt]
+   models/tm/cpt.merged.hmm3-kn3-zn.tm-train.en2fr.tppt
+   models/tm/cpt.test.en2fr.tppt
+[lmodel-file]
+   models/lm/lm-train_fr-kn-5g.tplm
+   models/lm/test_fr.tplm
+[weight-l] 1:0.9
+[weight-t] -0.01030469044:0.2756329644:-0.01030469044:0.2756329644
+[weight-f] 0.1401431711:0.1786568275:0.1401431711:0.1786568275
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 2000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-simple]
+[dist-phrase-swap]
+[bypass-marked]
+[cube-pruning]
+[use-ftm]
+[weight-d] 0.1122876273:0.3047483235:-0.008953367178:0.206875903:0.2802127391:0.00589063228:0.2132976165
+[weight-w] -0.648792919
+[distortion-model]
+   WordDisplacement
+   back-hlex#m#0
+   back-hlex#s#0
+   back-hlex#d#0
+   fwd-hlex#m#0
+   fwd-hlex#s#0
+   fwd-hlex#d#0
