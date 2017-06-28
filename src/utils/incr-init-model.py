@@ -14,7 +14,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import sys
 import os.path
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import codecs
 from subprocess import check_call, check_output, CalledProcessError
 import shutil
@@ -41,7 +41,7 @@ from portage_utils import *
 def get_args():
    """Command line argument processing."""
 
-   usage="incr-init-model.py [options] base_canoe_ini]"
+   usage="incr-init-model.py [options] [--] base_canoe_ini"
    help="""
    Initialize the incremental model in the current directory, creating its
    canoe.ini.
@@ -55,12 +55,15 @@ def get_args():
    an extra component with INCR_LM_WT as its weight, and the weights of the
    other models are scaled by 1-INCR_LM_WT.
    
-   For the MixTM, the incremental TM is given INCR_TM_WT as its weight and the
-   main TM is given 1-INCR_TM_WT as its weight."""
+   For the MixTM, either 1 or 4 incremental model weights must be provided; if
+   one weight is given, it is used for all four columns; if four weights are
+   provided, then each column is given its own weight. The incremental TM is
+   given INCR_TM_WT as its weight and the main TM is given 1-INCR_TM_WT as its
+   weight."""
 
    # Use the argparse module, not the deprecated optparse module.
    parser = ArgumentParser(usage=usage, description=help, add_help=False,
-                           formatter_class=RawTextHelpFormatter)
+                           formatter_class=RawDescriptionHelpFormatter)
 
    # Use our standard help, verbose and debug support.
    parser.add_argument("-h", "-help", "--help", action=HelpAction)
@@ -68,12 +71,13 @@ def get_args():
    parser.add_argument("-d", "--debug", action=DebugAction)
 
    parser.add_argument("-lm-wt", "--incr-lm-weight", dest="incr_cmpt_lm_wt",
-                       type=float, default=0.1,
+                        metavar="INCR_LM_WT", type=float, default=0.1,
                        help="""incremental component LM model weight
                                between 0.0 and 1.0 [%(default)s]""")
-   parser.add_argument("-tm-wt", "--incr-tm-weight", dest="incr_cmpt_tm_wt",
-                       type=float, default=0.1,
-                       help="""incremental component TM model weight
+   parser.add_argument("-tm-wt", "--incr-tm-weights", dest="incr_cmpt_tm_wts",
+                       metavar="INCR_TM_WT", type=float, nargs='+', default=[0.1],
+                       help="""incremental component TM model weights (1: same
+                              for all columns, or 4: separate weight for each column)
                               between 0.0 and 1.0 [%(default)s]""")
    parser.add_argument("-force", "--force-init", dest="force_init",
                        action='store_true', default=False,
@@ -86,9 +90,14 @@ def get_args():
    cmd_args = parser.parse_args()
 
    if not 0.0 < cmd_args.incr_cmpt_lm_wt < 1.0:
-      fatal_error("Float in the range (0..1) required for lm-weight:", cmd_args.incr_cmpt_lm_wt)
-   if not 0.0 < cmd_args.incr_cmpt_tm_wt < 1.0:
-      fatal_error("Float in the range (0..1) required for tm-weight:", cmd_args.incr_cmpt_tm_wt)
+      fatal_error("Float in the range (0..1) required for incr-lm-weight:",
+                  cmd_args.incr_cmpt_lm_wt)
+   if len(cmd_args.incr_cmpt_tm_wts) not in (1, 4):
+      fatal_error("Require exactly 1 (same for all columns) or",
+                  "4 TM weights to be provided:", cmd_args.incr_cmpt_tm_wts)
+   for wt in cmd_args.incr_cmpt_tm_wts:
+      if not 0.0 < wt < 1.0:
+         fatal_error("Float in the range (0..1) required for incr-tm-weights:", wt)
    
    return cmd_args
 
@@ -346,13 +355,14 @@ def create_starter_incr_cmpt_tm(incr_cmpt_tm_name, force_init=False):
    verbose("Creating the starter incremental component TPPT:", incr_cmpt_tm_name+".tppt")
    run_command("textpt2tppt.sh {} &> tp.{}.log".format(incr_cmpt_tm_name,incr_cmpt_tm_name))
 
-def create_incr_mixtm(incr_mixtm_name, main_tm_name, incr_cmpt_tm_name, incr_cmpt_tm_wt, force_init=False):
+def create_incr_mixtm(incr_mixtm_name, main_tm_name, incr_cmpt_tm_name, incr_cmpt_tm_wts, force_init=False):
    """ Create the incremental mixTM.
    
    incr_mixtm_name: name of the incremental mixTM file
    main_tm_name: pathname of the main TM file
    incr_cmpt_tm_name: name of the incremental component TM file
-   incr_cmpt_tm_wt: incremental component TM model weight between 0.0 and 1.0
+   incr_cmpt_tm_wts: list of incremental component TM model weights (1 or 4),
+      each between 0.0 and 1.0
    force_init: if true, force model initialization even if models already exist.
    """
    if not force_init and os.path.exists(incr_mixtm_name):
@@ -360,11 +370,13 @@ def create_incr_mixtm(incr_mixtm_name, main_tm_name, incr_cmpt_tm_name, incr_cmp
    verbose("Creating the incremental mixTM:", incr_mixtm_name)
    if not incr_cmpt_tm_name.endswith(".tppt"):
       incr_cmpt_tm_name+=".tppt"
+   if len(incr_cmpt_tm_wts) == 1:
+      incr_cmpt_tm_wts.extend(incr_cmpt_tm_wts[0] for i in range(3))
    with open(incr_mixtm_name, 'w') as incr_mixtm_fd:
       print("Portage dynamic MixTM v1.0", file=incr_mixtm_fd)
-      wts=(str(1 - incr_cmpt_tm_wt),)*4
+      wts=(str(1.0 - incr_cmpt_tm_wts[i]) for i in range(4))
       print("{}\t{}".format(main_tm_name, ' '.join(wts)), file=incr_mixtm_fd)
-      wts=(str(incr_cmpt_tm_wt),)*4
+      wts=(str(incr_cmpt_tm_wts[i]) for i in range(4))
       print("{}\t{}".format(incr_cmpt_tm_name, ' '.join(wts)), file=incr_mixtm_fd)
 
 def create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, force_init=False):
@@ -471,7 +483,7 @@ def main():
    create_starter_incr_cmpt_tm(config.get_incr_cmpt_tm_name(), cmd_args.force_init)
    
    create_incr_mixtm(config.get_incr_mixtm_name(), main_tm_name,
-                     config.get_incr_cmpt_tm_name(), cmd_args.incr_cmpt_tm_wt,
+                     config.get_incr_cmpt_tm_name(), cmd_args.incr_cmpt_tm_wts,
                      cmd_args.force_init)
    
    create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, cmd_args.force_init)

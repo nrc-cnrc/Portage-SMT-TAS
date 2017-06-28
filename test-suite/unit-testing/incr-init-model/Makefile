@@ -88,9 +88,9 @@ $(addprefix check.test.,${CONTEXTS}): check.%: workdir.%
 
 workdir.test.context.1: EXTRA_INIT_OPTS =
 workdir.test.context.2: EXTRA_INIT_OPTS = -lm-wt 0.2 -tm-wt 0.3
-workdir.test.context.3: EXTRA_INIT_OPTS = -lm-wt 0.2 -tm-wt 0.3
+workdir.test.context.3: EXTRA_INIT_OPTS = -lm-wt 0.2 -tm-wt 0.1 0.2 0.3 0.4
 workdir.test.context.4: EXTRA_INIT_OPTS =
 
 $(addprefix workdir.test.,${CONTEXTS}):  workdir.test.%: %
 	mkdir -p $@
-	cd $@ && ${INCR_INIT_MODEL} -v $(EXTRA_INIT_OPTS) ../$</canoe.ini.cow
+	cd $@ && ${INCR_INIT_MODEL} -v $(EXTRA_INIT_OPTS) -- ../$</canoe.ini.cow
