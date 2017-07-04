@@ -135,9 +135,11 @@
 
 
   <message name="incrAddSentenceRequest">
+    <part name="context" type="xsd:string"/>
     <part name="document_level_model_ID" type="xsd:string"/>
     <part name="source_sentence" type="xsd:string"/>
     <part name="target_sentence" type="xsd:string"/>
+    <part name="extra_data" type="xsd:string"/>
   </message>
 
   <message name="incrAddSentenceResponse">

@@ -38,6 +38,7 @@ function start_php_server() {
       > $doc_root/PortageLiveAPI.wsdl
 
    pushd $doc_root &> /dev/null
+   ln -s ../../rest/tests .
    php \
       --define 'include_path=.:..' \
       --server $server_ip:$server_port \

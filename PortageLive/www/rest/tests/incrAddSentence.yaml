@@ -38,6 +38,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: ""
     asserts:
       headers:
@@ -57,6 +58,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
     asserts:
       headers:
@@ -76,6 +78,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: ""
     asserts:
@@ -96,6 +99,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
     asserts:
@@ -116,6 +120,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: ""
@@ -137,6 +142,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
@@ -153,6 +159,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
@@ -170,6 +177,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
@@ -194,6 +202,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
@@ -213,8 +222,8 @@ testSteps:
         warnings.InvalidArgument.options: "Array"
         warnings.InvalidArgument.options[0]: "String"
         warnings.InvalidArgument.options[0]: "bad=invalid"
-        warnings.InvalidArgument.options[0]: "String"
-        warnings.InvalidArgument.options[0]: "wrong=Invalid"
+        warnings.InvalidArgument.options[1]: "String"
+        warnings.InvalidArgument.options[1]: "wrong=Invalid"
 
 
   - name: "Providing extra data"
@@ -222,6 +231,7 @@ testSteps:
     apiUrl: "{service}"
     raw: true
     params:
+      context: "unittest.rev.en-fr"
       document_level_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"

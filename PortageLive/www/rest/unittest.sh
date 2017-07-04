@@ -66,6 +66,7 @@ function curl_testcase() {
    curl \
       --silent \
       --get \
+      --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
       --data "target=T$tag" \
       --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
@@ -76,6 +77,7 @@ function curl_testcase() {
    curl \
       --silent \
       --get \
+      --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
       --data "target=T$tag" \
       --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \

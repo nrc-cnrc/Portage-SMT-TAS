@@ -4,6 +4,7 @@ require 'PortageLiveLib.php';
 # Let's change the web workdir to a local workdir.  It needs to be an absolute
 # path.
 $base_web_dir = getcwd();
+$base_portage_dir = getcwd() . '/rest/tests/';
 
 class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 {
@@ -17,6 +18,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    protected function setUp()
    {
+      $this->context = 'unittest.rev.en-fr';
       $this->document_level_model_ID = 'cli_php';
       $this->unique_id = time() . rand(0, 100000);
       $this->source = 'A_' . $this->unique_id;
@@ -43,7 +45,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    /**
     * @expectedException SoapFault
-    * @expectedExceptionMessage You must provide a valid document_level_model_ID.
+    * @expectedExceptionMessage You must provide a valid context.
     */
    public function test_no_argument()
    {
@@ -59,6 +61,22 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    /**
     * @expectedException SoapFault
+    * @expectedExceptionMessage You must provide a valid document_level_model_ID.
+    */
+   public function test_document_level_ID()
+   {
+      $service = new PortageLiveLib();
+
+      # We need to make the source and target unique if we want to test for
+      # their presence in the corpora.
+      $result = $service->incrAddSentence($this->context);
+
+      $this->assertFalse($result);
+   }
+
+
+   /**
+    * @expectedException SoapFault
     * @expectedExceptionMessage You must provide a source sentence.
     */
    public function test_no_source()
@@ -67,7 +85,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->document_level_model_ID);
+      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID);
 
       $this->assertFalse($result);
    }
@@ -83,7 +101,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->document_level_model_ID, $this->source);
+      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID, $this->source);
 
       $this->assertFalse($result);
    }
@@ -95,7 +113,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->document_level_model_ID, $this->source, $this->target);
+      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID, $this->source, $this->target);
 
       # Assert
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");

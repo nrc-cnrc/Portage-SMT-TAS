@@ -59,6 +59,7 @@ class PortageLiveLib {
       global $base_portage_dir;
       $info["context_dir"] = "$base_portage_dir/models/$context";
       $info["script"] = "$info[context_dir]/soap-translate.sh";
+      $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
       if ( is_file($info["script"]) ) {
          $info["good"] = true;
          $cmdline = `tail -n -1 < $info[script]`;
@@ -614,11 +615,16 @@ class PortageLiveLib {
    }
 
    public function incrAddSentence(
+      $context = NULL,
       $document_level_model_ID = NULL,
       $source_sentence = NULL,
       $target_sentence = NULL,
       $extra_data = NULL)
    {
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a valid context.");
+      }
+
       # TODO: Validate that the document_level_model_ID is a valid one.
       if (!isset($document_level_model_ID) || empty($document_level_model_ID)) {
          throw new SoapFault("PortageBadArgs", "You must provide a valid document_level_model_ID.");
@@ -631,6 +637,9 @@ class PortageLiveLib {
       if (!isset($target_sentence) || empty($target_sentence)) {
          throw new SoapFault("PortageBadArgs", "You must provide a target sentence.");
       }
+
+      $i = $this->getContextInfo($context);
+      $this->validateContext($i);
 
       # We need to set LC_ALL or else escapeshellarg will strip out unicode.
       # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
@@ -648,12 +657,14 @@ class PortageLiveLib {
          $extra_data = escapeshellarg($extra_data);
          $command .= " -extra-data " . $extra_data;
       }
+      $command .= " -c " . $i["canoe_ini"];
       $command .= " $source_sentence $target_sentence";
       #error_log($command);
 
       $dummy_context_info = array( 'context_dir' => '' );
       $exit_status = False;
-      $result = $this->runCommand($command, "'$source_sentence'\t'$target_sentence'", $dummy_context_info, $exit_status, false);
+      $wantoutput = False;  # Set this to true for debugging and look at /tmp/error-output.txt.
+      $result = $this->runCommand($command, "'$source_sentence'\t'$target_sentence'", $dummy_context_info, $exit_status, $wantoutput);
 
       return $exit_status == 0 ? True : False;
    }

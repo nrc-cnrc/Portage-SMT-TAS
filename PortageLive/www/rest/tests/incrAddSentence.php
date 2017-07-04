@@ -16,6 +16,7 @@ require 'incrAddSentence.php';
 # Let's change the web workdir to a local workdir.  It needs to be an absolute
 # path.
 $base_web_dir = getcwd();
+$base_portage_dir = getcwd() . '/tests/';
 
 class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
 {
@@ -23,6 +24,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    public function __construct() {
       $this->basicRequest = array(
+         'context' => 'unittest.rev.en-fr',
          'document_level_model_ID' => 'rest_local',
          'source' => 'Source',
          'target' => 'Target'

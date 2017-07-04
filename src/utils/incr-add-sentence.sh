@@ -71,6 +71,7 @@ Usage: $prog [options] [SOURCE TRANSLATION]
 Options:
 
   -unittest         special flag when performing unittesting.
+  -c                context's canoe.ini.cow path.
   -extra-data  ARG  translation pair extra data preferably a json object.
 
   -h(elp)     print this help message
@@ -85,6 +86,7 @@ Options:
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
+   -c)                  arg_check 1 $# $1; readonly canoe_ini="-c $2"; shift;;
    -extra-data)         arg_check 1 $# $1; readonly extra_data=$2; shift;;
 
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
@@ -163,7 +165,7 @@ fi
 
       # Train
       verbose 1 "$$ is training"
-      incr-update.sh 'fr' 'en' $corpora &> incremental-update.log
+      incr-update.sh $canoe_ini $corpora &> incremental-update.log
 
       verbose 1 "Locking the queue"
       flock --exclusive $queue_fd

@@ -36,6 +36,7 @@ class TestIncrAddSentence(unittest.TestCase):
       self.client = Client(self.WSDL)
       # Kludge to trigger a server side unittest.
       # The document_level_model_id must match PortageLiveLib::$MAGIC_UNITTEST_DOCUMENT_ID
+      self.context = 'unittest.rev.en-fr'
       self.document_level_model_id = 'PORTAGE_UNITTEST_4da35'
       self.source_sentence = "'home'"
       self.target_sentence = '"maison"'
@@ -57,7 +58,7 @@ class TestIncrAddSentence(unittest.TestCase):
       None/NULL.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrAddSentence(None, None, None)
+         self.client.service.incrAddSentence(None, None, None, None, None)
       self.assertEqual(cm.exception.message, u"Server raised fault: 'Missing parameter'")
 
 
@@ -66,7 +67,7 @@ class TestIncrAddSentence(unittest.TestCase):
       It is invalid to use the empty string as document level model ID.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrAddSentence('', '', '')
+         self.client.service.incrAddSentence(self.context, '', '', '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_level_model_ID.'")
 
 
@@ -75,7 +76,7 @@ class TestIncrAddSentence(unittest.TestCase):
       The source sentence cannot be empty.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrAddSentence(self.document_level_model_id, '', '')
+         self.client.service.incrAddSentence(self.context, self.document_level_model_id, '', '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence.'")
 
 
@@ -84,7 +85,7 @@ class TestIncrAddSentence(unittest.TestCase):
       The target sentence cannot be empty.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrAddSentence(self.document_level_model_id, self.source_sentence, '')
+         self.client.service.incrAddSentence(self.context, self.document_level_model_id, self.source_sentence, '')
       self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence.'")
 
 
@@ -96,6 +97,7 @@ class TestIncrAddSentence(unittest.TestCase):
       """
       with self.assertRaises(WebFault) as cm:
          self.client.service.incrAddSentence( \
+               self.context, \
                self.document_level_model_id, \
                self.source_sentence, \
                self.target_sentence,
@@ -117,7 +119,7 @@ class TestIncrAddSentence(unittest.TestCase):
       UID = str(random.randint(0, 100000))
       source = self.source_sentence + str(time.time()) + UID
       target = self.target_sentence + str(time.time()) + UID
-      result = self.client.service.incrAddSentence(self.document_level_model_id, source, target)
+      result = self.client.service.incrAddSentence(self.context, self.document_level_model_id, source, target)
       self.assertEqual(result, True, \
             msg='SOAP call failed to add a sentence pair')
       # TODO:

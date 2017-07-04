@@ -76,6 +76,7 @@ class Warnings {
 
 
 class IncrementalTrainor extends PortageLiveLib {
+   protected $context = NULL;
    protected $document_level_model_ID = NULL;
    protected $source = NULL;
    protected $target = NULL;
@@ -111,6 +112,9 @@ class IncrementalTrainor extends PortageLiveLib {
       foreach (split('&', $request) as $a) {
          list($k, $v) = split('=', $a, 2);
          switch($k) {
+            case "context":
+               $this->context = $this->decodeArgument($v);
+               break;
             case "document_level_model_ID":
                $this->document_level_model_ID = $this->decodeArgument($v);
                break;
@@ -136,6 +140,7 @@ class IncrementalTrainor extends PortageLiveLib {
       # We will let PortageLiveLib::incrAddSentence()
       # handle its arguments errors.
       $result = $this->incrAddSentence(
+         $this->context,
          $this->document_level_model_ID,
          $this->source,
          $this->target,
