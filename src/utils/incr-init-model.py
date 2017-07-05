@@ -82,6 +82,9 @@ def get_args():
    parser.add_argument("-force", "--force-init", dest="force_init",
                        action='store_true', default=False,
                        help="force model initialization even if files exist. [%(default)s]")
+   parser.add_argument("-quiet", "--quiet", dest="quiet",
+                       action='store_true', default=False,
+                       help="silence warning about model already initialized. [%(default)s]")
 
    parser.add_argument("base_canoe_ini", type=str,
                        help="""pathname of the canoe config file on which to
@@ -432,15 +435,12 @@ def main():
    config = Config(cmd_args.base_canoe_ini, config_pathname)
 
    # Detect if model already initialized.
-   incr_cmpt_lm_name = config.get_incr_cmpt_lm_name()
-   incr_cmpt_tm_name = config.get_incr_cmpt_tm_name()
-   if not cmd_args.force_init:
-      if (os.path.exists(incr_cmpt_lm_name) or os.path.exists(incr_cmpt_lm_name+".tplm") or
-            os.path.exists(incr_cmpt_tm_name) or os.path.exists(incr_cmpt_tm_name+".ttpt")):
-         warn("Incremental component LM ", "({})".format(incr_cmpt_lm_name), 
-              "and/or TM", "({})".format(incr_cmpt_tm_name), "already exists, so",
+   local_canoe_ini = config.get_local_canoe_ini_name()
+   if not cmd_args.force_init and os.path.exists(local_canoe_ini):
+      if not cmd_args.quiet:
+         warn("Local canoe ini", "({})".format(local_canoe_ini), "already exists, so",
               "incremental model appears to be initialized already; not re-initializing.")
-         exit(0)
+      exit(0)
 
    init_local_model(config, cmd_args.force_init)
    

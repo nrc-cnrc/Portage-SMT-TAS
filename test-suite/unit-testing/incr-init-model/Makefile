@@ -21,7 +21,7 @@ export PORTAGE_NOCLUSTER=1
 CONTEXTS = $(addprefix context.,1 2 3 4)
 
 .PHONY: all
-all:  $(addprefix test.,${CONTEXTS})
+all:  $(addprefix test.,${CONTEXTS}) test.existing_model
 
 
 TEMP_DIRS = *.tplm *.tppt ${CONTEXTS} workdir.*
@@ -70,8 +70,10 @@ context.4:
 	cp src/$@.canoe.ini.cow $@/canoe.ini.cow
 
 # Test each context
+.PHONY: $(addprefix test.,${CONTEXTS})
 $(addprefix test.,${CONTEXTS}): %: check.%
 
+.PHONY: $(addprefix check.test.,${CONTEXTS})
 $(addprefix check.test.,${CONTEXTS}): check.%: workdir.%
 	diff -q $</cpt.incremental.en2fr ref/cpt.incremental.en2fr
 	diff -q -r $</cpt.incremental.en2fr.tppt ref/cpt.incremental.en2fr.tppt
@@ -94,3 +96,6 @@ workdir.test.context.4: EXTRA_INIT_OPTS =
 $(addprefix workdir.test.,${CONTEXTS}):  workdir.test.%: %
 	mkdir -p $@
 	cd $@ && ${INCR_INIT_MODEL} -v $(EXTRA_INIT_OPTS) -- ../$</canoe.ini.cow
+
+test.existing_model: workdir.test.context.1
+	cd $< && ${INCR_INIT_MODEL} -v ../${<:workdir.test.%=%}/canoe.ini.cow
