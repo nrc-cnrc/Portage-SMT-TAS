@@ -431,7 +431,9 @@ def main():
    # Read and parse the incremental model config file
    config_pathname = os.path.join(os.path.dirname(cmd_args.base_canoe_ini),
                                   Config.default_config_name)
-   verbose("Reading config file:", config_pathname)
+   if not os.path.exists(config_pathname):
+      fatal_error("Incremental config file does not exist:", config_pathname)
+   verbose("Reading incremental config file:", config_pathname)
    config = Config(cmd_args.base_canoe_ini, config_pathname)
 
    # Detect if model already initialized.

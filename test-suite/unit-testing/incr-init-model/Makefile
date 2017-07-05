@@ -18,13 +18,15 @@ export PORTAGE_NOCLUSTER=1
 .NOTPARALLEL:
 .SECONDARY:
 
-CONTEXTS = $(addprefix context.,1 2 3 4)
+GOOD_CONTEXTS = $(addprefix context.,1 2 3 4)
+BAD_CONTEXTS = $(addprefix context.bad.,1)
+ALL_CONTEXTS = ${GOOD_CONTEXTS} ${BAD_CONTEXTS}
 
 .PHONY: all
-all:  $(addprefix test.,${CONTEXTS}) test.existing_model
+all:  $(addprefix test.,${ALL_CONTEXTS}) test.existing_model
 
 
-TEMP_DIRS = *.tplm *.tppt ${CONTEXTS} workdir.*
+TEMP_DIRS = *.tplm *.tppt ${ALL_CONTEXTS} workdir.test.*
 TEMP_FILES = models lm.incremental_fr cpt.incremental.en2fr log.*
 include ../Makefile.incl
 
@@ -69,12 +71,18 @@ context.4:
 	cp src/incremental.config $@/
 	cp src/$@.canoe.ini.cow $@/canoe.ini.cow
 
-# Test each context
-.PHONY: $(addprefix test.,${CONTEXTS})
-$(addprefix test.,${CONTEXTS}): %: check.%
+# Bad Context 1: missing incrmental.config
+context.bad.1:
+	mkdir -p $@
+	cd $@ && ln -sf ${TOY_SYSTEM}/* .
 
-.PHONY: $(addprefix check.test.,${CONTEXTS})
-$(addprefix check.test.,${CONTEXTS}): check.%: workdir.%
+# Test each context
+.PHONY: $(addprefix test.,${ALL_CONTEXTS})
+
+$(addprefix test.,${GOOD_CONTEXTS}): %: check.%
+
+.PHONY: $(addprefix check.test.,${GOOD_CONTEXTS})
+$(addprefix check.test.,${GOOD_CONTEXTS}): check.%: workdir.%
 	diff -q $</cpt.incremental.en2fr ref/cpt.incremental.en2fr
 	diff -q -r $</cpt.incremental.en2fr.tppt ref/cpt.incremental.en2fr.tppt
 	diff -q $</lm.incremental_fr ref/lm.incremental_fr
@@ -93,9 +101,18 @@ workdir.test.context.2: EXTRA_INIT_OPTS = -lm-wt 0.2 -tm-wt 0.3
 workdir.test.context.3: EXTRA_INIT_OPTS = -lm-wt 0.2 -tm-wt 0.1 0.2 0.3 0.4
 workdir.test.context.4: EXTRA_INIT_OPTS =
 
-$(addprefix workdir.test.,${CONTEXTS}):  workdir.test.%: %
+$(addprefix workdir.test.,${GOOD_CONTEXTS}):  workdir.test.%: %
 	mkdir -p $@
 	cd $@ && ${INCR_INIT_MODEL} -v $(EXTRA_INIT_OPTS) -- ../$</canoe.ini.cow
 
+$(addprefix test.,${BAD_CONTEXTS}): %: workdir.%
+
+workdir.test.context.bad.1: workdir.test.%: %
+	mkdir -p $@
+	cd $@ && ! ${INCR_INIT_MODEL} -v -- ../$</canoe.ini.cow \
+		&& echo "Expected failure because of missing incremental.config." >&2 \
+		|| ! echo "ERROR: Failure expected because incremental.config is missing, but did not occur." >&2
+
 test.existing_model: workdir.test.context.1
 	cd $< && ${INCR_INIT_MODEL} -v ../${<:workdir.test.%=%}/canoe.ini.cow
+		
