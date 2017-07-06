@@ -31,14 +31,17 @@ function start_php_server() {
    readonly doc_root=doc_root
    mkdir -p $doc_root
 
-   cp ../PortageLiveLib.php PortageLiveAPI.php $doc_root
+   cp \
+      ../../../PortageLive/www/PortageLiveLib.php \
+      ../../../PortageLive/www/soap/PortageLiveAPI.php \
+      $doc_root
    sed \
       "s/__REPLACE_THIS_WITH_YOUR_IP__/$server_ip:$server_port/g" \
-      < PortageLiveAPI.wsdl \
+      < ../../../PortageLive/www/soap/PortageLiveAPI.wsdl \
       > $doc_root/PortageLiveAPI.wsdl
 
    pushd $doc_root &> /dev/null
-   ln -s ../../rest/tests .
+   ln -s ../tests .
    php \
       --define 'include_path=.:..' \
       --server $server_ip:$server_port \

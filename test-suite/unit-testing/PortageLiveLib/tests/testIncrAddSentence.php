@@ -4,7 +4,7 @@ require 'PortageLiveLib.php';
 # Let's change the web workdir to a local workdir.  It needs to be an absolute
 # path.
 $base_web_dir = getcwd();
-$base_portage_dir = getcwd() . '/rest/tests/';
+$base_portage_dir = getcwd() . '/tests/';
 
 class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 {

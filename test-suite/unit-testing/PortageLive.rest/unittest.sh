@@ -30,7 +30,7 @@ function deploy_code() {
 function local_testase() {
    verbose local_testase
    php \
-      -d 'include_path=.:..' \
+      --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
       --colors=always  \
       tests/incrAddSentence.php
@@ -40,8 +40,10 @@ function start_php_server() {
    verbose 'Starting php web server....'
    # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_level_model_ID=5&source=S&target=T'
    [[ -d plive ]] && rm -fr plive
+   cp ../../../PortageLive/www/rest/translate.php .
+   cp ../../../PortageLive/www/rest/incrAddSentence.php .
    php \
-      --define 'include_path=.:..' \
+      --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
       --server $server_ip:$server_port \
       --docroot . \
       &> log.server &
@@ -91,11 +93,11 @@ function curl_testcase() {
 
 function lint_php() {
    verbose lint_php
-   for c in ../PortageLiveLib.php incrAddSentence.php; do
+   for c in PortageLiveLib.php rest/incrAddSentence.php; do
       php \
-         --define 'include_path=.:..' \
+         --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
          --syntax-check \
-         $c \
+         ../../../PortageLive/www/$c \
       || ! echo "Error in linting $f" >&2
    done
 }
