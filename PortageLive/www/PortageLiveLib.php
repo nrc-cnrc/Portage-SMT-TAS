@@ -8,8 +8,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009 - 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009 - 2016, Her Majesty in Right of Canada
+# Copyright 2009 - 2017, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2017, Her Majesty in Right of Canada
 
 
 # Server configuration options
