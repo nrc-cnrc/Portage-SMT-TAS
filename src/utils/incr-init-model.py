@@ -163,6 +163,7 @@ class Config(OrderedDict):
       self.base_config_path = base_config_path
       # Read and parse the incremental config file.
       self.skip_index = 0;
+      found_error = False
       if base_config_path:
          with open(base_config_path) as cf:
             for line in cf:
@@ -177,17 +178,26 @@ class Config(OrderedDict):
                      if key == "":
                         raise ValueError()
                   except ValueError:
-                     fatal_error("Malformed line in incremental model config file: ", line)
+                     error("Malformed line in incremental model config file: ", line)
+                     found_error = True
                   value = value.strip()
                self[key] = value
       # Set default values for required parameters
       default_config = OrderedDict()
+      default_config["SRC_LANG"] = ""
+      default_config["TGT_LANG"] = ""
       default_config["INCREMENTAL_TM_BASE"] = "cpt.incremental"
       default_config["INCREMENTAL_LM_BASE"] = "lm.incremental"
-#       default_config["SRC_LANG"] = "en"
-#       default_config["TGT_LANG"] = "fr"
       for key in default_config:
          if key not in self: self[key] = default_config[key]
+      # Check for required fields:
+      for key in ("SRC_LANG", "TGT_LANG"):
+         if not self.get_unquoted_value(key):
+            error("Missing/empty required parameter in incremental model config file:", key)
+            found_error = True
+      if found_error:
+         fatal_error("Problem(s) found in incremental model config file:",
+                     self.base_config_path)
 
    def get_unquoted_value(self, key):
       value = self[key]

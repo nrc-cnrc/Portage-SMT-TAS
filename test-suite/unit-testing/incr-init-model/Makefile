@@ -19,7 +19,7 @@ export PORTAGE_NOCLUSTER=1
 .SECONDARY:
 
 GOOD_CONTEXTS = $(addprefix context.,1 2 3 4)
-BAD_CONTEXTS = $(addprefix context.bad.,1)
+BAD_CONTEXTS = $(addprefix context.bad.,1 2)
 ALL_CONTEXTS = ${GOOD_CONTEXTS} ${BAD_CONTEXTS}
 
 .PHONY: all
@@ -71,15 +71,21 @@ context.4:
 	cp src/incremental.config $@/
 	cp src/$@.canoe.ini.cow $@/canoe.ini.cow
 
-# Bad Context 1: missing incrmental.config
+# Bad Context 1: missing incremental.config
 context.bad.1:
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
 
+# Bad Context 2: missing SRC_LANG, TGT_LANG in incremental.config
+context.bad.2:
+	mkdir -p $@
+	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	cp src/incremental.config.bad.nolang $@/incremental.config
+
 # Test each context
 .PHONY: $(addprefix test.,${ALL_CONTEXTS})
 
-$(addprefix test.,${GOOD_CONTEXTS}): %: check.%
+$(addprefix test.,${ALL_CONTEXTS}): %: check.%
 
 .PHONY: $(addprefix check.test.,${GOOD_CONTEXTS})
 $(addprefix check.test.,${GOOD_CONTEXTS}): check.%: workdir.%
@@ -105,13 +111,17 @@ $(addprefix workdir.test.,${GOOD_CONTEXTS}):  workdir.test.%: %
 	mkdir -p $@
 	cd $@ && ${INCR_INIT_MODEL} -v $(EXTRA_INIT_OPTS) -- ../$</canoe.ini.cow
 
-$(addprefix test.,${BAD_CONTEXTS}): %: workdir.%
 
-workdir.test.context.bad.1: workdir.test.%: %
+.PHONY: $(addprefix check.test.,${BAD_CONTEXTS})
+$(addprefix check.test.,${BAD_CONTEXTS}): check.%: workdir.%
+	diff -q $</log.incr-init-model ref/$*/log.incr-init-model
+
+$(addprefix workdir.test.,${BAD_CONTEXTS}):  workdir.test.%: %
 	mkdir -p $@
-	cd $@ && ! ${INCR_INIT_MODEL} -v -- ../$</canoe.ini.cow \
-		&& echo "Expected failure because of missing incremental.config." >&2 \
-		|| ! echo "ERROR: Failure expected because incremental.config is missing, but did not occur." >&2
+	cd $@ && ! ${INCR_INIT_MODEL} -v -- ../$</canoe.ini.cow &> log.incr-init-model \
+		&& echo "Failure for a bad context occurred as expected." >&2 \
+		|| ! echo "ERROR: Failure was expected for a bad context, but it did not occur." >&2
+
 
 test.existing_model: workdir.test.context.1
 	cd $< && ${INCR_INIT_MODEL} -v ../${<:workdir.test.%=%}/canoe.ini.cow
