@@ -104,15 +104,16 @@ function lint_php() {
 
 
 rm -fr plive
+RC=0
 [[ $DEPLOY ]] && deploy_code
-lint_php
-start_php_server
-local_testase
-remote_testcase
-curl_testcase
+lint_php || RC=1
+start_php_server || RC=1
+local_testase || RC=1
+remote_testcase || RC=1
+curl_testcase || RC=1
 
 echo
-exit
+exit $RC
 
 # CLI php will fail because it can't create a directory under /var/www/html/
 #QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php incrAddSentence.php
