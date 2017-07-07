@@ -28,8 +28,8 @@ export PATH=./plugins:$PATH
 INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
-readonly local_canoe_ini=canoe.ini
-readonly incr_canoe_ini=canoe.ini.incr
+incr_canoe_ini=canoe.ini.cow
+local_canoe_ini=${incr_canoe_ini}.orig
 
 function usage() {
    for msg in "$@"; do
@@ -96,23 +96,20 @@ done
 readonly INCREMENTAL_CORPUS=$1; shift
 [[ $# -gt 0 ]]  && error_exit "Superfluous arguments $*"
 
-function initialize_incremental_directory() {
-   local readonly _base_canoe_ini=$1
-
-   # Setup the model directory and the canoe.ini.
-   [[ -r $_base_canoe_ini ]] || error_exit "Cannot read the CANOE_INI file $_base_canoe_ini"
-
-   local readonly base_dir=`dirname $_base_canoe_ini`
-   [[ -s $local_canoe_ini ]] || cp $_base_canoe_ini $local_canoe_ini
-   [[ -L "prime.sh" ]] || ln -s $base_dir/prime.sh .
-   [[ -L "soap-translate.sh" ]] || ln -s $base_dir/soap-translate.sh .
-   [[ -L models ]] || ln -s $base_dir/models models
-   if [[ -d "$base_dir/plugins" ]]; then
-      [[ -L plugins ]] || ln -s $base_dir/plugins .
+# Initialize the incremental model, if needed.
+init_model_opts=
+if [[ -n "$base_canoe_ini" ]]; then
+   [[ $VERBOSE -gt 0 ]] && init_model_opts+=" -v"
+   time incr-init-model.py -q $init_model_opts -- $base_canoe_ini
+   RC=$?
+   if [[ $RC != 0 ]]; then
+      error_exit "Cannot initialize document model (RC=$RC)."
    fi
-}
+   incr_canoe_ini=$(basename $base_canoe_ini)
+   local_canoe_ini=${incr_canoe_ini}.orig
+fi
 
-[[ -n "$base_canoe_ini" ]] && initialize_incremental_directory $base_canoe_ini
+CONFIG_FILE=incremental.config
 
 if [[ $CONFIG_FILE ]]; then
    [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE"
