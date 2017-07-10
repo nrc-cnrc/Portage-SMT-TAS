@@ -26,8 +26,8 @@ ALL_CONTEXTS = ${GOOD_CONTEXTS} ${BAD_CONTEXTS}
 all:  $(addprefix test.,${ALL_CONTEXTS}) test.existing_model
 
 
-TEMP_DIRS = *.tplm *.tppt ${ALL_CONTEXTS} workdir.test.*
-TEMP_FILES = models lm.incremental_fr cpt.incremental.en2fr log.*
+TEMP_DIRS = ${ALL_CONTEXTS} workdir.test.*
+TEMP_FILES =
 include ../Makefile.incl
 
 # Absolute pathname needed for $TOY_SYSTEM
