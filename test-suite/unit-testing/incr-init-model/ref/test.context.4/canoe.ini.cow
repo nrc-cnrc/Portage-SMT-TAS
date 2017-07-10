@@ -18,6 +18,7 @@
 [bypass-marked]
 [cube-pruning]
 [use-ftm]
+[lock]
 [weight-d] 0.1122876273:0.3047483235:-0.008953367178:0.206875903:0.2802127391:0.00589063228:0.2132976165
 [weight-w] -0.648792919
 [distortion-model] 

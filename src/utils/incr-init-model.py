@@ -413,7 +413,7 @@ def create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, force_init
    new_lms[main_lm_idx] = config.get_incr_mixlm_name()
    new_tms = list(tms)
    new_tms[main_tm_idx] = config.get_incr_mixtm_name()
-   model_args = "args:-lmodel-file {lms} -ttable-tppt -- -ttable {tms}".format(
+   model_args = "args:-lmodel-file {lms} -ttable-tppt -- -ttable {tms} -lock".format(
                 lms=":".join(new_lms), tms=":".join(new_tms))
    with NamedTemporaryFile(prefix=incr_canoe_ini_name+".", dir=".",
                            delete=False) as incr_canoe_ini_tmp_fd:
