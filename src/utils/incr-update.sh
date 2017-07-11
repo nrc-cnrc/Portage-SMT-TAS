@@ -28,8 +28,8 @@ export PATH=./plugins:$PATH
 INCREMENTAL_TM_BASE=cpt.incremental
 INCREMENTAL_LM_BASE=lm.incremental
 ALIGNMENT_MODEL_BASE=models/tm/hmm3.tm-train.
-readonly local_canoe_ini=canoe.ini
-readonly incr_canoe_ini=canoe.ini.incr
+incr_canoe_ini=canoe.ini.cow
+local_canoe_ini=${incr_canoe_ini}.orig
 
 function usage() {
    for msg in "$@"; do
@@ -38,33 +38,40 @@ function usage() {
    [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $PROG [options] [-f CONFIG] [-c CANOE_INI] INCREMENTAL_CORPUS
+Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS
 
   Retrain the incremental corpus for a PortageLive module, given the
   incremental corpus INCREMENTAL_CORPUS which must contain one sentence pair
   per line in the format:
      DATE <tab> SOURCE SENTENCE <tab> TARGET SENTENCE [<tab> EXTRA-DATA ]
+  
+  The directory containing CANOE_INI is also expected to contain an incremental
+  config file, incremental.config, with the following contents:
+    Format: bash variable definitions
+    Expected variables:
+      SRC_LANG
+      TGT_LANG
+      INCREMENTAL_TM_BASE  [$INCREMENTAL_TM_BASE]
+      INCREMENTAL_LM_BASE  [$INCREMENTAL_LM_BASE]
+      ALIGNMENT_MODEL_BASE [$ALIGNMENT_MODEL_BASE]
+      {SRC,TGT}_PREPROCESS_CMD [preprocess_plugin]
+      {SRC,TGT}_TOKENIZE_CMD [utokenize.pl or tokenize_plugin]
+      {SRC,TGT}_LOWERCASE_CMD [utf8_casemap -c l]
 
   SRC_LANG and TGT_LANG are used to determine how to tokenize the corpus and
-  must be specified in CONFIG or via -src and -tgt.
+  must be specified in incremental.config.
+  
+  If CANOE_INI is not specified, then the incremental model must already be
+  initialized in the current directory, and the name of the incremental
+  canoe.ini is assumed to be canoe.ini.cow.
+  
+  If CANOE_INI is specified and the incremental model has already been
+  initialized in the current directory, then it is not re-initialized and the
+  name of the incremental canoe.ini is assumed to be the basename of CANOE_INI.
 
 Options:
 
-  -c CANOEINI a canoe.ini to build incremental on-top of.
-  -f CONFIG   read parameters from CONFIG.
-              Format: bash variable definitions
-              Expected variables:
-                 SRC_LANG
-                 TGT_LANG
-                 INCREMENTAL_TM_BASE  [$INCREMENTAL_TM_BASE]
-                 INCREMENTAL_LM_BASE  [$INCREMENTAL_LM_BASE]
-                 ALIGNMENT_MODEL_BASE [$ALIGNMENT_MODEL_BASE]
-                 {SRC,TGT}_PREPROCESS_CMD [preprocess_plugin]
-                 {SRC,TGT}_TOKENIZE_CMD [utokenize.pl or tokenize_plugin]
-                 {SRC,TGT}_LOWERCASE_CMD [utf8_casemap -c l]
-
-  -src SRC_LANG  Source language (overrides CONFIG)
-  -tgt TGT_LANG  Target language (overrides CONFIG)
+  -c CANOE_INI a canoe.ini to build incremental on-top of
 
   -h(elp)     print this help message
   -v(erbose)  increment the verbosity level by 1 (may be repeated)
@@ -78,10 +85,7 @@ Options:
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
-   -f)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
    -c)                  arg_check 1 $# $1; readonly base_canoe_ini=$2; shift;;
-   -src)                arg_check 1 $# $1; readonly CLI_SRC_LANG=$2; shift;;
-   -tgt)                arg_check 1 $# $1; readonly CLI_TGT_LANG=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -96,33 +100,28 @@ done
 readonly INCREMENTAL_CORPUS=$1; shift
 [[ $# -gt 0 ]]  && error_exit "Superfluous arguments $*"
 
-function initialize_incremental_directory() {
-   local readonly _base_canoe_ini=$1
-
-   # Setup the model directory and the canoe.ini.
-   [[ -r $_base_canoe_ini ]] || error_exit "Cannot read the CANOE_INI file $_base_canoe_ini"
-
-   local readonly base_dir=`dirname $_base_canoe_ini`
-   [[ -s $local_canoe_ini ]] || cp $_base_canoe_ini $local_canoe_ini
-   [[ -L "prime.sh" ]] || ln -s $base_dir/prime.sh .
-   [[ -L "soap-translate.sh" ]] || ln -s $base_dir/soap-translate.sh .
-   [[ -L models ]] || ln -s $base_dir/models models
-   if [[ -d "$base_dir/plugins" ]]; then
-      [[ -L plugins ]] || ln -s $base_dir/plugins .
+# Initialize the incremental model, if needed.
+init_model_opts=
+if [[ -n "$base_canoe_ini" ]]; then
+   [[ $VERBOSE -gt 0 ]] && init_model_opts+=" -v"
+   time incr-init-model.py -q $init_model_opts -- $base_canoe_ini
+   RC=$?
+   if [[ $RC != 0 ]]; then
+      error_exit "Cannot initialize document model (RC=$RC)."
    fi
-}
+   incr_canoe_ini=$(basename $base_canoe_ini)
+   local_canoe_ini=${incr_canoe_ini}.orig
+fi
 
-[[ -n "$base_canoe_ini" ]] && initialize_incremental_directory $base_canoe_ini
+CONFIG_FILE=incremental.config
 
 if [[ $CONFIG_FILE ]]; then
    [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE"
    source $CONFIG_FILE || error_exit "Error reading config file $CONFIG_FILE"
 fi
 
-[[ $CLI_SRC_LANG ]] && SRC_LANG=$CLI_SRC_LANG
-[[ $CLI_TGT_LANG ]] && TGT_LANG=$CLI_TGT_LANG
-[[ $SRC_LANG ]] || error_exit "SRC_LANG not defined, specify in CONFIG or with -src"
-[[ $TGT_LANG ]] || error_exit "TGT_LANG not defined, specify in CONFIG or with -tgt"
+[[ $SRC_LANG ]] || error_exit "SRC_LANG not defined, specify in $CONFIG_FILE"
+[[ $TGT_LANG ]] || error_exit "TGT_LANG not defined, specify in $CONFIG_FILE"
 
 [[ $SRC_PREPROCESS_CMD ]] || SRC_PREPROCESS_CMD="preprocess_plugin $SRC_LANG"
 [[ $TGT_PREPROCESS_CMD ]] || TGT_PREPROCESS_CMD="preprocess_plugin $TGT_LANG"

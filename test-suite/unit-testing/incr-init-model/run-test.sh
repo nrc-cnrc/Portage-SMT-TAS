@@ -1,7 +1,7 @@
 #!/bin/bash
 # run-test.sh - Run this test suite, with a non-zero exit status if it fails
 #
-# PROGRAMMER: Eric Joanis and Darlene Stewart
+# PROGRAMMER: Darlene Stewart
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.

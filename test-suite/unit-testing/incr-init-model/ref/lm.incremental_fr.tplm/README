@@ -1,0 +1,8 @@
+
+The three files tplm, cbk and tdx, together, constitute a single TPLM model.
+You must keep them together in a directory called NAME.tplm for the model to
+work properly.  They cannot be used compressed.
+
+To use this model in any Portage program, provide the directory name NAME.tplm
+anywhere you would normally provide an LM file name.
+

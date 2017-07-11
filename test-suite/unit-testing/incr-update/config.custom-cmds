@@ -7,4 +7,4 @@ SRC_LOWERCASE_CMD=cat
 TGT_LOWERCASE_CMD="utf8_casemap -c u"
 TGT_TOKENIZE_CMD=cat
 SRC_PREPROCESS_CMD=clean-utf8-text.pl
-TGT_PREPROCESS_CMD=./rev.pl
+TGT_PREPROCESS_CMD=../rev.pl

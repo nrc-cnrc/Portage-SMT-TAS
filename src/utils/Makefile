@@ -77,6 +77,7 @@ BINSCRIPTS = \
         fast_align_glue_corpora.py \
         fast_align_normalize_ttable.py \
         incr-add-sentence.sh \
+        incr-init-model.py \
         incr-update.sh \
         jobsig.pl \
         jobtree \
