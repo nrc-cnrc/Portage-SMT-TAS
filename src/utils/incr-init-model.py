@@ -423,10 +423,9 @@ def create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, force_init
    okay = run_command(["configtool", "check", incr_canoe_ini_tmp_name], 
                       ret_output=True, ignore_error=True)
    if okay.strip() != "ok":
-      os.symlink(config.get_local_canoe_ini_orig_name(), incr_canoe_ini_name)
       fatal_error("Problem with incremental canoe config.", 
-                  "Rolling back to original canoe ini file."
-                  "Problem canoe config saved in:", incr_canoe_ini_tmp_name)
+                  "Problem canoe ini saved in:", incr_canoe_ini_tmp_name)
+   # Go live!
    os.rename(incr_canoe_ini_tmp_name, incr_canoe_ini_name)
 
 def main():
@@ -497,10 +496,12 @@ def main():
    create_incr_mixtm(config.get_incr_mixtm_name(), main_tm_name,
                      config.get_incr_cmpt_tm_name(), cmd_args.incr_cmpt_tm_wts,
                      cmd_args.force_init)
-   
-   create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, cmd_args.force_init)
 
    config.write_local_config_file(cmd_args.force_init)
+
+   # Creating the incremental canoe ini must be done last because once it is
+   # done, the model is considered live!
+   create_incr_canoe_ini(config, lms, main_lm_idx, tms, main_tm_idx, cmd_args.force_init)
 
 if __name__ == "__main__":
    main()
