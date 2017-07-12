@@ -71,7 +71,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function noArgument() {
       $service = new IncrementalTrainor();
 
-      unset($_SERVER['QUERY_STRING']);
+      $_REQUEST = array();
 
       $service->addSentencePair();
    }
@@ -85,7 +85,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function emptyArgument() {
       $service = new IncrementalTrainor();
 
-      $_SERVER['QUERY_STRING'] = '';
+      $_REQUEST = array();
 
       $service->addSentencePair();
    }
@@ -99,9 +99,8 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function noDocumentLevelModelID() {
       $service = new IncrementalTrainor();
 
-      $request = $this->basicRequest;
-      unset($request['document_level_model_ID']);
-      $_SERVER['QUERY_STRING'] = http_build_query($request);
+      $_REQUEST = $this->basicRequest;
+      unset($_REQUEST['document_level_model_ID']);
 
       $service->addSentencePair();
    }
@@ -115,9 +114,8 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function noSourceSentence() {
       $service = new IncrementalTrainor();
 
-      $request = $this->basicRequest;
-      unset($request['source']);
-      $_SERVER['QUERY_STRING'] = http_build_query($request);
+      $_REQUEST = $this->basicRequest;
+      unset($_REQUEST['source']);
 
       $service->addSentencePair();
    }
@@ -131,9 +129,8 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function noTargetSentence() {
       $service = new IncrementalTrainor();
 
-      $request = $this->basicRequest;
-      unset($request['target']);
-      $_SERVER['QUERY_STRING'] = http_build_query($request);
+      $_REQUEST = $this->basicRequest;
+      unset($_REQUEST['target']);
 
       $service->addSentencePair();
    }
@@ -145,7 +142,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function basicUsage() {
       $service = new IncrementalTrainor();
 
-      $_SERVER['QUERY_STRING'] = http_build_query($this->basicRequest);
+      $_REQUEST = $this->basicRequest;
 
       $result = $service->addSentencePair();
 
@@ -166,7 +163,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       $service = new IncrementalTrainor();
 
-      $_SERVER['QUERY_STRING'] = http_build_query($this->basicRequest);
+      $_REQUEST = $this->basicRequest;
 
       $result = $service->addSentencePair();
 
@@ -184,10 +181,9 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function usingInvalidArguments() {
       $service = new IncrementalTrainor();
 
-      $request = $this->basicRequest;
-      $request['bad']   = 'invalid';
-      $request['wrong'] = 'unsupported';
-      $_SERVER['QUERY_STRING'] = http_build_query($request);
+      $_REQUEST = $this->basicRequest;
+      $_REQUEST['bad']   = 'invalid';
+      $_REQUEST['wrong'] = 'unsupported';
 
       $result = $service->addSentencePair();
 
@@ -213,13 +209,11 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
       mkdir('plive', 0500);
       $this->assertTrue(is_dir('plive'));
 
-      $request = $this->basicRequest;
-      $request['source'] .= __FUNCTION__;
-      $request['target'] .= __FUNCTION__;
+      $_REQUEST = $this->basicRequest;
+      $_REQUEST['source'] .= __FUNCTION__;
+      $_REQUEST['target'] .= __FUNCTION__;
 
       $service = new IncrementalTrainor();
-
-      $_SERVER['QUERY_STRING'] = http_build_query($request);
 
       $result = $service->addSentencePair();
 

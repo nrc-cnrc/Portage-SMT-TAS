@@ -20,11 +20,9 @@ function verbose() {
 
 function deploy_code() {
    verbose deploy_code
-   cp ../PortageLiveLib.php /var/www/html/
-   cp incrAddSentence.php /var/www/html/
-   cp translate.php /var/www/html/language/translate/
-   cp ../PortageLiveLib.php /var/www/html/language/translate/
-   cp ../../../src/utils/incr-add-sentence.sh /opt/PortageII/bin/
+   [[ -d plive ]] && rm -fr plive
+   cp ../../../PortageLive/www/rest/translate.php .
+   cp ../../../PortageLive/www/rest/incrAddSentence.php .
 }
 
 function local_testase() {
@@ -38,10 +36,8 @@ function local_testase() {
 
 function start_php_server() {
    verbose 'Starting php web server....'
+   deploy_code
    # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_level_model_ID=5&source=S&target=T'
-   [[ -d plive ]] && rm -fr plive
-   cp ../../../PortageLive/www/rest/translate.php .
-   cp ../../../PortageLive/www/rest/incrAddSentence.php .
    php \
       --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
       --server $server_ip:$server_port \
@@ -64,13 +60,13 @@ function curl_testcase() {
    # Web request using unicode.
    export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
-   tag=`date +"%T"`
+   local tag=`date +"%T"`
    curl \
       --silent \
       --get \
       --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
-      --data "target=T$tag" \
+      --data "target=GET$tag" \
       --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
@@ -81,13 +77,34 @@ function curl_testcase() {
       --get \
       --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
-      --data "target=T$tag" \
+      --data "target=GET$tag" \
       --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
    || ! echo "Error Adding sentence pairs" >&2
 
-   grep --quiet "T$tag" $CORPORA \
+   grep --quiet "GET$tag" $CORPORA \
+   || ! echo $'\nError: Cannot find entry.' >&2
+}
+
+function curl_post_testcase() {
+   verbose curl_post_testcase
+   # Web request using unicode.
+   export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
+   #[[ -s $CORPORA ]] && rm -f $CORPORA
+   local tag=`date +"%T"`
+
+   curl \
+      --silent \
+      --data 'context=unittest.rev.en-fr' \
+      --data 'source=S%C9' \
+      --data "target=POST$tag" \
+      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      "http://$server_ip:$server_port/incrAddSentence.php" \
+   | grep --quiet '{"result":true}' \
+   || ! echo "Error Adding sentence pairs" >&2
+
+   grep --quiet "POST$tag" $CORPORA \
    || ! echo $'\nError: Cannot find entry.' >&2
 }
 
@@ -105,12 +122,12 @@ function lint_php() {
 
 rm -fr plive
 RC=0
-[[ $DEPLOY ]] && deploy_code
 lint_php || RC=1
 start_php_server || RC=1
 local_testase || RC=1
 remote_testcase || RC=1
 curl_testcase || RC=1
+curl_post_testcase || RC=1
 
 echo
 exit $RC

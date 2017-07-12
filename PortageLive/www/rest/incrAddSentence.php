@@ -93,24 +93,22 @@ class IncrementalTrainor extends PortageLiveLib {
     * we handle the ampersand correctly.
     */
    protected function decodeArgument($v) {
-      $v = urldecode($v);
-      $v = html_entity_decode($v);
+      #$v = urldecode($v);
+      #$v = html_entity_decode($v);
       return $v;
    }
 
 
    /**
-    * Given a query string, extract its argument aka key=value pairs making
-    * sure to properly handle ampersand in value.
+    * Verifies the arguments and records those that are not part of the 
+    * interface for error reporting them back to the caller.
     */
    protected function parseRequest($request) {
-      #print_r($_SERVER['QUERY_STRING']."\n");
       if (!isset($request) || empty($request)) {
          throw new Exception("There is no query.");
       }
 
-      foreach (split('&', $request) as $a) {
-         list($k, $v) = split('=', $a, 2);
+      foreach ($request as $k => $v) {
          switch($k) {
             case "context":
                $this->context = $this->decodeArgument($v);
@@ -135,7 +133,11 @@ class IncrementalTrainor extends PortageLiveLib {
 
 
    public function addSentencePair() {
-      $this->parseRequest(@$_SERVER['QUERY_STRING']);
+      # NOTE: php parses POST request to $_POST and parses GET request to $_GET 
+      # but it also populates $_REQUEST in both cases and since we want to 
+      # support GET & POST will simply use $_REQUEST.
+      # What is @ : http://php.net/manual/en/language.operators.errorcontrol.php
+      $this->parseRequest(@$_REQUEST);
 
       # We will let PortageLiveLib::incrAddSentence()
       # handle its arguments errors.
