@@ -34,12 +34,15 @@ DEST_BASE_DIR ?= ${ROOT_DIR}/opt/PortageII
 CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl ictclas_postprocessing.pl ictclas_preprocessing.pl ictclas_run.sh \
            $(notdir $(shell which chinese_segmenter.pl 2> /dev/null))
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
-CE_EXTERNAL ?= svm-predict
+EXTERNAL_BIN ?= svm-predict estimate-ngram
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh \
            which-test.sh time-mem sum.pl process-memory-usage.pl rp-mon-totals.pl on-cluster.sh
 DECODE_BIN ?= canoe
 DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
-# NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
+INCREMENTAL_SCRIPTS ?= incr-add-sentence.sh incr-update.sh incr-init-model.py arpalm2tplm.sh textpt2tppt.sh lm-order.pl
+INCREMENTAL_BIN ?= gen_phrase_tables arpalm.encode arpalm.sng-av arpalm.assemble \
+                   ptable.encode-phrases ptable.encode-scores ptable.assemble
+# NOTE: DO NOT add detokenize_plugin script to the TRANSLATE variable since
 # it exists only to illustrate what a detokenize_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
              sentsplit-with-tags-combine.pl sentsplit-with-tags-split.pl tok-with-tags-combine.pl tok-with-tags-split.pl \
@@ -55,10 +58,10 @@ TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 EXTRAS ?= madamira.py
 
 # Must contain programs from PortageII only.
-PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING}
-PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRAS}
+PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING} ${INCREMENTAL_SCRIPTS}
+PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRAS} ${INCREMENTAL_BIN}
 CLUSTER_BINS ?= ${CLUSTER}
-BINARIES ?= ${PORTAGE_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
+BINARIES ?= ${PORTAGE_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${EXTERNAL_BIN}
 
 
 # Make sure all PortageII's binaries are from the same source build.
