@@ -13,16 +13,15 @@
 # We don't want subjobs submitted here, since they're too small.
 export PORTAGE_NOCLUSTER=1
 
-.NOTPARALLEL:
 .SECONDARY:
 
 .PHONY: all
-all:  test.empty test.too_small test.s1t1 test.custom_cmds test.bad_init \
-      test.2_init test.locking
+all:  test.locking test.empty test.too_small test.s1t1 test.custom_cmds \
+      test.bad_init test.2_init
 
 
 TEMP_DIRS = context.* workdir.test.*
-TEMP_FILES = s1.rule dev1_*
+TEMP_FILES = s1.rule dev1_* log.*
 include ../Makefile.incl
 
 
@@ -50,7 +49,7 @@ context.main context.custom_cmds: context.%:
 	mv $@/canoe.ini.cow $@/canoe.ini.cow.orig
 	cd $@ && configtool -p args:"-stack 2000" canoe.ini.cow.orig > canoe.ini.cow
 	rm $@/canoe.ini.cow.orig
-	cp $(if $(filter main,$*),config,config.$(subst _,-,$*)) $@/incremental.config
+	cp config.$* $@/incremental.config
 
 context.bad:			# missing incremental.config
 	mkdir -p $@
@@ -185,4 +184,4 @@ workdir.test.locking: TIME_TAG = locking
 workdir.test.locking: context.main dev1_en.rule
 	mkdir -p $@
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >& log.locking-init
-	cd $@ && ../run-locking-test.sh
+	cd $@ && ../run-locking-test.sh >& ../log.locking-test
