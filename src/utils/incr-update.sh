@@ -22,6 +22,17 @@ source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exi
 print_nrc_copyright incremental-update.sh 2017
 export PORTAGE_INTERNAL_CALL=1
 
+run_cmd() {
+   echo "=======> START [`date`]: $*" >&2
+   if [[ ! $NOTREALLY ]]; then
+      eval time $*
+      rc=$?
+      echo "== DONE (rc=$rc) [`date`]: $*" >&2
+      echo >&2
+      return $rc
+   fi
+}
+
 # Make sure local plugins are visible to this script
 export PATH=./plugins:$PATH
 
@@ -82,11 +93,12 @@ Options:
    exit 1
 }
 
-VERBOSE=0
+VERBOSE=1
 while [ $# -gt 0 ]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; readonly base_canoe_ini=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
+   -q|-quiet)           VERBOSE=0;;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
    --)                  shift; break;;
@@ -104,11 +116,8 @@ readonly INCREMENTAL_CORPUS=$1; shift
 init_model_opts=
 if [[ -n "$base_canoe_ini" ]]; then
    [[ $VERBOSE -gt 0 ]] && init_model_opts+=" -v"
-   time incr-init-model.py -q $init_model_opts -- $base_canoe_ini
-   RC=$?
-   if [[ $RC != 0 ]]; then
+   run_cmd "incr-init-model.py -q $init_model_opts -- $base_canoe_ini" ||
       error_exit "Cannot initialize document model (RC=$RC)."
-   fi
    incr_canoe_ini=$(basename $base_canoe_ini)
    local_canoe_ini=${incr_canoe_ini}.orig
 fi
@@ -141,66 +150,61 @@ verbose 1 Created working directory $WD
 # Separate the tab-separated corpus file into clean OSPL source and target files
 # Warning: don't call clean-utf8-text.pl before cut, since it replaces tab characters by spaces.
 verbose 1 Split the corpus into source and target
-time cut -f 2 $INCREMENTAL_CORPUS | $SRC_PREPROCESS_CMD > $WD/source.raw
-time cut -f 3 $INCREMENTAL_CORPUS | $TGT_PREPROCESS_CMD > $WD/target.raw
+run_cmd "cut -f 2 $INCREMENTAL_CORPUS | $SRC_PREPROCESS_CMD > $WD/source.raw"
+run_cmd "cut -f 3 $INCREMENTAL_CORPUS | $TGT_PREPROCESS_CMD > $WD/target.raw"
 
 # Tokenize
 verbose 1 Tokenize the source
 if [[ $SRC_TOKENIZE_CMD ]]; then
-   time $SRC_TOKENIZE_CMD < $WD/source.raw > $WD/source.tok
+   run_cmd "$SRC_TOKENIZE_CMD < $WD/source.raw > $WD/source.tok"
 else
-   time utokenize.pl -noss -lang $SRC_LANG < $WD/source.raw > $WD/source.tok ||
-      tokenize_plugin $SRC_LANG < $WD/source.raw > $WD/source.tok ||
+   run_cmd "utokenize.pl -noss -lang $SRC_LANG < $WD/source.raw > $WD/source.tok" ||
+      run_cmd "tokenize_plugin $SRC_LANG < $WD/source.raw > $WD/source.tok" ||
       error_exit "Cannot tokenize source corpus."
 fi
 
 verbose 1 Tokenize the target
 if [[ $TGT_TOKENIZE_CMD ]]; then
-   time $TGT_TOKENIZE_CMD < $WD/target.raw > $WD/target.tok
+   run_cmd "$TGT_TOKENIZE_CMD < $WD/target.raw > $WD/target.tok"
 else
-   time utokenize.pl -noss -lang $TGT_LANG < $WD/target.raw > $WD/target.tok ||
-      tokenize_plugin $TGT_LANG < $WD/target.raw > $WD/target.tok ||
+   run_cmd "utokenize.pl -noss -lang $TGT_LANG < $WD/target.raw > $WD/target.tok" ||
+      run_cmd "tokenize_plugin $TGT_LANG < $WD/target.raw > $WD/target.tok" ||
       error_exit "Cannot tokenize target corpus."
 fi
 
 # Lowercase
 verbose 1 Lowercase source and target
-time $SRC_LOWERCASE_CMD < $WD/source.tok > $WD/source.lc
-time $TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc
+run_cmd "$SRC_LOWERCASE_CMD < $WD/source.tok > $WD/source.lc"
+run_cmd "$TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc"
 
 # LM
 verbose 1 Train the incremental LM on target
 set +o errexit
-time estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
+run_cmd "estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM"
 RC=$?
 set -o errexit
 #echo RC=$RC
 if [[ $RC == 139 ]]; then
    echo "Warning: estimate-ngram core dumped; adding dummy tokens to the document LM corpus and trying again"
    { echo __DUMMY__ __DUMMY__ __DUMMY__ __DUMMY__; cat $WD/target.lc; } > $WD/target.lc.forLM
-   time estimate-ngram -s ML -text $WD/target.lc.forLM -write-lm $WD/$INCREMENTAL_LM >& $WD/log.$INCREMENTAL_LM
+   run_cmd "estimate-ngram -s ML -text $WD/target.lc.forLM -write-lm $WD/$INCREMENTAL_LM" ||
+      error_exit "Cannot train document LM with added dummy tokens"
 elif [[ $RC != 0 ]]; then
    error_exit "Cannot train document LM"
 fi
 verbose 1 Tightly pack the incremental LM
-time (
-   cd $WD
-   arpalm2tplm.sh $INCREMENTAL_LM >& log.$INCREMENTAL_LM.tplm
-)
+run_cmd "(cd $WD; arpalm2tplm.sh $INCREMENTAL_LM)"
 
 # TM
 verbose 1 Train the incremental TM from source and target
-time gen_phrase_tables -o $WD/$INCREMENTAL_TM_BASE -1 $SRC_LANG -2 $TGT_LANG -multipr fwd \
+run_cmd "gen_phrase_tables -o $WD/$INCREMENTAL_TM_BASE -1 $SRC_LANG -2 $TGT_LANG -multipr fwd \
    -s RFSmoother -s ZNSmoother -write-count -write-al top \
    $ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz \
    $ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz \
-   $WD/source.lc $WD/target.lc
+   $WD/source.lc $WD/target.lc"
 ls $WD
 verbose 1 Tightly pack the incremental TM
-time (
-   cd $WD
-   textpt2tppt.sh $INCREMENTAL_TM >& log.$INCREMENTAL_TM.tppt
-)
+run_cmd "(cd $WD; textpt2tppt.sh $INCREMENTAL_TM)"
 
 (
    # Get the lock to update the models
@@ -214,22 +218,21 @@ time (
    #ls -l $WD $BK .
    time for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
       if [[ -e $model ]]; then
-         echo mv $model $BK
-         mv $model $BK
+         run_cmd "mv $model $BK"
       fi
-      mv $WD/$model .
+      run_cmd "mv $WD/$model ."
    done
    #ls -l $WD $BK .
 
    # validation
    verbose 1 "Checking the final config"
-   if time configtool check $incr_canoe_ini; then
+   if run_cmd "configtool check $incr_canoe_ini"; then
       verbose 1 "All good"
    else
       verbose 1 "Problem with final canoe config, rolling back update"
       for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
-         mv $model $WD || true
-         mv $BK/$model . || true
+         run_cmd "mv $model $WD" || true
+         run_cmd "mv $BK/$model ." || true
       done
       exit 1
    fi
