@@ -142,13 +142,13 @@ class PortageLiveLib {
       if ( $wantoutput ) {
          # stdout is a pipe that the child will write to
          $descriptorspec[1] = array("pipe", "w");
-         # stderr is a file to write to
-         $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
       }
       else {
          $descriptorspec[1] = array("file", "/dev/null", "a");
-         $descriptorspec[2] = array("file", "/dev/null", "a");
       }
+      # stderr is a file to write to
+      $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
+
       if (php_sapi_name() === 'cli' or php_sapi_name() === 'cli-server') {
          $process = proc_open($command, $descriptorspec, $pipes, $cwd, NULL);
       }
@@ -663,7 +663,10 @@ class PortageLiveLib {
 
       $dummy_context_info = array( 'context_dir' => '' );
       $exit_status = False;
-      $wantoutput = False;  # Set this to true for debugging and look at /tmp/error-output.txt.
+      # Set $wantoutput to true for debugging and look at /tmp/error-output.txt,
+      # but then updates will no longer happen in the background, the soap client
+      # will have to wait on them, so do so only for debugging!
+      $wantoutput = False;
       $result = $this->runCommand($command, "'$source_sentence'\t'$target_sentence'", $dummy_context_info, $exit_status, $wantoutput);
 
       return $exit_status == 0 ? True : False;
