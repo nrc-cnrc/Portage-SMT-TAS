@@ -41,6 +41,8 @@ if ( $_POST ) {
          $button = "removeFixedTerms";
       if ( array_key_exists('Prime', $_POST) )
          $button = "Prime";
+      if ( array_key_exists('IncrAddSentence', $_POST) )
+         $button = "IncrAddSentence";
    }
 
    if ( array_key_exists('MonitorJob', $_POST) )
@@ -457,6 +459,25 @@ function translateTestCase($WSDL, $context) {
     */
 }
 
+function incrAddSentenceTestCase($WSDL) {
+   print "<section id='incrAddSentenceResponse'>\n";
+   print "<header>Incremental Add Sentence Pair</header>\n";
+   global $context;
+   $doc_id = $_POST['document_id'];
+   $source_sent = $_POST['source_sent'];
+   $target_sent = $_POST['target_sent'];
+   try {
+      $client = new SoapClient($WSDL);
+      $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
+      print "<b>Reply: </b> $reply";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+
+
 function testSuite($WSDL) {
    global $button;
    global $context;
@@ -497,6 +518,10 @@ function testSuite($WSDL) {
    else
    if ( $button == "MonitorJob" && !empty($monitor_token) ) {
       monitorJobTestCase($WSDL, $button, $monitor_token);
+   }
+   else
+   if ( $button == "IncrAddSentence" ) {
+      incrAddSentenceTestCase($WSDL);
    }
 }
 
@@ -729,6 +754,14 @@ CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 </tr>
 </table>
 </div>
+</section>
+
+<section id='incrAddSentence'>
+<header>incrAddSentence()</header>
+Source sentence: <INPUT TYPE = "TEXT" Name = "source_sent" SIZE = 100 /> <br/>
+Target sentence: <INPUT TYPE = "TEXT" Name = "target_sent" SIZE = 100 /> <br/>
+Document ID: <INPUT TYPE = "TEXT" Name = "document_id" SIZE = 30 />
+<INPUT TYPE = "Submit" Name = "IncrAddSentence"    VALUE = "incrAddSentence()"/>
 </section>
 
 </FORM>
