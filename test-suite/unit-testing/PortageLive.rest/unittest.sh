@@ -20,7 +20,8 @@ function verbose() {
 
 function deploy_code() {
    verbose deploy_code
-   [[ -d plive ]] && rm -fr plive
+   rm -fr plive
+   mkdir -p plive
    cp ../../../PortageLive/www/rest/translate.php .
    cp ../../../PortageLive/www/rest/incrAddSentence.php .
 }
