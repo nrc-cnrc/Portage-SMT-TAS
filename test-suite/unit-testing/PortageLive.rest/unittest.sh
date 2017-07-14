@@ -26,8 +26,8 @@ function deploy_code() {
    cp ../../../PortageLive/www/rest/incrAddSentence.php .
 }
 
-function local_testase() {
-   verbose local_testase
+function phpunit_testcase() {
+   verbose phpunit_testcase
    php \
       --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
@@ -50,14 +50,14 @@ function start_php_server() {
    trap "kill -9 $server" EXIT
 }
 
-function remote_testcase() {
-   verbose remote_testcase
+function Rester_testcase() {
+   verbose Rester_testcase
    # Runnig https://github.com/chitamoor/Rester
    apirunner --ts tests/testSuite.yaml
 }
 
-function curl_testcase() {
-   verbose curl_testcase
+function incrAddSentence_with_curl_testcase() {
+   verbose incrAddSentence_with_curl_testcase
    # Web request using unicode.
    export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
@@ -89,8 +89,8 @@ function curl_testcase() {
    || ! echo $'\nError: Cannot find entry.' >&2
 }
 
-function curl_post_testcase() {
-   verbose curl_post_testcase
+function incrAddSentence_curl_post_testcase() {
+   verbose incrAddSentence_curl_post_testcase
    # Web request using unicode.
    export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
@@ -121,8 +121,8 @@ function lint_php() {
    done
 }
 
-function translate_with_single_query() {
-   verbose translate_with_single_query
+function translate_with_single_query_testcase() {
+   verbose translate_with_single_query_testcase
 
    curl \
       --silent \
@@ -156,8 +156,8 @@ function translate_with_single_query() {
    || ! echo "Error translating a single request" >&2
 }
 
-function translate_with_multiple_queries() {
-   verbose translate_with_multiple_queries
+function translate_with_multiple_queries_testcase() {
+   verbose translate_with_multiple_queries_testcase
 
    curl \
       --silent \
@@ -213,12 +213,12 @@ lint_php || RC=1
 start_php_server || RC=1
 #handy_dbugger; exit
 
-local_testase || RC=1
-remote_testcase || RC=1
-curl_testcase || RC=1
-curl_post_testcase || RC=1
-translate_with_single_query || RC=1
-translate_with_multiple_queries || RC=1
+phpunit_testcase || RC=1
+Rester_testcase || RC=1
+incrAddSentence_with_curl_testcase || RC=1
+incrAddSentence_curl_post_testcase || RC=1
+translate_with_single_query_testcase || RC=1
+translate_with_multiple_queries_testcase || RC=1
 
 echo
 exit $RC
