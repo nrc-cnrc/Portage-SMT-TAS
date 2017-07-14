@@ -93,8 +93,8 @@ class IncrementalTrainor extends PortageLiveLib {
     * we handle the ampersand correctly.
     */
    protected function decodeArgument($v) {
-      #$v = urldecode($v);
-      #$v = html_entity_decode($v);
+      $v = urldecode($v);
+      $v = html_entity_decode($v);
       return $v;
    }
 
@@ -126,6 +126,8 @@ class IncrementalTrainor extends PortageLiveLib {
                $this->extra = $this->decodeArgument($v);
                break;
             default:
+               # Let's report back to the user all the invalid arguments this 
+               # query had.
                $this->warnings->addInvalidArgument("$k=$v");
          }
       }
@@ -137,6 +139,7 @@ class IncrementalTrainor extends PortageLiveLib {
       # but it also populates $_REQUEST in both cases and since we want to 
       # support GET & POST will simply use $_REQUEST.
       # What is @ : http://php.net/manual/en/language.operators.errorcontrol.php
+      #var_dump($_REQUEST);
       $this->parseRequest(@$_REQUEST);
 
       # We will let PortageLiveLib::incrAddSentence()
