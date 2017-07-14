@@ -62,6 +62,7 @@ function curl_testcase() {
    export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    local tag=`date +"%T"`
+
    curl \
       --silent \
       --get \
@@ -120,15 +121,104 @@ function lint_php() {
    done
 }
 
+function translate_with_single_query() {
+   verbose translate_with_single_query
+
+   curl \
+      --silent \
+      --get \
+      --data 'q=hello' \
+      --data 'source=en' \
+      --data 'target=fr' \
+      --data 'invalid_arg=bad_arg' \
+      --data 'prettyprint=false' \
+      --data 'key=unittest.rev' \
+      "http://$server_ip:$server_port/translate.php" \
+   | grep \
+      --fixed-strings \
+      --quiet \
+      '{"data":{"translations":[{"translatedText":"olleh"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
+   || ! echo "Error translating a single request" >&2
+
+   curl \
+      --silent \
+      --data 'q=hello' \
+      --data 'source=en' \
+      --data 'target=fr' \
+      --data 'prettyprint=false' \
+      --data 'invalid_arg=bad_arg' \
+      --data 'key=unittest.rev' \
+      "http://$server_ip:$server_port/translate.php" \
+   | grep \
+      --fixed-strings \
+      --quiet \
+      '{"data":{"translations":[{"translatedText":"olleh"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
+   || ! echo "Error translating a single request" >&2
+}
+
+function translate_with_multiple_queries() {
+   verbose translate_with_multiple_queries
+
+   curl \
+      --silent \
+      --get \
+      --data 'q[]=hello' \
+      --data 'q[]=tree' \
+      --data 'q[]=car' \
+      --data 'source=en' \
+      --data 'target=fr' \
+      --data 'prettyprint=false' \
+      --data 'invalid_arg=bad_arg' \
+      --data 'key=unittest.rev' \
+      "http://$server_ip:$server_port/translate.php" \
+   | grep \
+      --fixed-strings \
+      --quiet \
+      '{"data":{"translations":[{"translatedText":"olleh"},{"translatedText":"eert"},{"translatedText":"rac"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
+   || ! echo "Error translating multiple requests" >&2
+
+   curl \
+      --silent \
+      --data 'q[]=hello' \
+      --data 'q[]=tree' \
+      --data 'q[]=car' \
+      --data 'source=en' \
+      --data 'target=fr' \
+      --data 'prettyprint=false' \
+      --data 'invalid_arg=bad_arg' \
+      --data 'key=unittest.rev' \
+      "http://$server_ip:$server_port/translate.php" \
+   | grep \
+      --fixed-strings \
+      --quiet \
+      '{"data":{"translations":[{"translatedText":"olleh"},{"translatedText":"eert"},{"translatedText":"rac"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
+   || ! echo "Error translating multiple requests" >&2
+}
+
+function handy_dbugger() {
+   curl \
+      --silent \
+      --get \
+      --data 'key=unittest.rev' \
+      --data 'target=fr' \
+      --data 'prettyprint=False' \
+      --data 'option=invalid' \
+      --data 'q=home' \
+      "http://$server_ip:$server_port/translate.php"
+}
 
 rm -fr plive
 RC=0
 lint_php || RC=1
 start_php_server || RC=1
+#handy_dbugger; exit
+
 local_testase || RC=1
 remote_testcase || RC=1
 curl_testcase || RC=1
 curl_post_testcase || RC=1
+translate_with_single_query || RC=1
+translate_with_multiple_queries || RC=1
 
 echo
 exit $RC

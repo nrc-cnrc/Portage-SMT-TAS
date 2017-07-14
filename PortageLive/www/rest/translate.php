@@ -67,18 +67,15 @@ class RestTranlator extends PortageLiveLib {
 
 
    /**
-    * This function is necessary in order to properly extract multiple q(ueries) from the url.
-    * Simply relying on $_GET['q'] is not sufficient since it will only return
-    * the last q(uery) value.
+    * This actually performs per argument check.
     */
    protected function parseRequest($request) {
-      #print_r($request);
+      #var_dump($request);
       if (!isset($request) || empty($request)) {
          throw new Exception("There is no query.");
       }
 
-      foreach (split('&', $request) as $a) {
-         list($k, $v) = split('=', $a, 2);
+      foreach ($request as $k => $v) {
          switch($k) {
             case "key":
                $this->key = $v;
@@ -87,9 +84,15 @@ class RestTranlator extends PortageLiveLib {
                $this->prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
                break;
             case "q":
-               $v = urldecode($v);
-               $v = html_entity_decode($v);
-               array_push($this->q, $v);
+               if (!is_array($v)) {
+                  $v = array($v);
+               }
+               $this->q = array_map(function($q) {
+                     $q = urldecode($q);
+                     $q = html_entity_decode($q);
+                     return $q;
+                  },
+                  $v);
                break;
             case "source":
                $this->source = $v;
@@ -130,8 +133,8 @@ class RestTranlator extends PortageLiveLib {
 
       if (count($this->invalid_url_arguments) > 0) {
          $invalid_url_arguments_warning = array(
-            'message' => 'You used invalid options',
-            'options' => $this->invalid_url_arguments
+            'message' => 'You used invalid argument(s)',
+            'arguments' => $this->invalid_url_arguments
          );
          if (!isset($translations['warnings'])) {
             $translations['warnings'] = array();
@@ -144,7 +147,7 @@ class RestTranlator extends PortageLiveLib {
 
 
    public function translate() {
-      $this->parseRequest($_SERVER['QUERY_STRING']);
+      $this->parseRequest(@$_REQUEST);
 
       if (!isset($this->target) || empty($this->target)) {
          throw new Exception("You need to provide a target using target=X.");
@@ -169,7 +172,7 @@ class RestTranlator extends PortageLiveLib {
       }
       $context = $this->key . $this->source . "-" . $this->target;
 
-      if ((int)$this->q > 0) {
+      if (count($this->q) > 0) {
          # For efficiency, let's glue all queries into a single request for Portage.
          $q = join("\n", $this->q);
          # Translate the queries.

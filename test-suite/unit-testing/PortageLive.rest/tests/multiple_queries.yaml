@@ -18,7 +18,7 @@ name: "Translate more than one query at once."
 globals:
   variables:
     service: "{base_url}/translate.php"
-    queries: "q=Hello%20world&q=My%20name%20is%20Jeff"
+    queries: "q[]=Hello%20world&q[]=My%20name%20is%20Jeff"
 
 testSteps:
   - name: "Translate"
