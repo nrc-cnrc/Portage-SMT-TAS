@@ -55,9 +55,24 @@ class PortageLiveLib {
    # Gather all relevant information about translation context $context
    public function getContextInfo($context) {
       $info = array();
-      $info["context"] = $context;
+      $context_parts = explode("/", $context, 2);
+      $has_doc_id = False;
+      if (count($context_parts) == 2) {
+         # We have a static context plus a document ID
+         $info["context"] = $context_parts[0];
+         $info["document_id"] = $context_parts[1];
+         $has_doc_id = True;
+      } else {
+         $info["context"] = $context;
+      }
       global $base_portage_dir;
-      $info["context_dir"] = "$base_portage_dir/models/$context";
+      if ($has_doc_id) {
+         #TODO look for the document model.
+         # When no document model is found, we fall back to the static one.
+         $info["context_dir"] = "$base_portage_dir/models/$context";
+      } else {
+         $info["context_dir"] = "$base_portage_dir/models/$context";
+      }
       $info["script"] = "$info[context_dir]/soap-translate.sh";
       $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
       if ( is_file($info["script"]) ) {
