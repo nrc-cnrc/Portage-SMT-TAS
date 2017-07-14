@@ -8,7 +8,7 @@ $base_portage_dir = getcwd() . '/tests/';
 
 class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 {
-   var $document_level_model_ID;
+   var $document_model_id;
    var $unique_id;
    var $source;
    var $target;
@@ -19,26 +19,31 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
    protected function setUp()
    {
       $this->context = 'unittest.rev.en-fr';
-      $this->document_level_model_ID = 'cli_php';
+      $this->document_model_id = 'cli_php';
       $this->unique_id = time() . rand(0, 100000);
       $this->source = 'A_' . $this->unique_id;
       $this->target = 'B_' . $this->unique_id;
 
       global $base_web_dir;
-      #$workdir = $service->incrClearDocumentLevelModelWorkdir($document_level_model_ID);
-      $this->witnessFileName = $base_web_dir . "/plive/DOCUMENT_LEVEL_MODEL_{$this->document_level_model_ID}/witness";
+      $document_model_dir = $base_web_dir . "/plive/DOCUMENT_MODEL_"
+                            . "{$this->document_model_id}";
+      #$workdir = $service->incrClearDocumentModelWorkdir($document_model_id);
+      $this->witnessFileName = "$document_model_dir/witness";
       if (is_file($this->witnessFileName)) {
-         $this->assertTrue(unlink($this->witnessFileName), 'Unable to delete the witness file.');
+         $this->assertTrue(unlink($this->witnessFileName), 
+                           'Unable to delete the witness file.');
       }
 
-      $this->queueFileName = $base_web_dir . "/plive/DOCUMENT_LEVEL_MODEL_{$this->document_level_model_ID}/queue";
+      $this->queueFileName = "$document_model_dir/queue";
       if (is_file($this->queueFileName)) {
-         $this->assertTrue(unlink($this->queueFileName), 'Unable to delete the queue file.');
+         $this->assertTrue(unlink($this->queueFileName),
+                           'Unable to delete the queue file.');
       }
 
-      $this->corporaFileName = $base_web_dir . "/plive/DOCUMENT_LEVEL_MODEL_{$this->document_level_model_ID}/corpora";
+      $this->corporaFileName = "$document_model_dir/corpora";
       if (is_file($this->corporaFileName)) {
-         $this->assertTrue(unlink($this->corporaFileName), 'Unable to delete the corpora file.');
+         $this->assertTrue(unlink($this->corporaFileName),
+                           'Unable to delete the corpora file.');
       }
    }
 
@@ -61,9 +66,9 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
    /**
     * @expectedException SoapFault
-    * @expectedExceptionMessage You must provide a valid document_level_model_ID.
+    * @expectedExceptionMessage You must provide a valid document_model_id.
     */
-   public function test_document_level_ID()
+   public function test_document_level_id()
    {
       $service = new PortageLiveLib();
 
@@ -85,7 +90,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID);
+      $result = $service->incrAddSentence($this->context, $this->document_model_id);
 
       $this->assertFalse($result);
    }
@@ -101,7 +106,8 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID, $this->source);
+      $result = $service->incrAddSentence($this->context, $this->document_model_id,
+                                          $this->source);
 
       $this->assertFalse($result);
    }
@@ -113,7 +119,8 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->context, $this->document_level_model_ID, $this->source, $this->target);
+      $result = $service->incrAddSentence($this->context, $this->document_model_id, 
+                                          $this->source, $this->target);
 
       # Assert
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
@@ -127,16 +134,14 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
       $this->assertFileExists($this->corporaFileName, "There should be a corpora file.");
       $corpora = file_get_contents($this->corporaFileName);
       #2017-06-07 15:24:19\tsource_sentence\ttranslation_sentence
-      $this->assertRegExp("/[0-p: -]+\t$this->source\t$this->target/",
-         trim($corpora),
-         "The corpora file should contain our sentence pair.");
+      $this->assertRegExp("/[0-p: -]+\t$this->source\t$this->target/", trim($corpora),
+                          "The corpora file should contain our sentence pair.");
 
       $this->assertFileExists($this->witnessFileName,
          "There should be a witness that attests that training was completed.");
       $witness = file_get_contents($this->witnessFileName);
-      $this->assertEquals('Training is done',
-         trim($witness),
-         "We were expecting that training would've been done.");
+      $this->assertEquals('Training is done', trim($witness),
+                          "We were expecting that training would've been done.");
    }
 }
 ?>
