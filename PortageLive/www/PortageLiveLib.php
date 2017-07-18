@@ -236,19 +236,17 @@ class PortageLiveLib
       global $base_web_dir;
       $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$document_model_id}");
       $work_dir = "$base_web_dir/plive/$work_dir";
-      #if (is_dir($work_dir) || @mkdir($work_dir))  # read comment below
-      if (is_dir($work_dir) || mkdir($work_dir, 0755, true))
+      if (is_dir($work_dir) || @mkdir($work_dir, 0755, true))
+         return $work_dir;
+      else if (is_dir($work_dir))   # handle potential race condition
          return $work_dir;
       else
-         # Never gets here because we are using mkdir $recursive = true.
-         # mkdir($work_dir, 0755, true) will recursively make $work_dir but if we prefer to throw an exception instead,
-         # use @mkdir($work_dir).
-         throw new SoapFault(
-            "MkdirError",
-            "can't create temp work dir for $document_model_id",
+         throw new SoapFault( "MkdirError",
+            "Can't create temp work dir for document $document_model_id",
             "PortageServer",
-            "mkdir was unable to create $document_model_id in $work_dir. "
-            . "Probable causes are that $work_dir doesn't exists or it is readonly."
+            "mkdir was unable to create $work_dir.\nProbable causes: "
+               . dirname($work_dir) . " doesn't exist or is read-only, or "
+               . basename($work_dir) . " exists as a file not a directory."
          );
    }
 

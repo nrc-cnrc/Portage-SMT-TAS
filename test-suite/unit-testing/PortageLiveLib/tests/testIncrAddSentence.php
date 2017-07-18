@@ -30,7 +30,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
       #$workdir = $service->incrClearDocumentModelWorkdir($document_model_id);
       $this->witnessFileName = "$document_model_dir/witness";
       if (is_file($this->witnessFileName)) {
-         $this->assertTrue(unlink($this->witnessFileName), 
+         $this->assertTrue(unlink($this->witnessFileName),
                            'Unable to delete the witness file.');
       }
 
@@ -113,13 +113,66 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
    }
 
 
+   /**
+    * @expectedException SoapFault
+    * @expectedExceptionMessage Can't create temp work dir for document
+    */
+   public function test_bad_document_model_workdir()
+   {
+      $bad_id = "cli_php_bad_1";
+
+      # Create a bad document model workdir by creating it as a file.
+      global $base_web_dir;
+      $document_model_workdir = $base_web_dir . "/plive/DOCUMENT_MODEL_$bad_id";
+      file_put_contents($document_model_workdir, "");
+
+      $service = new PortageLiveLib();
+
+      # We need to make the source and target unique if we want to test for
+      # their presence in the corpora.
+      $result = $service->incrAddSentence($this->context, $bad_id, $this->source,
+                                          $this->target);
+
+      $this->assertFalse($result);
+   }
+
+
+   /**
+    * @expectedException SoapFault
+    * @expectedExceptionMessage Can't create temp work dir for document
+    */
+   public function test_read_only_plive()
+   {
+      $bad_id = "cli_php_bad_2";
+
+      # Change the plive directory to be read-only.
+      global $base_web_dir;
+      $plive_dir = $base_web_dir . "/plive";
+      $this->assertTrue(chmod($plive_dir, 0555));
+
+      $service = new PortageLiveLib();
+
+      # We need to make the source and target unique if we want to test for
+      # their presence in the corpora.
+      try {
+         $result = $service->incrAddSentence($this->context, $bad_id,
+                                             $this->source, $this->target);
+      } finally {
+         # Change the plive directory back to read-write.
+         $this->assertTrue(chmod($plive_dir, 0775));
+      }
+
+      $this->assertFalse($result);
+   }
+
+
    public function test_basic_valid_usage()
    {
       $service = new PortageLiveLib();
 
       # We need to make the source and target unique if we want to test for
       # their presence in the corpora.
-      $result = $service->incrAddSentence($this->context, $this->document_model_id, 
+      $result = $service->incrAddSentence($this->context, $this->document_model_id,
                                           $this->source, $this->target);
 
       # Assert
