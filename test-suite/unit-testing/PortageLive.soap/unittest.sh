@@ -12,7 +12,6 @@
 
 
 readonly server_ip=127.0.0.1
-readonly server_port=8756
 
 function verbose() {
    echo $'\n'============= $* =============
@@ -31,6 +30,28 @@ function start_php_server() {
    readonly doc_root=doc_root
    mkdir -p $doc_root
 
+   pushd $doc_root &> /dev/null
+   ln -fs ../tests .
+
+   function try_starting_server() {
+      server_port=$(($RANDOM % 5000 + 52000))
+      echo "Using port $server_port"
+      php \
+         --define 'include_path=.:..' \
+         --server $server_ip:$server_port \
+         --docroot . \
+         &> log.server &
+      server_pid=$!
+      sleep 1
+   }
+   try_starting_server
+
+   popd &> /dev/null
+
+   # Is our server listening on the port?
+   lsof -i tcp:$server_port &> /dev/null || { echo "Failed to start server" >&2; exit 1; }
+   export PHP_PORT=$server_port
+
    cp \
       ../../../PortageLive/www/PortageLiveLib.php \
       ../../../PortageLive/www/soap/PortageLiveAPI.php \
@@ -40,18 +61,8 @@ function start_php_server() {
       < ../../../PortageLive/www/soap/PortageLiveAPI.wsdl \
       > $doc_root/PortageLiveAPI.wsdl
 
-   pushd $doc_root &> /dev/null
-   ln -s ../tests .
-   php \
-      --define 'include_path=.:..' \
-      --server $server_ip:$server_port \
-      --docroot . \
-      &> log.server &
-   server=$!
-   popd &> /dev/null
-   sleep 1
-   trap "rm -fr $doc_root; kill -9 $server" EXIT
-   #trap "kill -9 $server" EXIT
+   #trap "rm -fr $doc_root; kill -9 $server_pid" EXIT
+   trap "kill -9 $server_pid" EXIT
 }
 
 function python_unittests() {

@@ -12,7 +12,6 @@
 # Copyright 2016, Her Majesty in Right of Canada
 
 readonly server_ip=127.0.0.1
-readonly server_port=8765
 
 function verbose() {
    echo $'\n'============= $* =============
@@ -36,23 +35,44 @@ function phpunit_testcase() {
 }
 
 function start_php_server() {
-   verbose 'Starting php web server....'
+   verbose 'Starting php web server ....'
    deploy_code
    # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_level_model_ID=5&source=S&target=T'
-   php \
-      --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
-      --server $server_ip:$server_port \
-      --docroot . \
-      &> log.server &
-   server=$!
-   sleep 1
-   #trap "kill -9 $server; rm -fr plive" EXIT
-   trap "kill -9 $server" EXIT
+   function try_starting_server() {
+      server_port=$(($RANDOM % 5000 + 52000))
+      echo "Using port $server_port"
+      php \
+         --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
+         --server $server_ip:$server_port \
+         --docroot . \
+         &> log.server &
+      server_pid=$!
+      sleep 1
+   }
+   try_starting_server
+
+#   counter=5
+#   try_starting_server;
+#   #while [[ `kill -0 $server_pid` -ne 0 ]] && [[ $counter -gt 0 ]]; do
+#   while [[ `lsof -i tcp:$server_port &> /dev/null` ]] && [[ $counter -gt 0 ]]; do
+#      ps -p $server_pid
+#      kill -0 $server_pid
+#      lsof -i tcp:$server_port
+#      counter=$((counter - 1))
+#      try_starting_server
+#   done
+
+   # Is our server listening on the port?
+   lsof -i tcp:$server_port &> /dev/null || { echo "Failed to start server" >&2; exit 1; }
+
+   #trap "kill -9 $server_pid; rm -fr plive" EXIT
+   trap "kill -9 $server_pid" EXIT
 }
 
 function Rester_testcase() {
    verbose Rester_testcase
    # Runnig https://github.com/chitamoor/Rester
+   sed "s/PHP_PORT/$server_port/" < tests/testSuite.yaml.template > tests/testSuite.yaml
    apirunner --ts tests/testSuite.yaml
 }
 

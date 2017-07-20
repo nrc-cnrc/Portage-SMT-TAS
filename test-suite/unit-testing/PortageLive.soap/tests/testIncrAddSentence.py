@@ -11,6 +11,7 @@ import unittest
 import logging
 import requests
 import time
+import os
 
 
 
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.CRITICAL)
 # If you need to debug what is happening, uncomment the following line
 #logging.basicConfig(level=logging.DEBUG)
 
-url = 'http://127.0.0.1:8756'
+url = 'http://127.0.0.1'
 
 class TestIncrAddSentence(unittest.TestCase):
    """
@@ -31,8 +32,8 @@ class TestIncrAddSentence(unittest.TestCase):
       super(TestIncrAddSentence, self).__init__(*args, **kwargs)
 
       DocumentCache().clear()
-      self.url = url
-      self.WSDL = url + '/PortageLiveAPI.wsdl'
+      self.url = url + ':' + os.getenv('PHP_PORT', 8756)
+      self.WSDL = self.url + '/PortageLiveAPI.wsdl'
       self.client = Client(self.WSDL)
       # Kludge to trigger a server side unittest.
       # The document_level_model_id must match PortageLiveLib::$MAGIC_UNITTEST_DOCUMENT_ID

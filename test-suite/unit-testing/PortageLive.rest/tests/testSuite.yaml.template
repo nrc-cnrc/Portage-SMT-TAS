@@ -12,7 +12,7 @@
 
 globals:
   variables:
-     base_url: "http://127.0.0.1:8765"
+     base_url: "http://127.0.0.1:PHP_PORT"
 
 test_cases:
   - basic_validation.yaml
