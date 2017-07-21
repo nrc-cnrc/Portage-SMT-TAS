@@ -69,7 +69,7 @@ class TestIncrAddSentence(unittest.TestCase):
       """
       with self.assertRaises(WebFault) as cm:
          self.client.service.incrAddSentence(self.context, '', '', '')
-      self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_level_model_ID.'")
+      self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_model_id.'")
 
 
    def test_no_source_sentence(self):
@@ -126,7 +126,7 @@ class TestIncrAddSentence(unittest.TestCase):
       # TODO:
       # - Fetch the corpora and make sure it contains our sentence pair
 
-      r = requests.get(self.url + '/plive/DOCUMENT_LEVEL_MODEL_' + self.document_level_model_id + '/corpora')
+      r = requests.get(self.url + '/plive/DOCUMENT_MODEL_' + self.document_level_model_id + '/corpora')
       self.assertEqual(r.status_code, 200, \
             msg='Failed fetching the corpora file for '.format(self.document_level_model_id))
 

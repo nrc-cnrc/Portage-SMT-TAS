@@ -94,7 +94,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    /**
     * @test
     * @expectedException Exception
-    * @expectedExceptionMessage You must provide a valid document_level_model_ID.
+    * @expectedExceptionMessage You must provide a valid document_model_id.
     */
    public function noDocumentLevelModelID() {
       $service = new IncrementalTrainor();

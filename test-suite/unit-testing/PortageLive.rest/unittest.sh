@@ -79,7 +79,7 @@ function Rester_testcase() {
 function incrAddSentence_with_curl_testcase() {
    verbose incrAddSentence_with_curl_testcase
    # Web request using unicode.
-   export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
+   export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    local tag=`date +"%T"`
 
@@ -112,7 +112,7 @@ function incrAddSentence_with_curl_testcase() {
 function incrAddSentence_curl_post_testcase() {
    verbose incrAddSentence_curl_post_testcase
    # Web request using unicode.
-   export CORPORA=./plive/DOCUMENT_LEVEL_MODEL_PORTAGE_UNITTEST_4da35/corpora
+   export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    local tag=`date +"%T"`
 
@@ -215,7 +215,7 @@ function translate_with_multiple_queries_testcase() {
    || ! echo "Error translating multiple requests" >&2
 }
 
-function handy_dbugger() {
+function handy_debugger() {
    curl \
       --silent \
       --get \
@@ -231,7 +231,7 @@ rm -fr plive
 RC=0
 lint_php || RC=1
 start_php_server || RC=1
-#handy_dbugger; exit
+#handy_debugger; exit
 
 phpunit_testcase || RC=1
 Rester_testcase || RC=1

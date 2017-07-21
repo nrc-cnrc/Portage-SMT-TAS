@@ -51,7 +51,7 @@ testSteps:
         error.type: "String"
         error.type: "PortageBadArgs"
         error.message: "String"
-        error.message: "You must provide a valid document_level_model_ID."
+        error.message: "You must provide a valid document_model_id."
 
 
   - name: "No source"
