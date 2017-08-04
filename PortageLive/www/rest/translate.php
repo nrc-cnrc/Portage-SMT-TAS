@@ -63,6 +63,7 @@ class RestTranlator extends PortageLiveLib {
    protected $prettyprint = true;
    protected $key = '';
    protected $q = array();
+   protected $document_model_ID;
 
    protected $invalid_url_arguments = array();
 
@@ -100,6 +101,9 @@ class RestTranlator extends PortageLiveLib {
                break;
             case "target":
                $this->target = $v;
+               break;
+            case "document_model_ID":
+               $this->document_model_ID = $v;
                break;
             default:
                array_push($this->invalid_url_arguments, "$k=$v");
@@ -172,6 +176,9 @@ class RestTranlator extends PortageLiveLib {
          $this->key .= '.';
       }
       $context = $this->key . $this->source . "-" . $this->target;
+      if (!isset($this->document_model_ID) and !empty($this->document_model_ID)) {
+         $context .= '/' .  $this->document_model_ID;
+      }
 
       if (count($this->q) > 0) {
          # For efficiency, let's glue all queries into a single request for Portage.
