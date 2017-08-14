@@ -165,7 +165,8 @@ fi
 
       # Train
       verbose 1 "$$ is training"
-      incr-update.sh $canoe_ini $corpora &> incremental-update.log
+      incr-update.sh $canoe_ini $corpora &> incr-update.log
+      echo "$?" > incr-update.status
 
       verbose 1 "Locking the queue"
       flock --exclusive $queue_fd

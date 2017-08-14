@@ -17,7 +17,7 @@ if (php_sapi_name() == 'cli-server') {
    # We need to specify a full path and not simply "." because the working
    # directory has do be a absolute path since runCommand executes from /tmp.
    $base_web_dir = $_SERVER['DOCUMENT_ROOT'];
-   $base_portage_dir = $_SERVER['DOCUMENT_ROOT'] . '/tests/';
+   $base_portage_dir = $_SERVER['DOCUMENT_ROOT'] . '/tests';
 }
 else {
    $base_web_dir = "/var/www/html";
@@ -233,9 +233,7 @@ class PortageLiveLib
    # Returns the name of the directory created.
    protected function makeDocumentModelWorkDir($document_model_id)
    {
-      global $base_web_dir;
-      $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$document_model_id}");
-      $work_dir = "$base_web_dir/plive/$work_dir";
+      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
       if (is_dir($work_dir) || @mkdir($work_dir, 0755, true))
          return $work_dir;
       else if (is_dir($work_dir))   # handle potential race condition
@@ -248,6 +246,15 @@ class PortageLiveLib
                . dirname($work_dir) . " doesn't exist or is read-only, or "
                . basename($work_dir) . " exists as a file not a directory."
          );
+   }
+
+   # Return the document model workdir path for a document model ID.
+   protected function getDocumentModelWorkDir($document_model_id)
+   {
+      global $base_web_dir;
+      $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$document_model_id}");
+      $work_dir = "$base_web_dir/plive/$work_dir";
+      return $work_dir;
    }
 
    # Normalize a name to keep only alphanumeric, dash, underscore, dot and plus
@@ -658,9 +665,7 @@ class PortageLiveLib
                              "You must provide a valid document_model_id.");
       }
 
-      global $base_web_dir;
-      $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$document_model_id}");
-      $work_dir = "$base_web_dir/plive/$work_dir";
+      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
 
       if (! is_dir($work_dir))
          throw new SoapFault("PortageServer", "$document_model_id doesn't have "
@@ -729,6 +734,70 @@ class PortageLiveLib
                                   $dummy_context_info, $exit_status, $wantoutput);
 
       return $exit_status == 0 ? True : False;
+   }
+
+   public function incrStatus($document_model_id = NULL)
+   {
+      if (!isset($document_model_id) || empty($document_model_id)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid document_model_id.");
+      }
+
+      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
+
+      if (! is_dir($work_dir))
+         return "N/A";
+
+      # Check if an update is in progress.
+      $update_in_progress = false;
+      # Lock the queue while we check the training lock to avoid a race
+      # condition with incr-add-sentence.sh.
+      $queue_lock_fp = @fopen("$work_dir/queue.lock", 'r');
+      if ($queue_lock_fp) {
+         flock($queue_lock_fp, LOCK_EX);
+         $training_lock_fp = @fopen("$work_dir/istraining.lock", 'r');
+         if ($training_lock_fp) {
+            if(!flock($training_lock_fp, LOCK_EX | LOCK_NB))
+               $update_in_progress = true;
+            else
+               flock($training_lock_fp, LOCK_UN);
+            fclose($training_lock_fp);
+         }
+         flock($queue_lock_fp, LOCK_UN);
+         fclose($queue_lock_fp);
+      }
+
+      # Check if an update is pending.
+      $update_pending = @filesize("$work_dir/queue") != 0;
+
+      $update_complete = !$update_pending && !$update_in_progress
+                         && @filesize("$work_dir/corpora") != 0;
+
+      if (!$update_pending && !$update_in_progress && !$update_complete)
+         return "N/A";
+
+      $status = "Update ";
+      if ($update_pending) {
+         $status .= "pending";
+         if ($update_in_progress)
+            $status .= "+in_progress";
+      } elseif ($update_in_progress)
+         $status .= "in_progress";
+      elseif ($update_complete)
+         $status .= "complete";
+
+      $last_update_status = trim(@file_get_contents("$work_dir/incr-update.status"));
+      if ($last_update_status == "")
+         $last_update_status = "N/A";
+      elseif ($last_update_status == "0")
+         $last_update_status .= " success";
+      else
+         $last_update_status .= " failure";
+
+      $corp_size = trim(`cat $work_dir/corpora 2> /dev/null | wc -l`);
+      $queue_size = trim(`cat $work_dir/queue 2> /dev/null | wc -l`);
+
+      return "$status, $last_update_status, corpus: $corp_size, queue: $queue_size";
    }
 
 

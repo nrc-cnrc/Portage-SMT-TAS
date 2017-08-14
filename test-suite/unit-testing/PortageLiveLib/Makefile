@@ -25,5 +25,13 @@ SHELL = bash
 all:  testSuite
 
 .PHONY:  testSuite
-testSuite:
-	./unittest.sh
+testSuite: testIncrAddSentence testIncrStatus
+
+.PHONY:  testIncrAddSentence
+testIncrAddSentence:
+	./unittest.sh tests/testIncrAddSentence.php
+
+.PHONY:  testIncrStatus
+testIncrStatus:
+	./unittest.sh tests/testIncrStatus.php
+	
