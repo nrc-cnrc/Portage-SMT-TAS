@@ -1,8 +1,6 @@
-#!/usr/bin/make -f
-# vim:noet:ts=3:nowrap:filetype=make
-
-# @file Makefile
-# @brief Testsuite for PortageLiveLib
+#!/bin/bash
+# @file incr-update.sh stub
+# @brief Unit testing stub for incr-update.sh
 #
 # @author Samuel Larkin
 #
@@ -12,18 +10,6 @@
 # Copyright 2017, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2017, Her Majesty in Right of Canada
 
-
--include Makefile.params
-
-TEMP_DIRS=doc_root
-include ../Makefile.incl
-
-
-SHELL = bash
-
-.PHONY: all
-all:  testSuite
-
-.PHONY:  testSuite
-testSuite:
-	./unittest.sh
+rm -f witness
+sleep 2
+echo "Training is done" > witness

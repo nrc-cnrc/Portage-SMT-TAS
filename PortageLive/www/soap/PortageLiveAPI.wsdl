@@ -136,7 +136,7 @@
 
   <message name="incrAddSentenceRequest">
     <part name="context" type="xsd:string"/>
-    <part name="document_level_model_ID" type="xsd:string"/>
+    <part name="document_model_id" type="xsd:string"/>
     <part name="source_sentence" type="xsd:string"/>
     <part name="target_sentence" type="xsd:string"/>
     <part name="extra_data" type="xsd:string"/>
@@ -144,6 +144,15 @@
 
   <message name="incrAddSentenceResponse">
     <part name="status" type="xsd:boolean"/>
+  </message>
+
+
+  <message name="incrStatusRequest">
+    <part name="document_model_ID" type="xsd:string"/>
+  </message>
+
+  <message name="incrStatusResponse">
+    <part name="status_description" type="xsd:string"/>
   </message>
 
 
@@ -471,6 +480,34 @@
       <output message="tns:incrAddSentenceResponse"/>
     </operation>
 
+    <operation name="incrStatus">
+      <documentation>
+        Get the status of incremental training for a document.
+
+        Arguments:
+         - document_model_id is the id for the document model being queried.
+
+        Returns a string containing a human readable description containing the
+        status and additional details.
+        
+        The status is one of:
+        N/A : document model does not exist.
+        Update pending : the queue of new sentence pairs to add is not empty.
+        Update in_progress : incremental training currently in progress.
+        Update pending+in_progress : both previous conditions are true
+        Update complete : neither condition is true, but training has occurred.
+        
+        If the status is 'N/A', no additional information follows.
+        Otherwise, the status is followed by the incremental corpus and queue
+        sizes (number of sentence pairs). Thus, the description is of the form:
+        Update STATUS, corpus: NNN sents, queue: NNN sents
+
+        Throws SoapFault in case of problems.
+      </documentation>
+      <input message="tns:incrStatusRequest"/>
+      <output message="tns:incrStatusResponse"/>
+    </operation>
+
 
     <!-- =============================================================
          Deprecated operations kept for backwards compability only
@@ -670,9 +707,19 @@
       </output>
     </operation>
 
+    <operation name="incrStatus">
+      <soap:operation soapAction="incrStatus"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
 
     <!-- ===========================================================
-         Deprecated bindings kept for backwards compability only
+         Deprecated bindings kept for backwards compatibility only
     ============================================================ -->
     <operation name="getTranslation">
       <soap:operation soapAction="getTranslation"/>
