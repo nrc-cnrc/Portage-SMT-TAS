@@ -25,10 +25,15 @@ export PORTAGE_INTERNAL_CALL=1
 run_cmd() {
    echo "=======> START [`date`]: $*" >&2
    if [[ ! $NOTREALLY ]]; then
+      # Turn off the errexit option temporarily, to facilitate echoing the
+      # completion time/exit status of the command.
+      local errexit=$(set -o | grep errexit | cut -f2)
+      set +o errexit
       eval time $*
       rc=$?
       echo "== DONE (rc=$rc) [`date`]: $*" >&2
       echo >&2
+      [[ $errexit = off ]] || set -o errexit
       return $rc
    fi
 }
@@ -117,7 +122,7 @@ init_model_opts=
 if [[ -n "$base_canoe_ini" ]]; then
    [[ $VERBOSE -gt 0 ]] && init_model_opts+=" -v"
    run_cmd "incr-init-model.py -q $init_model_opts -- $base_canoe_ini" ||
-      error_exit "Cannot initialize document model (RC=$RC)."
+      error_exit "Cannot initialize document model (RC=$rc)."
    incr_canoe_ini=$(basename $base_canoe_ini)
    local_canoe_ini=${incr_canoe_ini}.orig
 fi
