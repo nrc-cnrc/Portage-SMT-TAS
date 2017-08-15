@@ -46,8 +46,6 @@ class TestIncrStatus(unittest.TestCase):
       self.url = url + ':' + os.getenv('PHP_PORT', 8756)
       self.WSDL = self.url + '/PortageLiveAPI.wsdl'
       self.client = Client(self.WSDL)
-      # Kludge to trigger a server side unittest.
-      # The document_model_id must match PortageLiveLib::$MAGIC_UNITTEST_DOCUMENT_ID
       self.context = 'unittest.rev.en-fr'
       self.document_model_id = 'PORTAGE_UNITTEST_4da35_2'
       self.source_sentence = "'home'"
