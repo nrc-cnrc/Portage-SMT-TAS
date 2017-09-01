@@ -18,7 +18,7 @@ function verbose() {
 }
 
 function deploy_code() {
-   verbose deploy_code
+   verbose ${FUNCNAME[0]}
    rm -fr plive
    mkdir -p plive
    cp ../../../PortageLive/www/rest/translate.php .
@@ -26,7 +26,7 @@ function deploy_code() {
 }
 
 function phpunit_testcase() {
-   verbose phpunit_testcase
+   verbose ${FUNCNAME[0]}
    php \
       --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
@@ -70,14 +70,14 @@ function start_php_server() {
 }
 
 function Rester_testcase() {
-   verbose Rester_testcase
+   verbose ${FUNCNAME[0]}
    # Runnig https://github.com/chitamoor/Rester
    sed "s/PHP_PORT/$server_port/" < tests/testSuite.yaml.template > tests/testSuite.yaml
    apirunner --ts tests/testSuite.yaml
 }
 
 function incrAddSentence_with_curl_testcase() {
-   verbose incrAddSentence_with_curl_testcase
+   verbose ${FUNCNAME[0]}
    # Web request using unicode.
    export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
@@ -110,7 +110,7 @@ function incrAddSentence_with_curl_testcase() {
 }
 
 function incrAddSentence_curl_post_testcase() {
-   verbose incrAddSentence_curl_post_testcase
+   verbose ${FUNCNAME[0]}
    # Web request using unicode.
    export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
    #[[ -s $CORPORA ]] && rm -f $CORPORA
@@ -131,7 +131,7 @@ function incrAddSentence_curl_post_testcase() {
 }
 
 function lint_php() {
-   verbose lint_php
+   verbose ${FUNCNAME[0]}
    for c in PortageLiveLib.php rest/incrAddSentence.php; do
       php \
          --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
@@ -142,7 +142,7 @@ function lint_php() {
 }
 
 function translate_with_single_query_testcase() {
-   verbose translate_with_single_query_testcase
+   verbose ${FUNCNAME[0]}
 
    curl \
       --silent \
@@ -177,7 +177,7 @@ function translate_with_single_query_testcase() {
 }
 
 function translate_with_multiple_queries_testcase() {
-   verbose translate_with_multiple_queries_testcase
+   verbose ${FUNCNAME[0]}
 
    curl \
       --silent \
