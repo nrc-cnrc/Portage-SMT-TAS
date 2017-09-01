@@ -132,7 +132,7 @@ function incrAddSentence_curl_post_testcase() {
 
 function lint_php() {
    verbose ${FUNCNAME[0]}
-   for c in PortageLiveLib.php rest/incrAddSentence.php; do
+   for c in PortageLiveLib.php rest/incrAddSentence.php rest/translate.php rest/getAllContexts.php; do
       php \
          --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
          --syntax-check \
