@@ -152,13 +152,13 @@ function translate_with_single_query_testcase() {
       --data 'target=fr' \
       --data 'invalid_arg=bad_arg' \
       --data 'prettyprint=false' \
-      --data 'key=unittest.rev' \
+      --data 'context=unittest.rev.en-fr' \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
       --quiet \
       '{"data":{"translations":[{"translatedText":"olleh"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
-   || ! echo "Error translating a single request" >&2
+   || ! echo "Error translating a single request (1)" >&2
 
    curl \
       --silent \
@@ -167,13 +167,13 @@ function translate_with_single_query_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'key=unittest.rev' \
+      --data 'context=unittest.rev.en-fr' \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
       --quiet \
       '{"data":{"translations":[{"translatedText":"olleh"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
-   || ! echo "Error translating a single request" >&2
+   || ! echo "Error translating a single request (2)" >&2
 }
 
 function translate_with_multiple_queries_testcase() {
@@ -189,13 +189,13 @@ function translate_with_multiple_queries_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'key=unittest.rev' \
+      --data 'context=unittest.rev.en-fr' \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
       --quiet \
       '{"data":{"translations":[{"translatedText":"olleh"},{"translatedText":"eert"},{"translatedText":"rac"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
-   || ! echo "Error translating multiple requests" >&2
+   || ! echo "Error translating multiple requests (1)" >&2
 
    curl \
       --silent \
@@ -206,20 +206,20 @@ function translate_with_multiple_queries_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'key=unittest.rev' \
+      --data 'context=unittest.rev.en-fr' \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
       --quiet \
       '{"data":{"translations":[{"translatedText":"olleh"},{"translatedText":"eert"},{"translatedText":"rac"}]},"warnings":[{"message":"You used invalid argument(s)","arguments":["invalid_arg=bad_arg"]}]}' \
-   || ! echo "Error translating multiple requests" >&2
+   || ! echo "Error translating multiple requests (2)" >&2
 }
 
 function handy_debugger() {
    curl \
       --silent \
       --get \
-      --data 'key=unittest.rev' \
+      --data 'context=unittest.rev.en-fr' \
       --data 'target=fr' \
       --data 'prettyprint=False' \
       --data 'option=invalid' \

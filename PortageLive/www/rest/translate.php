@@ -15,11 +15,11 @@
  */
 
 # curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
-# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
-# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data key=toy-regress- --data prettyprint=false
+# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data context=toy-regress-
+# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data context=toy-regress- --data prettyprint=false
 
-# QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
-# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="q=tree&target=fr&context=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&context=toy-regress-&prettyprint=false" php translate.php
 
 /*
  * This is a sample of the expected output format.
@@ -61,7 +61,7 @@ class RestTranlator extends PortageLiveLib {
    protected $source = '';
    protected $target = '';
    protected $prettyprint = true;
-   protected $key = '';
+   protected $context = '';
    protected $q = array();
    protected $document_model_ID;
 
@@ -79,8 +79,8 @@ class RestTranlator extends PortageLiveLib {
 
       foreach ($request as $k => $v) {
          switch($k) {
-            case "key":
-               $this->key = $v;
+            case "context":
+               $this->context = $v;
                break;
             case "prettyprint":
                $this->prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
@@ -170,12 +170,10 @@ class RestTranlator extends PortageLiveLib {
       $performTagTransfer = false;
       $useConfidenceEstimation = false;
       $newline = "p";
-      # System's format:
-      #   <key> dot <source> dash <target>
-      if (substr($this->key, -1) !== '.') {
-         $this->key .= '.';
-      }
-      $context = $this->key . $this->source . "-" . $this->target;
+
+      # We should use source and target to validate that the user is currently 
+      # using a system that supports that language pair.
+      $context = $this->context;
       if (!isset($this->document_model_ID) and !empty($this->document_model_ID)) {
          $context .= '/' .  $this->document_model_ID;
       }

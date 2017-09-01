@@ -25,7 +25,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}?{queries}"
     params:
-      key: "unittest.rev"
+      context: "unittest.rev.en-fr"
       target: "fr"
       prettyprint: false
     asserts:
