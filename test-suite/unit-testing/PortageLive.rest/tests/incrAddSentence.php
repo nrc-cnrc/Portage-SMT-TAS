@@ -25,7 +25,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    public function __construct() {
       $this->basicRequest = array(
          'context' => 'unittest.rev.en-fr',
-         'document_level_model_ID' => 'rest_local',
+         'document_model_ID' => 'rest_local',
          'source' => 'Source',
          'target' => 'Target'
          );
@@ -100,7 +100,7 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
       $service = new IncrementalTrainor();
 
       $_REQUEST = $this->basicRequest;
-      unset($_REQUEST['document_level_model_ID']);
+      unset($_REQUEST['document_model_ID']);
 
       $service->addSentencePair();
    }

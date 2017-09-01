@@ -34,12 +34,12 @@ testSteps:
         error.message: "There is no query."
 
 
-  - name: "No document-level model id"
+  - name: "No document model id"
     method: "get"
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: ""
+      document_model_ID: ""
     asserts:
       headers:
         status: 404
@@ -59,7 +59,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
     asserts:
       headers:
         status: 404
@@ -79,7 +79,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: ""
     asserts:
       headers:
@@ -100,7 +100,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
     asserts:
       headers:
@@ -121,7 +121,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: ""
     asserts:
@@ -143,7 +143,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
     asserts:
@@ -160,7 +160,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
     asserts:
@@ -178,7 +178,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
       bad: "invalid"
@@ -203,7 +203,7 @@ testSteps:
     apiUrl: "{service}"
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
       bad: "invalid"
@@ -232,7 +232,7 @@ testSteps:
     raw: true
     params:
       context: "unittest.rev.en-fr"
-      document_level_model_ID: "PORTAGE_UNITTEST_4da35"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
       source: "Source"
       target: "Target"
       extra: "{\"a\":1}"

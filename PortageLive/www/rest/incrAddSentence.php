@@ -42,7 +42,7 @@
 
 /*
  * What should be the signature of this REST call?
- * Should the document level model id be in the URL or part of the arguments?
+ * Should the document model id be in the URL or part of the arguments?
  *
  */
 
@@ -77,7 +77,7 @@ class Warnings {
 
 class IncrementalTrainor extends PortageLiveLib {
    protected $context = NULL;
-   protected $document_level_model_ID = NULL;
+   protected $document_model_ID = NULL;
    protected $source = NULL;
    protected $target = NULL;
    protected $extra  = NULL;
@@ -113,8 +113,8 @@ class IncrementalTrainor extends PortageLiveLib {
             case "context":
                $this->context = $this->decodeArgument($v);
                break;
-            case "document_level_model_ID":
-               $this->document_level_model_ID = $this->decodeArgument($v);
+            case "document_model_ID":
+               $this->document_model_ID = $this->decodeArgument($v);
                break;
             case "source":
                $this->source = $this->decodeArgument($v);
@@ -146,7 +146,7 @@ class IncrementalTrainor extends PortageLiveLib {
       # handle its arguments errors.
       $result = $this->incrAddSentence(
          $this->context,
-         $this->document_level_model_ID,
+         $this->document_model_ID,
          $this->source,
          $this->target,
          $this->extra

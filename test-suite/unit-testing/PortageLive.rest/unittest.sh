@@ -37,7 +37,7 @@ function phpunit_testcase() {
 function start_php_server() {
    verbose 'Starting php web server ....'
    deploy_code
-   # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_level_model_ID=5&source=S&target=T'
+   # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_model_ID=5&source=S&target=T'
    function try_starting_server() {
       server_port=$(($RANDOM % 5000 + 52000))
       echo "Using port $server_port"
@@ -89,10 +89,10 @@ function incrAddSentence_with_curl_testcase() {
       --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
       --data "target=GET$tag" \
-      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
-   || ! echo "Error Adding sentence pairs" >&2
+   || ! echo "Error Adding sentence pairs (1)" >&2
 
    curl \
       --silent \
@@ -100,10 +100,10 @@ function incrAddSentence_with_curl_testcase() {
       --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
       --data "target=GET$tag" \
-      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
-   || ! echo "Error Adding sentence pairs" >&2
+   || ! echo "Error Adding sentence pairs (2)" >&2
 
    grep --quiet "GET$tag" $CORPORA \
    || ! echo $'\nError: Cannot find entry.' >&2
@@ -121,7 +121,7 @@ function incrAddSentence_curl_post_testcase() {
       --data 'context=unittest.rev.en-fr' \
       --data 'source=S%C9' \
       --data "target=POST$tag" \
-      --data 'document_level_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
    || ! echo "Error Adding sentence pairs" >&2
@@ -244,6 +244,6 @@ echo
 exit $RC
 
 # CLI php will fail because it can't create a directory under /var/www/html/
-#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php incrAddSentence.php
-#QUERY_STRING='source=SÉ&target=T&document_level_model_ID=curl' php -e -r 'parse_str(getenv("QUERY_STRING"), $_GET); include "incrAddSentence.php";'
+#QUERY_STRING='source=SÉ&target=T&document_model_ID=curl' php incrAddSentence.php
+#QUERY_STRING='source=SÉ&target=T&document_model_ID=curl' php -e -r 'parse_str(getenv("QUERY_STRING"), $_GET); include "incrAddSentence.php";'
 
