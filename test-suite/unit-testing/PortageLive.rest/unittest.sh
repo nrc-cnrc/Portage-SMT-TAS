@@ -23,6 +23,20 @@ function deploy_code() {
    mkdir -p plive
    cp ../../../../PortageLive/www/rest/translate.php .
    cp ../../../../PortageLive/www/rest/incrAddSentence.php .
+   cp ../../../../PortageLive/www/rest/getAllContexts.php .
+}
+
+function prepare_scenarios() {
+   verbose prepare_scenarios
+   mkdir -p scenarios/no_contexts/models
+   mkdir -p scenarios/one_context/models
+   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/one_context/models/
+   mkdir -p scenarios/several_contexts/models
+   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr.nnjm scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-ch2en scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-fr2en scenarios/several_contexts/models/
 }
 
 function phpunit_testcase() {
@@ -240,6 +254,7 @@ lint_php || exit 1
 start_php_server || exit 1
 #handy_debugger; exit
 
+prepare_scenarios || RC=1
 cd $doc_root || exit 1
 phpunit_testcase || RC=1
 Rester_testcase || RC=1

@@ -1,0 +1,36 @@
+# @file tests/getAllContexts.yaml
+# @brief
+#
+# @author Eric Joanis
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada
+# Copyright 2017, Her Majesty in Right of Canada
+
+
+name: "getAllContexts"
+
+
+globals:
+  variables:
+    service: "{base_url}/getAllContexts.php"
+
+
+testSteps:
+  - name: "urlencode"
+    method: "get"
+    apiUrl: "{service}"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        "contexts": "Array"
+        "contexts._length": 1
+        "contexts[0].name": "unittest.rev.en-fr"
+        "contexts[0].description": "unittest.rev.en-fr ( --> )"
+        "contexts[0].source": "en"
+        "contexts[0].target": "fr"
+        # payload should be {"contexts":[{"name":"unittest.rev.en-fr","description":"unittest.rev.en-fr ( --> )","source":"en","target":"fr"}]}

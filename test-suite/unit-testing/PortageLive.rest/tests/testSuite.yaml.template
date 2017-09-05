@@ -19,3 +19,4 @@ test_cases:
   - multiple_queries.yaml
   - ampersand.yaml
   - incrAddSentence.yaml
+  - getAllContexts.yaml

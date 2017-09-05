@@ -17,7 +17,7 @@
 
 TEMP_FILES = incrAddSentence.php log.server PortageLiveLib.php translate.php \
              tests/testSuite.yaml
-TEMP_DIRS = doc_root
+TEMP_DIRS = doc_root scenarios
 include ../Makefile.incl
 
 
