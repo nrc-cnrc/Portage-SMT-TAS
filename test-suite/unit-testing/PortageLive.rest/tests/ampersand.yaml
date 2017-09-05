@@ -33,12 +33,12 @@ testSteps:
         status: 200
         Content-Type: "application/json"
       payload:
-         data: "Object"
-         "data.translations": "Array"
-         "data.translations._length": 1
-         "data.translations[0]": "Object"
-         "data.translations[0].translatedText": "String"
-         "data.translations[0].translatedText": "erawdrah & emoh"
+        data: "Object"
+        "data.translations": "Array"
+        "data.translations._length": 1
+        "data.translations[0]": "Object"
+        "data.translations[0].translatedText": "String"
+        "data.translations[0].translatedText": "erawdrah & emoh"
 
 
   - name: "html_entity_encode & urlencode"
@@ -54,9 +54,9 @@ testSteps:
         status: 200
         Content-Type: "application/json"
       payload:
-         data: "Object"
-         "data.translations": "Array"
-         "data.translations._length": 1
-         "data.translations[0]": "Object"
-         "data.translations[0].translatedText": "String"
-         "data.translations[0].translatedText": "ekal & eert"
+        data: "Object"
+        "data.translations": "Array"
+        "data.translations._length": 1
+        "data.translations[0]": "Object"
+        "data.translations[0].translatedText": "String"
+        "data.translations[0].translatedText": "ekal & eert"
