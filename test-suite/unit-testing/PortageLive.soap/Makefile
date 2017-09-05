@@ -15,7 +15,7 @@
 
 -include Makefile.params
 
-TEMP_DIRS=doc_root
+TEMP_DIRS=doc_root scenarios
 include ../Makefile.incl
 
 

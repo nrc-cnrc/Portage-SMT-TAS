@@ -25,6 +25,18 @@ function deploy() {
       > /var/www/html/PortageLiveAPI.wsdl
 }
 
+function prepare_scenarios() {
+   mkdir -p scenarios/no_contexts/models
+   mkdir -p scenarios/one_context/models
+   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/one_context/models/
+   mkdir -p scenarios/several_contexts/models
+   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr.nnjm scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-ch2en scenarios/several_contexts/models/
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-fr2en scenarios/several_contexts/models/
+}
+
 function start_php_server() {
    verbose start_php_server
    readonly doc_root=doc_root
@@ -76,5 +88,6 @@ export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'
 
 [[ $DEPLOY ]] && deploy
 
+prepare_scenarios
 start_php_server
 python_unittests
