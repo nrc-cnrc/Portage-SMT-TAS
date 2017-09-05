@@ -161,7 +161,7 @@ class RestTranlator extends PortageLiveLib {
       # Validate that source is a valid source language / supported source
       # language.
 
-      # Deduce and/or validate the target language.
+      # Deduce and/or validate the source language.
       if (!isset($this->source) || empty($this->source)) {
          if ($this->target === "fr") $this->source = "en";
          if ($this->target === "en") $this->source = "fr";

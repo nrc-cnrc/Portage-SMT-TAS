@@ -18,13 +18,13 @@
  * Replace this stub and create a class to handle and parse getAllContexts() requests.
  */
 
+require 'PortageLiveLib.php';
+
 try {
    header('Content-Type: application/json');
-   $response = array(
-      array ('name' => 'generic-model', 'fullname' => 'generic-model.en-fr', 'source' => 'en', 'target' => 'en'),
-      array ('name' => 'generic-model', 'fullname' => 'generic-model.fr-en', 'source' => 'fr', 'target' => 'fr')
-   );
-   print json_encode($response);
+   $portageLiveLib = new PortageLiveLib();
+   $response = $portageLiveLib->getAllContexts(True, True);
+   print $response;
 }
 catch (SoapFault $exception) {
    http_response_code(404);

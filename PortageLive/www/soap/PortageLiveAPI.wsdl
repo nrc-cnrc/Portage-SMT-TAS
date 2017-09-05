@@ -47,6 +47,7 @@
 
   <message name="getAllContextsRequest">
     <part name="verbose" type="xsd:boolean"/>
+    <part name="json" type="xsd:boolean"/>
   </message>
 
   <message name="getAllContextsResponse">
@@ -225,9 +226,12 @@
       <documentation>
         Get the list of contexts installed on the PortageLive server.
 
-        If verbose is true, each context includes a short description.
-        If verbose is false, only the name of each context is provided.
-        In all cases, the results are provided in a semi-colon separated list.
+        If json is true, return a json structure listing and description each
+        context.
+        Otherwise return a semi-colon separated list of contexts, in which case
+        if verbose is true, each context includes a short description, and
+        if verbose is false, only the name of each context is provided.
+
         See the overall PortageLive_Service documentation for more details
         about contexts.
 

@@ -267,7 +267,7 @@ class PortageLiveLib
 
 
    # Enumerate all installed contexts
-   public function getAllContexts($verbose = false)
+   public function getAllContexts($verbose = false, $json = false)
    {
       $contexts = array();
       global $base_portage_dir;
@@ -275,13 +275,23 @@ class PortageLiveLib
       foreach ($dirs as $dir) {
          $info = $this->getContextInfo($dir);
          if ($info["good"]) {
-            if ($verbose)
+            if ($json)
+               $contexts[] = array(
+                  'name' => $dir,
+                  'description' => $info['label'],
+                  'source' => 'en',
+                  'target' => 'fr'
+               );
+            else if ($verbose)
                $contexts[] = $info['label'];
             else
                $contexts[] = $dir;
          }
       }
-      return join(";",$contexts);
+      if ($json)
+         return json_encode(array('contexts' => $contexts));
+      else
+         return join(";",$contexts);
    }
 
    # Load models in memory
