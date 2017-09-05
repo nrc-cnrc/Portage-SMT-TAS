@@ -15,8 +15,9 @@
 
 -include Makefile.params
 
-TEMP_FILES = incrAddSentence.php log.server PortageLiveLib.php translate.php
-TEMP_DIRS = plive
+TEMP_FILES = incrAddSentence.php log.server PortageLiveLib.php translate.php \
+             tests/testSuite.yaml
+TEMP_DIRS = doc_root
 include ../Makefile.incl
 
 

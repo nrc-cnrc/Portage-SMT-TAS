@@ -21,28 +21,33 @@ function deploy_code() {
    verbose ${FUNCNAME[0]}
    rm -fr plive
    mkdir -p plive
-   cp ../../../PortageLive/www/rest/translate.php .
-   cp ../../../PortageLive/www/rest/incrAddSentence.php .
+   cp ../../../../PortageLive/www/rest/translate.php .
+   cp ../../../../PortageLive/www/rest/incrAddSentence.php .
 }
 
 function phpunit_testcase() {
    verbose ${FUNCNAME[0]}
    php \
-      --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
+      --define 'include_path=../../../../PortageLive/www:../../../../PortageLive/www/rest' \
       $PHPUNIT_HOME/phpunit-4.8.phar  \
       --colors=always  \
       tests/incrAddSentence.php
 }
 
+readonly doc_root=doc_root
+
 function start_php_server() {
    verbose 'Starting php web server ....'
+   mkdir -p $doc_root
+   pushd $doc_root &> /dev/null
+   ln -fs ../tests .
    deploy_code
    # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_model_ID=5&source=S&target=T'
    function try_starting_server() {
       server_port=$(($RANDOM % 5000 + 52000))
       echo "Using port $server_port"
       php \
-         --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
+         --define 'include_path=../../../../PortageLive/www:../../../../PortageLive/www/rest' \
          --server $server_ip:$server_port \
          --docroot . \
          &> log.server &
@@ -50,6 +55,8 @@ function start_php_server() {
       sleep 1
    }
    try_starting_server
+
+   popd &> /dev/null
 
 #   counter=5
 #   try_starting_server;
@@ -229,10 +236,11 @@ function handy_debugger() {
 
 rm -fr plive
 RC=0
-lint_php || RC=1
-start_php_server || RC=1
+lint_php || exit 1
+start_php_server || exit 1
 #handy_debugger; exit
 
+cd $doc_root || exit 1
 phpunit_testcase || RC=1
 Rester_testcase || RC=1
 incrAddSentence_with_curl_testcase || RC=1
