@@ -62,6 +62,62 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
       chmod('plive', 0755);
    }
 
+   protected function tearDown() {
+      #system('find plive -ls');
+   }
+
+
+   /**
+    * @test
+    */
+   public function pliveDirectoryNotWritable() {
+      $this->markTestSkipped( 'Unable to properly handle read-only plive folder.');
+
+      IncrAddSentence_Test::deleteDir('plive');
+      $this->assertFalse(is_dir('plive'));
+      mkdir('plive', 0500);
+      $this->assertTrue(is_dir('plive'));
+
+      $_REQUEST = $this->basicRequest;
+      $_REQUEST['source'] .= __FUNCTION__;
+      $_REQUEST['target'] .= __FUNCTION__;
+
+      $service = new IncrementalTrainor();
+
+      $result = $service->addSentencePair();
+
+      $this->assertTrue(isset($result), 'Adding a sentence pair is supposed to return us something.');
+      $this->assertTrue(isset($result['result']), 'There should be a result field.');
+      $this->assertFalse($result['result'], 'The returned result should indicate success.');
+
+      $this->assertFalse(isset($result['warnings']), 'There should be absolutely no warnings.');
+   }
+
+
+   /**
+    * @test
+    * This test must be first, so no background training process has started yet.
+    */
+   public function pliveDirectoryMissing() {
+      # If this test were not the first one, we would need to wait for any
+      # background training process to be done.
+      #sleep(1);
+      IncrAddSentence_Test::deleteDir('plive');
+      $this->assertFalse(is_dir('plive'));
+
+      $service = new IncrementalTrainor();
+
+      $_REQUEST = $this->basicRequest;
+
+      $result = $service->addSentencePair();
+
+      $this->assertTrue(isset($result), 'Adding a sentence pair is supposed to return us something.');
+      $this->assertTrue(isset($result['result']), 'There should be a result field.');
+      $this->assertTrue($result['result'], 'The returned result should indicate success.');
+
+      $this->assertFalse(isset($result['warnings']), 'There should be absolutely no warnings.');
+   }
+
 
    /**
     * @test
@@ -157,27 +213,6 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
    /**
     * @test
     */
-   public function pliveDirectoryMissing() {
-      IncrAddSentence_Test::deleteDir('plive');
-      $this->assertFalse(is_dir('plive'));
-
-      $service = new IncrementalTrainor();
-
-      $_REQUEST = $this->basicRequest;
-
-      $result = $service->addSentencePair();
-
-      $this->assertTrue(isset($result), 'Adding a sentence pair is supposed to return us something.');
-      $this->assertTrue(isset($result['result']), 'There should be a result field.');
-      $this->assertTrue($result['result'], 'The returned result should indicate success.');
-
-      $this->assertFalse(isset($result['warnings']), 'There should be absolutely no warnings.');
-   }
-
-
-   /**
-    * @test
-    */
    public function usingInvalidArguments() {
       $service = new IncrementalTrainor();
 
@@ -197,31 +232,5 @@ class IncrAddSentence_Test extends PHPUnit_Framework_TestCase
          'In the returned message, we should see a warning about invalid arguments and we should also see the two invalid arguments.');
    }
 
-
-   /**
-    * @test
-    */
-   public function pliveDirectoryNotWritable() {
-      $this->markTestSkipped( 'Unable to properly handle read-only plive folder.');
-
-      IncrAddSentence_Test::deleteDir('plive');
-      $this->assertFalse(is_dir('plive'));
-      mkdir('plive', 0500);
-      $this->assertTrue(is_dir('plive'));
-
-      $_REQUEST = $this->basicRequest;
-      $_REQUEST['source'] .= __FUNCTION__;
-      $_REQUEST['target'] .= __FUNCTION__;
-
-      $service = new IncrementalTrainor();
-
-      $result = $service->addSentencePair();
-
-      $this->assertTrue(isset($result), 'Adding a sentence pair is supposed to return us something.');
-      $this->assertTrue(isset($result['result']), 'There should be a result field.');
-      $this->assertFalse($result['result'], 'The returned result should indicate success.');
-
-      $this->assertFalse(isset($result['warnings']), 'There should be absolutely no warnings.');
-   }
 
 };
