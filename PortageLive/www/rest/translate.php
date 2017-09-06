@@ -174,7 +174,7 @@ class RestTranlator extends PortageLiveLib {
       # We should use source and target to validate that the user is currently 
       # using a system that supports that language pair.
       $context = $this->context;
-      if (!isset($this->document_model_ID) and !empty($this->document_model_ID)) {
+      if (isset($this->document_model_ID) and !empty($this->document_model_ID)) {
          $context .= '/' .  $this->document_model_ID;
       }
 
