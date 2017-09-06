@@ -21,3 +21,4 @@ test_cases:
    - incrAddSentence.yaml
    - getAllContexts.yaml
    - translate_with_a_document_model_ID.yaml
+   - incrStatus.yaml

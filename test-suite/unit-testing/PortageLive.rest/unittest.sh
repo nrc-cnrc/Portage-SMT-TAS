@@ -24,6 +24,7 @@ function deploy_code() {
    cp ../../../../PortageLive/www/rest/translate.php .
    cp ../../../../PortageLive/www/rest/incrAddSentence.php .
    cp ../../../../PortageLive/www/rest/getAllContexts.php .
+   cp ../../../../PortageLive/www/rest/incrStatus.php .
 }
 
 function prepare_scenarios() {
@@ -155,7 +156,7 @@ function incrAddSentence_curl_post_testcase() {
 
 function lint_php() {
    verbose ${FUNCNAME[0]}
-   for c in PortageLiveLib.php rest/incrAddSentence.php rest/translate.php rest/getAllContexts.php; do
+   for c in PortageLiveLib.php rest/incrAddSentence.php rest/translate.php rest/getAllContexts.php rest/incrStatus.php; do
       php \
          --define 'include_path=../../../PortageLive/www:../../../PortageLive/www/rest' \
          --syntax-check \
@@ -298,6 +299,9 @@ RC=0
 lint_php || exit 1
 start_php_server || exit 1
 #handy_debugger; exit
+
+# Create an empty document model directory for use by some incrStatus unit tests.
+mkdir -p $doc_root/plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35_empty
 
 prepare_scenarios || RC=1
 cd $doc_root || exit 1
