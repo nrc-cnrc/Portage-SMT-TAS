@@ -19,7 +19,7 @@ globals:
 
 
 testSteps:
-  - name: "urlencode"
+  - name: "Basic usage."
     method: "get"
     apiUrl: "{service}"
     asserts:
@@ -28,9 +28,13 @@ testSteps:
         Content-Type: "application/json"
       payload:
         "contexts": "Array"
-        "contexts._length": 1
-        "contexts[0].name": "unittest.rev.en-fr"
-        "contexts[0].description": "unittest.rev.en-fr ( --> )"
+        "contexts._length": 2
+        "contexts[0].name": "toy-regress-en2fr"
+        "contexts[0].description": "toy-regress-en2fr (EN-CA --> FR-CA) with CE"
         "contexts[0].source": "en"
         "contexts[0].target": "fr"
+        "contexts[1].name": "unittest.rev.en-fr"
+        "contexts[1].description": "unittest.rev.en-fr ( --> )"
+        "contexts[1].source": "en"
+        "contexts[1].target": "fr"
         # payload should be {"contexts":[{"name":"unittest.rev.en-fr","description":"unittest.rev.en-fr ( --> )","source":"en","target":"fr"}]}

@@ -11,12 +11,13 @@
 
 
 globals:
-  variables:
-     base_url: "http://127.0.0.1:PHP_PORT"
+   variables:
+       base_url: "http://127.0.0.1:PHP_PORT"
 
 test_cases:
-  - basic_validation.yaml
-  - multiple_queries.yaml
-  - ampersand.yaml
-  - incrAddSentence.yaml
-  - getAllContexts.yaml
+   - basic_validation.yaml
+   - multiple_queries.yaml
+   - ampersand.yaml
+   - incrAddSentence.yaml
+   - getAllContexts.yaml
+   - translate_with_a_document_model_ID.yaml

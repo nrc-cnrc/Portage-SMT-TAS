@@ -55,6 +55,8 @@ function start_php_server() {
    mkdir -p $doc_root
    pushd $doc_root &> /dev/null
    ln -fs ../tests .
+   ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr tests/models/
+
    deploy_code
    # elinks 'http://127.0.0.1:8765/incrAddSentence.php?document_model_ID=5&source=S&target=T'
    function try_starting_server() {
@@ -236,6 +238,43 @@ function translate_with_multiple_queries_testcase() {
    || ! echo "Error translating multiple requests (2)" >&2
 }
 
+function translate_with_a_document_model_ID() {
+   # This function was converted to
+   # tests/translate_with_a_document_model_ID.yaml but is quite handy to keep.
+   verbose ${FUNCNAME[0]}
+
+   curl \
+      --silent \
+      --get \
+      --data 'context=toy-regress-en2fr' \
+      --data 'target=fr' \
+      --data 'prettyprint=False' \
+      --data 'q=home' \
+      --data 'document_model_ID=foo' \
+      "http://$server_ip:$server_port/translate.php"
+   # We expect "pays"
+
+   for i in {1..1}; do
+      curl \
+         --silent \
+         --data 'context=toy-regress-en2fr' \
+         --data 'source=home' \
+         --data 'target=MAISON' \
+         --data 'document_model_ID=foo' \
+         "http://$server_ip:$server_port/incrAddSentence.php"
+
+      curl \
+         --silent \
+         --get \
+         --data 'context=toy-regress-en2fr' \
+         --data 'target=fr' \
+         --data 'prettyprint=False' \
+         --data 'q=home' \
+         --data 'document_model_ID=foo' \
+         "http://$server_ip:$server_port/translate.php"
+   done
+}
+
 function handy_debugger() {
    curl \
       --silent \
@@ -245,6 +284,7 @@ function handy_debugger() {
       --data 'prettyprint=False' \
       --data 'option=invalid' \
       --data 'q=home' \
+      --data 'document_model_ID=foo' \
       "http://$server_ip:$server_port/translate.php"
 }
 

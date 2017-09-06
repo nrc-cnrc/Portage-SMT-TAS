@@ -57,22 +57,20 @@ class PortageLiveLib
    {
       $info = array();
       $context_parts = explode("/", $context, 2);
-      $has_doc_id = False;
+      global $base_portage_dir;
       if (count($context_parts) == 2) {
          # We have a static context plus a document ID
          $info["context"] = $context_parts[0];
          $info["document_id"] = $context_parts[1];
-         $has_doc_id = True;
+         $potential_workdir = $this->getDocumentModelWorkDir($info["document_id"]);
+         if (is_dir($potential_workdir)) {
+            $info["context_dir"] = $potential_workdir;
+         } else {
+            $info["context_dir"] = "$base_portage_dir/models/" . $info['context'];
+         }
       } else {
          $info["context"] = $context;
-      }
-      global $base_portage_dir;
-      if ($has_doc_id) {
-         #TODO look for the document model.
-         # When no document model is found, we fall back to the static one.
-         $info["context_dir"] = "$base_portage_dir/models/$context";
-      } else {
-         $info["context_dir"] = "$base_portage_dir/models/$context";
+         $info["context_dir"] = "$base_portage_dir/models/" . $info['context'];
       }
       $info["script"] = "$info[context_dir]/soap-translate.sh";
       $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
