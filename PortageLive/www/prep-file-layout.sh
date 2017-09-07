@@ -134,10 +134,9 @@ cp  $PORTAGE_JQUERY  $HTML_DIR/ \
 # Copy notices
 cp html/portage_notices.php $HTML_DIR/
 
-# legacy REST installation...
-mkdir -p $HTML_DIR/language/translate
-cp rest/translate.php $HTML_DIR/language/translate/v3.php
-cp PortageLiveLib.php $HTML_DIR/language/translate/
+# Copy the REST files
+mkdir -p $HTML_DIR/rest
+cp PortageLiveLib.php rest/*.php rest/.htaccess $HTML_DIR/rest
 
 # Copy the php and SOAP files
 cp PortageLiveLib.php soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST
