@@ -94,7 +94,7 @@ function start_php_server() {
 
 function Rester_testcase() {
    verbose ${FUNCNAME[0]}
-   # Runnig https://github.com/chitamoor/Rester
+   # Running https://github.com/chitamoor/Rester
    sed "s/PHP_PORT/$server_port/" < tests/testSuite.yaml.template > tests/testSuite.yaml
    apirunner --ts tests/testSuite.yaml
 }
@@ -287,6 +287,11 @@ function handy_debugger() {
       --data 'document_model_ID=foo' \
       "http://$server_ip:$server_port/translate.php"
 }
+
+# Use a dummy incr-update.sh for speed when using the fake unittest.rev.en-fr
+# PortageLive model. The dummy incr-update.sh calls the real incr-update.sh
+# when the model isn't unittest.rev.en-fr.
+export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'
 
 rm -fr plive
 RC=0
