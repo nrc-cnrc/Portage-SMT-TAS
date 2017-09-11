@@ -1,0 +1,116 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+Portage Machine Translation
+---------------------------
+
+Software for Statistical Machine Translation.
+
+PORTAGE shared 3.0
+~~~~~~~~~~~~~~~~~~
+
+The PORTAGE shared series includes several leaps forward in NRC's SMT
+technology.
+
+With Neural Network Joint Models (NNJM), version 3.0 brings deep
+learning to the set of tools used to improve machine translation
+quality, as well as NRC's improved reordering model based on sparse
+features, coarse LM**s, and other improvements. The NRC has put
+significant efforts in optimizing the default training parameters to
+improve the quality of the translations produced by PORTAGE shared, and
+we expect users to see and appreciate the difference.
+
+With version 2.0, we added two important features to help translators:
+the transfer of markup tags from the source sentence to the machine
+translation output, as well as handling the increasingly common xliff
+file format. 2.1 and 2.2 were maintenance releases incorporating minor
+patches.
+
+With version 1.0, we brought in significant improvements to translation
+engine that resulted in better translations, and contributed to our
+success at the NIST Open Machine Translation 2012 Evaluation
+(`OpenMT12`).
+
+See file RELEASES for full details. See also
+`doc/PortageAPIComparison.pdf` for a series of tables showing the
+evolution of the API, the plugin architecture and the training
+configuration for PORTAGE shared versions 1.0, 2.0, 2.1, 2.2 and 3.0.
+
+User Manual
+~~~~~~~~~~~
+
+* link:PORTAGE_sharedOverview.html[Background]
+* link:PORTAGE_sharedKnowledgePrerequisites.html[Required Prior
+Knowledge]
+* link:PORTAGE_sharedWhereToFindThings.html[Where To Find
+Things]
+* link:PORTAGE_sharedTextProcessing.html[Text Processing]
+** link:TMXProcessing.html[Extracting corpora from a TMX]
+* File Formats
+** link:PORTAGE_sharedFileFormats.html[Text File Formats]
+** link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
+Formats]
+* Training
+** link:PORTAGE_sharedTrainingModels.html[Constructing Models]
+*** link:PORTAGE_sharedTrainingLanguageModels.html[Language
+Models]
+*** link:PORTAGE_sharedTrainingOtherModels.html[Other Models]
+*** link:TightlyPackedTries.html[Tightly Packed Tries]
+** link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+Weights]
+* link:PORTAGE_sharedTranslating.html[Translating]
+** link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
+**
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists]
+**
+link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+** Detailed notes on
+link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[The
+Decoder Search Algorithms And Data Structures]
+** Notes about link:UsingPhrasetablesInCanoe.html[Using
+Phrasetables In Canoe]
+* link:PORTAGE_sharedEvaluation.html[Evaluation]
+* link:ConfidenceEstimation.html[Confidence Estimation]
+* link:PORTAGE_sharedPerformanceConsiderations.html[Performance
+Considerations]
+* link:PORTAGE_sharedMagicStreams.html[Magic Streams]
+* link:PortageLiveManual.html[Portage Live Manual]
+* link:PortageLiveCustomizationPlugins.html[Portage Live
+Customization Plugins]
+* link:PORTAGE_sharedProgrammerReference.html[Programmer
+Reference]
+** link:PORTAGE_sharedWritingCode.html[Writing Code]
+** link:PORTAGE_sharedMakeNotes.html[Using Make] (detailed
+notes)
+** link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+Guidelines]
+* link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
+Bibliography]
+* link:TrainingEuroparl.html[Requirements For Training A Mid
+Size System]
+* link:PORTAGE_sharedFAQ.html[Frequently Asked Questions]
+
+ +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

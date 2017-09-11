@@ -1,0 +1,71 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Translating Rescoring Nbest Lists
+------------------------------------------------
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Previous:
+link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
+link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+
+'''''
+
+Translating: Rescoring Nbest Lists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The quality of raw output from canoe can be improved by having it
+generate nbest lists and reordering them using a rescoring model.
+
+Rescoring Script
+++++++++++++++++
+
+Like for training a rescoring model, the `rescore.py` script can be used
+to run all steps in rescored translation: nbest-list generation,
+feature-file generation, and nbest rescoring to select the best
+candidates. Assuming a rescoring model, `rescore-model.rat`, has been
+trained using the procedure described in the
+link:PORTAGE_sharedTrainingOptimizingWeights.html#RescoringScript[Rescoring
+Script] section, the following command will write a final translation to
+the file `text_fr.rule.rat`:
+
+----------------------------------------------------------------------------
+   rescore.py -trans --nbest-size 1000 -f canoe.ini.cow -msrc text_fr.rule \
+      rescore-model.rat text_fr.tok text_en*.al >& log.rat-trans
+----------------------------------------------------------------------------
+
+Note that the nbest list size (1000 in this example) should match the
+size used for training, although this is not obligatory. Also, the
+reference files `text_en*.al` are optional; when they are provided, rat
+will write the BLEU score for the final rescored translation to its
+standard output.
+
+'''''
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Previous:
+link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
+link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+ +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

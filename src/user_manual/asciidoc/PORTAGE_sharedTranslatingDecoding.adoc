@@ -1,0 +1,78 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Translating Decoding
+-----------------------------------
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Next:
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists]
+
+'''''
+
+Translating: Decoding
+~~~~~~~~~~~~~~~~~~~~~
+
+The command `canoe -h` describes how to run the decoder. Here we assume
+you already trained your models and tuned them, with the results of
+`tune.py` available in model file `canoe.ini.cow`.
+
+If you are translating French text that is already preprocessed,
+sentence-split and tokenized, say `test_fr.tok`, into English, this
+command does the decoding step:
+
+--------------------------------------------------
+   canoe-escapes.pl -add text_fr.tok text_fr.rule
+   canoe -f canoe.ini < text_fr.rule > text_en.out
+--------------------------------------------------
+
+See link:UsingPhrasetablesInCanoe.html[Using Phrasetables In
+Canoe] for more information on using multiple phrasetables in canoe.
+
+If the source file contains
+link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
+Text], then any translations specified in markup are used instead of
+those provided by the translation model, unless the `-bypass-marked`
+switch is given to canoe, in which case the two are combined. (If you
+use rules, don't use `canoe-escapes.pl`; your rule-creating software
+should escape any `<`, `>` and `\` meant to be interpreted literally.)
+
+Running canoe on the untuned model will yield very bad results, so don't
+do it unless you're working on a new optimization technique. The tuning
+procedure described in
+link:PORTAGE_sharedTrainingOptimizingWeights.html#TrainingOptimizingWeights[Optimizing
+Weights] sets optimized value for all the model weights. In general, the
+remaining parameters such as `beam-threshold` and `ttable-limit` control
+the trade-off between accuracy and speed: they should be set to values
+that give a good compromise between quality and speed for your
+application.
+
+'''''
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Next:
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists]  +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

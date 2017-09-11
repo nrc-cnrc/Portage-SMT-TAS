@@ -1,0 +1,52 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+Confidence Estimation
+---------------------
+
+Up: link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedEvaluation.html[Evaluation] Next:
+link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
+
+'''''
+
+PORTAGE shared includes a sentence-level confidence estimation (CE)
+layer. The purpose of CE in this context is to produce a value --
+typically a real-valued number between 0 and 1 -- that reflects the
+translation system's belief that it has done a Good Job. This number can
+then be used for various things, for example filtering out lower-quality
+or dubious machine translations, prioritizing post-editing effort, etc.
+
+The user manual for the CE module has not been converted to the format
+of this manual. It can be found in a plain text file in
+`src/confidence/README` (distributions with source code) and
+`doc/confidence/README` (all distributions).
+
+'''''
+
+Up: link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedEvaluation.html[Evaluation] Next:
+link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
+ +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

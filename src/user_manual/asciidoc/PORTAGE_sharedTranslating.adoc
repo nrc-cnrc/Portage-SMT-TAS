@@ -1,0 +1,73 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Translating
+--------------------------
+
+Up link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+Weights] Down:
+link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
+
+'''''
+
+*Note:* this section does not reflect current best practice. The whole
+translation pipeline is now automated in our experimental framework for
+translation during training, and in script `translate.pl` for use in
+Portage**Live. Please read `tutorial.pdf` in `framework` and the
+link:PortageLiveManual.html[Portage Live Manual].
+
+Translating
+~~~~~~~~~~~
+
+Source texts to be translated by PORTAGE shared must be in
+link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
+Text] or
+link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
+Text] formats; the
+link:PORTAGE_sharedTextProcessing.html#TextProcessing[Text
+Processing] section describes the required processing steps. Translation
+itself consists of three main steps, of which the last two are optional:
+decoding, rescoring, and postprocessing.
+
+* link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
+*
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists]
+*
+link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+
+* Detailed notes on
+link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[The
+Decoder Search Algorithms And Data Structures]
+* Notes about link:UsingPhrasetablesInCanoe.html[Using
+Phrasetables In Canoe]
+
+'''''
+
+Up link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+Weights] Down:
+link:PORTAGE_sharedTranslatingDecoding.html[Decoding]  +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

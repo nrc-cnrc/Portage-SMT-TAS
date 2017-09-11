@@ -1,0 +1,89 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Translating Postprocessing
+-----------------------------------------
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Previous:
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists] Next:
+link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[Decoder
+Algorithms]
+
+'''''
+
+Translating: Postprocessing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Truecasing
+++++++++++
+
+Text output from canoe is lowercase
+link:PORTAGE_sharedFileFormats.html#TokenizedText[tokenized
+text]. The first step in making this nicer to read is truecasing, which
+tries to restore capitals where appropriate. Assuming language and
+mapping models `tc-lm.en` and `tc-map.en` trained as described in
+link:PORTAGE_sharedTrainingModels.html#TrueCaseModels[True Case
+Models], truecasing can be carried out as follows:
+
+-------------------------------------------------------
+   truecase.pl -bos -encoding UTF-8 -text=text_en.out \
+      -lm=tc-lm.en -map=tc-map.en > text_en.tc
+-------------------------------------------------------
+
+The `-bos` option forces capitalization of the first letter of each
+sentence.
+
+The new truecasing method, using source sentence information, requires
+several other options and models. See `truecase.pl -h`, the framework
+and the tutorial for details.
+
+Detokenizing
+++++++++++++
+
+The second and last step in the processing chain is detokenization, to
+convert truecased
+link:PORTAGE_sharedFileFormats.html#TokenizedText[tokenized
+text] back to
+link:PORTAGE_sharedFileFormats.html#PlainText[plain text] (but
+preserving the one-sentence-per-line convention). Example for English
+encoded in utf-8:
+
+---------------------------------------------
+   udetokenize.pl text_en.out > text_en.txt
+   udetokenize.pl text_en.tc > text_en.tc.txt
+---------------------------------------------
+
+For French, add the option `-lang=fr`.
+
+'''''
+
+Up link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedTranslating.html[Translating] Previous:
+link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
+Nbest Lists] Next:
+link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[Decoder
+Algorithms]  +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

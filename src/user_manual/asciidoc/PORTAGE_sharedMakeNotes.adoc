@@ -1,0 +1,137 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Make Notes
+-------------------------
+
+Up: link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedProgrammerReference.html[For Programmers]
+Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
+Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+Guidelines]
+
+'''''
+
+Some notes about using GNU make for the PORTAGE shared project.
+
+* To specify an install path other than your home directory, use:
++
+----------------------------------------------
+make INSTALL_PATH=/path/to/install/dir install
+----------------------------------------------
+
+* To specify additional compiler flags on the make command line, supply
+a value for the CF variable on the command line:
++
+-------------------
+make CF=-g <target>
+-------------------
+
+* To run the commands in parallel on the multiple `CPUs` of a machine,
+use -j N. Don't use "-j" alone if other users are using the same
+machine, because then make will run as many jobs in parallel as it can!
+N = 1 + number of `CPUs` on the machine seems optimal:
++
+------------------
+make -j 5 <target>
+------------------
+
+* To add module or directory specific options, e.g., to turn off
+warnings you know are not a problem or due to an external package, add
+these flags to `MODULE_CF` in Makefile in that directory.
+
+* Standard targets automatically available to each subdirectory:
++
+`all`
++
+compile everything.
++
+`clean`
++
+remove all compiled files.
++
+`new`
++
+make everything from scratch, i.e., make clean then make all.
++
+`install`
++
+make all and then install everything needed to run PORTAGE shared.
++
+`new_install `
++
+make clean and then make install.
++
+`export`
++
+make all and then install libraries and include files.
++
+`doxy`
++
+make the code documentation.
+
+* To speed up builds for debugging, you can make and install one sub
+directory and all its dependencies (direct and indirect) by using the
+`OT` variable ("Overall Target") of the main Makefile. For example, the
+following command, executed in your `PortageII/src` directory, runs
+"`make install`" in `canoe` and the directories it depends on:
++
+---------------------
+make OT=install canoe
+---------------------
+
+* To speed up incremental builds further, you can use
++
+----------------
+make <dir>/progs
+----------------
++
+to make only the libraries `<dir>` directly depends on, and then a full
+build in `<dir>`. Furthermore,
++
+----------------
+make <dir>/<pgm>
+----------------
++
+will do the strict minimum amount of work required to build the program
+`<dir>/<pgm>`. For example:
++
+-----------------
+make tm/train_ibm
+-----------------
++
+Caveat: do not specify more than one such target at a time - running
+"`make -j 5 tm/train_ibm canoe/canoe`" will most likely corrupt compiled
+files in your sandbox and require a "`make clean`" to recover. Run these
+two sequentially instead: "`make tm/train_ibm canoe/canoe`" (no `-j`) or
+"`make -j 5 tm/train_ibm; make -j 5 canoe/canoe`".
+
+'''''
+
+Up: link:PortageMachineTranslation.html[Portage II] /
+link:PORTAGE_sharedProgrammerReference.html[For Programmers]
+Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
+Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+Guidelines]  +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+

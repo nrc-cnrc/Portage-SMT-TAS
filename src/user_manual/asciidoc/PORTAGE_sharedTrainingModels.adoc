@@ -1,0 +1,124 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+PORTAGE shared Training Models
+------------------------------
+
+Up: link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
+
+'''''
+
+*Note:* this section of the user manual presents all the different
+models you can use, but not how best to use them. The steps required to
+train PORTAGE shared following our current recommendations are automated
+in our experimental framework. See `tutorial.pdf` in `framework` for
+details.
+
+Training: Constructing Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here are the models you need to build to run PORTAGE shared:
+
+* link:PORTAGE_sharedTrainingLanguageModels.html[Language
+Models]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingSRILM[Training
+an LM using SRILM]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingMITLM[Training
+an LM using MITLM]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingIRSTLM[Training
+an LM using IRSTLM]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#TheBinLMformat[The
+Bin LM format]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[The
+TPLM format]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#DynamicMappingLM[Dynamic
+Mapping LM]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#OpenVocabularyLM[Open
+Vocabulary LM]
+**
+link:PORTAGE_sharedTrainingLanguageModels.html#MixtureModelLM[Mixture
+Model LM]
+** *New!*
+link:PORTAGE_sharedTrainingLanguageModels.html#CoarseLM[Coarse
+LM]
+** *New!*
+link:PORTAGE_sharedTrainingLanguageModels.html#CoarseBiLM[Coarse
+Bi LM]
+
+* link:PORTAGE_sharedTrainingOtherModels.html[Translation
+Models]
+**
+link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM2wordalignmentmodels[Phrase
+tables based on IBM 2 word alignment models]
+**
+link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonHMMwordalignmentmodels[Phrase
+tables based on HMM word alignment models]
+**
+link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM4wordalignmentmodels[Phrase
+tables based on IBM 4 word alignment models]
+**
+link:PORTAGE_sharedTrainingOtherModels.html#Mergedphrasetables[Merged
+phrase tables]
+**
+link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[The
+TPPT format]
+*
+link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[Lexicalized
+Distortion Models]
+*
+link:PORTAGE_sharedTrainingOtherModels.html#HierarchicalLexicalizedDistortionModels[Hierarchical
+Lexicalized Distortion Models]
+* *New!*
+link:PORTAGE_sharedTrainingOtherModels.html#SparseModels[Sparse
+Models]
+* *New!*
+link:PORTAGE_sharedTrainingOtherModels.html#NeuralNetworkJointModels[Neural
+Network Joint Models]
+*
+link:PORTAGE_sharedTrainingOtherModels.html#TruecasingModels[Truecasing
+Models]
+*
+link:PORTAGE_sharedTrainingOtherModels.html#AddingALexiconToASystem[Adding
+a lexicon to a System]
+
+* link:TightlyPackedTries.html[Tightly Packed Tries]
+
+'''''
+
+Up: link:PortageMachineTranslation.html[Portage II] Previous:
+link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
+ +
+
+'''''
+
+ +
+
+[cols="<,<,<",]
+|=======================================================================
+|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
+|image:uploads/mainf1.gif[National
+Research Council Canada]
+|image:uploads/mainWordmark.gif[Government
+of Canada]
+
+|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
+|Traitement multilingue de textes / Multilingual Text Processing +
+ Technologies de l'information et des communications / Information and
+Communications Technologies +
+ Conseil national de recherches Canada / National Research Council
+Canada +
+ Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
+Majesty in Right of Canada
+|=======================================================================
+
