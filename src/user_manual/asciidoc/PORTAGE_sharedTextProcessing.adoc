@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Text Processing
 ------------------------------
@@ -21,23 +21,13 @@ Text processing is necessary in order to turn raw source and target text
 into a format suitable for model training, and also to prepare new
 source text for translation. Here are the steps:
 
-*
-link:PORTAGE_sharedTextProcessing.html#Preprocessing[Preprocessing]
-raw corpora
-** Alternative: link:TMXProcessing.html[Extracting text from a
-TMX]
-* link:PORTAGE_sharedTextProcessing.html#Tokenizing[Tokenizing]
-plain text
-* link:PORTAGE_sharedTextProcessing.html#Aligning[Aligning]
-tokenized text
-*
-link:PORTAGE_sharedTextProcessing.html#Lowercasing[Lowercasing]
-tokenized text
-* link:PORTAGE_sharedTextProcessing.html#MarkingUp[Marking Up]
-tokenized text
-*
-link:PORTAGE_sharedTextProcessing.html#EncodingConsiderations[Encoding
-Considerations]
+* link:PORTAGE_sharedTextProcessing.html#Preprocessing[Preprocessing] raw corpora
+** Alternative: link:TMXProcessing.html[Extracting text from a TMX]
+* link:PORTAGE_sharedTextProcessing.html#Tokenizing[Tokenizing] plain text
+* link:PORTAGE_sharedTextProcessing.html#Aligning[Aligning] tokenized text
+* link:PORTAGE_sharedTextProcessing.html#Lowercasing[Lowercasing] tokenized text
+* link:PORTAGE_sharedTextProcessing.html#MarkingUp[Marking Up] tokenized text
+* link:PORTAGE_sharedTextProcessing.html#EncodingConsiderations[Encoding Considerations]
 
 The first two steps must be performed in this order, but the order of
 later steps can vary depending on the application. The
@@ -245,27 +235,8 @@ utf-32/ucs-4.
 
 Up link:PortageMachineTranslation.html[Portage II] Previous:
 link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
-Down: link:TMXProcessing.html[TMX Processing]  +
+Down: link:TMXProcessing.html[TMX Processing]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

@@ -1,0 +1,2 @@
+image:uploads/NRC_banner_e.jpg[image]
+

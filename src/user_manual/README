@@ -48,8 +48,8 @@ sed -i 's#^link:uploads.*\[\(image:.*\]\)\]#\1#' asciidoc/*.adoc
 #    include::footer.adoc[]
 #    in each source file where we want it.
 #  - Similarly move the header image to asciidoc/header.adoc.
-#  - Nested list need to have their items brought back with the ** on the same
-#    line as the text that starts it.
+#  - List items need to have their text start on the same line as the * or
+#    ** that marks them.
 
 # Generate new HTML from the asciidoc sources - this will eventually have to be
 # turned into a target triggered by "make docs".

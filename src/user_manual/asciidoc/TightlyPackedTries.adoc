@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 Tightly Packed Tries
 --------------------
@@ -70,21 +70,16 @@ Further information
 * Presentation on TPT's by Uli Germann:
 link:uploads/Memory_mapping_Tightly_Packed_Tries_and_Suffix_Arrays.pdf[Memory
 mapping Tightly Packed Tries and Suffix Arrays].
-*
-link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann
+* link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann
 et al 2009], SETQA-NLP paper on TPT's.
-*
-link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
+* link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
 et al 2009], MT Summit XII technology showcase paper about
-''link:PortageLiveManual.html[Portage Live].
-* Building
-link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[TPLM
+link:PortageLiveManual.html[Portage Live].
+* Building link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[TPLM
 s] with `arpalm2tplm.sh`.
-* Building
-link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[TPPT
+* Building link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[TPPT
 s] with `textpt2tppt.sh`.
-* Building
-link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[TPLDM
+* Building link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[TPLDM
 s] with `textldm2tpldm.sh`.
 
 '''''
@@ -94,27 +89,8 @@ link:PORTAGE_sharedTrainingModels.html[Models] Previous:
 link:PORTAGE_sharedTrainingOtherModels.html[Training Other
 Models] Next:
 link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
-Weights]  +
+Weights]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

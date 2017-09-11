@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Training Language Models
 ---------------------------------------
@@ -18,36 +18,16 @@ are automated in our experimental framework. See `tutorial.pdf` in
 Training: Constructing Language Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingSRILM[Training
-an LM using SRILM]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingMITLM[Training
-an LM using MITLM]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingIRSTLM[Training
-an LM using IRSTLM]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#TheBinLMformat[The
-Bin LM format]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[The
-TPLM format]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#DynamicMappingLM[Dynamic
-Mapping LM]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#OpenVocabularyLM[Open
-Vocabulary LM]
-*
-link:PORTAGE_sharedTrainingLanguageModels.html#MixtureModelLM[Mixture
-Model LM]
-* *New!*
-link:PORTAGE_sharedTrainingLanguageModels.html#CoarseLM[Coarse
-LM]
-* *New!*
-link:PORTAGE_sharedTrainingLanguageModels.html#CoarseBiLM[Coarse
-Bi LM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingSRILM[Training an LM using SRILM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingMITLM[Training an LM using MITLM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingIRSTLM[Training an LM using IRSTLM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#TheBinLMformat[The Bin LM format]
+* link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[The TPLM format]
+* link:PORTAGE_sharedTrainingLanguageModels.html#DynamicMappingLM[Dynamic Mapping LM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#OpenVocabularyLM[Open Vocabulary LM]
+* link:PORTAGE_sharedTrainingLanguageModels.html#MixtureModelLM[Mixture Model LM]
+* *New!* link:PORTAGE_sharedTrainingLanguageModels.html#CoarseLM[Coarse LM]
+* *New!* link:PORTAGE_sharedTrainingLanguageModels.html#CoarseBiLM[Coarse Bi LM]
 
 Language models can be trained using any language modeling toolkit that
 generates Doug Paul's ARPA LM file format. If your licensing
@@ -407,27 +387,8 @@ benefits. But you can still try them by uncommenting the line that read
 
 Up: link:PortageMachineTranslation.html[Portage II] /
 link:PORTAGE_sharedTrainingModels.html[Models] Next:
-link:PORTAGE_sharedTrainingOtherModels.html[Other Models]  +
+link:PORTAGE_sharedTrainingOtherModels.html[Other Models]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

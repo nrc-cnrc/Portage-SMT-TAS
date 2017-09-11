@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared FAQ
 ------------------
@@ -19,8 +19,7 @@ If you have less than 1M words or 100K segment pairs, don’t even bother
 trying! Otherwise, the more high-quality data from the same
 domain/client, the better.
 
-How much training data do I need if I’m using Generic 1.0 or 2.0 (gc.ca)
-as a background model?
+How much training data do I need if I’m using Generic 1.0 or 2.0 (gc.ca) as a background model?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can probably get away with as little as 50K segment pairs, although
@@ -83,8 +82,7 @@ subject-verb agreement, that’s because PORTAGE shared is not good at
 grammar. On the other hand, it is often surprisingly good at translating
 idioms – if they were in the training data.
 
-I find myself correcting the same error in PORTAGE shared's output over
-and over – why?
+I find myself correcting the same error in PORTAGE shared's output over and over – why?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you mean that you see errors today that you fixed in the post-edited
@@ -97,8 +95,7 @@ ago, that’s a known problem with the current version of PORTAGE shared;
 some day, we hope to give it the ability to learn corrections "on the
 fly" without requiring a complete retraining of the system.
 
-Can I use a system trained on data from one domain/client for
-translating data from another domain/client?
+Can I use a system trained on data from one domain/client for translating data from another domain/client?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you have some translations from the new domain/client, there are ways
@@ -109,27 +106,8 @@ from other domains to yield reasonable performance.
 
 Up: link:PortageMachineTranslation.html[Portage II] Previous:
 link:TrainingEuroparl.html[Requirements For Training A Mid Size
-System]  +
+System]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 Training Europarl
 -----------------
@@ -22,16 +22,11 @@ You can train a mid-size system using the corpora available from
 http://www.statmt.org/wmt09/translation-task.html[http://www.statmt.org/wmt09/translation-task.html].
 More precisely, download the following:
 
-*
-http://www.statmt.org/wmt09/training-parallel.tar[http://www.statmt.org/wmt09/training-parallel.tar]
-*
-http://www.statmt.org/wmt09/training-monolingual.tar[http://www.statmt.org/wmt09/training-monolingual.tar]
-*
-http://www.statmt.org/wmt09/dev.tgz[http://www.statmt.org/wmt09/dev.tgz]
-*
-http://www.statmt.org/wmt09/additional-dev.tgz[http://www.statmt.org/wmt09/additional-dev.tgz]
-*
-http://www.statmt.org/wmt09/test.tgz[http://www.statmt.org/wmt09/test.tgz]
+* http://www.statmt.org/wmt09/training-parallel.tar[http://www.statmt.org/wmt09/training-parallel.tar]
+* http://www.statmt.org/wmt09/training-monolingual.tar[http://www.statmt.org/wmt09/training-monolingual.tar]
+* http://www.statmt.org/wmt09/dev.tgz[http://www.statmt.org/wmt09/dev.tgz]
+* http://www.statmt.org/wmt09/additional-dev.tgz[http://www.statmt.org/wmt09/additional-dev.tgz]
+* http://www.statmt.org/wmt09/test.tgz[http://www.statmt.org/wmt09/test.tgz]
 
 Rename your file appropriately and place them under corpora/ in the
 framework. Here are the size of each file.
@@ -308,27 +303,8 @@ following command from the root of the framework:
 Up: link:PortageMachineTranslation.html[Portage II] Previous:
 link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
 Bibliography] Next: link:PORTAGE_sharedFAQ.html[Frequently
-Asked Questions]  +
+Asked Questions]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

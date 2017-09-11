@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Decoder Search Algorithms And Data Structures
 ------------------------------------------------------------
@@ -147,7 +147,7 @@ below). We extend only the best hypothesis that represents this group.
 Recombination considerably reduces the size of the search space and
 speeds up decoding.
 
-image:uploads/_recombination.jpg[image]
+image::uploads/_recombination.jpg[image]
 
 The hypothesis with the best total score will be used to represent the
 group of recombined hypotheses. Despite the reduction of its size, the
@@ -252,7 +252,7 @@ using the above defined data structures, while taking care of pruning
 and recombination. The decoder.cc file implements the previous three
 functions. The decoderstate.cc implements the Decoder-State structure.
 
-image:uploads/_stack.jpg[image]
+image::uploads/_stack.jpg[image]
 
 The definition/implementation of the Hypothesis-Stack structure (and the
 associated stack structures) can be found in hypothesisstack.h/cc. The
@@ -290,27 +290,8 @@ Hypothesis-Stack class is used for this purpose.
 Up: link:PortageMachineTranslation.html[Portage II] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
-Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]  +
+Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

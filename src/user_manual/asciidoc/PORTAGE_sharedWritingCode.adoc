@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Writing Code
 ---------------------------
@@ -97,27 +97,8 @@ shared license agreement has clauses to that effect.
 
 Up: link:PortageMachineTranslation.html[Portage II] /
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Next: link:PORTAGE_sharedMakeNotes.html[Using Make]  +
+Next: link:PORTAGE_sharedMakeNotes.html[Using Make]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

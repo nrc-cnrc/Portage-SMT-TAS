@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Training Other Models
 ------------------------------------
@@ -19,42 +19,22 @@ details.
 Training: Constructing Other Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*
-link:PORTAGE_sharedTrainingOtherModels.html#TranslationModels[Translation
-Models]
-**
-link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM2wordalignmentmodels[Phrase
+* link:PORTAGE_sharedTrainingOtherModels.html#TranslationModels[Translation Models]
+** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM2wordalignmentmodels[Phrase
 tables based on IBM 2 word alignment models]
-**
-link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonHMMwordalignmentmodels[Phrase
+** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonHMMwordalignmentmodels[Phrase
 tables based on HMM word alignment models]
-**
-link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM4wordalignmentmodels[Phrase
+** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM4wordalignmentmodels[Phrase
 tables based on IBM 4 word alignment models]
-**
-link:PORTAGE_sharedTrainingOtherModels.html#Mergedphrasetables[Merged
-phrase tables]
-**
-link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[The
-TPPT format]
-*
-link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[Lexicalized
-Distortion Models]
-*
-link:PORTAGE_sharedTrainingOtherModels.html#HierarchicalLexicalizedDistortionModels[Hierarchical
+** link:PORTAGE_sharedTrainingOtherModels.html#Mergedphrasetables[Merged phrase tables]
+** link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[The TPPT format]
+* link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[Lexicalized Distortion Models]
+* link:PORTAGE_sharedTrainingOtherModels.html#HierarchicalLexicalizedDistortionModels[Hierarchical
 Lexicalized Distortion Models]
-* *New!*
-link:PORTAGE_sharedTrainingOtherModels.html#SparseModels[Sparse
-Models]
-* *New!*
-link:PORTAGE_sharedTrainingOtherModels.html#NeuralNetworkJointModels[Neural
-Network Joint Models]
-*
-link:PORTAGE_sharedTrainingOtherModels.html#TruecasingModels[Truecasing
-Models]
-*
-link:PORTAGE_sharedTrainingOtherModels.html#AddingALexiconToASystem[Adding
-a lexicon to a System]
+* *New!* link:PORTAGE_sharedTrainingOtherModels.html#SparseModels[Sparse Models]
+* *New!* link:PORTAGE_sharedTrainingOtherModels.html#NeuralNetworkJointModels[Neural Network Joint Models]
+* link:PORTAGE_sharedTrainingOtherModels.html#TruecasingModels[Truecasing Models]
+* link:PORTAGE_sharedTrainingOtherModels.html#AddingALexiconToASystem[Adding a lexicon to a System]
 
 Translation Models
 ^^^^^^^^^^^^^^^^^^
@@ -368,27 +348,8 @@ language words with a different sense or different translations.
 Up: link:PortageMachineTranslation.html[Portage II] /
 link:PORTAGE_sharedTrainingModels.html[Models] Previous:
 link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
-Next: link:TightlyPackedTries.html[Tightly Packed Tries]  +
+Next: link:TightlyPackedTries.html[Tightly Packed Tries]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]

@@ -1,4 +1,4 @@
-image:uploads/NRC_banner_e.jpg[image]
+include::header.adoc[]
 
 PORTAGE shared Training Optimizing Weights
 ------------------------------------------
@@ -21,15 +21,11 @@ that control the contributions from various components like language and
 translation models. Translation quality tends to be very sensitive to
 these settings. Here are the parameter tuning steps for PORTAGE shared:
 
-*
-link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[Optimizing
+* link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[Optimizing
 Decoding Weights]
-*
-link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforRescoring[Optimizing
+* link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforRescoring[Optimizing
 Rescoring Weights]
-**
-link:PORTAGE_sharedTrainingOptimizingWeights.html#RescoringScript[Rescoring
-Script]
+** link:PORTAGE_sharedTrainingOptimizingWeights.html#RescoringScript[Rescoring Script]
 
 Optimizing Weights for Canoe Decoding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -125,8 +121,7 @@ each source sentence from the corresponding n-best list.
 
 See also:
 
-*
-link:PORTAGE_sharedOverview.html#RescoringModelTraining[Rescoring
+* link:PORTAGE_sharedOverview.html#RescoringModelTraining[Rescoring
 Model Training] -- detailed description of the algorithm used to learn
 rescoring weights,
 * `doc/README.rescoring` (or `src/rescoring/README`) -- overview of the
@@ -318,27 +313,8 @@ will substitute them as necessary. See `rescore.py -h` for details.
 
 Up: link:PortageMachineTranslation.html[Portage II] Previous:
 link:TightlyPackedTries.html[Tightly Packed Tries] Next:
-link:PORTAGE_sharedTranslating.html[Translating]  +
+link:PORTAGE_sharedTranslating.html[Translating]
 
 '''''
 
- +
-
-[cols="<,<,<",]
-|=======================================================================
-|image:uploads/iit_sidenav_graphictop_e.gif[NRC-CNRC]
-|image:uploads/mainf1.gif[National
-Research Council Canada]
-|image:uploads/mainWordmark.gif[Government
-of Canada]
-
-|image:uploads/sidenav_graphicbottom_e.gif[NRC-CNRC]
-|Traitement multilingue de textes / Multilingual Text Processing +
- Technologies de l'information et des communications / Information and
-Communications Technologies +
- Conseil national de recherches Canada / National Research Council
-Canada +
- Copyright 2004-2016, Sa Majesté la Reine du Chef du Canada / Her
-Majesty in Right of Canada
-|=======================================================================
-
+include::footer.adoc[]
