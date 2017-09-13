@@ -1,4 +1,19 @@
-# Creating the initial asciidoc source for the PortageII user manual
+                  # PORTAGEshared / PortageII user manual
+
+# To compile the user manual, you need asciidoctor.
+# On CentOS:
+sudo yum install ruby
+sudo yum install rubygems
+sudo gem install asciidoctor
+
+# Then the docs target does everything else:
+make docs
+
+# To easily view results in a browser, if you have Apache installed:
+ln -s `readlink -f html` /var/www/html/PORTAGEshared-asciidoc-manual
+
+
+               # Notes on creating the initial asciidoc source
 
 # Done by Eric Joanis, following the initial recipe provided by Patrick Paul
 
@@ -36,7 +51,7 @@ cp -ar snapshot/uploads html/
 # Repair some artefacts of the HTML snapshot
 sed -i 's#http://wiki-ilt/PORTAGEshared/##g' asciidoc/*.adoc
 sed -i 's#../pages/##g' asciidoc/*.adoc
-sed -i 's#:../uploads/#:uploads/#g' asciidoc/*.adoc 
+sed -i 's#:../uploads/#:uploads/#g' asciidoc/*.adoc
 sed -i 's#^link:uploads.*\[\(image:.*\]\)\]#\1#' asciidoc/*.adoc
 
 # Manual repairs:
@@ -44,7 +59,7 @@ sed -i 's#^link:uploads.*\[\(image:.*\]\)\]#\1#' asciidoc/*.adoc
 #    middle of the long section titles (i.e., questions).
 #  - Use image:: instead of image: to get block images (fixes problems with
 #    images not being visible in Overview page.
-#  - Fix the copyright block and move it to asciidoc/footer.adoc, using 
+#  - Fix the copyright block and move it to asciidoc/footer.adoc, using
 #    include::footer.adoc[]
 #    in each source file where we want it.
 #  - Similarly move the header image to asciidoc/header.adoc.
@@ -63,3 +78,7 @@ done
 ln -s `readlink -f snapshot` /var/www/html/PORTAGEshare-lizzy-snapshot
 ln -s `readlink -f html` /var/www/html/PORTAGEshared-asciidoc-manual
 
+# trying asciidoctor...
+sudo yum install ruby
+sudo yum install rubygems
+sudo gem install asciidoctor
