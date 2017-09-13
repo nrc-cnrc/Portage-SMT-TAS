@@ -18,5 +18,7 @@ include ../build/Makefile.incl
 docs: $(HTMLLIST)
 
 html/%.html: asciidoc/%.adoc
-	asciidoc -a data-uri -a icons -a toc -a max-width=55em -o $@ $<
+	asciidoctor --doctype=book -a showtitel=true -a icons=font@ -a source-highlighter=highlight.js -a platform=opal -a platform-opal=true -a env=browser -a env-browser=true -a idprefix=true -a idseparator=- -a setanchors=true -a toc=left -a toclevels=3 -o $@ $<
+#	asciidoc -a data-uri -a icons -a toc -a toclevels=3 -a max-width=55em -o $@ $<
+#	asciidoc --doctype=book -a icons -a toc -a toc.max.depth=4 -a generate.section.toc.level=4 -a max-width=55em -o $@ $<
 

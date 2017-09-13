@@ -36,10 +36,10 @@ commercial releases: PORTAGE_shared_, Portage 1.x, or PORTAGE shared.
 
 The contents of this page are as follows:
 
-* link:PORTAGE_sharedOverview.html#History[History]
-* link:PORTAGE_sharedOverview.html#HowPortageTranslatesText[How Portage Translates Text]
+* <<History,History>> <<History>> link:PORTAGE_sharedOverview.html#_history[History]
+* link:PORTAGE_sharedOverview.html#_how_portage_translates_text[How Portage Translates Text]
 * link:PORTAGE_sharedOverview.html#HowPortageisTrained[How Portage is Trained]
-** link:PORTAGE_sharedOverview.html#TranslationModelTraining[Translation Model Training]
+** <<Translation Model Training>> link:PORTAGE_sharedOverview.html#TranslationModelTraining[Translation Model Training]
 ** link:PORTAGE_sharedOverview.html#LanguageModelTraining[Language Model Training]
 ** link:PORTAGE_sharedOverview.html#DecoderModelTraining[Decoder Model Training]
 ** link:PORTAGE_sharedOverview.html#RescoringModelTraining[Rescoring Model Training]
