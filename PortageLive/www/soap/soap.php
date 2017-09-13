@@ -505,6 +505,10 @@ function testSuite($WSDL) {
    global $PrimeMode;
    global $monitor_token;
 
+   if ( $button != "" ) {
+      print "<a name='testcase_output_anchor'>\n";
+   }
+
    if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
       primeTestCase($WSDL, $context, $PrimeMode);
    }
@@ -590,7 +594,7 @@ function testSuite($WSDL) {
 </STYLE>
 </head>
 
-<body>
+<body onload=' location.href="#testcase_output_anchor" '>
 <header>
 <p align="center"><img src="images/NRC_banner_e.jpg" /></p>
 </header>
