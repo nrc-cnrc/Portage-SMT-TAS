@@ -40,6 +40,7 @@ SUBDIRS = adaptation \
 	  tpt \
 	  truecasing \
 	  textutils \
+	  user_manual \
 	  word_align
 
 # Additional directories listed here are only compiled if explicitly
