@@ -46,7 +46,7 @@ The first and most important preprocessing step is to clean up UTF-8
 text of many source of noise that are common. We wrote a script to do
 so: `clean-utf8-text.pl`, which we call automatically in our
 link:TMXProcessing.html[tmx prepro] module and in the default
-`preprocess_plugin` used by Portage**Live.
+`preprocess_plugin` used by PortageLive.
 
 -----------------------------------------
 clean-utf8-text.pl < in.raw > in.clean
@@ -199,7 +199,7 @@ augment automatically-learned translations.
 PORTAGE shared includes software to use such markup to reliably
 translate numbers between French and English using a rule-based
 approach, but they can be used for many other purposes too. Our default
-`predecode_plugin` for use with Portage**Live uses marked-up text to
+`predecode_plugin` for use with PortageLive uses marked-up text to
 encode the result of rule-based translation of numbers between English
 and French (in either direction) and to process fixed terms, if they are
 used. (See link:PortageLiveCustomizationPlugins.html[Portage
@@ -212,7 +212,7 @@ Use utf-8. Period.
 
 For years now, we have been using utf-8 exclusively, so many scripts in
 PORTAGE shared now assume it, including `translate.pl` and the
-Portage**Live API.
+PortageLive API.
 
 Use `iconv` to convert text from other encodings to utf-8.
 

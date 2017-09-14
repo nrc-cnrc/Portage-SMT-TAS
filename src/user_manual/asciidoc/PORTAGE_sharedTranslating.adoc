@@ -13,7 +13,7 @@ link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
 *Note:* this section does not reflect current best practice. The whole
 translation pipeline is now automated in our experimental framework for
 translation during training, and in script `translate.pl` for use in
-Portage**Live. Please read `tutorial.pdf` in `framework` and the
+PortageLive. Please read `tutorial.pdf` in `framework` and the
 link:PortageLiveManual.html[Portage Live Manual].
 
 Translating

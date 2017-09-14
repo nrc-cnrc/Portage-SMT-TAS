@@ -9,10 +9,10 @@ link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 
 '''''
 
-Portage__Live Customization using Plugins
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PortageLive Customization using Plugins
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Portage__Live supports many customizations to handle situations that are
+PortageLive supports many customizations to handle situations that are
 specific to a given system correctly. These customizations are enabled
 through seven plugins that can be installed with each deployed system.
 
@@ -39,7 +39,7 @@ default plugins are found in PORTAGE shared's bin/ directory.
 The main plugins
 ^^^^^^^^^^^^^^^^
 
-Here are the four main plugins, in the order Portage__Live calls them:
+Here are the four main plugins, in the order PortageLive calls them:
 
 1.  `preprocess_plugin` does some automated data cleanup and
 normalization. By default, it also splits slash-separated words, such as
@@ -148,7 +148,7 @@ sed -i 's/bypass-marked/no-bypass-marked/' /opt/PortageII/models/system-name/can
 -------------------------------------
 
 Once the fixed-terms functionality is enabled, you can upload a
-fixed-terms database through the Portage**Live API. This is meant to be
+fixed-terms database through the PortageLive API. This is meant to be
 called from a client application that should generate this file
 automatically from a more user-friendly database. We only give a brief
 description of the operations here; see the API documentation for more
@@ -183,7 +183,7 @@ After all this, you should see the behaviour of your system changed to
 take into account the fixed terms you defined.
 
 Alternatively, you can manually compile and install the fixed-terms
-database on your Portage**Live server:
+database on your PortageLive server:
 
 * copy the fixed-terms list to the PortageLive server into file
 `/opt/PortageII/models/_system-name_/plugins/fixedTerms/fixedTerms`
