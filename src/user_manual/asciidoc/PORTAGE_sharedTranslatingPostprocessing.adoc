@@ -16,7 +16,7 @@ Translating: Postprocessing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Truecasing
-++++++++++
+^^^^^^^^^^
 
 Text output from canoe is lowercase
 link:PORTAGE_sharedFileFormats.html#TokenizedText[tokenized
@@ -27,8 +27,8 @@ link:PORTAGE_sharedTrainingModels.html#TrueCaseModels[True Case
 Models], truecasing can be carried out as follows:
 
 -------------------------------------------------------
-   truecase.pl -bos -encoding UTF-8 -text=text_en.out \
-      -lm=tc-lm.en -map=tc-map.en > text_en.tc
+truecase.pl -bos -encoding UTF-8 -text=text_en.out \
+   -lm=tc-lm.en -map=tc-map.en > text_en.tc
 -------------------------------------------------------
 
 The `-bos` option forces capitalization of the first letter of each
@@ -39,7 +39,7 @@ several other options and models. See `truecase.pl -h`, the framework
 and the tutorial for details.
 
 Detokenizing
-++++++++++++
+^^^^^^^^^^^^
 
 The second and last step in the processing chain is detokenization, to
 convert truecased
@@ -50,8 +50,8 @@ preserving the one-sentence-per-line convention). Example for English
 encoded in utf-8:
 
 ---------------------------------------------
-   udetokenize.pl text_en.out > text_en.txt
-   udetokenize.pl text_en.tc > text_en.tc.txt
+udetokenize.pl text_en.out > text_en.txt
+udetokenize.pl text_en.tc > text_en.tc.txt
 ---------------------------------------------
 
 For French, add the option `-lang=fr`.

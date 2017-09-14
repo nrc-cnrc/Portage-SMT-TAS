@@ -25,8 +25,8 @@ Compiling
 To compile the code, go into the `PortageII/src` directory and type:
 
 --------------------
-   make -j 5
-   make -j 5 install
+make -j 5
+make -j 5 install
 --------------------
 
 The default location where _make install_ installs things is
@@ -36,7 +36,7 @@ If you want to override this default, you can specify the `INSTALL_DIR`
 variable on the _make_ command line:
 
 ------------------------------------------------
-   make INSTALL_DIR=/path/to/install/dir install
+make INSTALL_DIR=/path/to/install/dir install
 ------------------------------------------------
 
 When you type _make install_ or the above command line from

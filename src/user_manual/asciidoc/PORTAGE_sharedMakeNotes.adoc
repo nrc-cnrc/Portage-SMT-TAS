@@ -73,7 +73,7 @@ make the code documentation.
 directory and all its dependencies (direct and indirect) by using the
 `OT` variable ("Overall Target") of the main Makefile. For example, the
 following command, executed in your `PortageII/src` directory, runs
-"`make install`" in `canoe` and the directories it depends on:
+`make install` in `canoe` and the directories it depends on:
 +
 ---------------------
 make OT=install canoe
@@ -100,10 +100,10 @@ make tm/train_ibm
 -----------------
 +
 Caveat: do not specify more than one such target at a time - running
-"`make -j 5 tm/train_ibm canoe/canoe`" will most likely corrupt compiled
-files in your sandbox and require a "`make clean`" to recover. Run these
-two sequentially instead: "`make tm/train_ibm canoe/canoe`" (no `-j`) or
-"`make -j 5 tm/train_ibm; make -j 5 canoe/canoe`".
+`make -j 5 tm/train_ibm canoe/canoe` will most likely corrupt compiled
+files in your sandbox and require a `make clean` to recover. Run these
+two sequentially instead: `make tm/train_ibm canoe/canoe` (no `-j`) or
+`make -j 5 tm/train_ibm; make -j 5 canoe/canoe`.
 
 '''''
 

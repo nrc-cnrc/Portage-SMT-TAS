@@ -32,7 +32,7 @@ you want to turn on or off a particular aspect, you need to
 
 1.  make a copy of the plugin into the trained system's `plugins`
 directory: `framework/plugins/` during training,
-`/opt/PortageII/models/`_context_`/plugins/` in a deployed system. The
+`/opt/PortageII/models/_context_/plugins/` in a deployed system. The
 default plugins are found in PORTAGE shared's bin/ directory.
 2.  edit the copy to change what processing it actually performs.
 
@@ -44,21 +44,20 @@ Here are the four main plugins, in the order Portage__Live calls them:
 1.  `preprocess_plugin` does some automated data cleanup and
 normalization. By default, it also splits slash-separated words, such as
 "before/after". To turn off *slash separation*, edit the plugin and
-comment out the line that reads "`FIX_SLASHES=1`".
+comment out the line that reads `FIX_SLASHES=1`.
 2.  `predecode_plugin` is used to insert rule-based translation
 instructions, e.g., for translating numbers and applying fixed-term
 lists. For English-French and French-English system, *rule-based
 translation of numbers* is done by default. To turn that behaviour off,
-comment out the line that read "`MARK_NUMBERS_ENFR=1`". See
-link:PortageLiveCustomizationPlugins.html#FixedTerms[Fixed
-Terms] below for instructions on turning on *fixed-term rules*.
+comment out the line that read `MARK_NUMBERS_ENFR=1`. See
+<<Fixed Terms>> below for instructions on turning on *fixed-term rules*.
 3.  `postdecode_plugin` is a place-holder for future use; don't use it.
 4.  `postprocess_plugin` is used to make changes to the final output,
 just before returning it to the user. By default, it inserts
 *non-breaking spaces* where appropriate in French output (disable this
-feature by commenting out "`ADD_FR_NBSP=1`"). It can optionally fix the
+feature by commenting out `ADD_FR_NBSP=1`). It can optionally fix the
 *formatting of numbers in French*, as an alternative to the rule-based
-option mentioned above: uncomment the line "`fix-en-fr-numbers.pl |`" to
+option mentioned above: uncomment the line `fix-en-fr-numbers.pl |` to
 enable this. It can also insert *non-breaking hyphens* in selected
 patterns, such as in short hyphenated codes: this is more complicated
 because it depends on how your application represents these, but the
@@ -122,21 +121,19 @@ writable and executable by the Apache process. This is automatically
 done for systems trained with PORTAGE shared 2.2 or more recent. We
 provide a script to retrofit systems trained with earlier versions: run
 +
-------------------------------------------------------------
- prep-fixedTerms-layout.sh /opt/PortageII/models/system-name
-------------------------------------------------------------
+------------------------
+prep-fixedTerms-layout.sh /opt/PortageII/models/system-name
+------------------------
 +
 for each pre-existing system to create this directory and set its
 permissions correctly.
 * The `predecode_plugin` must be included in each system that might
 handle fixed terms, by copying it into its `plugins/` directory as
-documented above in section
-link:PortageLiveCustomizationPlugins.html#Installingcustomplugins[Installing
-custom plugins]:
+documented above in section <<Installing custom plugins>>:
 +
-------------------------------------------------------------------------------
- cp /opt/PortageII/bin/predecode_plugin /opt/PortageII/models/context/plugins/
-------------------------------------------------------------------------------
+------------------------------------
+cp /opt/PortageII/bin/predecode_plugin /opt/PortageII/models/context/plugins/
+------------------------------------
 +
 Make sure you use the plugin from PORTAGE shared version 3.0 or later,
 and decide whether you want rule-based English-French number translation
@@ -146,9 +143,9 @@ features.
 `[bypass-marked]` parameter set in their `canoe.ini.cow` file. This must
 be removed or replaced by `[no-bypass-marked]`:
 +
--------------------------------------------------------------------------------------------
- sed -i 's/bypass-marked/no-bypass-marked/' /opt/PortageII/models/system-name/canoe.ini.cow
--------------------------------------------------------------------------------------------
+-------------------------------------
+sed -i 's/bypass-marked/no-bypass-marked/' /opt/PortageII/models/system-name/canoe.ini.cow
+-------------------------------------
 
 Once the fixed-terms functionality is enabled, you can upload a
 fixed-terms database through the Portage**Live API. This is meant to be
@@ -161,22 +158,22 @@ details.
 database. The fixed-terms list must be prepared in a tab-separated file
 where the first line contains:
 +
---------------------------------------------------
- source language code<TAB>the target language code
---------------------------------------------------
+--------------------
+source language code<TAB>the target language code
+--------------------
 +
 and each subsequent line contains:
 +
------------------------------------------
- a source term<TAB>the term's translation
------------------------------------------
+-----------------
+a source term<TAB>the term's translation
+-----------------
 +
 e.g. (where <TAB> must be replaced by literal tab characters):
 +
---------------------------------------------------
- eng<TAB>fra
- this is a pointless term<TAB>ce terme est inutile
---------------------------------------------------
+--------------------
+eng<TAB>fra
+this is a pointless term<TAB>ce terme est inutile
+--------------------
 * Use the `removeFixedTerms()` method to delete the fixed-terms list and
 turn off fixed-terms handling.
 * Use the `getFixedTerms()` method to query the system for its current
@@ -188,42 +185,39 @@ take into account the fixed terms you defined.
 Alternatively, you can manually compile and install the fixed-terms
 database on your Portage**Live server:
 
-* copy the fixed-terms list to the Portage**Live server into file
-`/opt/PortageII/models/`_system-name_`/plugins/fixedTerms/fixedTerms`
+* copy the fixed-terms list to the PortageLive server into file
+`/opt/PortageII/models/_system-name_/plugins/fixedTerms/fixedTerms`
 
 * compile the fixed-terms list into file
-`/opt/PortageII/models/`_system-name_`/plugins/fixedTerms/tm`:
+`/opt/PortageII/models/_system-name_/plugins/fixedTerms/tm`:
 +
----------------------------------------------------------
- cd /opt/PortageII/models/system-name/plugins/fixedTerms/
----------------------------------------------------------
+---------------------------
+cd /opt/PortageII/models/system-name/plugins/fixedTerms/
+---------------------------
 +
-for en->fr systems, assuming you place English in the first column, use
-this command:
+for en->fr systems, assuming you place English in the first column, use this command:
 +
-----------------------------------------------------------------------------------------
- fixed_term2tm.pl -source_column=1 -source=en -target=fr fixedTerms | sort --unique > tm
-----------------------------------------------------------------------------------------
+----------------------------------------
+fixed_term2tm.pl -source_column=1 -source=en -target=fr fixedTerms | sort --unique > tm
+----------------------------------------
 +
-for fr->en systems, assuming you place English in the first column, use
-this command:
+for fr->en systems, assuming you place English in the first column, use this command:
 +
-----------------------------------------------------------------------------------------
- fixed_term2tm.pl -source_column=2 -source=fr -target=en fixedTerms | sort --unique > tm
-----------------------------------------------------------------------------------------
+----------------------------------------
+fixed_term2tm.pl -source_column=2 -source=fr -target=en fixedTerms | sort --unique > tm
+----------------------------------------
 
-* the example file above, compiled, will look like this if things worked
-correctly:
+* the example file above, compiled, will look like this if things worked correctly:
 ** en->fr:
 +
------------------------------------------------------------------------------------------------------
- this is a pointless term ||| <FT target="ce terme est inutile">this is a pointless term</FT> ||| 1 1
------------------------------------------------------------------------------------------------------
+-----------------------------------------
+this is a pointless term ||| <FT target="ce terme est inutile">this is a pointless term</FT> ||| 1 1
+-----------------------------------------
 ** fr->en:
 +
--------------------------------------------------------------------------------------------------
- ce terme est inutile ||| <FT target="this is a pointless term">ce terme est inutile</FT> ||| 1 1
--------------------------------------------------------------------------------------------------
+-------------------------------------------
+ce terme est inutile ||| <FT target="this is a pointless term">ce terme est inutile</FT> ||| 1 1
+-------------------------------------------
 
 '''''
 

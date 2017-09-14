@@ -108,13 +108,13 @@ the runtime software structure is much smaller.
 In `PortageLive/bin`, you can run
 
 -------
-   make
+make
 -------
 
 or
 
 --------------------------
-   make DO_EXTERNAL_LIBS=1
+make DO_EXTERNAL_LIBS=1
 --------------------------
 
 to assemble the PORTAGE shared runtime software layout. (The second
@@ -145,7 +145,7 @@ so. From your copy of the framework directory where you trained models,
 run
 
 -------------------
-   make portageLive
+make portageLive
 -------------------
 
 You will see the models being converted to the right format for the
@@ -166,7 +166,7 @@ which will copy the model files from your trained framework into the
 appropriate structure under `rpm.build.root`. When you call
 
 -----------------------------------------------------------------
-   prep-file-layout.sh <path_to_your_trained_framework_directory>
+prep-file-layout.sh <path_to_your_trained_framework_directory>
 -----------------------------------------------------------------
 
 the models will be copied into
@@ -180,14 +180,14 @@ trained the system on a different machine from the one where you are
 assembling the Portage__Live file layout. E.g.:
 
 -----------------------------------------------------------------------------
-   prep-file-layout.sh training_host:/path/to/trained/framework
-   prep-file-layout.sh training_user@training_host:/path/to/trained/framework
+prep-file-layout.sh training_host:/path/to/trained/framework
+prep-file-layout.sh training_user@training_host:/path/to/trained/framework
 -----------------------------------------------------------------------------
 
 or simply, if the files are on the same machine:
 
 -------------------------------------------------
-   prep-file-layout.sh /path/to/trained/framework
+prep-file-layout.sh /path/to/trained/framework
 -------------------------------------------------
 
 Web service software layout
@@ -337,13 +337,13 @@ single command even if it already exists partially on the destination
 host:
 
 ---------------------------------------------
-   rsync -arzv rpm.build.root/* root@<host>:/
+rsync -arzv rpm.build.root/* root@<host>:/
 ---------------------------------------------
 
 or, if the destination machine is the same as the building machine:
 
 --------------------------------
-   rsync -arv rpm.build.root/* /
+rsync -arv rpm.build.root/* /
 --------------------------------
 
 This command mimics the structure in `rpm.build.root` under `/` (the

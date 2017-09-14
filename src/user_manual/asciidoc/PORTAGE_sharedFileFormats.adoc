@@ -13,12 +13,9 @@ Formats]
 Text File Formats
 ~~~~~~~~~~~~~~~~~
 
-* link:PORTAGE_sharedFileFormats.html#PlainText[Plain Text]
-* link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
-Text]
-* link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
-Text]
-* link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 Plain Text
 ^^^^^^^^^^
@@ -34,8 +31,8 @@ Considerations] (summary: use utf-8).
 Example:
 
 ----------------------------------------------------------
-  On December 23rd, 2004, it was warm and rainy. The next 
-  day--Christmas Eve--it was -10 c. again.
+On December 23rd, 2004, it was warm and rainy. The next 
+day--Christmas Eve--it was -10 c. again.
 ----------------------------------------------------------
 
 Tokenized Text
@@ -45,8 +42,8 @@ In tokenized text, each token is delimited by whitespace and each
 sentence is on a single line. Example:
 
 --------------------------------------------------------
-  On December 23rd , 2004 , it was warm and rainy . 
-  The next day -- Christmas Eve -- it was -10 c. again .
+On December 23rd , 2004 , it was warm and rainy . 
+The next day -- Christmas Eve -- it was -10 c. again .
 --------------------------------------------------------
 
 Marked Up Text
@@ -57,15 +54,15 @@ are explicitly identified using SGML-like markup. It is used for input
 to the decoder. Example:
 
 ----------------------------------------------------------------------------------
-  On <DATE std="23/12/2004">December 23rd , 2004</DATE> , it was warm and rainy . 
-  The next day -- Christmas Eve -- it was <NUM std="-10">-10</NUM> c. again .
+On <DATE std="23/12/2004">December 23rd , 2004</DATE> , it was warm and rainy . 
+The next day -- Christmas Eve -- it was <NUM std="-10">-10</NUM> c. again .
 ----------------------------------------------------------------------------------
 
 Markup can also specify rule-based translations for arbitrary entities,
 as in this example:
 
 ------------------------------------------------------------------------
-   <NUM target="deux millions|2 millions" prob=".9|.1">two million</NUM>
+<NUM target="deux millions|2 millions" prob=".9|.1">two million</NUM>
 ------------------------------------------------------------------------
 
 Rules of the mark-up language:

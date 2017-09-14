@@ -17,7 +17,7 @@ The quality of raw output from canoe can be improved by having it
 generate nbest lists and reordering them using a rescoring model.
 
 Rescoring Script
-++++++++++++++++
+^^^^^^^^^^^^^^^^
 
 Like for training a rescoring model, the `rescore.py` script can be used
 to run all steps in rescored translation: nbest-list generation,
@@ -29,8 +29,8 @@ Script] section, the following command will write a final translation to
 the file `text_fr.rule.rat`:
 
 ----------------------------------------------------------------------------
-   rescore.py -trans --nbest-size 1000 -f canoe.ini.cow -msrc text_fr.rule \
-      rescore-model.rat text_fr.tok text_en*.al >& log.rat-trans
+rescore.py -trans --nbest-size 1000 -f canoe.ini.cow -msrc text_fr.rule \
+   rescore-model.rat text_fr.tok text_en*.al >& log.rat-trans
 ----------------------------------------------------------------------------
 
 Note that the nbest list size (1000 in this example) should match the

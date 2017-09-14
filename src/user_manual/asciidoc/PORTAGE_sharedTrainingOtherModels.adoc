@@ -4,8 +4,8 @@ PORTAGE shared Training Other Models
 ------------------------------------
 
 Up: link:PortageMachineTranslation.html[Portage II] /
-link:PORTAGE_sharedTrainingModels.html[Models] Previous:
-link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
+link:PORTAGE_sharedTrainingModels.html[Models]
+Previous: link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
 Next: link:TightlyPackedTries.html[Tightly Packed Tries]
 
 '''''
@@ -19,22 +19,28 @@ details.
 Training: Constructing Other Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* link:PORTAGE_sharedTrainingOtherModels.html#TranslationModels[Translation Models]
-** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM2wordalignmentmodels[Phrase
-tables based on IBM 2 word alignment models]
-** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonHMMwordalignmentmodels[Phrase
-tables based on HMM word alignment models]
-** link:PORTAGE_sharedTrainingOtherModels.html#PhrasetablesbasedonIBM4wordalignmentmodels[Phrase
-tables based on IBM 4 word alignment models]
-** link:PORTAGE_sharedTrainingOtherModels.html#Mergedphrasetables[Merged phrase tables]
-** link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[The TPPT format]
-* link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[Lexicalized Distortion Models]
-* link:PORTAGE_sharedTrainingOtherModels.html#HierarchicalLexicalizedDistortionModels[Hierarchical
-Lexicalized Distortion Models]
-* *New!* link:PORTAGE_sharedTrainingOtherModels.html#SparseModels[Sparse Models]
-* *New!* link:PORTAGE_sharedTrainingOtherModels.html#NeuralNetworkJointModels[Neural Network Joint Models]
-* link:PORTAGE_sharedTrainingOtherModels.html#TruecasingModels[Truecasing Models]
-* link:PORTAGE_sharedTrainingOtherModels.html#AddingALexiconToASystem[Adding a lexicon to a System]
+////
+// This lets me control just what I want, but it's too much manual work, so
+// I'll use toc::[] instead.
+* <<Translation Models>>
+** <<Phrase tables based on IBM2 word alignment models>>
+** <<Phrase tables based on HMM word alignment models>>
+** <<Merged phrase tables>>
+** <<The TPPT format>>
+* <<Lexicalized Distortion Models>>
+* <<Hierarchical Lexicalized Distortion Models>>
+* <<Sparse Models>>
+* <<Neural Network Joint Models>>
+* <<Truecasing Models>>
+** <<Truecasing Models using source information>>
+* <<Adding A Lexicon To A System>>
+////
+
+// Not really satisfied with this, because it includes the top level of this
+// page, too...
+:toclevels: 4
+:toc-title: Contents of this page
+toc::[]
 
 Translation Models
 ^^^^^^^^^^^^^^^^^^
@@ -50,12 +56,12 @@ link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text],
 the following is a basic training process:
 
 ----------------------------------------------------------------------------
-   train_ibm -v  -s ibm1.fr_given_en.gz ibm2.fr_given_en.gz file* \
-      >& log.train_ibm.fr_given_en
-   train_ibm -vr -s ibm1.en_given_fr.gz ibm2.en_given_fr.gz file* \
-      >& log.train_ibm.en_given_fr
-   gen_phrase_tables -v -w1 -m8 -1 en -2 fr -multipr both
-      ibm2.fr_given_en.gz ibm2.en_given_fr.gz file* >& log.gen_phrase_tables
+train_ibm -v  -s ibm1.fr_given_en.gz ibm2.fr_given_en.gz file* \
+   >& log.train_ibm.fr_given_en
+train_ibm -vr -s ibm1.en_given_fr.gz ibm2.en_given_fr.gz file* \
+   >& log.train_ibm.en_given_fr
+gen_phrase_tables -v -w1 -m8 -1 en -2 fr -multipr both
+   ibm2.fr_given_en.gz ibm2.en_given_fr.gz file* >& log.gen_phrase_tables
 ----------------------------------------------------------------------------
 
 Notes:
@@ -98,13 +104,13 @@ The following is a basic procedure for training a phrase table using HMM
 word alignment models:
 
 ---------------------------------------------------------
-   train_ibm -v  -hmm hmm.fr_given_en.gz file* \
-      >& log.hmm.fr_given_en
-   train_ibm -vr -hmm hmm.en_given_fr.gz file* \
-      >& log.hmm.en_given_fr
-   gen_phrase_tables -v -w1 -m8 -1 en -2 fr -multipr both
-      hmm.fr_given_en.gz hmm.en_given_fr.gz file* \
-      >& log.gen_phrase_tables.hmm
+train_ibm -v  -hmm hmm.fr_given_en.gz file* \
+   >& log.hmm.fr_given_en
+train_ibm -vr -hmm hmm.en_given_fr.gz file* \
+   >& log.hmm.en_given_fr
+gen_phrase_tables -v -w1 -m8 -1 en -2 fr -multipr both
+   hmm.fr_given_en.gz hmm.en_given_fr.gz file* \
+   >& log.gen_phrase_tables.hmm
 ---------------------------------------------------------
 
 Notes:
@@ -168,7 +174,7 @@ You can convert your multi-prob phrase tables into the TPPT (Tightly
 Packed Phrase Table) format using this command:
 
 ----------------------------------
-   textpt2tppt.sh phrases.fr2en.gz
+textpt2tppt.sh phrases.fr2en.gz
 ----------------------------------
 
 This will create directory `phrases.fr2en.tppt` which will contain
@@ -193,8 +199,8 @@ in fact repeats the same alignment task, so the inputs are similar (and
 we assume the same file names as above):
 
 -----------------------------------------------------------
-   dmcount -v -m8 ibm2.en_given_fr ibm2.fr_given_en file* \
-      | gzip > dmcounts.fr2en.gz 2> log.dmcounts.fr2en.gz
+dmcount -v -m8 ibm2.en_given_fr ibm2.fr_given_en file* \
+   | gzip > dmcounts.fr2en.gz 2> log.dmcounts.fr2en.gz
 -----------------------------------------------------------
 
 `dmestm` uses these counts to perform MAP-smoothed estimates of the
@@ -202,8 +208,8 @@ model parameters (the amount of smoothing is controlled by the -w*
 switches - higher values for these give smoother models).
 
 -------------------------------------------------------------
-   dmestm -v -s -g ldm.fr2en.bkoff dmcounts.fr2en.gz | gzip \
-      > ldm.fr2en.gz 2> log.ldm.fr2en.gz
+dmestm -v -s -g ldm.fr2en.bkoff dmcounts.fr2en.gz | gzip \
+   > ldm.fr2en.gz 2> log.ldm.fr2en.gz
 -------------------------------------------------------------
 
 The file `ldm.fr2en.gz` is the trained lexicalized distortion model,
@@ -212,7 +218,7 @@ which can be used in `canoe` via the `-distortion-model` option.
 Your LDM can be converted to the TPLDM format with this command:
 
 --------------------------------------------
-   textldm2tpldm.sh ldm.fr2en.gz tpldm.fr2en
+textldm2tpldm.sh ldm.fr2en.gz tpldm.fr2en
 --------------------------------------------
 
 Hierarchical Lexicalized Distortion Models
@@ -283,12 +289,12 @@ the LM file by invoking the LM toolkit directly. In this example, we'll
 use SRILM, but IRSTLM or any toolkit would do.
 
 -------------------------------------------------------
- zcat corp-tc.en.gz | lc-utf8.pl | gzip > corp-lc.en.gz
- compile_truecase_map corp-tc.en.gz corp-lc.en.gz \
-    | gzip  > corp-tc.en.map.gz
- ngram-count -interpolate -kndiscount -order 3 \
-    -text corp-tc.en.gz -lm corp-tc.lm.gz
- arpalm2binlm corp-tc.lm.gz corp-tc.binlm.gz
+zcat corp-tc.en.gz | lc-utf8.pl | gzip > corp-lc.en.gz
+compile_truecase_map corp-tc.en.gz corp-lc.en.gz \
+   | gzip  > corp-tc.en.map.gz
+ngram-count -interpolate -kndiscount -order 3 \
+   -text corp-tc.en.gz -lm corp-tc.lm.gz
+arpalm2binlm corp-tc.lm.gz corp-tc.binlm.gz
 -------------------------------------------------------
 
 The resulting truecasing model is the file pair
@@ -346,8 +352,8 @@ language words with a different sense or different translations.
 '''''
 
 Up: link:PortageMachineTranslation.html[Portage II] /
-link:PORTAGE_sharedTrainingModels.html[Models] Previous:
-link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
+link:PORTAGE_sharedTrainingModels.html[Models]
+Previous: link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
 Next: link:TightlyPackedTries.html[Tightly Packed Tries]
 
 '''''

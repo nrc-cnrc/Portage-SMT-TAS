@@ -21,13 +21,13 @@ software. You need to do this in every shell you open, so we recommend
 doing it in your `.bashrc` or `.tcshrc` file:
 
 ---------------------------------------
-   source /path/to/PortageII/SETUP.bash
+source /path/to/PortageII/SETUP.bash
 ---------------------------------------
 
 or, for tcsh users:
 
 ---------------------------------------
-   source /path/to/PortageII/SETUP.tcsh
+source /path/to/PortageII/SETUP.tcsh
 ---------------------------------------
 
 These files set up the `PATH`, `PERL5LIB`, `LD_LIBRARY_PATH` and

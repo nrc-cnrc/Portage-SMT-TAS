@@ -10,58 +10,9 @@ Training A Mid Size System]
 
 '''''
 
-* link:PORTAGE_sharedAnnotatedBibliography.html#AGoodTextbookaboutStatisticalMachineTranslationSMT[A
-Good Textbook about SMT]
-* Introductory Papers about SMT
-** link:PORTAGE_sharedAnnotatedBibliography.html#Brownetal1993[Brown et al 1993]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Goodman2001[Goodman 2001]
-** link:PORTAGE_sharedAnnotatedBibliography.html#PHARAOHManual[PHARAOH Manual]
-** link:PORTAGE_sharedAnnotatedBibliography.html#BLEUPaper[BLEU Paper]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Koehnetal2003[Koehn et al 2003]
-** link:PORTAGE_sharedAnnotatedBibliography.html#MarcuandWong2002[Marcu and Wong 2002]
-** link:PORTAGE_sharedAnnotatedBibliography.html#OchandNey2004[Och and Ney 2004]
-** link:PORTAGE_sharedAnnotatedBibliography.html#OchandNey2002[Och and Ney 2002]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Och2003[Och 2003]
-** link:PORTAGE_sharedAnnotatedBibliography.html#OchUeffingandNey2001[Och Ueffing and Ney 2001]
-** link:PORTAGE_sharedAnnotatedBibliography.html#UeffingOchandNey2002[Ueffing Och and Ney 2002]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Knight1999[Knight 1999]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2001[Germann et al 2001]
-** link:PORTAGE_sharedAnnotatedBibliography.html#JHUWorkshop2003[JHU Workshop 2003]
-** link:PORTAGE_sharedAnnotatedBibliography.html#OchandNey2003[Och and Ney 2003]
-* Specialized Papers about SMT
-** link:PORTAGE_sharedAnnotatedBibliography.html#Badretal2007[Badr et al 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Bisazzaetal2011[Bisazza et al 2011]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Chenetal2009[Chen et al 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012[Cherry and Foster 2012]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Cherryetal2012[Cherry et al 2012]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Fosteretal2006[Foster et al 2006]
-** link:PORTAGE_sharedAnnotatedBibliography.html#FosterandKuhn2007[Foster and Kuhn 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#FosterandKuhn2009[Foster and Kuhn 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#FraserandMarcu2007[Fraser and Marcu 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#GalleyandManning2008[Galley and Manning 2008]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann et al 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Guzmanetal2009[Guzman et al 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#He2007[He 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#HuangandChiang2007[Huang and Chiang 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Johnsonetal2007[Johnson et al 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Koehnetal2007[Koehn et al 2007]
-** link:PORTAGE_sharedAnnotatedBibliography.html#KuhnandDeMori19902[Kuhn and De Mori 1990 2]
-** link:PORTAGE_sharedAnnotatedBibliography.html#KumarandByrne2004[Kumar and Byrne 2004]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Liangetal2006[Liang et al 2006]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Manguetal1999[Mangu et al 1999]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Niehuesetal2011[Niehues et al 2011]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul et al 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#SimardandIsabelle2009[Simard and Isabelle 2009]
-** link:PORTAGE_sharedAnnotatedBibliography.html#UeffingandNey2005[Ueffing and Ney 2005]
-** link:PORTAGE_sharedAnnotatedBibliography.html#ZensandNey2004[Zens and Ney 2004]
-** link:PORTAGE_sharedAnnotatedBibliography.html#ZensandNey2006[Zens and Ney 2006]
-* Papers about features added in Portage__II 3.0
-** link:PORTAGE_sharedAnnotatedBibliography.html#HopkinsandMay2011[Hopkins and May 2011]
-** link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry and Foster 2012 revisited]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Cherry2013[Cherry 2013]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Stewartetal2014[Stewart et al 2014]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Devlinetal2014[Devlin et al 2014]
-** link:PORTAGE_sharedAnnotatedBibliography.html#Foster2016addendumtoDevlin[Foster 2016 addeddum to Devlin]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 A Good Textbook about Statistical Machine Translation (SMT)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

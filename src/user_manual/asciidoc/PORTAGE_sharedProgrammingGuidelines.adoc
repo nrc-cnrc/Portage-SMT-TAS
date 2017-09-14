@@ -21,18 +21,9 @@ PORTAGE shared. If you wish to add to these guidelines, feel free to
 discuss it with the other project members, and add them if there is a
 consensus.
 
-* link:PORTAGE_sharedProgrammingGuidelines.html#ThePORTAGEenvironmentvariable[The
-PORTAGE environment variable]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Cconventions[C plus plus conventions]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Scriptconventions[Script conventions]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Documentationconventions[Documentation conventions]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Formattingconventions[Formatting conventions]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Unittesting[Unit testing]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Regressiontesting[Regression testing]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Gitdiff[Git diff]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Featureandmodelnamingconventions[Feature
-and model naming conventions]
-* link:PORTAGE_sharedProgrammingGuidelines.html#Helpmessages[Help messages]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 The PORTAGE environment variable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -42,7 +33,7 @@ strategy is to assume that locations are implicitly available via
 standard environment variables like `PATH`. E.g., if your perl script
 calls a program `translate-perfectly`, don't call it like
 `/path/to/PortageII/bin/translate-perfectly` or
-`$PATH/translate-perfectly`, just say `translate-perfectly`. For
+`$MYPATH/translate-perfectly`, just say `translate-perfectly`. For
 special-purpose things like references to corpora and data files, assume
 that the environment variable `PORTAGE` points to the project root
 directory. Apart from standard external libraries, code should not have
@@ -159,23 +150,21 @@ When you need to create a complex syntax for a new type of feature or
 model in any program in PORTAGE shared, please follow the conventions
 used in existing models:
 
-* `:` is the standard list separator. It is used in `canoe.ini` in
+* The colon (`:`) is the standard list separator. It is used in `canoe.ini` in
 particular. It is also used in rescoring models to separate the name of
 a feature from its arguments.
-* `#` is the standard argument separator. For example, the LM base class
-interprets `#`_N_ as a request to limit the order, e.g.
+* The number sign (`\#`) is the standard argument separator. For example,
+the LM base class interprets `#_N_` as a request to limit the order, e.g.
 `lm_4gram_en.gz#3` treats this LM as a 3-gram LM even if it is a 4-gram
-LM. Multi-prob TM's accept the argument `#REVERSED` after the file name
-to mean the TM should be reversed as it is read. This separator is also
-used by many rescoring feature functions; see `rescore_train -H` for
-details.
-* `;` is the alternative argument separator, to use when `#` would be
-ambiguous. For example, complex LM classes such as `DynMapLM` use it to
-separate the `DynMap` tag, the type of map and the filename. `#` could
-not be used here because LM classes already use it for a different
-meaning (see above).
+LM.  This separator is also used by many rescoring feature functions; see
+`rescore_train -H` for details.
+* The semi-colon (`;`) is the alternative argument separator, to use when the
+number sign would be ambiguous. For example, complex LM classes such as
+`DynMapLM` use it to separate the `DynMap` tag, the type of map and the
+filename. The number sign could not be used here because LM classes already use
+it for a different meaning (see above).
 * Exceptionally, the `FileFF` feature separates the column argument from
-the filename argument with `,`, but the parser looks explicitly for a
+the filename argument with a comma (`,`), but the parser looks explicitly for a
 comma followed by a number at the end of the string, so as to allow
 maximum flexibility in the file name itself. The comma should be avoided
 as a separator elsewhere.

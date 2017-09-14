@@ -21,7 +21,7 @@ contain lowercase tokenized reference translations, BLEU score can be
 computed using the `bleumain` program:
 
 --------------------------------------------------------------
-   bleumain test_en.out test_en.ref1 test_en.ref1 test_en.ref3
+bleumain test_en.out test_en.ref1 test_en.ref1 test_en.ref3
 --------------------------------------------------------------
 
 BLEU score can also be calculated by the "official" NIST script
@@ -37,9 +37,9 @@ tokenized reference files as above, this can be calculated using the
 `bestbleu` program:
 
 -------------------------------------------------------
-   bestbleu -n 100 -K 100 -num-sents 30 \
-      -best-trans-file-cat test_en.nbest \
-      -ref-files test_en.ref1 test_en.ref2 test_en.ref3
+bestbleu -n 100 -K 100 -num-sents 30 \
+   -best-trans-file-cat test_en.nbest \
+   -ref-files test_en.ref1 test_en.ref2 test_en.ref3
 -------------------------------------------------------
 
 The `-n` argument(s) specifies the size of the nbest list(s) that

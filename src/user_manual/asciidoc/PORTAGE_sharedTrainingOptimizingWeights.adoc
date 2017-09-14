@@ -19,13 +19,11 @@ Training: Optimizing Weights
 Optimizing weights means tuning a relatively small set of parameters
 that control the contributions from various components like language and
 translation models. Translation quality tends to be very sensitive to
-these settings. Here are the parameter tuning steps for PORTAGE shared:
+these settings.
 
-* link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[Optimizing
-Decoding Weights]
-* link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforRescoring[Optimizing
-Rescoring Weights]
-** link:PORTAGE_sharedTrainingOptimizingWeights.html#RescoringScript[Rescoring Script]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 Optimizing Weights for Canoe Decoding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -53,23 +51,23 @@ Ideally, you should use the framework to invoke `tune.py`, but here is a
 minimalist example using lattice MIRA, the recommended algorithm:
 
 ----------------------------------------------------------------------
-   cat > canoe.ini
-   [ttable-limit] 30
-   [distortion-limit] 7
-   [ttable-multi-prob] phrases.fr2en
-   [lmodel-file] lm.en
-   [use-ftm]
-   ^D
-   canoe-escapes.pl -add dev1_fr.tok dev1_fr.rule
-   tune.py -v -f canoe.ini -o canoe.ini.cow -a lmira -c 1 -p 4
-      dev1_ch.rule dev1_en.ref1 dev1_en.ref2 dev1_en.ref3 >& log.lmira
+cat > canoe.ini
+[ttable-limit] 30
+[distortion-limit] 7
+[ttable-multi-prob] phrases.fr2en
+[lmodel-file] lm.en
+[use-ftm]
+^D
+canoe-escapes.pl -add dev1_fr.tok dev1_fr.rule
+tune.py -v -f canoe.ini -o canoe.ini.cow -a lmira -c 1 -p 4
+   dev1_ch.rule dev1_en.ref1 dev1_en.ref2 dev1_en.ref3 >& log.lmira
 ----------------------------------------------------------------------
 
 To use a TPPT instead of `TMText` translation tables, replace the
 `[ttable-multi-prob]` line by this line:
 
 -----------------------------------
-   [ttable-tppt] phrases.fr2en.tppt
+[ttable-tppt] phrases.fr2en.tppt
 -----------------------------------
 
 Notes about using `tune.py`:
@@ -179,48 +177,48 @@ for `rescore.py`, assuming an optimized canoe configuration file
 features in the "small" set:
 
 ----------------------------------------------------------------
- > configtool rescore-model:ffvals canoe.ini.cow > rescore-model
+> configtool rescore-model:ffvals canoe.ini.cow > rescore-model
 
- > cat rescore-model
- FileFF:ffvals,1 0.2
- FileFF:ffvals,2 -0.6
- FileFF:ffvals,3 1
- FileFF:ffvals,4 0.5
- FileFF:ffvals,5 0.3
+> cat rescore-model
+FileFF:ffvals,1 0.2
+FileFF:ffvals,2 -0.6
+FileFF:ffvals,3 1
+FileFF:ffvals,4 0.5
+FileFF:ffvals,5 0.3
 ----------------------------------------------------------------
 
 In this case, the "small" set consists of 4 features. Appending 6
 additional features gives the following "large" model:
 
 ---------------------------------------------
- FileFF:ffvals,1 0.2
- FileFF:ffvals,2 -0.6
- FileFF:ffvals,3 1
- FileFF:ffvals,4 0.5
- FileFF:ffvals,5 0.3
- IBM1TgtGivenSrc:ibm1.en_given_fr
- IBM1SrcGivenTgt:ibm1.fr_given_en
- IBM2TgtGivenSrc:ibm2.en_given_fr 
- IBM2SrcGivenTgt:ibm2.fr_given_en 
- HMMTgtGivenSrc:hmm.tgt_given_src
- HMMSrcGivenTgt:hmm.src_given_tgt
- HMMVitTgtGivenSrc:hmm.tgt_given_src
- HMMVitSrcGivenTgt:hmm.src_given_tgt
- IBM1WTransTgtGivenSrc:ibm2.en_given_fr
- IBM1WTransSrcGivenTgt:ibm2.fr_given_en
- IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2
- IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2
- nbestWordPostLev:1#<ffval-wts>#<pfx>
- nbestWordPostTrg:1#<ffval-wts>#<pfx>
- nbestWordPostSrc:1#<ffval-wts>#<pfx>
- nbestPhrasePostSrc:1#<ffval-wts>#<pfx>
- nbestPhrasePostTrg:1#<ffval-wts>#<pfx>
- nbestNgramPost:3#1#<ffval-wts>#<pfx>
- nbestSentLenPost:1#<ffval-wts>#<pfx>
- NgramFF:big-lm.en
- LengthFF
- ParMismatch
- QuotMismatch:fe
+FileFF:ffvals,1 0.2
+FileFF:ffvals,2 -0.6
+FileFF:ffvals,3 1
+FileFF:ffvals,4 0.5
+FileFF:ffvals,5 0.3
+IBM1TgtGivenSrc:ibm1.en_given_fr
+IBM1SrcGivenTgt:ibm1.fr_given_en
+IBM2TgtGivenSrc:ibm2.en_given_fr 
+IBM2SrcGivenTgt:ibm2.fr_given_en 
+HMMTgtGivenSrc:hmm.tgt_given_src
+HMMSrcGivenTgt:hmm.src_given_tgt
+HMMVitTgtGivenSrc:hmm.tgt_given_src
+HMMVitSrcGivenTgt:hmm.src_given_tgt
+IBM1WTransTgtGivenSrc:ibm2.en_given_fr
+IBM1WTransSrcGivenTgt:ibm2.fr_given_en
+IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2
+IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2
+nbestWordPostLev:1#<ffval-wts>#<pfx>
+nbestWordPostTrg:1#<ffval-wts>#<pfx>
+nbestWordPostSrc:1#<ffval-wts>#<pfx>
+nbestPhrasePostSrc:1#<ffval-wts>#<pfx>
+nbestPhrasePostTrg:1#<ffval-wts>#<pfx>
+nbestNgramPost:3#1#<ffval-wts>#<pfx>
+nbestSentLenPost:1#<ffval-wts>#<pfx>
+NgramFF:big-lm.en
+LengthFF
+ParMismatch
+QuotMismatch:fe
 ---------------------------------------------
 
 The `IBM` features require that IBM model files `ibm2.en_given_fr`, etc.
@@ -236,41 +234,41 @@ containing rule-based translations is `dev2_fr.rule`, and the reference
 files are called `dev2_en.ref*`, `rescore.py` can be run like this:
 
 -----------------------------------------------------------------------------
- rescore.py -train -v --nbest-size 1000 -f canoe.ini.cow -msrc dev2_fr.rule \
-    rescore-model dev2_fr.tok dev2_en.ref* >& log.rescore
+rescore.py -train -v --nbest-size 1000 -f canoe.ini.cow -msrc dev2_fr.rule \
+   rescore-model dev2_fr.tok dev2_en.ref* >& log.rescore
 -----------------------------------------------------------------------------
 
 The learned weights are put into `rescore-model.rat`:
 
 -----------------------------------------------------------
- FileFF:ffvals,1 0.01057143323
- FileFF:ffvals,2 0.1320968121
- FileFF:ffvals,3 0.00924924016
- FileFF:ffvals,4 -0.003593659261
- FileFF:ffvals,5 0.03378163235
- IBM1TgtGivenSrc:ibm1.en_given_fr 0.008430841379
- IBM1SrcGivenTgt:ibm1.fr_given_en 0.06629669666
- IBM2TgtGivenSrc:ibm2.en_given_fr -0.005373505875
- IBM2SrcGivenTgt:ibm2.fr_given_en 0.01150755864
- HMMTgtGivenSrc:hmm.tgt_given_src 0.02386927834
- HMMSrcGivenTgt:hmm.src_given_tgt 0.12385729353
- HMMVitTgtGivenSrc:hmm.tgt_given_src -0.03726194853
- HMMVitSrcGivenTgt:hmm.src_given_tgt 0.1389626143
- IBM1WTransTgtGivenSrc:ibm2.en_given_fr 0.1470945776
- IBM1WTransSrcGivenTgt:ibm2.fr_given_en 1
- IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2 -0.6528998613
- IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2 -0.2944137752
- nbestWordPostLev:1#<ffval-wts>#<pfx> 0.0276774019
- nbestWordPostTrg:1#<ffval-wts>#<pfx> 0.007647737861
- nbestWordPostSrc:1#<ffval-wts>#<pfx> -0.02277778275
- nbestPhrasePostSrc:1#<ffval-wts>#<pfx> 0.00322932424
- nbestPhrasePostTrg:1#<ffval-wts>#<pfx> -0.03512396291
- nbestNgramPost:3#1#<ffval-wts>#<pfx> -0.006613836158
- nbestSentLenPost:1#<ffval-wts>#<pfx> 0.9998786
- NgramFF:big-lm.en 0.2519059479
- LengthFF -0.0257593058
- ParMismatch 0.0007744894247
- QuotMismatch:fe -0.0718164444
+FileFF:ffvals,1 0.01057143323
+FileFF:ffvals,2 0.1320968121
+FileFF:ffvals,3 0.00924924016
+FileFF:ffvals,4 -0.003593659261
+FileFF:ffvals,5 0.03378163235
+IBM1TgtGivenSrc:ibm1.en_given_fr 0.008430841379
+IBM1SrcGivenTgt:ibm1.fr_given_en 0.06629669666
+IBM2TgtGivenSrc:ibm2.en_given_fr -0.005373505875
+IBM2SrcGivenTgt:ibm2.fr_given_en 0.01150755864
+HMMTgtGivenSrc:hmm.tgt_given_src 0.02386927834
+HMMSrcGivenTgt:hmm.src_given_tgt 0.12385729353
+HMMVitTgtGivenSrc:hmm.tgt_given_src -0.03726194853
+HMMVitSrcGivenTgt:hmm.src_given_tgt 0.1389626143
+IBM1WTransTgtGivenSrc:ibm2.en_given_fr 0.1470945776
+IBM1WTransSrcGivenTgt:ibm2.fr_given_en 1
+IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2 -0.6528998613
+IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2 -0.2944137752
+nbestWordPostLev:1#<ffval-wts>#<pfx> 0.0276774019
+nbestWordPostTrg:1#<ffval-wts>#<pfx> 0.007647737861
+nbestWordPostSrc:1#<ffval-wts>#<pfx> -0.02277778275
+nbestPhrasePostSrc:1#<ffval-wts>#<pfx> 0.00322932424
+nbestPhrasePostTrg:1#<ffval-wts>#<pfx> -0.03512396291
+nbestNgramPost:3#1#<ffval-wts>#<pfx> -0.006613836158
+nbestSentLenPost:1#<ffval-wts>#<pfx> 0.9998786
+NgramFF:big-lm.en 0.2519059479
+LengthFF -0.0257593058
+ParMismatch 0.0007744894247
+QuotMismatch:fe -0.0718164444
 -----------------------------------------------------------
 
 Here are some detailed notes on using `rescore.py`:

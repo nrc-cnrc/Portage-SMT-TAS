@@ -67,13 +67,13 @@ or all weights with all probabilities
 Each line in a forward phrase table follows this format:
 
 ---------------------------------------
- target ||| source ||| p(target|source)
+target ||| source ||| p(target|source)
 ---------------------------------------
 
 Each line in a backward phrase table follows this format:
 
 ---------------------------------------
- source ||| target ||| p(source|target)
+source ||| target ||| p(source|target)
 ---------------------------------------
 
 Multi-prob phrase tables
@@ -116,7 +116,7 @@ Each line in a multi-prob phrase table follows this format, where `s` is
 the source phrase and `t` is the target phrase:
 
 ------------------------------------------------------
- s ||| t ||| P_1(s|t) .. P_n(s|t) P_1(t|s) .. P_n(t|s)
+s ||| t ||| P_1(s|t) .. P_n(s|t) P_1(t|s) .. P_n(t|s)
 ------------------------------------------------------
 
 Adirectional scores ("4th column")
@@ -127,7 +127,7 @@ documented in `canoe -h`, they can also include a "4th column" with
 adirectional scores:
 
 ---------------------------------------------------------------
- s ||| t ||| P_1(s|t) ... P_1(t|s) ... ||| A_1(s,t) .. A_m(s,t)
+s ||| t ||| P_1(s|t) ... P_1(t|s) ... ||| A_1(s,t) .. A_m(s,t)
 ---------------------------------------------------------------
 
 These scores are separate models whose weights are set using the

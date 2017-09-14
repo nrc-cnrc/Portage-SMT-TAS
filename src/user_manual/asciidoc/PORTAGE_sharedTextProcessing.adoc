@@ -19,17 +19,15 @@ Text Processing
 
 Text processing is necessary in order to turn raw source and target text
 into a format suitable for model training, and also to prepare new
-source text for translation. Here are the steps:
+source text for translation.
 
-* link:PORTAGE_sharedTextProcessing.html#Preprocessing[Preprocessing] raw corpora
-** Alternative: link:TMXProcessing.html[Extracting text from a TMX]
-* link:PORTAGE_sharedTextProcessing.html#Tokenizing[Tokenizing] plain text
-* link:PORTAGE_sharedTextProcessing.html#Aligning[Aligning] tokenized text
-* link:PORTAGE_sharedTextProcessing.html#Lowercasing[Lowercasing] tokenized text
-* link:PORTAGE_sharedTextProcessing.html#MarkingUp[Marking Up] tokenized text
-* link:PORTAGE_sharedTextProcessing.html#EncodingConsiderations[Encoding Considerations]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
-The first two steps must be performed in this order, but the order of
+* Alternative to preprocessing: link:TMXProcessing.html[Extracting text from a TMX]
+
+Preeprocessing must be performed first, but the order of
 later steps can vary depending on the application. The
 link:PORTAGE_sharedFileFormats.html[File Formats] section
 describes the input and output formats for all steps.
@@ -51,7 +49,7 @@ link:TMXProcessing.html[tmx prepro] module and in the default
 `preprocess_plugin` used by Portage**Live.
 
 -----------------------------------------
-   clean-utf8-text.pl < in.raw > in.clean
+clean-utf8-text.pl < in.raw > in.clean
 -----------------------------------------
 
 will remove control characters and normalize spaces and hyphens for
@@ -88,8 +86,8 @@ means separating punctuation from words. Example (English/French encoded
 in utf-8):
 
 ----------------------------------------------------------
-   utokenize.pl -lang=en hans-file_en.txt hans-file_en.tok
-   utokenize.pl -lang=fr hans-file_fr.txt hans-file_fr.tok
+utokenize.pl -lang=en hans-file_en.txt hans-file_en.tok
+utokenize.pl -lang=fr hans-file_fr.txt hans-file_fr.tok
 ----------------------------------------------------------
 
 The tokenizer knows English, French, Spanish and Danish, but it might do
@@ -122,14 +120,14 @@ link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text].
 Example using Moore's aligner (not supplied with PORTAGE shared):
 
 --------------------------------------------------
-   moore-aligner.pl dir-containing-tokenized-files
+moore-aligner.pl dir-containing-tokenized-files
 --------------------------------------------------
 
 Example (English/French in any encoding) using our simple sentence
 aligner:
 
 -------------------------------
-   ssal hans_fr.tok hans_en.tok
+ssal hans_fr.tok hans_en.tok
 -------------------------------
 
 Our simple sentence aligner, `ssal`, can run in two modes: 1) using the
@@ -174,13 +172,13 @@ sparseness.
 Example for utf-8 data:
 
 ------------------------------
-   lc-utf8.pl file.tok file.lc
+lc-utf8.pl file.tok file.lc
 ------------------------------
 
 or, if you have ICU:
 
 --------------------------------
-   utf8_casemap file.tok file.lc
+utf8_casemap file.tok file.lc
 --------------------------------
 
 Marking Up

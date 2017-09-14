@@ -18,16 +18,9 @@ are automated in our experimental framework. See `tutorial.pdf` in
 Training: Constructing Language Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingSRILM[Training an LM using SRILM]
-* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingMITLM[Training an LM using MITLM]
-* link:PORTAGE_sharedTrainingLanguageModels.html#TraininganLMusingIRSTLM[Training an LM using IRSTLM]
-* link:PORTAGE_sharedTrainingLanguageModels.html#TheBinLMformat[The Bin LM format]
-* link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[The TPLM format]
-* link:PORTAGE_sharedTrainingLanguageModels.html#DynamicMappingLM[Dynamic Mapping LM]
-* link:PORTAGE_sharedTrainingLanguageModels.html#OpenVocabularyLM[Open Vocabulary LM]
-* link:PORTAGE_sharedTrainingLanguageModels.html#MixtureModelLM[Mixture Model LM]
-* *New!* link:PORTAGE_sharedTrainingLanguageModels.html#CoarseLM[Coarse LM]
-* *New!* link:PORTAGE_sharedTrainingLanguageModels.html#CoarseBiLM[Coarse Bi LM]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 Language models can be trained using any language modeling toolkit that
 generates Doug Paul's ARPA LM file format. If your licensing
@@ -54,11 +47,11 @@ sentences can occur on a single line.
 Examples:
 
 ----------------------------------------
-   ngram-count -text corpus.en -lm lm.en
+ngram-count -text corpus.en -lm lm.en
 ----------------------------------------
 
 -----------------------------------------------------------------
-   ngram-count -interpolate -kndiscount -text corpus.en -lm lm.en
+ngram-count -interpolate -kndiscount -text corpus.en -lm lm.en
 -----------------------------------------------------------------
 
 The first example uses default options, thus producing a Good-Turing
@@ -92,7 +85,7 @@ machine translation results at the end.
 This command builds a 4-grams LM using MITLM:
 
 -------------------------------------------------------------------------
- estimate-ngram -order 4 -smoothing ModKN -text corpus.en -write-lm lm.en
+estimate-ngram -order 4 -smoothing ModKN -text corpus.en -write-lm lm.en
 -------------------------------------------------------------------------
 
 Please refer to the MITLM manual for more details.
@@ -108,10 +101,10 @@ a standard ARPA LM file, which can be used in PORTAGE shared.
 This procedure builds a 4-grams LM using IRSTLM:
 
 --------------------------------------------------------------------------
- add-start-end.sh < corpus.en > corpus.en.marked
- build-lm.sh -p -n 4 -s kneser-ney -i corpus.en.marked -o corpus.en.ilm.gz
- compile-lm --text yes corpus.en.ilm.gz lm.en
- gzip lm.en
+add-start-end.sh < corpus.en > corpus.en.marked
+build-lm.sh -p -n 4 -s kneser-ney -i corpus.en.marked -o corpus.en.ilm.gz
+compile-lm --text yes corpus.en.ilm.gz lm.en
+gzip lm.en
 --------------------------------------------------------------------------
 
 Please refer to the IRSTLM manual for more details.
@@ -130,13 +123,13 @@ structures, and is therefore incompatible with those formats.
 To create a Bin LM file from a standard ARPA LM file:
 
 ------------------------------------
-   arpalm2binlm lm.en lm.en.binlm.gz
+arpalm2binlm lm.en lm.en.binlm.gz
 ------------------------------------
 
 or
 
 ---------------------------------------
-   arpalm2binlm lm.en.gz lm.en.binlm.gz
+arpalm2binlm lm.en.gz lm.en.binlm.gz
 ---------------------------------------
 
 All programs in PORTAGE shared which use LM files support this format.
@@ -154,7 +147,7 @@ format everywhere an LM file is accepted.
 To convert an LM in ARPA format to the TPLM format:
 
 -------------------------------
-   arpalm2tplm.sh lm.gz lm.tplm
+arpalm2tplm.sh lm.gz lm.tplm
 -------------------------------
 
 This creates the folder `lm.tplm` containing several files that must be
@@ -178,9 +171,9 @@ particular map you're using (see below), and we use SRILM's ngram-count
 but you could use any LM Toolkit to do the equivalent:
 
 -------------------------------------------------------------
-   apply-map < corpus.en > corpus.mapped
-   ngram-count -interpolate -kndiscount -text corpus.mapped \
-      -lm lm.en.mapped
+apply-map < corpus.en > corpus.mapped
+ngram-count -interpolate -kndiscount -text corpus.mapped \
+   -lm lm.en.mapped
 -------------------------------------------------------------
 
 The simple number mapping model will replace all numbers (anything
@@ -189,7 +182,7 @@ is replaced by a '@', e.g., `123.45` -> `@@@.@@`. `map_number` performs
 this mapping for training:
 
 ----------------------------------------------------------------
-   map_number -input corpus.en -map simpleNumber > corpus.mapped
+map_number -input corpus.en -map simpleNumber > corpus.mapped
 ----------------------------------------------------------------
 
 The prefix number mapping model will replace digits which are prefixes
@@ -197,7 +190,7 @@ of a word by '@'. `map_number` can also perform this mapping for
 training:
 
 ----------------------------------------------------------------
-   map_number -input corpus.en -map prefixNumber > corpus.mapped
+map_number -input corpus.en -map prefixNumber > corpus.mapped
 ----------------------------------------------------------------
 
 The lowercasing model will replace all upper case letters by their lower
@@ -210,9 +203,9 @@ lowercasing on iso-8859-1 or utf-8 text, respectively, and
 including lowercasing:
 
 ---------------------------------------------------------
-   lc-latin1.pl < corpus.en.latin1 > corpus.en.latin1.lc
-   lc-utf8.pl < corpus.en.utf8 > corpus.en.utf8.lc
-   utf8_casemap -c l < corpus.en.utf8 > corpus.en.utf8.lc
+lc-latin1.pl < corpus.en.latin1 > corpus.en.latin1.lc
+lc-utf8.pl < corpus.en.utf8 > corpus.en.utf8.lc
+utf8_casemap -c l < corpus.en.utf8 > corpus.en.utf8.lc
 ---------------------------------------------------------
 
 You can use a dynamic mapping LM in any PORTAGE shared program that
@@ -222,10 +215,10 @@ Instead of the LM's actual filename, you provide a string that describes
 the mapping with this syntax: `DynMap;<MAP>;<LMFilename>`. For example:
 
 ----------------------------------------------
-   DynMap;simpleNumber;lm.en.mapped
-   DynMap;prefixNumber;lm.en.mapped
-   DynMap;lower;lm.en.utf8.lc
-   DynMap;lower-fr_CA.iso88591;lm.en.latin1.lc
+DynMap;simpleNumber;lm.en.mapped
+DynMap;prefixNumber;lm.en.mapped
+DynMap;lower;lm.en.utf8.lc
+DynMap;lower-fr_CA.iso88591;lm.en.latin1.lc
 ----------------------------------------------
 
 The "lower" mapping assumes utf-8 encoding by default, but the last
@@ -244,7 +237,7 @@ Dynamic mapping models can be tested by calculating their perplexity
 using the `lm_eval` program, e.g.:
 
 --------------------------------------------------------
-   lm_eval -q 'DynMap;simpleNumber;lm.en.mapped' test.en
+lm_eval -q 'DynMap;simpleNumber;lm.en.mapped' test.en
 --------------------------------------------------------
 
 Note that there is nothing special about the LM file created and used
@@ -295,8 +288,8 @@ distances for a given source text from source-side language models. For
 example:
 +
 ------------------------------------------------------------------
-   mx-calc-distances.sh -v -d cmpts.src/ -e .lm.gz em components \
-      srcfile > distances
+mx-calc-distances.sh -v -d cmpts.src/ -e .lm.gz em components \
+   srcfile > distances
 ------------------------------------------------------------------
 +
 where the `cmpts.src` directory contains source-side component LM's, eg
@@ -304,9 +297,9 @@ where the `cmpts.src` directory contains source-side component LM's, eg
 lists the components one per line, eg:
 +
 ----------
-     cmpt1
-     cmpt2
-     cmpt3
+cmpt1
+cmpt2
+cmpt3
 ----------
 +
 `srcfile` is the current source file, and `distances` will contain a
@@ -314,14 +307,14 @@ distance for each component, one per line.
 4.  Convert distances into weights by normalizing, eg:
 +
 -----------------------------------------------------
-     mx-dist2weights -v normalize distances > weights
+mx-dist2weights -v normalize distances > weights
 -----------------------------------------------------
 5.  Finally, create the mixture LM by associating each target-side
 component LM with the corresponding weight:
 +
 ----------------------------------------------------------------
-     mx-mix-models.sh -d cmpts.tgt/ -e .binlm.gz mixlm weights \
-        components srcfile > srcfile.mixlm
+mx-mix-models.sh -d cmpts.tgt/ -e .binlm.gz mixlm weights \
+   components srcfile > srcfile.mixlm
 ----------------------------------------------------------------
 +
 where `cmpts.tgt` is a directory containing target-side LM's, and the
@@ -329,9 +322,9 @@ final mixture model `srcfile.mixlm` is just a text file associating each
 of these LM's with a weight, eg:
 +
 -------------------------------
-   cmpts.tgt/cmpt1.binlm.gz 0.2
-   cmpts.tgt/cmpt2.binlm.gz 0.5
-   cmpts.tgt/cmpt3.binlm.gz 0.3
+cmpts.tgt/cmpt1.binlm.gz 0.2
+cmpts.tgt/cmpt2.binlm.gz 0.5
+cmpts.tgt/cmpt3.binlm.gz 0.3
 -------------------------------
 
 The mixture model's name should contain `srcfile` to distinguish it from

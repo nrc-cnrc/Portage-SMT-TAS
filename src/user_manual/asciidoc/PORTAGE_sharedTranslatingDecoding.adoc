@@ -22,8 +22,8 @@ sentence-split and tokenized, say `test_fr.tok`, into English, this
 command does the decoding step:
 
 --------------------------------------------------
-   canoe-escapes.pl -add text_fr.tok text_fr.rule
-   canoe -f canoe.ini < text_fr.rule > text_en.out
+canoe-escapes.pl -add text_fr.tok text_fr.rule
+canoe -f canoe.ini < text_fr.rule > text_en.out
 --------------------------------------------------
 
 See link:UsingPhrasetablesInCanoe.html[Using Phrasetables In

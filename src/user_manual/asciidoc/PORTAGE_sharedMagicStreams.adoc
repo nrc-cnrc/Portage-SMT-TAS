@@ -24,29 +24,29 @@ For example, suppose some program `portageii_pgm` reads an input file
 and writes an output file. Normally it gets run like this:
 
 --------------------------------------
- portageii_pgm -in infile -out outfile
+portageii_pgm -in infile -out outfile
 --------------------------------------
 
 Now suppose the files are compressed. With magic stream, any of the
 following could be used:
 
 --------------------------------------------
- portageii_pgm -in infile.gz -out outfile.gz
+portageii_pgm -in infile.gz -out outfile.gz
 --------------------------------------------
 
 ----------------------------------------------------------------
- gzip infile.gz | portageii_pgm -in - -out - | gzip > outfile.gz
+gzip infile.gz | portageii_pgm -in - -out - | gzip > outfile.gz
 ----------------------------------------------------------------
 
 ----------------------------------------------------
- portageii_pgm -in "zcat infile.gz|" -out outfile.gz
+portageii_pgm -in "zcat infile.gz|" -out outfile.gz
 ----------------------------------------------------
 
 And what if you want to pipe two or more inputs to a PORTAGE shared
 program? You can specify as many pipes as there are file arguments:
 
 ---------------------------------------
-  head `yourFile.txt` | portageii_pgm \
+head `yourFile.txt` | portageii_pgm \
    -in1 i1.gz                       \
    -in2 "head -4 i2.txt|"           \
    -in3 i3.txt                      \

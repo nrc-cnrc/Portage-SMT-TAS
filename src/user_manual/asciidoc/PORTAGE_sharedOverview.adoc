@@ -34,17 +34,9 @@ provides background about the project and all its variants, we use
 "Portage" to refer generically to the research version or any of the
 commercial releases: PORTAGE_shared_, Portage 1.x, or PORTAGE shared.
 
-The contents of this page are as follows:
-
-* <<History,History>> <<History>> link:PORTAGE_sharedOverview.html#_history[History]
-* link:PORTAGE_sharedOverview.html#_how_portage_translates_text[How Portage Translates Text]
-* link:PORTAGE_sharedOverview.html#HowPortageisTrained[How Portage is Trained]
-** <<Translation Model Training>> link:PORTAGE_sharedOverview.html#TranslationModelTraining[Translation Model Training]
-** link:PORTAGE_sharedOverview.html#LanguageModelTraining[Language Model Training]
-** link:PORTAGE_sharedOverview.html#DecoderModelTraining[Decoder Model Training]
-** link:PORTAGE_sharedOverview.html#RescoringModelTraining[Rescoring Model Training]
-* link:PORTAGE_sharedOverview.html#MetricsforEvaluatingMTSystemPerformance[Metrics for Evaluating MT System Performance]
-* link:PORTAGE_sharedOverview.html#TheMathematicsofSMT[The Mathematics of SMT]
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 '''''
 
@@ -302,34 +294,34 @@ sentence).
 
 image::uploads/PortageOptimizingFig2.gif[image]
 
-The list of the D N-best hypotheses is then passed to "`rescore_train`".
+The list of the D N-best hypotheses is then passed to `rescore_train`.
 This procedure calls the BLEU scoring module to obtain a score based on
 a list of the D top-ranked hypotheses - _i.e._, by giving the BLEU
 scoring module the first translation hypothesis for each of the D
 source-language sentences. In calculating the score, the BLEU scoring
 module compares this list of D 1-best hypotheses to the corresponding
-reference translations in the dev corpus. Inside "`rescore_train`", new
+reference translations in the dev corpus. Inside `rescore_train`, new
 weights on the "small" set are tried out. Each new set of weights puts
 the N hypotheses for a given source sentence in a different order,
 typically resulting in a change in the list of D 1-best hypotheses, and
 thus in the BLEU score based on these. As shown in the figure,
-"`rescore_train`" generates several different, randomly chosen, weight
+`rescore_train` generates several different, randomly chosen, weight
 vectors that are used to initialize search. Each of the K randomly
 chosen initial vector of weights is input to a module that implements
 Powell's algorithm, which iteratively explores a region in the
 neighbourhood of the initial vector. The module returns a new weight
 vector yielding a better BLEU score for the list of hypotheses fed into
-"`rescore_train`" than the BLEU score yielded by the initial weight
+`rescore_train` than the BLEU score yielded by the initial weight
 vector. Thus, after having called Powell's algorithm K times with K
 different random initial vectors, one ends up with K different optimized
 vectors, each yielding a reasonably good BLEU score on the D N-best
-lists. From these K vectors, "`rescore_train`" selects and outputs the
+lists. From these K vectors, `rescore_train` selects and outputs the
 one yielding the highest BLEU score. NOTE: K is not necessarily fixed -
 it may be determined dynamically. Furthermore, although we have
 described the K initial random weight vectors as being generated
 randomly, they may be set in a way that depends on earlier results.
 
-The new weights from "`rescore_train`" are input to the decoder, which
+The new weights from `rescore_train` are input to the decoder, which
 applies them to the "small" set of information sources to produce N new
 hypotheses for each of the D source sentences. For each of the D source
 sentences, this new set of N hypotheses is merged with the previous set;
@@ -339,7 +331,7 @@ BLEU score than was obtained by the same set of weights applied to the
 previous hypothesis list. The reason for this is that for a given source
 sentence, the most recent decoding may have generated a new hypothesis
 that is ranked as best by the "small set" sources but which has a poor
-BLEU score. Thus, the expanded list is resubmitted to "`rescore_train`",
+BLEU score. Thus, the expanded list is resubmitted to `rescore_train`,
 which attempts to find a new vector of weights that will reorder the
 expanded hypothesis list in a way that generates a high BLEU score.
 
@@ -387,7 +379,7 @@ this step is to find weights on the "large" set of information sources
 that will reorder the N hypotheses for each source sentence in a way
 that yields a high BLEU score - _i.e._, in a way that ensures that the
 top hypothesis for each source sentences is "good" according to BLEU. As
-in COW, this weight-finding is carried out by "`rescore_train`". We have
+in COW, this weight-finding is carried out by `rescore_train`. We have
 found that using a value of N larger than that used for COW works well
 here - for instance, N=1000 or N=500. Note that the information from the
 "large" set is communicated by what we call "feature functions".
