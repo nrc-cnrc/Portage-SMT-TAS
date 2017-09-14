@@ -4,7 +4,7 @@ PortageII Annotated Bibliography
 --------------------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+link:PortageIIProgrammingGuidelines.html[Programming
 Guidelines] Next: link:TrainingEuroparl.html[Requirements For
 Training A Mid Size System]
 
@@ -598,7 +598,7 @@ Cherry and Foster 2012
 Cherry and George Foster. NAACL 2012.
 
 See
-link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
+link:PortageIIAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
 and Foster 2012 revisited] below for a second presentation of this
 paper, adding details about sparse features as included in PortageII
 3.0.
@@ -660,7 +660,7 @@ This paper describes the type of Hierarchical Lexicalized Distortion
 Model (HLDM) currently implemented in PortageII. The concept of an
 HLDM goes back to the 2008 paper "A Simple and Effective Hierarchical
 Phrase Reordering Model" by Galley & Manning
-(link:PORTAGE_sharedAnnotatedBibliography.html#GalleyandManning2008[Galley
+(link:PortageIIAnnotatedBibliography.html#GalleyandManning2008[Galley
 and Manning 2008]). The basic idea is to model the reordering of words
 that occurs during translation not by tracking the movement of the
 actual phrases into which a source sentence was segmented, but by
@@ -1240,7 +1240,7 @@ Cherry and George Foster, NAACL 2012, Montréal, Canada
 
 We discuss this paper a second time here to add a focus on elements of
 it implemented in PortageII 3.0. (See also
-link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012[Cherry
+link:PortageIIAnnotatedBibliography.html#CherryandFoster2012[Cherry
 and Foster 2012] above.)
 
 The work described in this paper may eventually be seen as one of the
@@ -1306,7 +1306,7 @@ set to create the Big set (section 4.2):
 "The Big set adds sparse Boolean features to Medium, for a maximum of
 6,848 features. We used sparse feature templates that are equivalent to
 the PBMT set described in
-(link:PORTAGE_sharedAnnotatedBibliography.html#HopkinsandMay2011[Hopkins
+(link:PortageIIAnnotatedBibliography.html#HopkinsandMay2011[Hopkins
 and May 2011]): _tgt unal_ picks out each of the 50 most frequent target
 words to appear unaligned in the phrase table; _count bin_ uniquely bins
 joint phrase pair counts with upper bounds
@@ -1721,7 +1721,7 @@ performance, we recommend its usage in the calculation of future costs.
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+link:PortageIIProgrammingGuidelines.html[Programming
 Guidelines] Next: link:TrainingEuroparl.html[Requirements For
 Training A Mid Size System]
 

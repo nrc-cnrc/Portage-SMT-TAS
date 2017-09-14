@@ -4,7 +4,7 @@ PortageLive Manual
 ------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedMagicStreams.html[Magic Streams] Next:
+link:PortageIIMagicStreams.html[Magic Streams] Next:
 link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins]
 
@@ -19,7 +19,7 @@ Overview
 This manual describes how to build a live translation server using
 PortageII, called "PortageLive". The rationale for doing this on
 virtual machines is laid out in
-link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
+link:PortageIIAnnotatedBibliography.html#Pauletal2009[Paul
 et al 2009]. Virtualization makes it possible to port PortageII to
 a variety of operating systems with little effort, and to run several
 instances of PortageII on the same machine. For instance, Portage
@@ -32,7 +32,7 @@ technological innovations for the data structures that take up the most
 memory in a typical machine translation system, the phrase tables and
 the language models (LMs). First, we store them in a memory-efficient
 structure called a tightly-packed trie
-link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann
+link:PortageIIAnnotatedBibliography.html#Germannetal2009[Germann
 et al 2009]. For instance, an LM encoded as a tightly packed trie takes
 up only about a quarter of the RAM that would be occupied by an LM
 represented in the standard ARPA format. Second, we use the
@@ -76,12 +76,12 @@ your parallel corpora, preferably using our experimental framework. The
 document `framework/tutorial.pdf` gives a tutorial on training models
 and decoding in the current framework; read this first, and then apply
 the same methods on your own data. For background information, you can
-also read link:PORTAGE_sharedTextProcessing.html[Text
+also read link:PortageIITextProcessing.html[Text
 Processing], which describes how to preprocess the bilingual and
 unilingual training data prior to model training; the section
-link:PORTAGE_sharedFileFormats.html[Text File Formats] has
+link:PortageIIFileFormats.html[Text File Formats] has
 helpful related information about file formats. Finally,
-link:PORTAGE_sharedTrainingModels.html[Constructing Models]
+link:PortageIITrainingModels.html[Constructing Models]
 describes how to train the different kinds of models, and how to find a
 reasonable weight on each of these models.
 
@@ -456,7 +456,7 @@ call to `translate.pl` or `soap-translate.sh`.
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedMagicStreams.html[Magic Streams] Next:
+link:PortageIIMagicStreams.html[Magic Streams] Next:
 link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins]  
 

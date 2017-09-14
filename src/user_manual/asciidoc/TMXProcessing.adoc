@@ -4,8 +4,8 @@ TMX Processing
 --------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTextProcessing.html[Text Processing] Next:
-link:PORTAGE_sharedFileFormats.html[Text File Formats]
+link:PortageIITextProcessing.html[Text Processing] Next:
+link:PortageIIFileFormats.html[Text File Formats]
 
 '''''
 
@@ -43,7 +43,7 @@ sentence or segment per line, preferably in UTF-8 (UTF-16 is not
 supported).
 
 Once you've extracted a parallel corpus from your TMX file, see
-link:PORTAGE_sharedTextProcessing.html[Text Processing] for the
+link:PortageIITextProcessing.html[Text Processing] for the
 rest of the processing pipeline.
 
 Extracting your parallel corpora
@@ -233,8 +233,8 @@ files. It also automates cleaning up the output text using
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTextProcessing.html[Text Processing] Next:
-link:PORTAGE_sharedFileFormats.html[Text File Formats]
+link:PortageIITextProcessing.html[Text Processing] Next:
+link:PortageIIFileFormats.html[Text File Formats]
 
 '''''
 

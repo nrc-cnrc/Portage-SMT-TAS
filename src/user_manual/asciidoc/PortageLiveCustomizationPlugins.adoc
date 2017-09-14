@@ -5,7 +5,7 @@ PortageLive Customization Plugins
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PortageLiveManual.html[PortageLive] Next:
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
+link:PortageIIProgrammerReference.html[For Programmers]
 
 '''''
 
@@ -223,7 +223,7 @@ ce terme est inutile ||| <FT target="this is a pointless term">ce terme est inut
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PortageLiveManual.html[PortageLive] Next:
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
+link:PortageIIProgrammerReference.html[For Programmers]
 
 '''''
 

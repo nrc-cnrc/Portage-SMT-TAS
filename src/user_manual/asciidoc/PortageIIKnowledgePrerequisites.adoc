@@ -4,8 +4,8 @@ PortageII Knowledge Prerequisites
 ---------------------------------
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedOverview.html[Background] Next:
-link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
+link:PortageIIOverview.html[Background] Next:
+link:PortageIIWhereToFindThings.html[Where To Find Things]
 
 '''''
 
@@ -61,8 +61,8 @@ translation memories that have unusual characteristics.
 '''''
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedOverview.html[Background] Next:
-link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
+link:PortageIIOverview.html[Background] Next:
+link:PortageIIWhereToFindThings.html[Where To Find Things]
 
 '''''
 

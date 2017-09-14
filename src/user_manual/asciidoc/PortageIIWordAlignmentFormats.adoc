@@ -4,8 +4,8 @@ PortageII Word Alignment Formats
 --------------------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedFileFormats.html[Text File Formats] Next:
-link:PORTAGE_sharedTrainingModels.html[Constructing Models]
+link:PortageIIFileFormats.html[Text File Formats] Next:
+link:PortageIITrainingModels.html[Constructing Models]
 
 '''''
 
@@ -212,8 +212,8 @@ Fromat: uli
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedFileFormats.html[Text File Formats] Next:
-link:PORTAGE_sharedTrainingModels.html[Constructing Models]
+link:PortageIIFileFormats.html[Text File Formats] Next:
+link:PortageIITrainingModels.html[Constructing Models]
 
 '''''
 

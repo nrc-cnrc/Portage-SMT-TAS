@@ -4,7 +4,7 @@ PortageII Magic Streams
 -----------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
+link:PortageIIPerformanceConsiderations.html[Performance]
 Next: link:PortageLiveManual.html[PortageLive]
 
 '''''
@@ -67,7 +67,7 @@ yield mixed output on cout (stdout).
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
+link:PortageIIPerformanceConsiderations.html[Performance]
 Next: link:PortageLiveManual.html[PortageLive]
 
 '''''

@@ -4,8 +4,8 @@ PortageII Training Language Models
 ----------------------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTrainingModels.html[Models] Next:
-link:PORTAGE_sharedTrainingOtherModels.html[Other Models]
+link:PortageIITrainingModels.html[Models] Next:
+link:PortageIITrainingOtherModels.html[Other Models]
 
 '''''
 
@@ -38,9 +38,9 @@ Training an LM using SRILM
 SRILM's default is for the corpus to be contained in a single text file,
 so the easiest thing to do is concatenate everything. The format is
 standard
-link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
+link:PortageIIFileFormats.html#TokenizedText[Tokenized
 Text] - _but without angle-bracket markup_!
-link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text]
+link:PortageIIFileFormats.html#AlignedText[Aligned Text]
 will also work, but will give different models, because multiple
 sentences can occur on a single line.
 
@@ -342,7 +342,7 @@ the whole parallel training corpus as an additional component.
 There are many other ways to use mixture models within PortageII.
 See the `README` file in `src/adaptation` for details (or
 `doc/README.adaptation`), and
-link:PORTAGE_sharedAnnotatedBibliography.html#FosterandKuhn2007[Foster
+link:PortageIIAnnotatedBibliography.html#FosterandKuhn2007[Foster
 and Kuhn 2007] for a high-level description.
 
 Coarse LM
@@ -355,7 +355,7 @@ regular LMs do, they model sequences of word classes. Since word-class
 sequences are much less sparse than word sequences, we can reasonably
 train 8-gram coarse LMs and maintain good decoding speed while getting
 a useful boost in quality
-(link:PORTAGE_sharedAnnotatedBibliography.html#Stewartetal2014[Stewart
+(link:PortageIIAnnotatedBibliography.html#Stewartetal2014[Stewart
 et al 2014]).
 
 To train coarse LMs, you must be using our framework. They are now
@@ -369,7 +369,7 @@ Coarse BiLM
 The coarse BiLM feature is a language model that takes into account
 both the source and target language, looking at coarse classes of words
 instead of individual words, potentially improving translation quality
-(link:PORTAGE_sharedAnnotatedBibliography.html#Stewartetal2014[Stewart
+(link:PortageIIAnnotatedBibliography.html#Stewartetal2014[Stewart
 et al 2014]). Training of these models requires the framework, as it is
 fairly complex to do. With PortageII 3.0, we don't enable them by
 default, because they are fairly expensive and don't yield enough
@@ -379,8 +379,8 @@ benefits. But you can still try them by uncommenting the line that read
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTrainingModels.html[Models] Next:
-link:PORTAGE_sharedTrainingOtherModels.html[Other Models]
+link:PortageIITrainingModels.html[Models] Next:
+link:PortageIITrainingOtherModels.html[Other Models]
 
 '''''
 

@@ -4,9 +4,9 @@ PortageII Make Notes
 --------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
-Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+link:PortageIIProgrammerReference.html[For Programmers]
+Previous: link:PortageIIWritingCode.html[Writing Code]
+Next: link:PortageIIProgrammingGuidelines.html[Programming
 Guidelines]
 
 '''''
@@ -108,9 +108,9 @@ two sequentially instead: `make tm/train_ibm canoe/canoe` (no `-j`) or
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
-Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+link:PortageIIProgrammerReference.html[For Programmers]
+Previous: link:PortageIIWritingCode.html[Writing Code]
+Next: link:PortageIIProgrammingGuidelines.html[Programming
 Guidelines]
 
 '''''

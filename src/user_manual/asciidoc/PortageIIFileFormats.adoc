@@ -5,7 +5,7 @@ PortageII File Formats
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TMXProcessing.html[TMX Processing] Next:
-link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
+link:PortageIIWordAlignmentFormats.html[Word Alignment
 Formats]
 
 '''''
@@ -23,9 +23,9 @@ Plain Text
 This is just normal text, as in a plain text file without special
 control characters. It may include some simple markup required by the
 tokenization and alignment programs, as described in
-link:PORTAGE_sharedTextProcessing.html[Text Processing]. For
+link:PortageIITextProcessing.html[Text Processing]. For
 encoding information, see
-link:PORTAGE_sharedTextProcessing.html#EncodingConsiderations[Encoding
+link:PortageIITextProcessing.html#EncodingConsiderations[Encoding
 Considerations] (summary: use utf-8).
 
 Example:
@@ -95,7 +95,7 @@ sentence-boundary information.
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TMXProcessing.html[TMX Processing] Next:
-link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
+link:PortageIIWordAlignmentFormats.html[Word Alignment
 Formats]
 
 '''''

@@ -4,9 +4,9 @@ PortageII Translating
 ---------------------
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights] Down:
-link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
+link:PortageIITranslatingDecoding.html[Decoding]
 
 '''''
 
@@ -20,21 +20,21 @@ Translating
 ~~~~~~~~~~~
 
 Source texts to be translated by PortageII must be in
-link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
+link:PortageIIFileFormats.html#TokenizedText[Tokenized
 Text] or
-link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
+link:PortageIIFileFormats.html#MarkedUpText[Marked Up
 Text] formats; the
-link:PORTAGE_sharedTextProcessing.html#TextProcessing[Text
+link:PortageIITextProcessing.html#TextProcessing[Text
 Processing] section describes the required processing steps. Translation
 itself consists of three main steps, of which the last two are optional:
 decoding, rescoring, and postprocessing.
 
-* link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
-* link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring Nbest Lists]
-* link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+* link:PortageIITranslatingDecoding.html[Decoding]
+* link:PortageIITranslatingRescoringNbestLists.html[Rescoring Nbest Lists]
+* link:PortageIITranslatingPostprocessing.html[Postprocessing]
 
 * Detailed notes on
-link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[The
+link:PortageIIDecoderSearchAlgorithmsAndDataStructures.html[The
 Decoder Search Algorithms And Data Structures]
 * Notes about link:UsingPhrasetablesInCanoe.html[Using
 Phrasetables In Canoe]
@@ -42,9 +42,9 @@ Phrasetables In Canoe]
 '''''
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights] Down:
-link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
+link:PortageIITranslatingDecoding.html[Decoding]
 
 '''''
 

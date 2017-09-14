@@ -4,9 +4,9 @@ PortageII Translating Rescoring Nbest Lists
 -------------------------------------------
 
 Up link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTranslating.html[Translating] Previous:
-link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
-link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+link:PortageIITranslating.html[Translating] Previous:
+link:PortageIITranslatingDecoding.html[Decoding] Next:
+link:PortageIITranslatingPostprocessing.html[Postprocessing]
 
 '''''
 
@@ -24,7 +24,7 @@ to run all steps in rescored translation: nbest-list generation,
 feature-file generation, and nbest rescoring to select the best
 candidates. Assuming a rescoring model, `rescore-model.rat`, has been
 trained using the procedure described in the
-link:PORTAGE_sharedTrainingOptimizingWeights.html#RescoringScript[Rescoring
+link:PortageIITrainingOptimizingWeights.html#RescoringScript[Rescoring
 Script] section, the following command will write a final translation to
 the file `text_fr.rule.rat`:
 
@@ -42,9 +42,9 @@ standard output.
 '''''
 
 Up link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTranslating.html[Translating] Previous:
-link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
-link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+link:PortageIITranslating.html[Translating] Previous:
+link:PortageIITranslatingDecoding.html[Decoding] Next:
+link:PortageIITranslatingPostprocessing.html[Postprocessing]
 
 '''''
 

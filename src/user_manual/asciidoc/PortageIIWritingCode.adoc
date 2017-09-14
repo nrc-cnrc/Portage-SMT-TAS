@@ -4,8 +4,8 @@ PortageII Writing Code
 ----------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Next: link:PORTAGE_sharedMakeNotes.html[Using Make]
+link:PortageIIProgrammerReference.html[For Programmers]
+Next: link:PortageIIMakeNotes.html[Using Make]
 
 '''''
 
@@ -46,7 +46,7 @@ if they don't already exist. To use the programs in a custom
 `INSTALL_DIR`, however, you will have to update your environment
 variables accordingly.
 
-See link:PORTAGE_sharedMakeNotes.html[Make Notes] for other
+See link:PortageIIMakeNotes.html[Make Notes] for other
 useful options, such as turning on debugging or doing parallel
 compiling.
 
@@ -96,8 +96,8 @@ shared license agreement has clauses to that effect.
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Next: link:PORTAGE_sharedMakeNotes.html[Using Make]
+link:PortageIIProgrammerReference.html[For Programmers]
+Next: link:PortageIIMakeNotes.html[Using Make]
 
 '''''
 

@@ -6,14 +6,14 @@ PortageII Programmer Reference
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins] Down:
-link:PORTAGE_sharedWritingCode.html[Writing Code]
+link:PortageIIWritingCode.html[Writing Code]
 
 '''''
 
-* link:PORTAGE_sharedWritingCode.html[Writing Code]
-* link:PORTAGE_sharedMakeNotes.html[Using Make] (detailed
+* link:PortageIIWritingCode.html[Writing Code]
+* link:PortageIIMakeNotes.html[Using Make] (detailed
 notes)
-* link:PORTAGE_sharedProgrammingGuidelines.html[Programming
+* link:PortageIIProgrammingGuidelines.html[Programming
 Guidelines]
 
 '''''
@@ -21,7 +21,7 @@ Guidelines]
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins] Down:
-link:PORTAGE_sharedWritingCode.html[Writing Code]
+link:PortageIIWritingCode.html[Writing Code]
 
 '''''
 

@@ -4,9 +4,9 @@ PortageII Programming Guidelines
 --------------------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Previous: link:PORTAGE_sharedMakeNotes.html[Using Make] Next:
-link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
+link:PortageIIProgrammerReference.html[For Programmers]
+Previous: link:PortageIIMakeNotes.html[Using Make] Next:
+link:PortageIIAnnotatedBibliography.html[Annotated
 Bibliography]
 
 '''''
@@ -200,9 +200,9 @@ Options:
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedProgrammerReference.html[For Programmers]
-Previous: link:PORTAGE_sharedMakeNotes.html[Using Make] Next:
-link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
+link:PortageIIProgrammerReference.html[For Programmers]
+Previous: link:PortageIIMakeNotes.html[Using Make] Next:
+link:PortageIIAnnotatedBibliography.html[Annotated
 Bibliography]
 
 '''''

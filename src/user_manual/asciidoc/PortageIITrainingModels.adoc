@@ -1,0 +1,64 @@
+include::header.adoc[]
+
+PortageII Training Models
+-------------------------
+
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIIWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PortageIITrainingLanguageModels.html[Language Models]
+
+'''''
+
+*Note:* this section of the user manual presents all the different
+models you can use, but not how best to use them. The steps required to
+train PortageII following our current recommendations are automated
+in our experimental framework. See `tutorial.pdf` in `framework` for
+details.
+
+Training: Constructing Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here are the models you need to build to run PortageII:
+
+* link:PortageIITrainingLanguageModels.html[Language Models]
+** link:PortageIITrainingLanguageModels.html#TraininganLMusingSRILM[Training an LM using SRILM]
+** link:PortageIITrainingLanguageModels.html#TraininganLMusingMITLM[Training an LM using MITLM]
+** link:PortageIITrainingLanguageModels.html#TraininganLMusingIRSTLM[Training an LM using IRSTLM]
+** link:PortageIITrainingLanguageModels.html#TheBinLMformat[The Bin LM format]
+** link:PortageIITrainingLanguageModels.html#TheTPLMformat[The TPLM format]
+** link:PortageIITrainingLanguageModels.html#DynamicMappingLM[Dynamic Mapping LM]
+** link:PortageIITrainingLanguageModels.html#OpenVocabularyLM[Open Vocabulary LM]
+** link:PortageIITrainingLanguageModels.html#MixtureModelLM[Mixture Model LM]
+** *New!* link:PortageIITrainingLanguageModels.html#CoarseLM[Coarse LM]
+** *New!* link:PortageIITrainingLanguageModels.html#CoarseBiLM[Coarse Bi LM]
+
+* link:PortageIITrainingOtherModels.html[Translation Models]
+** link:PortageIITrainingOtherModels.html#PhrasetablesbasedonIBM2wordalignmentmodels[Phrase
+tables based on IBM 2 word alignment models]
+** link:PortageIITrainingOtherModels.html#PhrasetablesbasedonHMMwordalignmentmodels[Phrase
+tables based on HMM word alignment models]
+** link:PortageIITrainingOtherModels.html#PhrasetablesbasedonIBM4wordalignmentmodels[Phrase
+tables based on IBM 4 word alignment models]
+** link:PortageIITrainingOtherModels.html#Mergedphrasetables[Merged phrase tables]
+** link:PortageIITrainingOtherModels.html#TheTPPTformat[The TPPT format]
+* link:PortageIITrainingOtherModels.html#LexicalizedDistortionModels[Lexicalized Distortion Models]
+* link:PortageIITrainingOtherModels.html#HierarchicalLexicalizedDistortionModels[Hierarchical
+Lexicalized Distortion Models]
+* *New!* link:PortageIITrainingOtherModels.html#SparseModels[Sparse Models]
+* *New!* link:PortageIITrainingOtherModels.html#NeuralNetworkJointModels[Neural Network Joint Models]
+* link:PortageIITrainingOtherModels.html#TruecasingModels[Truecasing Models]
+* link:PortageIITrainingOtherModels.html#AddingALexiconToASystem[Adding a lexicon to a System]
+
+* link:TightlyPackedTries.html[Tightly Packed Tries]
+
+'''''
+
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIIWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PortageIITrainingLanguageModels.html[Language Models]
+
+'''''
+
+include::footer.adoc[]

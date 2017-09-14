@@ -5,7 +5,7 @@ PortageII Performance Considerations
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:ConfidenceEstimation.html[Confidence Estimation] Next:
-link:PORTAGE_sharedMagicStreams.html[Magic Streams]
+link:PortageIIMagicStreams.html[Magic Streams]
 
 '''''
 
@@ -217,7 +217,7 @@ significantly affect total running time and memory requirements.
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:ConfidenceEstimation.html[Confidence Estimation] Next:
-link:PORTAGE_sharedMagicStreams.html[Magic Streams]
+link:PortageIIMagicStreams.html[Magic Streams]
 
 '''''
 

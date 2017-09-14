@@ -4,7 +4,7 @@ PortageII Overview
 ------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Next:
-link:PORTAGE_sharedKnowledgePrerequisites.html[Prerequisites]
+link:PortageIIKnowledgePrerequisites.html[Prerequisites]
 
 '''''
 
@@ -32,7 +32,7 @@ it considers most probable.
 Various commercial releases of Portage have been made. Since this page
 provides background about the project and all its variants, we use
 "Portage" to refer generically to the research version or any of the
-commercial releases: PORTAGE_shared_, Portage 1.x, or PortageII.
+commercial releases: PORTAGE__shared__, Portage 1.x, or PortageII.
 
 :toc-title: Contents of this page
 :toclevels: 4
@@ -97,7 +97,7 @@ in the case of French input, the preprocessor converts all words to
 lower-case and splits units like _l'homme_ into _l' homme_; in the case
 of Chinese input, it splits continuous sequences of Chinese characters
 into Chinese words delimited by whitespace. See
-link:PORTAGE_sharedTextProcessing.html[Text Processing] for a
+link:PortageIITextProcessing.html[Text Processing] for a
 description of these steps and related file formats.
 
 The decoder uses a scoring function based on the small set of
@@ -143,7 +143,7 @@ sequences of words in the target language are most likely (the language
 model doesn't know anything about the source language).
 
 Detail on using the Canoe decoder is given in
-link:PORTAGE_sharedTranslating.html[Translating].
+link:PortageIITranslating.html[Translating].
 
 How Portage is Trained
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -176,7 +176,7 @@ of phrase pairs.
 This multi-stage process has two main phases, a _word alignment model
 training_ and a _phrase pair extraction_ phase. A formal description of
 five mathematical models for translation is given in
-(link:PORTAGE_sharedAnnotatedBibliography.html#Brownetal1993[Brown
+(link:PortageIIAnnotatedBibliography.html#Brownetal1993[Brown
 et al 1993]); since the authors of the paper were then at IBM, the
 models in the paper have become known as IBM models 1, 2, 3, and so on.
 In the current Portage system, of these IBM models, only 1 and 2 are
@@ -202,7 +202,7 @@ parallel corpus yields the phrase translation model (which is described
 in mathematical terms below).
 
 The Portage programs for translation model training are described in
-link:PORTAGE_sharedTrainingModels.html#TranslationModels[Constructing
+link:PortageIITrainingModels.html#TranslationModels[Constructing
 Models].
 
 Language Model Training
@@ -229,7 +229,7 @@ clean, aligned parallel corpus, and often additional target-language
 texts.
 
 Programs for language model training are described in
-link:PORTAGE_sharedTrainingModels.html[Constructing Models].
+link:PortageIITrainingModels.html[Constructing Models].
 
 Decoder Model Training
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -278,7 +278,7 @@ rescorer respectively.
 image::uploads/PortageOptimizingFig1.gif[image]
 
 The algorithm used by COW is described in
-link:PORTAGE_sharedAnnotatedBibliography.html#Och2003[Och
+link:PortageIIAnnotatedBibliography.html#Och2003[Och
 2003]. It is shown in the figure below. To understand the figure, note
 that the algorithm requires an initial set of weights on the "small" set
 of information sources (in the past, we've often initialized arbitrarily
@@ -360,7 +360,7 @@ best-scoring of these hypotheses come out top on the N-best list most of
 the time.
 
 The Portage programs for decoder-model training are described in
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights].
 
 Rescoring Model Training
@@ -385,7 +385,7 @@ here - for instance, N=1000 or N=500. Note that the information from the
 "large" set is communicated by what we call "feature functions".
 
 The Portage programs for rescoring training are described in
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights].
 
 Metrics for Evaluating MT System Performance
@@ -430,14 +430,14 @@ writing styles.
 Arguing about the details of the best automatic metric to use is a
 popular pastime in the SMT community. One of the most frequently
 employed metrics is called BLEU, originally defined in this paper
-(link:PORTAGE_sharedAnnotatedBibliography.html#BLEUPaper[BLEU
+(link:PortageIIAnnotatedBibliography.html#BLEUPaper[BLEU
 paper]); Portage is typically trained to maximize the BLEU score.
 However, the COW and rescoring algorithms can easily be called so as to
 optimize Portage according to some other metric, such as word error rate
 (WER) or position-independent word error rate (PER).
 
 Automatic evaluation of Portage's translation output is described in
-link:PORTAGE_sharedEvaluation.html[Evaluation].
+link:PortageIIEvaluation.html[Evaluation].
 
 The Mathematics of SMT
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -499,13 +499,13 @@ The above is a very high-level overview describing how our SMT system,
 Portage, currently works. For insight into the research (mainly
 performed by people outside our group) underlying this kind of SMT
 system, see our
-link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
+link:PortageIIAnnotatedBibliography.html[Annotated
 Bibliography].
 
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Next:
-link:PORTAGE_sharedKnowledgePrerequisites.html[Prerequisites]
+link:PortageIIKnowledgePrerequisites.html[Prerequisites]
 
 '''''
 

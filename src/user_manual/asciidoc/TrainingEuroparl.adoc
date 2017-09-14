@@ -4,8 +4,8 @@ Training Europarl
 -----------------
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
-Bibliography] Next: link:PORTAGE_sharedFAQ.html[Frequently
+link:PortageIIAnnotatedBibliography.html[Annotated
+Bibliography] Next: link:PortageIIFAQ.html[Frequently
 Asked Questions]
 
 '''''
@@ -286,8 +286,8 @@ Disk usage for all models:
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
-Bibliography] Next: link:PORTAGE_sharedFAQ.html[Frequently
+link:PortageIIAnnotatedBibliography.html[Annotated
+Bibliography] Next: link:PortageIIFAQ.html[Frequently
 Asked Questions]
 
 '''''

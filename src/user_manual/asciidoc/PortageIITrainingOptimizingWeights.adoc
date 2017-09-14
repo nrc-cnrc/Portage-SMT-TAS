@@ -5,7 +5,7 @@ PortageII Training Optimizing Weights
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TightlyPackedTries.html[Tightly Packed Tries] Next:
-link:PORTAGE_sharedTranslating.html[Translating]
+link:PortageIITranslating.html[Translating]
 
 '''''
 
@@ -35,7 +35,7 @@ MIRA, PRO, SVM, and "expsb" (an experimental idea). See Cherry and
 Foster (NAACL 2012) for a comparison of these methods.
 
 See
-link:PORTAGE_sharedOverview.html#DecoderModelTraining[Decoder
+link:PortageIIOverview.html#DecoderModelTraining[Decoder
 Model Training] for a detailed description of our original MERT
 algorithm. Most of the new algorithms follow a similar
 batch-decode/batch-optimize loop, but some use lattices instead of
@@ -119,7 +119,7 @@ each source sentence from the corresponding n-best list.
 
 See also:
 
-* link:PORTAGE_sharedOverview.html#RescoringModelTraining[Rescoring
+* link:PortageIIOverview.html#RescoringModelTraining[Rescoring
 Model Training] -- detailed description of the algorithm used to learn
 rescoring weights,
 * `doc/README.rescoring` (or `src/rescoring/README`) -- overview of the
@@ -132,7 +132,7 @@ To train a rescoring model, you need:
 
 * A source text;
 * A version of the source text containing either
-link:PORTAGE_sharedFileFormats.html#MarkedUpText[translation
+link:PortageIIFileFormats.html#MarkedUpText[translation
 rules], or, if rules are not used, a version with the special characters
 escaped;
 * One or more reference translations for the source text (preferably
@@ -145,8 +145,8 @@ of additional features) in the syntax described by `rescore_train -h`,
 taken from the list given by `rescore_train -H`.
 
 The source and reference files should be
-link:PORTAGE_sharedFileFormats.html#TokenizedText[tokenized]
-and link:PORTAGE_sharedFileFormats.html#AlignedText[aligned].
+link:PortageIIFileFormats.html#TokenizedText[tokenized]
+and link:PortageIIFileFormats.html#AlignedText[aligned].
 
 Rescoring Script
 ++++++++++++++++
@@ -311,7 +311,7 @@ will substitute them as necessary. See `rescore.py -h` for details.
 
 Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TightlyPackedTries.html[Tightly Packed Tries] Next:
-link:PORTAGE_sharedTranslating.html[Translating]
+link:PortageIITranslating.html[Translating]
 
 '''''
 

@@ -4,10 +4,10 @@ Tightly Packed Tries
 --------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTrainingModels.html[Models] Previous:
-link:PORTAGE_sharedTrainingOtherModels.html[Training Other
+link:PortageIITrainingModels.html[Models] Previous:
+link:PortageIITrainingOtherModels.html[Training Other
 Models] Next:
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights]
 
 '''''
@@ -70,25 +70,25 @@ Further information
 * Presentation on TPT's by Uli Germann:
 link:uploads/Memory_mapping_Tightly_Packed_Tries_and_Suffix_Arrays.pdf[Memory
 mapping Tightly Packed Tries and Suffix Arrays].
-* link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann
+* link:PortageIIAnnotatedBibliography.html#Germannetal2009[Germann
 et al 2009], SETQA-NLP paper on TPT's.
-* link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
+* link:PortageIIAnnotatedBibliography.html#Pauletal2009[Paul
 et al 2009], MT Summit XII technology showcase paper about
 link:PortageLiveManual.html[PortageLive].
-* Building link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[TPLM
+* Building link:PortageIITrainingLanguageModels.html#TheTPLMformat[TPLM
 s] with `arpalm2tplm.sh`.
-* Building link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[TPPT
+* Building link:PortageIITrainingOtherModels.html#TheTPPTformat[TPPT
 s] with `textpt2tppt.sh`.
-* Building link:PORTAGE_sharedTrainingOtherModels.html#LexicalizedDistortionModels[TPLDM
+* Building link:PortageIITrainingOtherModels.html#LexicalizedDistortionModels[TPLDM
 s] with `textldm2tpldm.sh`.
 
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTrainingModels.html[Models] Previous:
-link:PORTAGE_sharedTrainingOtherModels.html[Training Other
+link:PortageIITrainingModels.html[Models] Previous:
+link:PortageIITrainingOtherModels.html[Training Other
 Models] Next:
-link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
+link:PortageIITrainingOptimizingWeights.html[Optimizing
 Weights]
 
 '''''

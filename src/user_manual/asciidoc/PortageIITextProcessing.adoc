@@ -4,7 +4,7 @@ PortageII Text Processing
 -------------------------
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
+link:PortageIIWhereToFindThings.html[Where To Find Things]
 Down: link:TMXProcessing.html[TMX Processing]
 
 '''''
@@ -29,14 +29,14 @@ toc::[]
 
 Preeprocessing must be performed first, but the order of
 later steps can vary depending on the application. The
-link:PORTAGE_sharedFileFormats.html[File Formats] section
+link:PortageIIFileFormats.html[File Formats] section
 describes the input and output formats for all steps.
 
 Preprocessing
 ^^^^^^^^^^^^^
 
 This is a cleaning step to convert raw text into a normalized
-link:PORTAGE_sharedFileFormats.html#PlainText[Plain Text]
+link:PortageIIFileFormats.html#PlainText[Plain Text]
 format that later steps can handle. Preprocessing tends to be specific
 to each corpus, so if you need to preprocess a new corpus you will
 probably have to write your own program, but you can use the ones below
@@ -65,7 +65,7 @@ require utf-8.
 If your corpus is stored in a translation memory of some kind, export it
 to the TMX format and refer to link:TMXProcessing.html[TMX
 Processing] for extracting
-link:PORTAGE_sharedFileFormats.html#PlainText[Plain Text] from
+link:PortageIIFileFormats.html#PlainText[Plain Text] from
 your TMX.
 
 If your corpus exists as a complex collection of documents in various
@@ -78,8 +78,8 @@ Tokenizing
 ^^^^^^^^^^
 
 Tokenizing converts
-link:PORTAGE_sharedFileFormats.html#PlainText[Plain Text] into
-link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
+link:PortageIIFileFormats.html#PlainText[Plain Text] into
+link:PortageIIFileFormats.html#TokenizedText[Tokenized
 Text] by splitting running text into whitespace-separated tokens, and
 identifying sentence boundaries. For English and French, this mostly
 means separating punctuation from words. Example (English/French encoded
@@ -111,11 +111,11 @@ Aligning
 ^^^^^^^^
 
 Given sentence-split,
-link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
+link:PortageIIFileFormats.html#TokenizedText[Tokenized
 Text] (possibly containing markup) in two languages, sentence alignment
 identifies correspondences between translated sentences, and writes the
 results as
-link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text].
+link:PortageIIFileFormats.html#AlignedText[Aligned Text].
 
 Example using Moore's aligner (not supplied with PortageII):
 
@@ -185,7 +185,7 @@ Marking Up
 ^^^^^^^^^^
 
 Various entities in the text can be encoded as
-link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
+link:PortageIIFileFormats.html#MarkedUpText[Marked Up
 Text]. There are three uses for markup in the system:
 
 * To encode parallel structure (section boundaries, timestamps, etc) in
@@ -232,7 +232,7 @@ utf-32/ucs-4.
 '''''
 
 Up link:PortageMachineTranslation.html[PortageII] Previous:
-link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
+link:PortageIIWhereToFindThings.html[Where To Find Things]
 Down: link:TMXProcessing.html[TMX Processing]
 
 '''''

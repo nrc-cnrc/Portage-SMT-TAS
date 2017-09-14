@@ -4,8 +4,8 @@ PortageII Decoder Search Algorithms And Data Structures
 -------------------------------------------------------
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTranslating.html[Translating] Previous:
-link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+link:PortageIITranslating.html[Translating] Previous:
+link:PortageIITranslatingPostprocessing.html[Postprocessing]
 Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]
 
 '''''
@@ -28,10 +28,10 @@ The decoder's main job is to find the translation that is most likely
 according to a set of weighted feature/model scores. The features or
 models evaluate the quality of the translation according to various
 criteria
-(link:PORTAGE_sharedTrainingModels.html#TrainingConstructingModels[here]
+(link:PortageIITrainingModels.html#TrainingConstructingModels[here]
 is a description of some models); the weights are learned in an
 optimization step as described in the
-link:PORTAGE_sharedTrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[COW]
+link:PortageIITrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[COW]
 section.
 
 Search Algorithms
@@ -288,8 +288,8 @@ Hypothesis-Stack class is used for this purpose.
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII] /
-link:PORTAGE_sharedTranslating.html[Translating] Previous:
-link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
+link:PortageIITranslating.html[Translating] Previous:
+link:PortageIITranslatingPostprocessing.html[Postprocessing]
 Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]
 
 '''''
