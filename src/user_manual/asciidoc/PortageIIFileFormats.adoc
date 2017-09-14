@@ -25,7 +25,7 @@ control characters. It may include some simple markup required by the
 tokenization and alignment programs, as described in
 link:PortageIITextProcessing.html[Text Processing]. For
 encoding information, see
-link:PortageIITextProcessing.html#EncodingConsiderations[Encoding
+link:PortageIITextProcessing.html#trueencoding-considerations[Encoding
 Considerations] (summary: use utf-8).
 
 Example:

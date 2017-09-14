@@ -36,7 +36,7 @@ Preprocessing
 ^^^^^^^^^^^^^
 
 This is a cleaning step to convert raw text into a normalized
-link:PortageIIFileFormats.html#PlainText[Plain Text]
+link:PortageIIFileFormats.html#trueplain-text[Plain Text]
 format that later steps can handle. Preprocessing tends to be specific
 to each corpus, so if you need to preprocess a new corpus you will
 probably have to write your own program, but you can use the ones below
@@ -65,7 +65,7 @@ require utf-8.
 If your corpus is stored in a translation memory of some kind, export it
 to the TMX format and refer to link:TMXProcessing.html[TMX
 Processing] for extracting
-link:PortageIIFileFormats.html#PlainText[Plain Text] from
+link:PortageIIFileFormats.html#trueplain-text[Plain Text] from
 your TMX.
 
 If your corpus exists as a complex collection of documents in various
@@ -78,9 +78,9 @@ Tokenizing
 ^^^^^^^^^^
 
 Tokenizing converts
-link:PortageIIFileFormats.html#PlainText[Plain Text] into
-link:PortageIIFileFormats.html#TokenizedText[Tokenized
-Text] by splitting running text into whitespace-separated tokens, and
+link:PortageIIFileFormats.html#trueplain-text[Plain Text] into
+link:PortageIIFileFormats.html#truetokenized-text[Tokenized Text]
+by splitting running text into whitespace-separated tokens, and
 identifying sentence boundaries. For English and French, this mostly
 means separating punctuation from words. Example (English/French encoded
 in utf-8):
@@ -111,11 +111,11 @@ Aligning
 ^^^^^^^^
 
 Given sentence-split,
-link:PortageIIFileFormats.html#TokenizedText[Tokenized
+link:PortageIIFileFormats.html#truetokenized-text[Tokenized
 Text] (possibly containing markup) in two languages, sentence alignment
 identifies correspondences between translated sentences, and writes the
 results as
-link:PortageIIFileFormats.html#AlignedText[Aligned Text].
+link:PortageIIFileFormats.html#truealigned-text[Aligned Text].
 
 Example using Moore's aligner (not supplied with PortageII):
 
@@ -185,7 +185,7 @@ Marking Up
 ^^^^^^^^^^
 
 Various entities in the text can be encoded as
-link:PortageIIFileFormats.html#MarkedUpText[Marked Up
+link:PortageIIFileFormats.html#truemarked-up-text[Marked Up
 Text]. There are three uses for markup in the system:
 
 * To encode parallel structure (section boundaries, timestamps, etc) in
@@ -202,8 +202,8 @@ approach, but they can be used for many other purposes too. Our default
 `predecode_plugin` for use with PortageLive uses marked-up text to
 encode the result of rule-based translation of numbers between English
 and French (in either direction) and to process fixed terms, if they are
-used. (See link:PortageLiveCustomizationPlugins.html[Portage
-Live Customization Plugins] for details.)
+used. (See link:PortageLiveCustomizationPlugins.html[PortageLive Customization
+Plugins] for details.)
 
 Encoding Considerations
 ^^^^^^^^^^^^^^^^^^^^^^^

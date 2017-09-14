@@ -19,8 +19,8 @@ Overview
 This manual describes how to build a live translation server using
 PortageII, called "PortageLive". The rationale for doing this on
 virtual machines is laid out in
-link:PortageIIAnnotatedBibliography.html#Pauletal2009[Paul
-et al 2009]. Virtualization makes it possible to port PortageII to
+link:PortageIIAnnotatedBibliography.html#truepaul-et-al-2009[Paul et al 2009].
+Virtualization makes it possible to port PortageII to
 a variety of operating systems with little effort, and to run several
 instances of PortageII on the same machine. For instance, Portage
 Live can run concurrently on a single state-of-the-art desktop or laptop
@@ -32,7 +32,7 @@ technological innovations for the data structures that take up the most
 memory in a typical machine translation system, the phrase tables and
 the language models (LMs). First, we store them in a memory-efficient
 structure called a tightly-packed trie
-link:PortageIIAnnotatedBibliography.html#Germannetal2009[Germann
+link:PortageIIAnnotatedBibliography.html#truegermann-et-al-2009[Germann
 et al 2009]. For instance, an LM encoded as a tightly packed trie takes
 up only about a quarter of the RAM that would be occupied by an LM
 represented in the standard ARPA format. Second, we use the

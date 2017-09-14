@@ -28,10 +28,9 @@ The decoder's main job is to find the translation that is most likely
 according to a set of weighted feature/model scores. The features or
 models evaluate the quality of the translation according to various
 criteria
-(link:PortageIITrainingModels.html#TrainingConstructingModels[here]
-is a description of some models); the weights are learned in an
-optimization step as described in the
-link:PortageIITrainingOptimizingWeights.html#OptimizingWeightsforCanoeDecoding[COW]
+(models are described in link:PortageIITrainingModels.html[Training Models]);
+the weights are learned in an optimization step as described in the
+link:PortageIITrainingOptimizingWeights.html[Optimizing Weights]
 section.
 
 Search Algorithms

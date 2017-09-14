@@ -172,7 +172,7 @@ of N-best lists of candidate translations; it concludes with a
 discussion of research on factored translation (which Koehn himself
 helped to initiate).
 
-Chapter 12: Tree-Based Models
+Chapter 11: Tree-Based Models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Modern linguistic theories of language use tree structures to represent
@@ -320,7 +320,7 @@ called BLEU, originally defined in this paper. New variants of BLEU
 appear quite often, so always verify that the version you are using for
 experiments is the appropriate one.
 
-NOTE: all metrics of the same type as BLEU share a potential pitfall:
+Note: all metrics of the same type as BLEU share a potential pitfall:
 suppose that the single reference translation of a sentence into English
 is "The man was very rude", system A's translation was "He expressed
 himself with utter tactlessness", and system B's translation was "The
@@ -597,11 +597,8 @@ Cherry and Foster 2012
 "Batch Tuning Strategies for Statistical Machine Translation" by Colin
 Cherry and George Foster. NAACL 2012.
 
-See
-link:PortageIIAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
-and Foster 2012 revisited] below for a second presentation of this
-paper, adding details about sparse features as included in PortageII
-3.0.
+See <<Cherry and Foster 2012 revisited>> below for a second presentation of
+this paper, adding details about sparse features as included in PortageII 3.0.
 
 In the opinion of the writer (R. Kuhn, June 2012) the work described in
 this paper will eventually be seen as one of the most important
@@ -659,9 +656,8 @@ Decoding" by Colin Cherry, Robert Moore and Chris Quirk. WMT 2012.
 This paper describes the type of Hierarchical Lexicalized Distortion
 Model (HLDM) currently implemented in PortageII. The concept of an
 HLDM goes back to the 2008 paper "A Simple and Effective Hierarchical
-Phrase Reordering Model" by Galley & Manning
-(link:PortageIIAnnotatedBibliography.html#GalleyandManning2008[Galley
-and Manning 2008]). The basic idea is to model the reordering of words
+Phrase Reordering Model" by Galley & Manning (<<Galley and Manning 2008>>).
+The basic idea is to model the reordering of words
 that occurs during translation not by tracking the movement of the
 actual phrases into which a source sentence was segmented, but by
 tracking the movement of the longest possible phrases that COULD have
@@ -1185,7 +1181,7 @@ Hopkins and May 2011
 
 "Tuning as Ranking" by Mark Hopkins and Jonathan May, EMNLP 2011,
 Edinburgh, Scotland
-(http://www.aclweb.org/anthology/D/D11/D11-1125.pdf[http://www.aclweb.org/anthology/D/D11/D11-1125.pdf]).
+(http://www.aclweb.org/anthology/D/D11/D11-1125.pdf).
 
 Most of this paper is devoted to explaining the PRO (Pairwise Ranking
 Optimization) method for tuning weights on the components of an SMT
@@ -1236,12 +1232,11 @@ Cherry and Foster 2012 revisited
 
 "Batch Tuning Strategies for Statistical Machine Translation" by Colin
 Cherry and George Foster, NAACL 2012, Montréal, Canada
-(http://www.aclweb.org/anthology/N12-1047.pdf[http://www.aclweb.org/anthology/N12-1047.pdf]).
+(http://www.aclweb.org/anthology/N12-1047.pdf).
 
 We discuss this paper a second time here to add a focus on elements of
-it implemented in PortageII 3.0. (See also
-link:PortageIIAnnotatedBibliography.html#CherryandFoster2012[Cherry
-and Foster 2012] above.)
+it implemented in PortageII 3.0. (See also <<Cherry and Foster 2012>>
+above.)
 
 The work described in this paper may eventually be seen as one of the
 most important contributions of NRC's team to statistical machine
@@ -1305,9 +1300,8 @@ set to create the Big set (section 4.2):
 
 "The Big set adds sparse Boolean features to Medium, for a maximum of
 6,848 features. We used sparse feature templates that are equivalent to
-the PBMT set described in
-(link:PortageIIAnnotatedBibliography.html#HopkinsandMay2011[Hopkins
-and May 2011]): _tgt unal_ picks out each of the 50 most frequent target
+the PBMT set described in (<<Hopkins and May 2011>>): _tgt unal_ picks out each
+of the 50 most frequent target
 words to appear unaligned in the phrase table; _count bin_ uniquely bins
 joint phrase pair counts with upper bounds
 1,2,4,8,16,32,64,128,1k,10k,1; _word pair_ fires when each of the 80
@@ -1332,7 +1326,7 @@ Cherry 2013
 
 "Improved Reordering for Phrase-Based Translation using Sparse Features"
 by Colin Cherry, NAACL-HLT 2013, Atlanta, USA
-(http://www.aclweb.org/anthology/N12-1047.pdf[http://www.aclweb.org/anthology/N12-1047.pdf]).
+(http://www.aclweb.org/anthology/N12-1047.pdf).
 
 The central goal of this paper is to improve lexicalized reordering
 (which is sometimes called "lexicalized distortion") in an SMT system.
@@ -1467,7 +1461,7 @@ Stewart et al 2014
 "Coarse 'split and lump' bilingual language models for richer source
 information in SMT" by Darlene Stewart, Roland Kuhn, Eric Joanis, and
 George Foster, AMTA 2014, Vancouver, Canada
-(http://www.iro.umontreal.ca/~foster/papers/coarse-amta14.pdf[http://www.iro.umontreal.ca/~foster/papers/coarse-amta14.pdf]).
+(http://www.iro.umontreal.ca/~foster/papers/coarse-amta14.pdf).
 
 This paper has two central ideas: a not very innovative one that we
 (NRC) still routinely incorporate in most of our systems, and a more
@@ -1499,8 +1493,8 @@ align with target-language words. The advantage of using bitokens
 instead of words is that word senses in the target language are often
 disambiguated. E.g., if the target language is English, the word
 "shower" is ambiguous. However, the English-French bitokens
-"shower_**douche" and "shower_**averse" (using a notation of the form
-_target-word___aligned-source-words_) are less ambiguous: the first
+"shower_douche" and "shower_averse" (using a notation of the form
+__target-word_____aligned-source-words__) are less ambiguous: the first
 bitoken refers either to a bathroom fixture or to an act of cleansing
 performed with that fixture, while the second bitoken refers to
 rainfall.
@@ -1562,7 +1556,7 @@ Devlin et al 2014
 "Fast and Robust Neural Network Joint Models for Statistical Machine
 Translation" by Jacob Devlin, Rabih Zbib, Zhongqiang Huang, Thomas
 Lamar, Richard Schwartz, and John Makhoul, ACL 2014, Baltimore, USA
-(http://acl2014.org/acl2014/P14-1/pdf/P14-1129.pdf[http://acl2014.org/acl2014/P14-1/pdf/P14-1129.pdf]).
+(http://acl2014.org/acl2014/P14-1/pdf/P14-1129.pdf).
 
 This 2014 paper on a "neural net joint model" (NNJM) by a group of
 authors from Raytheon BBN is already a classic. It should be read by
@@ -1651,7 +1645,7 @@ Devlin).
 Foster 2016 addendum to Devlin
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-George Foster: ADDENDUM to Devlin et al (2014), January 2016
+George Foster: ADDENDUM to <<Devlin et al 2014>>, January 2016
 
 General tricks for training NNJMs:
 

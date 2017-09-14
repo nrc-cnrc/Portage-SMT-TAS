@@ -24,8 +24,8 @@ to run all steps in rescored translation: nbest-list generation,
 feature-file generation, and nbest rescoring to select the best
 candidates. Assuming a rescoring model, `rescore-model.rat`, has been
 trained using the procedure described in the
-link:PortageIITrainingOptimizingWeights.html#RescoringScript[Rescoring
-Script] section, the following command will write a final translation to
+link:PortageIITrainingOptimizingWeights.html#truerescoring-script[Rescoring Script]
+section, the following command will write a final translation to
 the file `text_fr.rule.rat`:
 
 ----------------------------------------------------------------------------

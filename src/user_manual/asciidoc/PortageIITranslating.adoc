@@ -20,12 +20,10 @@ Translating
 ~~~~~~~~~~~
 
 Source texts to be translated by PortageII must be in
-link:PortageIIFileFormats.html#TokenizedText[Tokenized
-Text] or
-link:PortageIIFileFormats.html#MarkedUpText[Marked Up
-Text] formats; the
-link:PortageIITextProcessing.html#TextProcessing[Text
-Processing] section describes the required processing steps. Translation
+link:PortageIIFileFormats.html#truetokenized-text[Tokenized Text] or
+link:PortageIIFileFormats.html#truemarked-up-text[Marked Up Text] formats;
+the link:PortageIITextProcessing.html[Text Processing]
+section describes the required processing steps. Translation
 itself consists of three main steps, of which the last two are optional:
 decoding, rescoring, and postprocessing.
 

@@ -52,7 +52,7 @@ Training translation models is done in two steps: first train IBM models
 in both directions, then generate phrase tables using the models.
 Assuming the current directory contains a set of files named
 `file*_fr.al` and `file*_en.al` containing
-link:PortageIIFileFormats.html#AlignedText[Aligned Text],
+link:PortageIIFileFormats.html#truealigned-text[Aligned Text],
 the following is a basic training process:
 
 ----------------------------------------------------------------------------
@@ -234,11 +234,11 @@ Sparse Models
 
 With PortageII 3.0, we introduce sparse models, including the
 original sparse features of
-link:PortageIIAnnotatedBibliography.html#HopkinsandMay2011[Hopkins
+link:PortageIIAnnotatedBibliography.html#truehopkins-and-may-2011[Hopkins
 and May 2011] as adapted for Portage by
-link:PortageIIAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
+link:PortageIIAnnotatedBibliography.html#truecherry-and-foster-2012-revisited[Cherry
 and Foster 2012], as well as the Discriminative Reodering model of
-link:PortageIIAnnotatedBibliography.html#Cherry2013[Cherry
+link:PortageIIAnnotatedBibliography.html#truecherry-2013[Cherry
 2013], which helps PortageII make better choices in word ordering
 during the decoding process.
 
@@ -251,12 +251,12 @@ Neural Network Joint Models
 
 In the last couple years, deep learning and neural networks have been
 shaking the world of natural language processing, including SMT.
-link:PortageIIAnnotatedBibliography.html#Devlinetal2014[Devlin
+link:PortageIIAnnotatedBibliography.html#truedevlin-et-al-2014[Devlin
 et al 2014] presents the first successful attempt at improving SMT
 output using neural networks. The NRC has reproduced the results in the
 Research version of Portage (see
-link:PortageIIAnnotatedBibliography.html#Foster2016addendumtoDevlin[Foster
-2016 addeddum to Devlin]) and is continuing leading-edge research in the
+link:PortageIIAnnotatedBibliography.html#truefoster-2016-addendum-to-devlin[Foster
+2016 addendum to Devlin]) and is continuing leading-edge research in the
 uses of deep learning to improve SMT.
 
 The main model that has come out of this work so far is the Neural

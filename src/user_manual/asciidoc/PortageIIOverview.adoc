@@ -16,8 +16,8 @@ technology is built on. To get started quickly, skip to the next page._
 Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that
 can be used to support other projects at NRC and elsewhere. See the
-http://iit-iti.nrc-cnrc.gc.ca/projects-projets/portage_e.html[public_project_page]
-for a high-level view of the project.
+http://iit-iti.nrc-cnrc.gc.ca/projects-projets/portage_e.html[public project
+page] for a high-level view of the project.
 
 The SMT system developed under the Portage project is also called
 "Portage". The Portage system is designed so that it can automatically
@@ -47,15 +47,15 @@ The Portage project began in the fall of 2004, and had produced a
 working baseline system by the end of that year. In 2005, the Portage
 system was mature enough to achieve reasonably good results in the NIST
 MT evaluation (general information:
-http://www.nist.gov/speech/tests/mt[http://www.nist.gov/speech/tests/mt]
+http://www.nist.gov/speech/tests/mt
 , specific information about 2005 evaluation:
-http://www.nist.gov/speech/tests/mt/2005/doc/mt05eval_official_results_release_20050801_v3.html[http://www.nist.gov/speech/tests/mt/2005/doc/mt05eval_official_results_release_20050801_v3.html])
+http://www.nist.gov/speech/tests/mt/2005/doc/mt05eval_official_results_release_20050801_v3.html)
 and the ACL WPT evaluation
-(http://www.statmt.org/wpt05[http://www.statmt.org/wpt05]). Results for
+(http://www.statmt.org/wpt05). Results for
 the same two evaluations in 2006 were considerably better, both in
 absolute terms and relative to other SMT systems participating
-(http://www.nist.gov/speech/tests/mt/[http://www.nist.gov/speech/tests/mt/],
-http://www.statmt.org/wmt06/shared-task/[http://www.statmt.org/wmt06/shared-task/]).
+(http://www.nist.gov/speech/tests/mt/,
+http://www.statmt.org/wmt06/shared-task/).
 Language pairs supported by the end of 2005 included English/French
 (both directions); and Chinese, Arabic, and several European languages
 into English. Also in 2005, the Portage system began to participate in
@@ -176,7 +176,7 @@ of phrase pairs.
 This multi-stage process has two main phases, a _word alignment model
 training_ and a _phrase pair extraction_ phase. A formal description of
 five mathematical models for translation is given in
-(link:PortageIIAnnotatedBibliography.html#Brownetal1993[Brown
+(link:PortageIIAnnotatedBibliography.html#truebrown-et-al-1993[Brown
 et al 1993]); since the authors of the paper were then at IBM, the
 models in the paper have become known as IBM models 1, 2, 3, and so on.
 In the current Portage system, of these IBM models, only 1 and 2 are
@@ -202,8 +202,8 @@ parallel corpus yields the phrase translation model (which is described
 in mathematical terms below).
 
 The Portage programs for translation model training are described in
-link:PortageIITrainingModels.html#TranslationModels[Constructing
-Models].
+link:PortageIITrainingOtherModels.html#truetranslation-models[Constructing
+Translation Models].
 
 Language Model Training
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -229,7 +229,7 @@ clean, aligned parallel corpus, and often additional target-language
 texts.
 
 Programs for language model training are described in
-link:PortageIITrainingModels.html[Constructing Models].
+link:PortageIITrainingLanguageModels.html[Constructing Language Models].
 
 Decoder Model Training
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -278,8 +278,8 @@ rescorer respectively.
 image::uploads/PortageOptimizingFig1.gif[image]
 
 The algorithm used by COW is described in
-link:PortageIIAnnotatedBibliography.html#Och2003[Och
-2003]. It is shown in the figure below. To understand the figure, note
+link:PortageIIAnnotatedBibliography.html#trueoch-2003[Och 2003].
+It is shown in the figure below. To understand the figure, note
 that the algorithm requires an initial set of weights on the "small" set
 of information sources (in the past, we've often initialized arbitrarily
 with a weight of 1 on every "small" information source except the
@@ -360,8 +360,8 @@ best-scoring of these hypotheses come out top on the N-best list most of
 the time.
 
 The Portage programs for decoder-model training are described in
-link:PortageIITrainingOptimizingWeights.html[Optimizing
-Weights].
+link:PortageIITrainingOptimizingWeights.html#trueoptimizing-weights-for-canoe-decoding[Optimizing
+Weights for Canoe Decoding].
 
 Rescoring Model Training
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -385,8 +385,7 @@ here - for instance, N=1000 or N=500. Note that the information from the
 "large" set is communicated by what we call "feature functions".
 
 The Portage programs for rescoring training are described in
-link:PortageIITrainingOptimizingWeights.html[Optimizing
-Weights].
+link:PortageIITrainingOptimizingWeights.html#trueoptimizing-weights-for-rescoring[Optimizing Weights for Rescoring].
 
 Metrics for Evaluating MT System Performance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -430,7 +429,7 @@ writing styles.
 Arguing about the details of the best automatic metric to use is a
 popular pastime in the SMT community. One of the most frequently
 employed metrics is called BLEU, originally defined in this paper
-(link:PortageIIAnnotatedBibliography.html#BLEUPaper[BLEU
+(link:PortageIIAnnotatedBibliography.html#truebleu-paper[BLEU
 paper]); Portage is typically trained to maximize the BLEU score.
 However, the COW and rescoring algorithms can easily be called so as to
 optimize Portage according to some other metric, such as word error rate

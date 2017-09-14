@@ -19,12 +19,12 @@ Truecasing
 ^^^^^^^^^^
 
 Text output from canoe is lowercase
-link:PortageIIFileFormats.html#TokenizedText[tokenized
-text]. The first step in making this nicer to read is truecasing, which
+link:PortageIIFileFormats.html#truetokenized-text[tokenized text].
+The first step in making this nicer to read is truecasing, which
 tries to restore capitals where appropriate. Assuming language and
 mapping models `tc-lm.en` and `tc-map.en` trained as described in
-link:PortageIITrainingModels.html#TrueCaseModels[True Case
-Models], truecasing can be carried out as follows:
+link:PortageIITrainingOtherModels.html#truetruecasing-models[Truecasing Models],
+truecasing can be carried out as follows:
 
 -------------------------------------------------------
 truecase.pl -bos -encoding UTF-8 -text=text_en.out \
@@ -43,9 +43,8 @@ Detokenizing
 
 The second and last step in the processing chain is detokenization, to
 convert truecased
-link:PortageIIFileFormats.html#TokenizedText[tokenized
-text] back to
-link:PortageIIFileFormats.html#PlainText[plain text] (but
+link:PortageIIFileFormats.html#truetokenized-text[tokenized text] back to
+link:PortageIIFileFormats.html#trueplain-text[plain text] (but
 preserving the one-sentence-per-line convention). Example for English
 encoded in utf-8:
 

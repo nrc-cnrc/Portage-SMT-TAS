@@ -38,7 +38,7 @@ configuration for PortageII versions 1.0, 2.0, 2.1, 2.2 and 3.0.
 User Manual
 ~~~~~~~~~~~
 
-* link:PortageIIOverview.html[Background]
+* link:PortageIIOverview.html[Background and Overview]
 * link:PortageIIKnowledgePrerequisites.html[Required Prior Knowledge]
 * link:PortageIIWhereToFindThings.html[Where To Find Things]
 * link:PortageIITextProcessing.html[Text Processing]

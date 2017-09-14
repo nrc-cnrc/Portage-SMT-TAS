@@ -138,8 +138,8 @@ interpreted.
 PortageII does not currently include software to generate this 4th
 column, but the format is easy to generate if you have your own features
 A(s,t) you wish to use. See
-link:PortageIIAnnotatedBibliography.html#Chenetal2009[Chen
-et al 2009] for examples of such features.
+link:PortageIIAnnotatedBibliography.html#truechen-et-al-2009[Chen et al 2009] for
+examples of such features.
 
 TPPTs (Tightly Packed Phrase Tables)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -38,9 +38,9 @@ Training an LM using SRILM
 SRILM's default is for the corpus to be contained in a single text file,
 so the easiest thing to do is concatenate everything. The format is
 standard
-link:PortageIIFileFormats.html#TokenizedText[Tokenized
-Text] - _but without angle-bracket markup_!
-link:PortageIIFileFormats.html#AlignedText[Aligned Text]
+link:PortageIIFileFormats.html#truetokenized-text[Tokenized Text] -
+_without angle-bracket markup_!
+link:PortageIIFileFormats.html#truealigned-text[Aligned Text]
 will also work, but will give different models, because multiple
 sentences can occur on a single line.
 
@@ -135,8 +135,7 @@ arpalm2binlm lm.en.gz lm.en.binlm.gz
 All programs in PortageII which use LM files support this format.
 They are recognized as such automatically, regardless of file name or
 extension. And they are written to and read from disk in such a way that
-you can keep them compressed, as are almost all files in
-link:PortageMachineTranslation.html[PortageII].
+you can keep them compressed, as are almost all files in PortageII.
 
 The TPLM format
 ^^^^^^^^^^^^^^^
@@ -253,14 +252,14 @@ Open-Vocabulary LM
 ^^^^^^^^^^^^^^^^^^
 
 An open-vocabulary LM is one that includes an estimated probability for
-unseen words, i.e., OOV's. In SRILM, the `-unk` switch can be used to
+unseen words, i.e., OOVs. In SRILM, the `-unk` switch can be used to
 generate such an LM. In PortageII, these are now automatically
 detected and supported everywhere by default. With closed-vocabulary
-LM's, PortageII assigns a very small probability to OOV's
+LMs, PortageII assigns a very small probability to OOVs
 (`ALMOST_0`), whereas with simple open-voc ones, `p(<unk>)` is used as
 found in the LM itself.
 
-There are also "full" open-vocabulary LM's, which provide not only a
+There are also "full" open-vocabulary LMs, which provide not only a
 unigram probability for `<unk>`, but also probabilities for `<unk>` in
 various contexts. These are supported by the LM classes, but are not
 automatically detected nor used by any program in PortageII.
@@ -275,7 +274,7 @@ Mixture Model LM
 ^^^^^^^^^^^^^^^^
 
 A dynamic mixture LM is a linear word-level mixture of regular ngram
-LM's adapted for translating a specific source text. The training
+LMs adapted for translating a specific source text. The training
 procedure is as follows:
 
 1.  Split the parallel training corpus into "components", each
@@ -292,7 +291,7 @@ mx-calc-distances.sh -v -d cmpts.src/ -e .lm.gz em components \
    srcfile > distances
 ------------------------------------------------------------------
 +
-where the `cmpts.src` directory contains source-side component LM's, eg
+where the `cmpts.src` directory contains source-side component LMs, eg
 `cmpt1.lm.gz`, `cmpt2.lm.gz`, `cmpt3.lm.gz`; `components` is a file that
 lists the components one per line, eg:
 +
@@ -317,9 +316,9 @@ mx-mix-models.sh -d cmpts.tgt/ -e .binlm.gz mixlm weights \
    components srcfile > srcfile.mixlm
 ----------------------------------------------------------------
 +
-where `cmpts.tgt` is a directory containing target-side LM's, and the
+where `cmpts.tgt` is a directory containing target-side LMs, and the
 final mixture model `srcfile.mixlm` is just a text file associating each
-of these LM's with a weight, eg:
+of these LMs with a weight, eg:
 +
 -------------------------------
 cmpts.tgt/cmpt1.binlm.gz 0.2
@@ -342,7 +341,7 @@ the whole parallel training corpus as an additional component.
 There are many other ways to use mixture models within PortageII.
 See the `README` file in `src/adaptation` for details (or
 `doc/README.adaptation`), and
-link:PortageIIAnnotatedBibliography.html#FosterandKuhn2007[Foster
+link:PortageIIAnnotatedBibliography.html#truefoster-and-kuhn-2007[Foster
 and Kuhn 2007] for a high-level description.
 
 Coarse LM
@@ -355,7 +354,7 @@ regular LMs do, they model sequences of word classes. Since word-class
 sequences are much less sparse than word sequences, we can reasonably
 train 8-gram coarse LMs and maintain good decoding speed while getting
 a useful boost in quality
-(link:PortageIIAnnotatedBibliography.html#Stewartetal2014[Stewart
+(link:PortageIIAnnotatedBibliography.html#truestewart-et-al-2014[Stewart
 et al 2014]).
 
 To train coarse LMs, you must be using our framework. They are now
@@ -369,7 +368,7 @@ Coarse BiLM
 The coarse BiLM feature is a language model that takes into account
 both the source and target language, looking at coarse classes of words
 instead of individual words, potentially improving translation quality
-(link:PortageIIAnnotatedBibliography.html#Stewartetal2014[Stewart
+(link:PortageIIAnnotatedBibliography.html#truestewart-et-al-2014[Stewart
 et al 2014]). Training of these models requires the framework, as it is
 fairly complex to do. With PortageII 3.0, we don't enable them by
 default, because they are fairly expensive and don't yield enough

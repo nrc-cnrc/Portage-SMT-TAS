@@ -34,8 +34,7 @@ Powell's algorithm, the only method `cow.sh` supported), MIRA, lattice
 MIRA, PRO, SVM, and "expsb" (an experimental idea). See Cherry and
 Foster (NAACL 2012) for a comparison of these methods.
 
-See
-link:PortageIIOverview.html#DecoderModelTraining[Decoder
+See link:PortageIIOverview.html#truedecoder-model-training[Decoder
 Model Training] for a detailed description of our original MERT
 algorithm. Most of the new algorithms follow a similar
 batch-decode/batch-optimize loop, but some use lattices instead of
@@ -119,7 +118,7 @@ each source sentence from the corresponding n-best list.
 
 See also:
 
-* link:PortageIIOverview.html#RescoringModelTraining[Rescoring
+* link:PortageIIOverview.html#truerescoring-model-training[Rescoring
 Model Training] -- detailed description of the algorithm used to learn
 rescoring weights,
 * `doc/README.rescoring` (or `src/rescoring/README`) -- overview of the
@@ -132,7 +131,7 @@ To train a rescoring model, you need:
 
 * A source text;
 * A version of the source text containing either
-link:PortageIIFileFormats.html#MarkedUpText[translation
+link:PortageIIFileFormats.html#truemarked-up-text[translation
 rules], or, if rules are not used, a version with the special characters
 escaped;
 * One or more reference translations for the source text (preferably
@@ -145,8 +144,8 @@ of additional features) in the syntax described by `rescore_train -h`,
 taken from the list given by `rescore_train -H`.
 
 The source and reference files should be
-link:PortageIIFileFormats.html#TokenizedText[tokenized]
-and link:PortageIIFileFormats.html#AlignedText[aligned].
+link:PortageIIFileFormats.html#truetokenized-text[tokenized]
+and link:PortageIIFileFormats.html#truealigned-text[aligned].
 
 Rescoring Script
 ++++++++++++++++

@@ -148,7 +148,7 @@ PortageII does not provide language model training software, but
 how you train your language models is known to have a significant impact
 on translation quality. Larger language models will cost you in memory
 and speed, but that usually pays off in quality. It is almost always
-worth using 4-grams LM's, and sometimes also 5-grams, depending on how
+worth using 4-grams LMs, and sometimes also 5-grams, depending on how
 much target-language text is available. You can make your LM smaller by
 pruning small counts, usually without much impact on quality. Having an
 extra language model trained on a large monolingual corpus is also
@@ -156,7 +156,7 @@ usually worthwhile, despite its cost. The LM deserves a lot of
 resources; it is better to skimp on other parameters (see above and
 below) before skimping on LM parameters.
 
-To significantly speed up loading LM's in `canoe`, we recommend
+To significantly speed up loading LMs in `canoe`, we recommend
 converting them to our binary format using `arpalm2binlm`. This program
 requires enough memory to hold the whole LM in memory, but the binary
 files load 10 to 100 times faster than the text ones, with otherwise

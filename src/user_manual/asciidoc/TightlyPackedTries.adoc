@@ -18,7 +18,7 @@ Tightly Packed Tries
 Overview
 ^^^^^^^^
 
-Tightly Packed Tries (TPT's) use memory mapped IO to access a compact
+Tightly Packed Tries (TPTs) use memory mapped IO to access a compact
 representation of models directly on disk. Load time is negligible,
 access time is reasonable with a cost the first time a block is read
 from disk. Overall performance is comparable to regular model files, but
@@ -67,20 +67,20 @@ than the gzipped text files they represent.
 Further information
 ^^^^^^^^^^^^^^^^^^^
 
-* Presentation on TPT's by Uli Germann:
+* Presentation on TPTs by Uli Germann:
 link:uploads/Memory_mapping_Tightly_Packed_Tries_and_Suffix_Arrays.pdf[Memory
 mapping Tightly Packed Tries and Suffix Arrays].
-* link:PortageIIAnnotatedBibliography.html#Germannetal2009[Germann
-et al 2009], SETQA-NLP paper on TPT's.
-* link:PortageIIAnnotatedBibliography.html#Pauletal2009[Paul
-et al 2009], MT Summit XII technology showcase paper about
+* link:PortageIIAnnotatedBibliography.html#truegermann-et-al-2009[Germann et al 2009],
+SETQA-NLP paper on TPTs.
+* link:PortageIIAnnotatedBibliography.html#truepaul-et-al-2009[Paul et al 2009],
+MT Summit XII technology showcase paper about
 link:PortageLiveManual.html[PortageLive].
-* Building link:PortageIITrainingLanguageModels.html#TheTPLMformat[TPLM
-s] with `arpalm2tplm.sh`.
-* Building link:PortageIITrainingOtherModels.html#TheTPPTformat[TPPT
-s] with `textpt2tppt.sh`.
-* Building link:PortageIITrainingOtherModels.html#LexicalizedDistortionModels[TPLDM
-s] with `textldm2tpldm.sh`.
+* Building link:PortageIITrainingLanguageModels.html#truethe-tplm-format[TPLMs]
+with `arpalm2tplm.sh`.
+* Building link:PortageIITrainingOtherModels.html#truethe-tppt-format[TPPTs]
+with `textpt2tppt.sh`.
+* Building link:PortageIITrainingOtherModels.html#truelexicalized-distortion-models[TPLDMs]
+with `textldm2tpldm.sh`.
 
 '''''
 
