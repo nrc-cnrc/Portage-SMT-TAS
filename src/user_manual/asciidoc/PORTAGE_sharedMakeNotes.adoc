@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Make Notes
--------------------------
+PortageII Make Notes
+--------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
 Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming
@@ -11,7 +11,7 @@ Guidelines]
 
 '''''
 
-Some notes about using GNU make for the PORTAGE shared project.
+Some notes about using GNU make for the PortageII project.
 
 * To specify an install path other than your home directory, use:
 +
@@ -55,7 +55,7 @@ make everything from scratch, i.e., make clean then make all.
 +
 `install`
 +
-make all and then install everything needed to run PORTAGE shared.
+make all and then install everything needed to run PortageII.
 +
 `new_install `
 +
@@ -107,7 +107,7 @@ two sequentially instead: `make tm/train_ibm canoe/canoe` (no `-j`) or
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 Previous: link:PORTAGE_sharedWritingCode.html[Writing Code]
 Next: link:PORTAGE_sharedProgrammingGuidelines.html[Programming

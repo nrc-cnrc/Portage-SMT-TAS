@@ -3,13 +3,13 @@ include::header.adoc[]
 Confidence Estimation
 ---------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedEvaluation.html[Evaluation] Next:
 link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
 
 '''''
 
-PORTAGE shared includes a sentence-level confidence estimation (CE)
+PortageII includes a sentence-level confidence estimation (CE)
 layer. The purpose of CE in this context is to produce a value --
 typically a real-valued number between 0 and 1 -- that reflects the
 translation system's belief that it has done a Good Job. This number can
@@ -23,7 +23,7 @@ of this manual. It can be found in a plain text file in
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedEvaluation.html[Evaluation] Next:
 link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
 

@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Training Optimizing Weights
-------------------------------------------
+PortageII Training Optimizing Weights
+-------------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TightlyPackedTries.html[Tightly Packed Tries] Next:
 link:PORTAGE_sharedTranslating.html[Translating]
 
@@ -28,7 +28,7 @@ toc::[]
 Optimizing Weights for Canoe Decoding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PORTAGE shared supports a variety of weight tuning algorithms. The old
+PortageII supports a variety of weight tuning algorithms. The old
 `cow.sh` has been replaced by `tune.py`, which supports MERT (using
 Powell's algorithm, the only method `cow.sh` supported), MIRA, lattice
 MIRA, PRO, SVM, and "expsb" (an experimental idea). See Cherry and
@@ -309,7 +309,7 @@ will substitute them as necessary. See `rescore.py -h` for details.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TightlyPackedTries.html[Tightly Packed Tries] Next:
 link:PORTAGE_sharedTranslating.html[Translating]
 

@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Translating Rescoring Nbest Lists
-------------------------------------------------
+PortageII Translating Rescoring Nbest Lists
+-------------------------------------------
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
 link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
@@ -41,7 +41,7 @@ standard output.
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingDecoding.html[Decoding] Next:
 link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]

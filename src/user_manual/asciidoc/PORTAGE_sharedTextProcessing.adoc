@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Text Processing
-------------------------------
+PortageII Text Processing
+-------------------------
 
-Up link:PortageMachineTranslation.html[Portage II] Previous:
+Up link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
 Down: link:TMXProcessing.html[TMX Processing]
 
@@ -53,7 +53,7 @@ clean-utf8-text.pl < in.raw > in.clean
 -----------------------------------------
 
 will remove control characters and normalize spaces and hyphens for
-better processing by the rest of the PORTAGE shared suite.
+better processing by the rest of the PortageII suite.
 
 Some older sample preprocessing scripts are still available, for
 extracting text from very specific formats we've dealt with in the past:
@@ -72,7 +72,7 @@ If your corpus exists as a complex collection of documents in various
 formats, you might consider acquiring commercial alignment tools, many
 of which can create translation memories from a large number of document
 formats, and then export them in the TMX format. This is by far the
-easiest way to build your training corpus for PORTAGE shared.
+easiest way to build your training corpus for PortageII.
 
 Tokenizing
 ^^^^^^^^^^
@@ -117,7 +117,7 @@ identifies correspondences between translated sentences, and writes the
 results as
 link:PORTAGE_sharedFileFormats.html#AlignedText[Aligned Text].
 
-Example using Moore's aligner (not supplied with PORTAGE shared):
+Example using Moore's aligner (not supplied with PortageII):
 
 --------------------------------------------------
 moore-aligner.pl dir-containing-tokenized-files
@@ -196,7 +196,7 @@ removed by the aligner when it writes its output.
 During decoding, translations listed in the markup can be used to
 augment automatically-learned translations.
 
-PORTAGE shared includes software to use such markup to reliably
+PortageII includes software to use such markup to reliably
 translate numbers between French and English using a rule-based
 approach, but they can be used for many other purposes too. Our default
 `predecode_plugin` for use with PortageLive uses marked-up text to
@@ -211,7 +211,7 @@ Encoding Considerations
 Use utf-8. Period.
 
 For years now, we have been using utf-8 exclusively, so many scripts in
-PORTAGE shared now assume it, including `translate.pl` and the
+PortageII now assume it, including `translate.pl` and the
 PortageLive API.
 
 Use `iconv` to convert text from other encodings to utf-8.
@@ -222,7 +222,7 @@ them to utf-8 as needed.
 
 However, it is still noteworthy that except for pre- and post-processing
 (such as text clean up, lowercasing, tokenizing, detokenizing), the core
-programs in PORTAGE shared treat the data as a byte stream, and are
+programs in PortageII treat the data as a byte stream, and are
 encoding agnostic. They care only that the space, tab and newline
 characters be encoded using their single-byte ASCII representation.
 Thus, these core programs support all iso-latin-N encodings, cp-1252,
@@ -231,7 +231,7 @@ utf-32/ucs-4.
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] Previous:
+Up link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedWhereToFindThings.html[Where To Find Things]
 Down: link:TMXProcessing.html[TMX Processing]
 

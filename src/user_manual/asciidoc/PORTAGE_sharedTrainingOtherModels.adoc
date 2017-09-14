@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Training Other Models
-------------------------------------
+PortageII Training Other Models
+-------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTrainingModels.html[Models]
 Previous: link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
 Next: link:TightlyPackedTries.html[Tightly Packed Tries]
@@ -12,7 +12,7 @@ Next: link:TightlyPackedTries.html[Tightly Packed Tries]
 
 *Note:* this section of the user manual presents all the different
 models you can use, but not how best to use them. The steps required to
-train PORTAGE shared following our current recommendations are automated
+train PortageII following our current recommendations are automated
 in our experimental framework. See `tutorial.pdf` in `framework` for
 details.
 
@@ -130,7 +130,7 @@ follow the example in directory `framework`.
 Phrase tables based on IBM4 word alignment models
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
-In PORTAGE shared, we support easy integration of IBM4 word alignments
+In PortageII, we support easy integration of IBM4 word alignments
 produced by an external package, such as `MGiza++`. Our experiments show
 that we can get best results by combining counts from IBM4, HMM and IBM2
 alignments, and that this approach gives better results than using only
@@ -232,18 +232,18 @@ should at least test them with your data, to see if they help.
 Sparse Models
 ^^^^^^^^^^^^^
 
-With PORTAGE shared 3.0, we introduce sparse models, including the
+With PortageII 3.0, we introduce sparse models, including the
 original sparse features of
 link:PORTAGE_sharedAnnotatedBibliography.html#HopkinsandMay2011[Hopkins
 and May 2011] as adapted for Portage by
 link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
 and Foster 2012], as well as the Discriminative Reodering model of
 link:PORTAGE_sharedAnnotatedBibliography.html#Cherry2013[Cherry
-2013], which helps PORTAGE shared make better choices in word ordering
+2013], which helps PortageII make better choices in word ordering
 during the decoding process.
 
 Sparse features contribute a significant improvement to the quality of
-the translations produced by PORTAGE shared and should always be used.
+the translations produced by PortageII and should always be used.
 See `tutorial.pdf` in `framework` for instructions on how to train them.
 
 Neural Network Joint Models
@@ -265,7 +265,7 @@ improve how target words are chosen to translate source text, taking
 into account up to 11 source words and 3 target words all at the same
 time.
 
-With PORTAGE shared 3.0, we include the NNJM decoder feature, which
+With PortageII 3.0, we include the NNJM decoder feature, which
 allows users to incorporate NNJMs trained at the NRC in their systems.
 We also include pre-trained NNJMs for English-French translation in
 either direction as part of our updated Generic Model 2.0. We plan to
@@ -351,7 +351,7 @@ language words with a different sense or different translations.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTrainingModels.html[Models]
 Previous: link:PORTAGE_sharedTrainingLanguageModels.html[Language Models]
 Next: link:TightlyPackedTries.html[Tightly Packed Tries]

@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Translating
---------------------------
+PortageII Translating
+---------------------
 
-Up link:PortageMachineTranslation.html[Portage II] Previous:
+Up link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
 Weights] Down:
 link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
@@ -14,12 +14,12 @@ link:PORTAGE_sharedTranslatingDecoding.html[Decoding]
 translation pipeline is now automated in our experimental framework for
 translation during training, and in script `translate.pl` for use in
 PortageLive. Please read `tutorial.pdf` in `framework` and the
-link:PortageLiveManual.html[Portage Live Manual].
+link:PortageLiveManual.html[PortageLive Manual].
 
 Translating
 ~~~~~~~~~~~
 
-Source texts to be translated by PORTAGE shared must be in
+Source texts to be translated by PortageII must be in
 link:PORTAGE_sharedFileFormats.html#TokenizedText[Tokenized
 Text] or
 link:PORTAGE_sharedFileFormats.html#MarkedUpText[Marked Up
@@ -41,7 +41,7 @@ Phrasetables In Canoe]
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] Previous:
+Up link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedTrainingOptimizingWeights.html[Optimizing
 Weights] Down:
 link:PORTAGE_sharedTranslatingDecoding.html[Decoding]

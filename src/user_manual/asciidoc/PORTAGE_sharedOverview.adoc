@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Overview
------------------------
+PortageII Overview
+------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Next:
+Up: link:PortageMachineTranslation.html[PortageII] Next:
 link:PORTAGE_sharedKnowledgePrerequisites.html[Prerequisites]
 
 '''''
@@ -32,7 +32,7 @@ it considers most probable.
 Various commercial releases of Portage have been made. Since this page
 provides background about the project and all its variants, we use
 "Portage" to refer generically to the research version or any of the
-commercial releases: PORTAGE_shared_, Portage 1.x, or PORTAGE shared.
+commercial releases: PORTAGE_shared_, Portage 1.x, or PortageII.
 
 :toc-title: Contents of this page
 :toclevels: 4
@@ -504,7 +504,7 @@ Bibliography].
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Next:
+Up: link:PortageMachineTranslation.html[PortageII] Next:
 link:PORTAGE_sharedKnowledgePrerequisites.html[Prerequisites]
 
 '''''

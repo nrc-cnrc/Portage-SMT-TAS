@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Annotated Bibliography
--------------------------------------
+PortageII Annotated Bibliography
+--------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedProgrammingGuidelines.html[Programming
 Guidelines] Next: link:TrainingEuroparl.html[Requirements For
 Training A Mid Size System]
@@ -528,7 +528,7 @@ Specialized Papers about Statistical Machine Translation (SMT)
 
 These specialized papers are listed in alphabetical order by first
 author. They were chosen for inclusion here because they are related to
-recent features in PORTAGE shared.
+recent features in PortageII.
 
 Badr et al 2007
 ^^^^^^^^^^^^^^^
@@ -657,7 +657,7 @@ Cherry et al 2012
 Decoding" by Colin Cherry, Robert Moore and Chris Quirk. WMT 2012.
 
 This paper describes the type of Hierarchical Lexicalized Distortion
-Model (HLDM) currently implemented in PORTAGE shared. The concept of an
+Model (HLDM) currently implemented in PortageII. The concept of an
 HLDM goes back to the 2008 paper "A Simple and Effective Hierarchical
 Phrase Reordering Model" by Galley & Manning
 (link:PORTAGE_sharedAnnotatedBibliography.html#GalleyandManning2008[Galley
@@ -679,7 +679,7 @@ here, but the latter requires slightly less computation. The paper also
 shows how the new type of HLDM can correctly enforce ITG constraints
 that were not always enforced by an older "coverage vector" approach
 (this aspect of the paper will not be of great interest to typical users
-of PORTAGE shared).
+of PortageII).
 
 Foster et al 2006
 ^^^^^^^^^^^^^^^^^
@@ -709,7 +709,7 @@ observed. Application of a smoothing method to the duck data would yield
 an estimate for the probability of A that was lower than 50%, and a
 probability for D that was higher than 0%.
 
-The two key components of a phrase-based SMT system like PORTAGE shared
+The two key components of a phrase-based SMT system like PortageII
 are the target language model, which assigns scores to proposed
 sequences of target-language words, and the phrase table, which stores
 counts of co-occurrences of source-language and target-language phrases.
@@ -837,14 +837,14 @@ Assurance for Natural Language Processing, 2009
 (http://aclweb.org/anthology-new/W/W09/#1500[SETQA_NLP_Proceedings]).
 
 This paper describes tightly packed tries, a data structure used by
-PORTAGE shared to store language models and phrase tables - including
+PortageII to store language models and phrase tables - including
 gigantic ones - as compactly as possible; they can also be used to store
 many other types of NLP data. Tightly packed tries store data more
 compactly than flat text files compressed with the gzip utility. They
 support memory mapping and thus allow very short load times and memory
 mapping between processes. This paper may be read in conjunction with
-Paul et al 2009 (below), which describes Portage Live: a VM version of
-PORTAGE shared made possible by the use of tightly packed tries.
+Paul et al 2009 (below), which describes PortageLive: a VM version of
+PortageII made possible by the use of tightly packed tries.
 
 Guzman et al 2009
 ^^^^^^^^^^^^^^^^^
@@ -901,7 +901,7 @@ on Empirical Methods for Natural Language Processing and Conf. on
 Computational Natural Language Learning (EMNLP-CONLL), 2007
 (http://www.aclweb.org/anthology-new/D/D07/[EMNLP07Proceedings]).
 
-The two key components of a phrase-based SMT system like PORTAGE shared
+The two key components of a phrase-based SMT system like PortageII
 are the target language model, which assigns scores to proposed
 sequences of target-language words, and the phrase table, which stores
 counts of co-occurrences of source-language and target-language phrases.
@@ -956,7 +956,7 @@ the preceding and following phrase pair, we can estimate the probability
 that during decoding, it will have a given orientation with respect to
 the preceding and following phrase pairs. Many variations of this idea
 are also possible; most of them lead to performance improvements in most
-situations. PORTAGE shared incorporates a version of lexicalized
+situations. PortageII incorporates a version of lexicalized
 distortion.
 
 Kuhn and De Mori 1990-2
@@ -1036,7 +1036,7 @@ Translation, 2011.
 This describes Karlsruhe's "bilingual language model". This language
 model is a clever way of applying extra source-side contextual
 information (beyond phrase boundaries) at decoding time without
-disrupting the current architecture of systems like PORTAGE shared. That
+disrupting the current architecture of systems like PortageII. That
 is, search is the same as in our current system; it is based on phrase
 pairs. The bilingual language model score, calculated from the sequence
 of bilingual tokens in the translation hypothesis, is an additional
@@ -1061,27 +1061,27 @@ reliably estimated than the statistics for short phrases.
 Paul et al 2009
 ^^^^^^^^^^^^^^^
 
-"Portage Live: Delivering Machine Translation Technology via
+"PortageLive: Delivering Machine Translation Technology via
 Virtualization" by Patrick Paul, Samuel Larkin, Ulrich Germann, Eric
 Joanis, and Roland Kuhn. Proc. MT Summit XII, 2009
 (http://www.mt-archive.info/MTS-2009-TOC.htm[MTSummitProceedings]).
 
 Virtualization makes it possible to port state-of-the-art machine
-translation technology, such as PORTAGE shared, to a variety of
+translation technology, such as PortageII, to a variety of
 operating systems with little effort, and to run several instances of
 the translation decoder on the same machine. This paper describes
-Portage Live, a virtualized version of PORTAGE shared. Portage Live can
+PortageLive, a virtualized version of PortageII. PortageLive can
 run concurrently on a single state-of-the-art desktop or laptop computer
 with other applications; it can also be used in a network for
-distributed translation processing. The virtualization of PORTAGE shared
-was made possible by encoding PORTAGE shared's phrase tables and
+distributed translation processing. The virtualization of PortageII
+was made possible by encoding PortageII's phrase tables and
 language models in a data structure called a tightly packed try. Tightly
 packed tries are described in Germann et al. 2009 (above); it is
-strongly recommended that the Portage Live paper be read in conjunction
+strongly recommended that the PortageLive paper be read in conjunction
 with the Germann et al one. Thanks to tightly packed tries, even very
 large models for translation can be fitted into a reasonable amount of
 memory; loading of these models is very fast. To summarize, this paper
-shows how to virtualize PORTAGE shared, allowing fast transfer of new
+shows how to virtualize PortageII, allowing fast transfer of new
 technology to existing and potential customers without significant
 investments in porting software between operating systems.
 
@@ -1149,7 +1149,7 @@ quite harmful when the two languages have different word order
 (German-English).
 
 The aspect of this paper that's important for understanding today's
-PORTAGE shared system is the idea of lexical estimates for P(s|t) and
+PortageII system is the idea of lexical estimates for P(s|t) and
 P(t|s). The phrases s and t may only have occurred a few times in the
 training data; thus, the "relative frequency" estimates of P(s|t) and
 P(t|s) based on the count of s, the count of t, and the count of
@@ -1157,7 +1157,7 @@ co-occurrences of s and t may be quite unreliable. However, if s or t
 are multi-word phrases, one can also estimate P(s|t) and P(t|s) from the
 co-occurrence counts of the individual words that make up s and t. This
 paper proposes a "noisy-or" lexical estimate for P(s|t) and P(t|s); the
-default setting for PORTAGE shared typically uses this Zens-Ney lexical
+default setting for PortageII typically uses this Zens-Ney lexical
 estimate, as defined in this 2004 paper.
 
 Zens and Ney 2006
@@ -1201,15 +1201,15 @@ features must reflect the quality of the information from each feature.
 The process of assigning weights to features is called "tuning".
 
 This paper is one of the "ancestors" of the batch lattice MIRA tuning
-algorithm employed by PORTAGE shared. If you are interested in learning
-how PORTAGE shared does tuning, reading the 2012 paper below by members
+algorithm employed by PortageII. If you are interested in learning
+how PortageII does tuning, reading the 2012 paper below by members
 of the NRC team - "Batch Tuning Strategies for Statistical Machine
 Translation" - is a higher priority than reading this one. Our 2012
 paper describes the batch lattice MIRA tuning method used by PORTAGE
 shared.
 
 However, there is another aspect of this paper by Hopkins & May that is
-directly relevant to PORTAGE shared. When these researchers designed
+directly relevant to PortageII. When these researchers designed
 PRO, their main motivation was to make it possible to exploit thousands
 of features. MERT, the most commonly-used tuning method at the time the
 Hopkins-May paper was published, worked well with a handful of features
@@ -1222,14 +1222,14 @@ of MERT with the scalability of MIRA (as was our batch lattice MIRA
 technique, devised the next year).
 
 The part of the Hopkins & May paper that's directly relevant to today's
-PORTAGE shared is the description of the sparse features they used
+PortageII is the description of the sparse features they used
 (section 5.3). We only use the PBMT (phrase-based MT) features described
-here, but not the SBMT (syntax-based) ones, because PORTAGE shared is a
+here, but not the SBMT (syntax-based) ones, because PortageII is a
 phrase-based system. The experiments by Hopkins & May used a set-up that
 allowed up to 6,723 PBMT features in principle, not far off the maximum
 number of 6,848 features in our "Big Set" experiments in "Batch Tuning
 Strategies for Statistical Machine Translation" (see below), which are
-essentially the "hopmay" sparse features in PORTAGE shared.
+essentially the "hopmay" sparse features in PortageII.
 
 Cherry and Foster 2012 revisited
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1290,8 +1290,8 @@ many tuning strategies from the literature in an extremely thorough set
 of experiments, it also describes a new strategy that has more desirable
 characteristics than any of the older strategies.
 
-In addition to describing PORTAGE shared's tuning algorithm, batch
-lattice MIRA, this paper is of interest to users of PORTAGE shared
+In addition to describing PortageII's tuning algorithm, batch
+lattice MIRA, this paper is of interest to users of PortageII
 because it describes a set of sparse features available to them. A
 sparse feature is a feature that is irrelevant most of the time. For
 instance, it might be a Boolean that is set to 0 for most input,
@@ -1315,7 +1315,7 @@ most frequent words in each language appear aligned 1-1 to each other,
 to some other word, or not 1-1; and _length bin_ captures each possible
 phrase length and length pair".
 
-The "hopmay" features in the PORTAGE shared code are defined exactly the
+The "hopmay" features in the PortageII code are defined exactly the
 same way as these Hopmay-May features in the Big Set. Note that PORTAGE
 shared has another set of sparse features that enable an advanced form
 of lexicalized distortion, DHDM, as described in "Improved Reordering
@@ -1324,7 +1324,7 @@ the description of this paper elsewhere in this bibliography. Ideally,
 these two papers, the Cherry & Foster 2012 paper and the Cherry 2013
 paper, should be read together.
 
-In principle, the sparse features in PORTAGE shared could be real
+In principle, the sparse features in PortageII could be real
 numbers. As currently implemented, they must be Booleans or integers.
 
 Cherry 2013
@@ -1613,7 +1613,7 @@ innovations make it possible to incorporate the NNJM in an SMT system as
 a feature without significantly slowing down decoding.
 
 There are four ways the NNJM can be used as a feature in an MT system
-like PORTAGE shared. The way that lends itself most naturally to
+like PortageII. The way that lends itself most naturally to
 decoding is scoring each proposed target word, going left-to-right in
 the target language; the authors denote this as a S2T/L2R model. Once a
 set of target hypotheses has been proposed, one can score the source
@@ -1636,13 +1636,13 @@ Initially, other MT research groups had some difficulty in replicating
 the dramatic BLEU gains from NN models described by the Raytheon BBN
 authors in this paper. NRC researchers were among the first to validate
 the approach taken here by incorporating it in a non-BBN system, PORTAGE
-shared, and then getting gains for PORTAGE shared as dramatic as those
+shared, and then getting gains for PortageII as dramatic as those
 described in this paper. This paper does not describe all the fiddly
 details of training needed to make NNJMs and NNLTMs work well. Jacob
 Devlin, the first author of the paper (now at Microsoft) deserves our
 gratitude: he spent many hours on the phone and on email with NRC
 researchers helping them to get NNJMs and NNLTMs to perform well
-when incorporated in PORTAGE shared.
+when incorporated in PortageII.
 
 The following is a summary of how we at NRC train NNJMs. Packed rest
 costs are an NRC innovation (they weren't one of the tips from Jacob
@@ -1720,7 +1720,7 @@ performance, we recommend its usage in the calculation of future costs.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedProgrammingGuidelines.html[Programming
 Guidelines] Next: link:TrainingEuroparl.html[Requirements For
 Training A Mid Size System]

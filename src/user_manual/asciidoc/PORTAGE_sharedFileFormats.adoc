@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared File Formats
----------------------------
+PortageII File Formats
+----------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TMXProcessing.html[TMX Processing] Next:
 link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
 Formats]
@@ -93,7 +93,7 @@ sentence-boundary information.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TMXProcessing.html[TMX Processing] Next:
 link:PORTAGE_sharedWordAlignmentFormats.html[Word Alignment
 Formats]

@@ -5,10 +5,10 @@ Portage Machine Translation
 
 Software for Statistical Machine Translation.
 
-PORTAGE shared 3.0
-~~~~~~~~~~~~~~~~~~
+PortageII 3.0
+~~~~~~~~~~~~~
 
-The PORTAGE shared series includes several leaps forward in NRC's SMT
+The PortageII series includes several leaps forward in NRC's SMT
 technology.
 
 With Neural Network Joint Models (NNJM), version 3.0 brings deep
@@ -16,7 +16,7 @@ learning to the set of tools used to improve machine translation
 quality, as well as NRC's improved reordering model based on sparse
 features, coarse LMs, and other improvements. The NRC has put
 significant efforts in optimizing the default training parameters to
-improve the quality of the translations produced by PORTAGE shared, and
+improve the quality of the translations produced by PortageII, and
 we expect users to see and appreciate the difference.
 
 With version 2.0, we added two important features to help translators:
@@ -33,7 +33,7 @@ success at the NIST Open Machine Translation 2012 Evaluation
 See file RELEASES for full details. See also
 `doc/PortageAPIComparison.pdf` for a series of tables showing the
 evolution of the API, the plugin architecture and the training
-configuration for PORTAGE shared versions 1.0, 2.0, 2.1, 2.2 and 3.0.
+configuration for PortageII versions 1.0, 2.0, 2.1, 2.2 and 3.0.
 
 User Manual
 ~~~~~~~~~~~
@@ -63,8 +63,8 @@ Decoder Search Algorithms And Data Structures]
 * link:ConfidenceEstimation.html[Confidence Estimation]
 * link:PORTAGE_sharedPerformanceConsiderations.html[Performance Considerations]
 * link:PORTAGE_sharedMagicStreams.html[Magic Streams]
-* link:PortageLiveManual.html[Portage Live Manual]
-* link:PortageLiveCustomizationPlugins.html[Portage Live Customization Plugins]
+* link:PortageLiveManual.html[PortageLive Manual]
+* link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 * link:PORTAGE_sharedProgrammerReference.html[Programmer Reference]
 ** link:PORTAGE_sharedWritingCode.html[Writing Code]
 ** link:PORTAGE_sharedMakeNotes.html[Using Make] (detailed notes)

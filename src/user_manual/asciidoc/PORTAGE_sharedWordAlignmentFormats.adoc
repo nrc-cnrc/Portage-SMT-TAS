@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Word Alignment Formats
--------------------------------------
+PortageII Word Alignment Formats
+--------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedFileFormats.html[Text File Formats] Next:
 link:PORTAGE_sharedTrainingModels.html[Constructing Models]
 
@@ -16,7 +16,7 @@ toc::[]
 Using Word Alignments
 ~~~~~~~~~~~~~~~~~~~~~
 
-When using the framework to train PORTAGE shared systems, you will see
+When using the framework to train PortageII systems, you will see
 the word alignments stored in `*.align.gz` files in directory
 `models/wal`. These will be stored in the `sri` format (see below) which
 is most common in the SMT community. We used to recalculate alignments
@@ -43,7 +43,7 @@ alignments themselves.
 The program `gen_phrase_tables` can read GIZA\++ alignment files, as an
 alternative to generating alignments on the fly. This is intended to
 allow the use of word alignment models trained with GIZA++ in the
-PORTAGE shared phrase extraction process. The `align-words` program can
+PortageII phrase extraction process. The `align-words` program can
 also be used to convert GIZA++ alignment files to any of the formats
 listed below.
 
@@ -211,7 +211,7 @@ Fromat: uli
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedFileFormats.html[Text File Formats] Next:
 link:PORTAGE_sharedTrainingModels.html[Constructing Models]
 

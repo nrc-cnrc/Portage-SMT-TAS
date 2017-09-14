@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Translating Postprocessing
------------------------------------------
+PortageII Translating Postprocessing
+------------------------------------
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
 Nbest Lists] Next:
@@ -58,7 +58,7 @@ For French, add the option `-lang=fr`.
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
 Nbest Lists] Next:

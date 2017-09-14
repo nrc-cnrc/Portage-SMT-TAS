@@ -3,7 +3,7 @@ include::header.adoc[]
 TMX Processing
 --------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTextProcessing.html[Text Processing] Next:
 link:PORTAGE_sharedFileFormats.html[Text File Formats]
 
@@ -17,7 +17,7 @@ The tmx-prepro module
 ~~~~~~~~~~~~~~~~~~~~~
 
 The steps described here, as well as the creation of train, dev and test
-files needed for training SMT systems using PORTAGE shared, are
+files needed for training SMT systems using PortageII, are
 automated in the `tmx-prepro` module that you can find in the PORTAGE
 shared distribution.
 
@@ -28,7 +28,7 @@ The TMX file format
 ~~~~~~~~~~~~~~~~~~~
 
 This section describes how to process a TMX file to extract corpora in a
-format usable by PORTAGE shared for training or testing. TMX stands for
+format usable by PortageII for training or testing. TMX stands for
 Translation Memory Xchange format; it is the standard format for
 exporting data from a translation memory: see
 https://www.gala-global.org/resources/industry-standards[GALAIndustryStandards.]
@@ -36,7 +36,7 @@ Along with a fair amount of mark-up information, a TMX file contains
 sentences in one language (the source language) in parallel with their
 translations in one or more other language(s) (the target language(s)).
 
-By contrast, PORTAGE shared requires all source-language sentences to be
+By contrast, PortageII requires all source-language sentences to be
 in one file and all target-language sentences to be in another. Only one
 target language is allowed. The two files must be line-aligned, with one
 sentence or segment per line, preferably in UTF-8 (UTF-16 is not
@@ -232,7 +232,7 @@ files. It also automates cleaning up the output text using
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTextProcessing.html[Text Processing] Next:
 link:PORTAGE_sharedFileFormats.html[Text File Formats]
 

@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Decoder Search Algorithms And Data Structures
-------------------------------------------------------------
+PortageII Decoder Search Algorithms And Data Structures
+-------------------------------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
 Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]
@@ -287,7 +287,7 @@ Hypothesis-Stack class is used for this purpose.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedTranslatingPostprocessing.html[Postprocessing]
 Next: link:UsingPhrasetablesInCanoe.html[Using Phrasetables]

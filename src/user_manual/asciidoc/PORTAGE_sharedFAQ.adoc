@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared FAQ
-------------------
+PortageII FAQ
+-------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TrainingEuroparl.html[Requirements For Training A Mid Size
 System]
 
@@ -56,7 +56,7 @@ Second answer: if you really must, append your terminological database
 as another bitext at the end of your training corpus. This way, the
 system will have seen all the words in your terminology database.
 
-But don't try to force PORTAGE shared to use your terminology
+But don't try to force PortageII to use your terminology
 systematically. Although a human can instantly see when a potential
 match for a term applies or does not, a machine cannot do so easily.
 
@@ -65,33 +65,33 @@ Why don’t I use Google Translate instead?
 
 This may make sense if you just want general-purpose translation.
 However, if you have a sufficient amount of training data from the
-relevant domain/client, PORTAGE shared lets you build a custom system
+relevant domain/client, PortageII lets you build a custom system
 for that domain. Another reason not to use Google Translate: your
 clients may not appreciate having their data floating around in the
 cloud – there could be security issues.
 
-Why does PORTAGE shared make dumb mistakes?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why does PortageII make dumb mistakes?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Remember, PORTAGE shared is a machine with different strengths and
+Remember, PortageII is a machine with different strengths and
 weaknesses than human beings. If the problem is a word that’s weirdly
 translated, a misspelled word, or inappropriate punctuation, search for
 that text in the data you trained it on! The problem often comes from
 there. If the problem is with grammar, e.g., poor long-distance
-subject-verb agreement, that’s because PORTAGE shared is not good at
+subject-verb agreement, that’s because PortageII is not good at
 grammar. On the other hand, it is often surprisingly good at translating
 idioms – if they were in the training data.
 
-I find myself correcting the same error in PORTAGE shared's output over and over – why?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I find myself correcting the same error in PortageII's output over and over – why?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you mean that you see errors today that you fixed in the post-edited
 output a month ago, try to convince your managers to add newly
 post-edited data to the training data more often, and to retrain PORTAGE
-shared more often. PORTAGE shared learns from corrected data, so after
+shared more often. PortageII learns from corrected data, so after
 retraining it should stop making many of the mistakes you corrected
 earlier. If you mean that you see errors now that you fixed five minutes
-ago, that’s a known problem with the current version of PORTAGE shared;
+ago, that’s a known problem with the current version of PortageII;
 some day, we hope to give it the ability to learn corrections "on the
 fly" without requiring a complete retraining of the system.
 
@@ -99,12 +99,12 @@ Can I use a system trained on data from one domain/client for translating data f
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you have some translations from the new domain/client, there are ways
-of training PORTAGE shared so that it combines the new data with data
+of training PortageII so that it combines the new data with data
 from other domains to yield reasonable performance.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:TrainingEuroparl.html[Requirements For Training A Mid Size
 System]
 

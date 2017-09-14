@@ -3,7 +3,7 @@ include::header.adoc[]
 Tightly Packed Tries
 --------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTrainingModels.html[Models] Previous:
 link:PORTAGE_sharedTrainingOtherModels.html[Training Other
 Models] Next:
@@ -51,8 +51,8 @@ memory footprint of each process is further reduced because the memory
 is shared between all processes using the same models.
 
 Such a server setting is exactly what is implemented in the
-link:PortageLiveManual.html[Portage Live] system, which is now
-run-time server and demonstration platform we use for PORTAGE shared.
+link:PortageLiveManual.html[PortageLive] system, which is now
+run-time server and demonstration platform we use for PortageII.
 
 File structure
 ^^^^^^^^^^^^^^
@@ -74,7 +74,7 @@ mapping Tightly Packed Tries and Suffix Arrays].
 et al 2009], SETQA-NLP paper on TPT's.
 * link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
 et al 2009], MT Summit XII technology showcase paper about
-link:PortageLiveManual.html[Portage Live].
+link:PortageLiveManual.html[PortageLive].
 * Building link:PORTAGE_sharedTrainingLanguageModels.html#TheTPLMformat[TPLM
 s] with `arpalm2tplm.sh`.
 * Building link:PORTAGE_sharedTrainingOtherModels.html#TheTPPTformat[TPPT
@@ -84,7 +84,7 @@ s] with `textldm2tpldm.sh`.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTrainingModels.html[Models] Previous:
 link:PORTAGE_sharedTrainingOtherModels.html[Training Other
 Models] Next:

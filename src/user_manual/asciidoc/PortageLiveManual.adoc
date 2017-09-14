@@ -1,11 +1,11 @@
 include::header.adoc[]
 
-Portage Live Manual
--------------------
+PortageLive Manual
+------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedMagicStreams.html[Magic Streams] Next:
-link:PortageLiveCustomizationPlugins.html[Portage Live
+link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins]
 
 '''''
@@ -17,17 +17,17 @@ Overview
 ^^^^^^^^
 
 This manual describes how to build a live translation server using
-PORTAGE shared, called "PortageLive". The rationale for doing this on
+PortageII, called "PortageLive". The rationale for doing this on
 virtual machines is laid out in
 link:PORTAGE_sharedAnnotatedBibliography.html#Pauletal2009[Paul
-et al 2009]. Virtualization makes it possible to port PORTAGE shared to
+et al 2009]. Virtualization makes it possible to port PortageII to
 a variety of operating systems with little effort, and to run several
-instances of PORTAGE shared on the same machine. For instance, Portage
+instances of PortageII on the same machine. For instance, Portage
 Live can run concurrently on a single state-of-the-art desktop or laptop
 computer with other applications; it can also be used in a network for
 distributed translation processing.
 
-The virtualization of PORTAGE shared was made feasible by two
+The virtualization of PortageII was made feasible by two
 technological innovations for the data structures that take up the most
 memory in a typical machine translation system, the phrase tables and
 the language models (LMs). First, we store them in a memory-efficient
@@ -54,24 +54,24 @@ others at no extra cost.
 
 To create a PortageLive application, one must obtain a bilingual,
 parallel corpus for the two languages of interest. The next step is to
-obtain the PORTAGE shared code, compile it, and install the executables.
+obtain the PortageII code, compile it, and install the executables.
 One then preprocesses the corpus and trains the models (phrase tables
 and LMs), and arranges the resulting files in a specified file layout.
 Then, one builds the virtual appliance; alternately, one can install the
 models on a physical machine. Finally, one arranges for one's
-application to call Portage Live (e.g., via SOAP). All these steps are
+application to call PortageLive (e.g., via SOAP). All these steps are
 described in more detail in the sections below.
 
-Installing PORTAGE shared
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing PortageII
+^^^^^^^^^^^^^^^^^^^^
 
-First, you need to compile and install PORTAGE shared. The instructions
+First, you need to compile and install PortageII. The instructions
 for this are in the "INSTALL" file on the CD.
 
-Training PORTAGE shared in the Framework
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Training PortageII in the Framework
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once you have installed PORTAGE shared, you must train a system using
+Once you have installed PortageII, you must train a system using
 your parallel corpora, preferably using our experimental framework. The
 document `framework/tutorial.pdf` gives a tutorial on training models
 and decoding in the current framework; read this first, and then apply
@@ -91,18 +91,18 @@ The Runtime File Layout
 Once you have trained the models, you need to create the correct file
 layout for building the virtual appliance - you need to strip down the
 list of files to just those needed and arrange them in the structure
-needed on the PortageLive server. These include: 1. the PORTAGE shared
+needed on the PortageLive server. These include: 1. the PortageII
 software 2. the trained models 3. the web service software.
 
 The `PortageLive` directory on the CD contains the files and scripts you
 need to prepare the runtime file layout.
 
-PORTAGE shared runtine software layout
-++++++++++++++++++++++++++++++++++++++
+PortageII runtine software layout
++++++++++++++++++++++++++++++++++
 
 If you use virtual machines to deploy your translation servers, you want
 to minimize the size of the software installed on each one. Most of the
-PORTAGE shared software is only needed while you're training models, so
+PortageII software is only needed while you're training models, so
 the runtime software structure is much smaller.
 
 In `PortageLive/bin`, you can run
@@ -117,9 +117,9 @@ or
 make DO_EXTERNAL_LIBS=1
 --------------------------
 
-to assemble the PORTAGE shared runtime software layout. (The second
+to assemble the PortageII runtime software layout. (The second
 variant tells make to try to gather the shared libraries too.) First,
-however, you have to have installed PORTAGE shared and configured your
+however, you have to have installed PortageII and configured your
 environment as you would to run the software, i.e., by sourcing
 `SETUP.bash`, as described in `INSTALL`. The `Makefile` in
 `PortageLive/bin` finds the programs where they are installed and copies
@@ -194,7 +194,7 @@ Web service software layout
 +++++++++++++++++++++++++++
 
 These files include some web pages, CGI scripts, and the WSDL definition
-for calling PORTAGE shared via SOAP. They must ultimately find their way
+for calling PortageII via SOAP. They must ultimately find their way
 in the web server structure on your translation server, typically in
 `/var/www`. The WSDL file must be edited to hard-code your IP address;
 if you use virtual machines, our instructions (see below) show how to
@@ -267,7 +267,7 @@ The instructions shown above all assume a single context is installed on
 a translation server (an appropriate choice for Virtual Appliances), but
 we provide support for installing multiple contexts on the same server:
 
-* Multiple contexts share the same PORTAGE shared runtime software, so
+* Multiple contexts share the same PortageII runtime software, so
 you only install this once.
 
 * The models for each context should be installed under
@@ -297,11 +297,11 @@ advantages of each option:
 
 Virtual machines:
 
-1.  you can deploy Portage Live on your existing infrastructure, even
+1.  you can deploy PortageLive on your existing infrastructure, even
 your desktop machines, regardless of the OS your are running on them;
 2.  you can tap in to your virtualization infrastructure, if you already
 have one;
-3.  you can tap in to cloud computing, deploying Portage Live on 3rd
+3.  you can tap in to cloud computing, deploying PortageLive on 3rd
 party clouds;
 4.  virtualization makes it possible to adjust assigned resources as the
 load fluctuates.
@@ -351,8 +351,8 @@ root directory) on machine <host>, using the root (i.e., administrator)
 account.
 
 Copy the three `rpm.build.root` structures to their destination on your
-physical server. You can copy the PORTAGE shared and web service
-software once - you can probably even install all the PORTAGE shared
+physical server. You can copy the PortageII and web service
+software once - you can probably even install all the PortageII
 software instead of the minimal layout described above, since space will
 likely be less limited than on virtual machines. Then for each context
 you want to make available, copy the model files to an appropriate
@@ -375,7 +375,7 @@ service software layout described earlier. The API is implemented in the
 PHP script `PortageLiveAPI.php`. The associated WSDL,
 `PortageLiveAPI.wsdl`, serves both as interface definition for other
 languages, and contains the documentation of the API. In the end, the
-PHP script calls PORTAGE shared via the `soap-translate.sh` script that
+PHP script calls PortageII via the `soap-translate.sh` script that
 is created when you train your models.
 
 The current SOAP API includes methods `translate()`, `translateTMX()`
@@ -393,7 +393,7 @@ successfully used our API from Java (using Eclipse) and C# and it can be
 used from any language that supports SOAP.
 
 The SOAP API has changed significantly with version 3.0. The changes
-over the versions of PORTAGE shared are documented in
+over the versions of PortageII are documented in
 `doc/PortageAPIComparison.pdf`. Sample PHP code that you can port to
 your applications's language is provided in determine-version.php to
 automatically detect the version of PortageLive installed on a
@@ -455,9 +455,9 @@ call to `translate.pl` or `soap-translate.sh`.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedMagicStreams.html[Magic Streams] Next:
-link:PortageLiveCustomizationPlugins.html[Portage Live
+link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins]  
 
 '''''

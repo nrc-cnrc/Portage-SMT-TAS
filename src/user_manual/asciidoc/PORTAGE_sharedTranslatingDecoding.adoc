@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Translating Decoding
------------------------------------
+PortageII Translating Decoding
+------------------------------
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Next:
 link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
 Nbest Lists]
@@ -49,7 +49,7 @@ application.
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Next:
 link:PORTAGE_sharedTranslatingRescoringNbestLists.html[Rescoring
 Nbest Lists]

@@ -1,18 +1,18 @@
 include::header.adoc[]
 
-PORTAGE shared Magic Streams
-----------------------------
+PortageII Magic Streams
+-----------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
-Next: link:PortageLiveManual.html[Portage Live]
+Next: link:PortageLiveManual.html[PortageLive]
 
 '''''
 
 Magic Streams
 ~~~~~~~~~~~~~
 
-Almost all programs in the PORTAGE shared suite use what's known as a
+Almost all programs in the PortageII suite use what's known as a
 _magic stream_, which transparently handles any of the following in
 place of a file name argument:
 
@@ -42,7 +42,7 @@ gzip infile.gz | portageii_pgm -in - -out - | gzip > outfile.gz
 portageii_pgm -in "zcat infile.gz|" -out outfile.gz
 ----------------------------------------------------
 
-And what if you want to pipe two or more inputs to a PORTAGE shared
+And what if you want to pipe two or more inputs to a PortageII
 program? You can specify as many pipes as there are file arguments:
 
 ---------------------------------------
@@ -66,9 +66,9 @@ yield mixed output on cout (stdout).
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedPerformanceConsiderations.html[Performance]
-Next: link:PortageLiveManual.html[Portage Live]
+Next: link:PortageLiveManual.html[PortageLive]
 
 '''''
 

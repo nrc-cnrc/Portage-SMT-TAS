@@ -1,10 +1,10 @@
 include::header.adoc[]
 
-PORTAGE shared Programmer Reference
------------------------------------
+PortageII Programmer Reference
+------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
-link:PortageLiveCustomizationPlugins.html[Portage Live
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins] Down:
 link:PORTAGE_sharedWritingCode.html[Writing Code]
 
@@ -18,8 +18,8 @@ Guidelines]
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
-link:PortageLiveCustomizationPlugins.html[Portage Live
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageLiveCustomizationPlugins.html[PortageLive
 Customization Plugins] Down:
 link:PORTAGE_sharedWritingCode.html[Writing Code]
 

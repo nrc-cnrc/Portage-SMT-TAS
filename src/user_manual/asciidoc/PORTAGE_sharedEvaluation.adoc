@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Evaluation
--------------------------
+PortageII Evaluation
+--------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:UsingPhrasetablesInCanoe.html[Using Phrasetables] Next:
 link:ConfidenceEstimation.html[Confidence Estimation]
 
@@ -64,7 +64,7 @@ for each segment to determine the reference length. In their
 implementation, from `mteval-v08.pl` through to the current
 `mteval-v11b.pl`, NIST has changed this definition, using the _shortest_
 reference length for each segment. To make `rescore_train`, `bleumain`
-and all other programs using BLEU in PORTAGE shared use the NIST
+and all other programs using BLEU in PortageII use the NIST
 definition, you can define the environment variable
 `PORTAGE_NIST_STYLE_BLEU`. Some scripts distributed with Moses also let
 you chose how you define the reference length.
@@ -88,7 +88,7 @@ it on detokenized text.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:UsingPhrasetablesInCanoe.html[Using Phrasetables] Next:
 link:ConfidenceEstimation.html[Confidence Estimation]
 

@@ -3,7 +3,7 @@ include::header.adoc[]
 Training Europarl
 -----------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
 Bibliography] Next: link:PORTAGE_sharedFAQ.html[Frequently
 Asked Questions]
@@ -12,7 +12,7 @@ Asked Questions]
 
 *Warning*: this page is out of date, as the statistics were gathered
 years ago for Portage 1.4.2. Since then, machines are much faster, but
-PORTAGE shared is more complex. These statistics are still a potentially
+PortageII is more complex. These statistics are still a potentially
 useful indication, but not necessarily reliable.
 
 Training a mid-size system (what kind of machine do I need)
@@ -285,7 +285,7 @@ Disk usage for all models:
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:PORTAGE_sharedAnnotatedBibliography.html[Annotated
 Bibliography] Next: link:PORTAGE_sharedFAQ.html[Frequently
 Asked Questions]

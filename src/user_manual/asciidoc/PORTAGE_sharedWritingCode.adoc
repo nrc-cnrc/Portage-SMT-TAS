@@ -1,9 +1,9 @@
 include::header.adoc[]
 
-PORTAGE shared Writing Code
----------------------------
+PortageII Writing Code
+----------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 Next: link:PORTAGE_sharedMakeNotes.html[Using Make]
 
@@ -87,15 +87,15 @@ targets in the top-level Makefile in `src`: `all`, `clean`, `new`,
 Let us know about your changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When you have made changes to the PORTAGE shared code, please let us
+When you have made changes to the PortageII code, please let us
 (the NRC) know by sending us e-mail at `PORTAGE_shared@nrc-cnrc.gc.ca`
 so that we can arrange to incorporate your changes into the core and
-make it available to other PORTAGE shared licensees, if your PORTAGE
+make it available to other PortageII licensees, if your PORTAGE
 shared license agreement has clauses to that effect.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] /
+Up: link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 Next: link:PORTAGE_sharedMakeNotes.html[Using Make]
 

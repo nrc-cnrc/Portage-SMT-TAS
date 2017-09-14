@@ -3,7 +3,7 @@ include::header.adoc[]
 Using Phrasetables In Canoe
 ---------------------------
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[Decoder
 Algorithms] Next:
@@ -135,7 +135,7 @@ These scores are separate models whose weights are set using the
 how pruning is performed or how the forward and backward scores are
 interpreted.
 
-PORTAGE shared does not currently include software to generate this 4th
+PortageII does not currently include software to generate this 4th
 column, but the format is easy to generate if you have your own features
 A(s,t) you wish to use. See
 link:PORTAGE_sharedAnnotatedBibliography.html#Chenetal2009[Chen
@@ -158,7 +158,7 @@ come first, then those for the TPPTs.
 
 '''''
 
-Up link:PortageMachineTranslation.html[Portage II] /
+Up link:PortageMachineTranslation.html[PortageII] /
 link:PORTAGE_sharedTranslating.html[Translating] Previous:
 link:PORTAGE_sharedDecoderSearchAlgorithmsAndDataStructures.html[Decoder
 Algorithms] Next:

@@ -1,10 +1,10 @@
 include::header.adoc[]
 
-Portage Live Customization Plugins
-----------------------------------
+PortageLive Customization Plugins
+---------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
-link:PortageLiveManual.html[Portage Live] Next:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageLiveManual.html[PortageLive] Next:
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 
 '''''
@@ -17,7 +17,7 @@ specific to a given system correctly. These customizations are enabled
 through seven plugins that can be installed with each deployed system.
 
 The default plugins have changed significantly in versions 2.2 and 3.0
-of PORTAGE shared. `doc/PortageAPIComparison.pdf` contains a comparison
+of PortageII. `doc/PortageAPIComparison.pdf` contains a comparison
 chart documenting the recent improvements to the plugins. If you have
 custom plugins, even if provided by the NRC, we strongly recommend you
 review the new default plugins and consider using them instead. The 3.0
@@ -33,7 +33,7 @@ you want to turn on or off a particular aspect, you need to
 1.  make a copy of the plugin into the trained system's `plugins`
 directory: `framework/plugins/` during training,
 `/opt/PortageII/models/_context_/plugins/` in a deployed system. The
-default plugins are found in PORTAGE shared's bin/ directory.
+default plugins are found in PortageII's bin/ directory.
 2.  edit the copy to change what processing it actually performs.
 
 The main plugins
@@ -67,7 +67,7 @@ we're aware of.
 Tokenization plugins
 ^^^^^^^^^^^^^^^^^^^^
 
-The PORTAGE shared tokenizer and detokenizer supports French, English,
+The PortageII tokenizer and detokenizer supports French, English,
 Spanish, and Danish. For other languages, three additional plugins
 required:
 
@@ -82,7 +82,7 @@ language output.
 Fixed Terms
 ^^^^^^^^^^^
 
-Starting with version 2.2, PORTAGE shared can handle a list of fixed
+Starting with version 2.2, PortageII can handle a list of fixed
 terms, which are used to bypass the translation system for fixed
 expressions that should not be translated statistically.
 
@@ -118,7 +118,7 @@ To enable the fixed-terms functionality:
 
 * A directory `plugins/fixedTerms/` must also exist and be readable,
 writable and executable by the Apache process. This is automatically
-done for systems trained with PORTAGE shared 2.2 or more recent. We
+done for systems trained with PortageII 2.2 or more recent. We
 provide a script to retrofit systems trained with earlier versions: run
 +
 ------------------------
@@ -135,11 +135,11 @@ documented above in section <<Installing custom plugins>>:
 cp /opt/PortageII/bin/predecode_plugin /opt/PortageII/models/context/plugins/
 ------------------------------------
 +
-Make sure you use the plugin from PORTAGE shared version 3.0 or later,
+Make sure you use the plugin from PortageII version 3.0 or later,
 and decide whether you want rule-based English-French number translation
 when you install that plugin, since the same plugin controls both
 features.
-* Systems trained with old versions of PORTAGE shared might have the
+* Systems trained with old versions of PortageII might have the
 `[bypass-marked]` parameter set in their `canoe.ini.cow` file. This must
 be removed or replaced by `[no-bypass-marked]`:
 +
@@ -221,8 +221,8 @@ ce terme est inutile ||| <FT target="this is a pointless term">ce terme est inut
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
-link:PortageLiveManual.html[Portage Live] Next:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageLiveManual.html[PortageLive] Next:
 link:PORTAGE_sharedProgrammerReference.html[For Programmers]
 
 '''''

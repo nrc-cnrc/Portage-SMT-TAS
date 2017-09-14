@@ -1,21 +1,25 @@
 include::header.adoc[]
 
-PORTAGE shared Performance Considerations
------------------------------------------
+PortageII Performance Considerations
+------------------------------------
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:ConfidenceEstimation.html[Confidence Estimation] Next:
 link:PORTAGE_sharedMagicStreams.html[Magic Streams]
 
 '''''
+
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
 
 Memory Problems
 ~~~~~~~~~~~~~~~
 
 Here are some suggestions for dealing with memory problems.
 
-`gen_phrase_tables` runs out of memory
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gen_phrase_tables runs out of memory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Consider reducing the `-m` parameter: 8 is worthwhile if you have
 enough memory, but use lower values if necessary.
@@ -54,7 +58,7 @@ we have not identified yet.
 Speed issues and the Quality vs. Speed trade-off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Several options in PORTAGE shared control settings that have a
+Several options in PortageII control settings that have a
 significant impact on the quality of the translations produced and the
 resources required (time and/or memory) to produce it.
 
@@ -140,7 +144,7 @@ contain, and looking at raw counts only, not smoothed probabilities.
 Language model training options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PORTAGE shared does not provide language model training software, but
+PortageII does not provide language model training software, but
 how you train your language models is known to have a significant impact
 on translation quality. Larger language models will cost you in memory
 and speed, but that usually pays off in quality. It is almost always
@@ -211,7 +215,7 @@ significantly affect total running time and memory requirements.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[Portage II] Previous:
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
 link:ConfidenceEstimation.html[Confidence Estimation] Next:
 link:PORTAGE_sharedMagicStreams.html[Magic Streams]
 
