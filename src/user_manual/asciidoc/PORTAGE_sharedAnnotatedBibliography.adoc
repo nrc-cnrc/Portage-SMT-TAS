@@ -540,16 +540,16 @@ Conference on Computer Recognition Systems, Oct. 2007
 http://nparc.cisti-icist.nrc-cnrc.gc.ca/npsi/ctrl?action=shwart&index=an&req=9183591&lang=en[ExpandedTechReportPDF]).
 
 A state-of-the-art phrase-based SMT system contains one or more N-gram
-language models (LM**s) and one or more phrase translation models
-(TM**s), which together have a memory footprint up to several gigabytes.
+language models (LMs) and one or more phrase translation models
+(TMs), which together have a memory footprint up to several gigabytes.
 This paper suggests keeping an N-gram only if all the words it contains
 can occur together in the translation of at least one source sentence.
 Typical LM filtering uses one global vocabulary; this technique
 efficiently keeps track of a separate vocabulary for each input sentence
 to translate. In experiments on a large Chinese-English task, the
 technique yielded significant reductions in the amount of information
-loaded during translation (up to 58% reduction for LM**s, and up to 75%
-reduction for TM**s).
+loaded during translation (up to 58% reduction for LMs, and up to 75%
+reduction for TMs).
 
 Bisazza et al 2011
 ^^^^^^^^^^^^^^^^^^
@@ -600,7 +600,7 @@ Cherry and George Foster. NAACL 2012.
 See
 link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012revisited[Cherry
 and Foster 2012 revisited] below for a second presentation of this
-paper, adding details about sparse features as included in Portage__II
+paper, adding details about sparse features as included in PortageII
 3.0.
 
 In the opinion of the writer (R. Kuhn, June 2012) the work described in
@@ -1177,8 +1177,8 @@ hypotheses as possible - thus, the use of posterior probabilities
 favours the consensus.The authors claim impressive gains for a
 Chinese-English task: well over one BLEU percentage point.
 
-Papers about features added in Portage__II 3.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Papers about features added in PortageII 3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Hopkins and May 2011
 ^^^^^^^^^^^^^^^^^^^^
@@ -1239,7 +1239,7 @@ Cherry and George Foster, NAACL 2012, Montréal, Canada
 (http://www.aclweb.org/anthology/N12-1047.pdf[http://www.aclweb.org/anthology/N12-1047.pdf]).
 
 We discuss this paper a second time here to add a focus on elements of
-it implemented in Portage__II 3.0. (See also
+it implemented in PortageII 3.0. (See also
 link:PORTAGE_sharedAnnotatedBibliography.html#CherryandFoster2012[Cherry
 and Foster 2012] above.)
 
@@ -1471,11 +1471,11 @@ George Foster, AMTA 2014, Vancouver, Canada
 
 This paper has two central ideas: a not very innovative one that we
 (NRC) still routinely incorporate in most of our systems, and a more
-innovative & interesting one that has mainly been superseded by NNJM**s
+innovative & interesting one that has mainly been superseded by NNJMs
 (neural net joint models).
 
 The less innovative idea is called "coarse language models" ("coarse
-LM**s"). This is exactly like a normal N-gram LM for the target
+LMs"). This is exactly like a normal N-gram LM for the target
 language, except that the basic unit is word classes, not words. In the
 paper, the open-source Mkcls() program is used to find the word classes
 from training data. Subsequently, we have often used a faster word
@@ -1488,13 +1488,13 @@ can get good results by using a coarse LM with 100 word classes and
 another with 1600 word classes, or another with 200 word classes and
 another with 800 word classes.
 
-The more innovative idea is called "coarse bi**LM**s". Bi**LM**s are an
-earlier concept from another lab. They are like normal N-gram LM**s,
-except that the basic unit of a bi**LM is not a word in the target
+The more innovative idea is called "coarse biLMs". BiLMs are an
+earlier concept from another lab. They are like normal N-gram LMs,
+except that the basic unit of a biLM is not a word in the target
 language, but a unit called a "bitoken" consisting of a word in the
 target language together with the source-language words to which it is
 aligned (that could be zero, one, or more than one source-language
-words). Incidentally, bi**LM**s ignore source-language words that don't
+words). Incidentally, biLMs ignore source-language words that don't
 align with target-language words. The advantage of using bitokens
 instead of words is that word senses in the target language are often
 disambiguated. E.g., if the target language is English, the word
@@ -1505,7 +1505,7 @@ bitoken refers either to a bathroom fixture or to an act of cleansing
 performed with that fixture, while the second bitoken refers to
 rainfall.
 
-The lab that invented bi**LM**s didn't succeed in getting them to have
+The lab that invented biLMs didn't succeed in getting them to have
 much impact on MT performance. That is because of their main
 disadvantage: it is hard to estimate them accurately, because of data
 sparsity - for any given bilingual corpus, there will be far more
@@ -1516,45 +1516,45 @@ words into classes, by clustering target-language words into classes, by
 clustering words in both the source and target languages separately and
 combining the classes on both sides, and finally, by clustering the
 original word-based bitokens. These various ways of keeping the central
-idea of bi**LM**s - using units for an LM that have information about
+idea of biLMs - using units for an LM that have information about
 the source words aligned with each target word - while reducing data
-sparsity are lumped together under the name of "coarse bi**LM**s" in the
+sparsity are lumped together under the name of "coarse biLMs" in the
 paper.
 
-When multiple coarse LM**s and coarse bi**LM**s are added as features,
+When multiple coarse LMs and coarse biLMs are added as features,
 the paper shows impressive gains over strong baselines for some language
 pairs - for instance, up to +1.2 BLEU for Arabic > English MT (using
-BOLT data). In retrospect, coarse bi**LM**s do some of what is achieved
-by NNJM**s: they are LM**s that incorporate more information from the
+BOLT data). In retrospect, coarse biLMs do some of what is achieved
+by NNJMs: they are LMs that incorporate more information from the
 source than was previously possible.
 
-However, honesty compels the admission that coarse bi**LM**s have
-weaknesses that NNJM**s don't share:
+However, honesty compels the admission that coarse biLMs have
+weaknesses that NNJMs don't share:
 
-* In coarse bi**LM**s, the span of information from the source sentence
+* In coarse biLMs, the span of information from the source sentence
 is limited by the number of words in the target-language history being
-considered. For instance, a 3-bitoken coarse bi**LM can only consider
+considered. For instance, a 3-bitoken coarse biLM can only consider
 the source words aligned with the current target word, or with the two
 preceding target words. In an NNJM, the span of source information can
 be much wider than that considered on the target side, and source words
 "in the future" - i.e., that haven't yet generated words in the
 target-language hypothesis - can be considered. In the original Devlin
-et al. (2014) paper on NNJM**s (see below), the information exploited by
+et al. (2014) paper on NNJMs (see below), the information exploited by
 an NNJM is often merely a 4-gram on the target side (the current target
 word and its three predecessors), but a span of five words to the left
 and five words to the right of the source word aligned with the current
 target word.
-* In coarse bi**LM**s, the procedure for reducing the sparsity of
+* In coarse biLMs, the procedure for reducing the sparsity of
 bitokens is separate from the way those bitokens will be used in the
-resulting bi**LM: there is no feedback from the training of the bi**LM
+resulting biLM: there is no feedback from the training of the biLM
 to the Mkcls() function. NNJM training implicitly combines data
 compression with modeling in a feedback loop. It seems likely that this
-makes NNJM**s more efficient at the simultaneous exploitation of target
-and source information than coarse bi**LM**s.
+makes NNJMs more efficient at the simultaneous exploitation of target
+and source information than coarse biLMs.
 
 We have never carried out a full-scale experimental comparison of coarse
-bi**LM**s with NNJM**s. However, the considerations above have caused us
-somewhat to lose interest in coarse bi**LM**s and to focus on NNJM**s.
+biLMs with NNJMs. However, the considerations above have caused us
+somewhat to lose interest in coarse biLMs and to focus on NNJMs.
 
 Devlin et al 2014
 ^^^^^^^^^^^^^^^^^
@@ -1569,12 +1569,12 @@ authors from Raytheon BBN is already a classic. It should be read by
 anyone interested in modern machine translation (MT).
 
 There had been many earlier attempts to apply neural net (NN) techniques
-to MT. For instance, language models (LM**s) based on NN**s were already
+to MT. For instance, language models (LMs) based on NNs were already
 in use by some MT groups (and also some groups working on automatic
-speech recognition). These NN-based LM**s had not had a large impact on
+speech recognition). These NN-based LMs had not had a large impact on
 the field, perhaps because the modest improvements they promised were
 outweighed by the nuisance of trying to master the fiddly NN training
-procedure. Nor had other attempts to incorporate NN**s into MT systems
+procedure. Nor had other attempts to incorporate NNs into MT systems
 been unusually successful.
 
 Devlin et al. (2014) changed that. One of this paper's major
@@ -1583,7 +1583,7 @@ contextual information than before from the source sentence when
 predicting the next target word can result in dramatically improved
 translation quality. (Our group at NRC had found another way of
 incorporating wider source-side context, via a data structure called
-coarse bi**LM**s - see above - but coarse bi**LM**s have limitations
+coarse biLMs - see above - but coarse biLMs have limitations
 that the Devlin et al. approach doesn't have). In this paper, the NNJM
 yields a +3.0 BLEU gain over a strong baseline in experiments carried
 out with NIST 2012 Arabic > English data.
@@ -1598,7 +1598,7 @@ using a shared output layer. Two hidden layers with a tanh activation
 function map this 192-dimensional vector onto a softmax output layer
 representing the target-language vocabulary. The 32,000 most frequent
 target-language words are predicted explicitly; the others are partially
-predicted (the system predicts their POS**s).
+predicted (the system predicts their POSs).
 
 A serious potential problem with this NNJM is that during decoding, the
 output scores need to be normalized, which requires consulting the
@@ -1625,7 +1625,7 @@ easily be applied during rescoring of N-best lists generally.
 
 In addition to these four types of NNJM, the paper describes a fifth
 model that is not an NNJM: the "Neural Network Lexical Translation
-Model" (NNLTM). Recall that NNJM**s don't explicitly model source words
+Model" (NNLTM). Recall that NNJMs don't explicitly model source words
 that don't help to generate target words. The NNLTM repairs this
 omission. For each word in the source sentence, it predicts whether that
 word generates NULL or some sequence of non-NULL target words (to some
@@ -1638,13 +1638,13 @@ authors in this paper. NRC researchers were among the first to validate
 the approach taken here by incorporating it in a non-BBN system, PORTAGE
 shared, and then getting gains for PORTAGE shared as dramatic as those
 described in this paper. This paper does not describe all the fiddly
-details of training needed to make NNJM**s and NNLTM**s work well. Jacob
+details of training needed to make NNJMs and NNLTMs work well. Jacob
 Devlin, the first author of the paper (now at Microsoft) deserves our
 gratitude: he spent many hours on the phone and on email with NRC
-researchers helping them to get NNJM**s and NNLTM**s to perform well
+researchers helping them to get NNJMs and NNLTMs to perform well
 when incorporated in PORTAGE shared.
 
-The following is a summary of how we at NRC train NNJM**s. Packed rest
+The following is a summary of how we at NRC train NNJMs. Packed rest
 costs are an NRC innovation (they weren't one of the tips from Jacob
 Devlin).
 
@@ -1653,7 +1653,7 @@ Foster 2016 addendum to Devlin
 
 George Foster: ADDENDUM to Devlin et al (2014), January 2016
 
-General tricks for training NNJM**s:
+General tricks for training NNJMs:
 
 * Learning rate decay: multiply by 0.5 when dev-set perplexity hasn't
 dropped for last two epochs (using BBN's epoch = 20K minibatches of 128
@@ -1707,7 +1707,7 @@ the missing context with elision tokens. For example, a 1-gram NNJM has
 three elision tokens followed by the output word.
 
 In a BOLT Arabic > English setting, we evaluated the packed NNJM against
-a version where specialist NNJM**s were trained for each level of
+a version where specialist NNJMs were trained for each level of
 context. The packed NNJM yields perplexity results comparable to those
 of specialized models at all levels of context except for no context
 (1-gram). Crucially, we have given up no power at the 4-gram level in

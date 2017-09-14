@@ -30,7 +30,7 @@ distributed translation processing.
 The virtualization of PORTAGE shared was made feasible by two
 technological innovations for the data structures that take up the most
 memory in a typical machine translation system, the phrase tables and
-the language models (LM__s). First, we store them in a memory-efficient
+the language models (LMs). First, we store them in a memory-efficient
 structure called a tightly-packed trie
 link:PORTAGE_sharedAnnotatedBibliography.html#Germannetal2009[Germann
 et al 2009]. For instance, an LM encoded as a tightly packed trie takes
@@ -56,7 +56,7 @@ To create a PortageLive application, one must obtain a bilingual,
 parallel corpus for the two languages of interest. The next step is to
 obtain the PORTAGE shared code, compile it, and install the executables.
 One then preprocesses the corpus and trains the models (phrase tables
-and LM__s), and arranges the resulting files in a specified file layout.
+and LMs), and arranges the resulting files in a specified file layout.
 Then, one builds the virtual appliance; alternately, one can install the
 models on a physical machine. Finally, one arranges for one's
 application to call Portage Live (e.g., via SOAP). All these steps are
@@ -131,7 +131,7 @@ This structure is created inside a directory call `rpm.build.root`. In
 each of the three file layout steps described here, files are placed in
 a directory with that name, under which the full path to the final
 destination on the translation server is recreated. This is the standard
-mechanism for building RPM__s, and it is helpful as a staging area even
+mechanism for building RPMs, and it is helpful as a staging area even
 if you are planning to copy the files on the server manually.
 
 Trained models layout
@@ -213,20 +213,20 @@ and the files to adjust to your web server settings, or to the way you
 intend to access PortageLive, or to support multiple contexts (see
 below).
 
-Making RPM__s
-+++++++++++++
+Making RPMs
++++++++++++
 
-Before you build your virtual machines, you should make three RPM__s. An
+Before you build your virtual machines, you should make three RPMs. An
 RPM is like a zip file which embeds instructions on how and where to
-install software on a Linux machine. We use VM__Ware Studio to build our
-RPM__s, but any tool that creates them will do. The three file layouts
-described above should be packaged as RPM__s `PortageLive-bin`,
+install software on a Linux machine. We use VMWare Studio to build our
+RPMs, but any tool that creates them will do. The three file layouts
+described above should be packaged as RPMs `PortageLive-bin`,
 `PortageLive-models-`_context_, and `PortageLive-www`. The keyword
 _context_ should be replaced by label for each different context you
 train, so that you can distinguish them later.
 
-We use VM__Ware Studio to build an RPM from each of the three
-`rpm.build.root` directories created earlier. Assuming you have VM__Ware
+We use VMWare Studio to build an RPM from each of the three
+`rpm.build.root` directories created earlier. Assuming you have VMWare
 Studio installed, and `mkpkg` is in your path, you can go into each of
 `PortageLive/bin`, `PortageLive/models` and `PortageLive/www`, and do
 the following:
@@ -240,11 +240,11 @@ packaging.
 number, creates the RPM file, and gives it an appropriate name.
 
 Having followed these instructions in the three directories, you will
-have the three RPM__s necessary to build your PortageLive Virtual
+have the three RPMs necessary to build your PortageLive Virtual
 Appliance.
 
 Note that if you are working with a physical machine as translation
-server, you can skip the creation of RPM__s and follow the instructions
+server, you can skip the creation of RPMs and follow the instructions
 under "Installing PortageLive on a physical machine" below.
 
 Caveat: with very large models, we have had difficulties packaging the
@@ -312,7 +312,7 @@ Physical machines:
 maximize the benefits of using shared memory between instances of the
 decoder, and you can pool resources together for different translation
 contexts;
-2.  you don't need VM__Ware or RPM__s.
+2.  you don't need VMWare or RPMs.
 
 Building the Virtual Appliance
 ++++++++++++++++++++++++++++++
@@ -323,8 +323,8 @@ general-purpose machine, but rather an appliance with a specific
 purpose.
 
 If you choose the Virtual Appliance option, instructions showing how to
-create it using VM__Ware Studio are found in `PLiveVA.pdf` in
-`PortageLive/va`. The RPM__s we created previously are installed on the
+create it using VMWare Studio are found in `PLiveVA.pdf` in
+`PortageLive/va`. The RPMs we created previously are installed on the
 virtual machine as part of its creation process.
 
 Installing PortageLive on a physical machine

@@ -14,7 +14,7 @@ technology.
 With Neural Network Joint Models (NNJM), version 3.0 brings deep
 learning to the set of tools used to improve machine translation
 quality, as well as NRC's improved reordering model based on sparse
-features, coarse LM**s, and other improvements. The NRC has put
+features, coarse LMs, and other improvements. The NRC has put
 significant efforts in optimizing the default training parameters to
 improve the quality of the translations produced by PORTAGE shared, and
 we expect users to see and appreciate the difference.

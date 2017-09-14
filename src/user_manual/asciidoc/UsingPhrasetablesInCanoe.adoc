@@ -141,20 +141,20 @@ A(s,t) you wish to use. See
 link:PORTAGE_sharedAnnotatedBibliography.html#Chenetal2009[Chen
 et al 2009] for examples of such features.
 
-TPPT__s (Tightly Packed Phrase Tables)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TPPTs (Tightly Packed Phrase Tables)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The final kind of phrase tables are TPPT__s, which are used directly on
+The final kind of phrase tables are TPPTs, which are used directly on
 disk via memory-mapped IO for instant loading and fast access. They
 contain the same contents as a multi-prob table, with _n_ backward
 weights and _n_ forward weights, for any _n_ >= 1. Adirectional scores
 and the count (and multi-count) fields are supported since PORTAGE
 shared 1.0.
 
-When combining multiple TPPT__s, the weights are assigned just like when
+When combining multiple TPPTs, the weights are assigned just like when
 using multiple multi-prob phrase tables. When combining multi-prob
-phrase tables with TPPT__s, the weights for the multi-prob phrase tables
-come first, then those for the TPPT__s.
+phrase tables with TPPTs, the weights for the multi-prob phrase tables
+come first, then those for the TPPTs.
 
 '''''
 

@@ -164,7 +164,7 @@ the help message from `joint2cond_phrase_tables`, `joint2multi_cpt`, and
 `train_tm_mixture`,.
 
 In our framework, the default is to merge the counts from the HMM and
-IBM2 CPT__s, which are generated using `gen-jpt-parallel.sh`, and then
+IBM2 CPTs, which are generated using `gen-jpt-parallel.sh`, and then
 estimate the model parameters using `joint2cond_phrase_tables`.
 
 The TPPT format
@@ -224,8 +224,8 @@ textldm2tpldm.sh ldm.fr2en.gz tpldm.fr2en
 Hierarchical Lexicalized Distortion Models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-HLDM__s are built with the same software as LDM__s, but with the
-additional `-hier` switch given to `dmcount`. HLDM__s give much more
+HLDMs are built with the same software as LDMs, but with the
+additional `-hier` switch given to `dmcount`. HLDMs give much more
 interesting results, and should be considered for regular use. You
 should at least test them with your data, to see if they help.
 
@@ -266,10 +266,10 @@ into account up to 11 source words and 3 target words all at the same
 time.
 
 With PORTAGE shared 3.0, we include the NNJM decoder feature, which
-allows users to incorporate NNJM**s trained at the NRC in their systems.
-We also include pre-trained NNJM**s for English-French translation in
+allows users to incorporate NNJMs trained at the NRC in their systems.
+We also include pre-trained NNJMs for English-French translation in
 either direction as part of our updated Generic Model 2.0. We plan to
-release the training software for NNJM**s in a future release of PORTAGE
+release the training software for NNJMs in a future release of PORTAGE
 shared.
 
 Truecasing Models
