@@ -52,7 +52,7 @@ class TestIncrStatus(unittest.TestCase):
       self.target_sentence = '"maison"'
 
       self.document_model_dir = os.path.join("doc_root", "plive",
-                                    "DOCUMENT_MODEL_"+self.document_model_id)
+                                    "DOCUMENT_MODEL_"+self.context+'_'+self.document_model_id)
       document_model_dirs = glob.glob(self.document_model_dir+"*")
       for dir in document_model_dirs:
          if (os.path.isdir(dir)): shutil.rmtree(dir)
@@ -80,7 +80,7 @@ class TestIncrStatus(unittest.TestCase):
       It is invalid to use the empty string as document model ID.
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrStatus('')
+         self.client.service.incrStatus(self.context, '')
       expected = "Server raised fault: 'You must provide a valid document_model_id.'"
       self.assertEqual(cm.exception.message, expected)
 
@@ -88,7 +88,7 @@ class TestIncrStatus(unittest.TestCase):
       """
       Expect 'N/A' for a non-existent document model ID.
       """
-      result = self.client.service.incrStatus(self.document_model_id)
+      result = self.client.service.incrStatus(self.context, self.document_model_id)
       self.assertEqual(result, "N/A",
          'Unexpected output from incrStatus SOAP call for a non-existent document model id')
 
@@ -98,7 +98,7 @@ class TestIncrStatus(unittest.TestCase):
       """
       os.mkdir(self.document_model_dir)
 
-      result = self.client.service.incrStatus(self.document_model_id)
+      result = self.client.service.incrStatus(self.context, self.document_model_id)
       self.assertEqual(result, "N/A",
          'Unexpected output from incrStatus SOAP call for an empty document model')
 
@@ -109,7 +109,7 @@ class TestIncrStatus(unittest.TestCase):
       of arguments
       """
       with self.assertRaises(WebFault) as cm:
-         self.client.service.incrStatus(self.document_model_id, 'extra_dummy_argument')
+         self.client.service.incrStatus(self.context, self.document_model_id, 'extra_dummy_argument')
       self.assertEqual(cm.exception.message, "Server raised fault: 'Too many arguments.'")
 
    def test_07_one_incr_training(self):
@@ -125,7 +125,7 @@ class TestIncrStatus(unittest.TestCase):
       result = self.client.service.incrAddSentence(self.context, document_model_id, source, target)
       self.assertEqual(result, True, 'SOAP call failed to add a sentence pair')
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update in_progress, N/A, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call for training in progress.")
@@ -133,7 +133,7 @@ class TestIncrStatus(unittest.TestCase):
       # Let incremental training finish.
       time.sleep(3);
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update complete, 0 success, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after training is completed.")
@@ -152,7 +152,7 @@ class TestIncrStatus(unittest.TestCase):
       result = self.client.service.incrAddSentence(self.context, document_model_id, source, target)
       self.assertEqual(result, True, 'SOAP call failed to add a sentence pair')
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update in_progress, N/A, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after first sentence pair added.")
@@ -163,7 +163,7 @@ class TestIncrStatus(unittest.TestCase):
       result = self.client.service.incrAddSentence(self.context, document_model_id, source, target)
       self.assertEqual(result, True, 'SOAP call failed to add a sentence pair')
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update pending+in_progress, N/A, corpus: 1, queue: 1"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after second sentence pair added.")
@@ -171,7 +171,7 @@ class TestIncrStatus(unittest.TestCase):
       # Let first incremental training finish.
       time.sleep(3);
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update in_progress, 0 success, corpus: 2, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after first training completed.")
@@ -179,7 +179,7 @@ class TestIncrStatus(unittest.TestCase):
       # Let second incremental training finish.
       time.sleep(3);
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update complete, 0 success, corpus: 2, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after second training completed.")
@@ -197,7 +197,7 @@ class TestIncrStatus(unittest.TestCase):
       result = self.client.service.incrAddSentence(self.context, document_model_id, source, target)
       self.assertEqual(result, True, 'SOAP call failed to add a sentence pair')
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update in_progress, N/A, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call for training in progress.")
@@ -209,7 +209,7 @@ class TestIncrStatus(unittest.TestCase):
       with open(os.path.join(self.document_model_dir+".3", "incr-update.status"), "w") as sf:
          print("1", file=sf)
 
-      result = self.client.service.incrStatus(document_model_id)
+      result = self.client.service.incrStatus(self.context, document_model_id)
       expected = "Update complete, 1 failure, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after failed training is completed.")

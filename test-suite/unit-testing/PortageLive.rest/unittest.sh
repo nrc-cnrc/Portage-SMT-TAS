@@ -12,6 +12,8 @@
 # Copyright 2016, Her Majesty in Right of Canada
 
 readonly server_ip=127.0.0.1
+readonly context=unittest.rev.en-fr
+readonly document_model_id=PORTAGE_UNITTEST_4da35
 
 function verbose() {
    echo $'\n'============= $* =============
@@ -31,9 +33,9 @@ function prepare_scenarios() {
    verbose prepare_scenarios
    mkdir -p scenarios/no_contexts/models
    mkdir -p scenarios/one_context/models
-   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/one_context/models/
+   ln -fs ../../../tests/models/$context scenarios/one_context/models/
    mkdir -p scenarios/several_contexts/models
-   ln -fs ../../../tests/models/unittest.rev.en-fr scenarios/several_contexts/models/
+   ln -fs ../../../tests/models/$context scenarios/several_contexts/models/
    ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr scenarios/several_contexts/models/
    ln -fs $PORTAGE/test-suite/systems/toy-regress-en2fr.nnjm scenarios/several_contexts/models/
    ln -fs $PORTAGE/test-suite/systems/toy-regress-ch2en scenarios/several_contexts/models/
@@ -103,17 +105,17 @@ function Rester_testcase() {
 function incrAddSentence_with_curl_testcase() {
    verbose ${FUNCNAME[0]}
    # Web request using unicode.
-   export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
+   export CORPORA="./plive/DOCUMENT_MODEL_${context}_${document_model_id}/corpora"
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    local tag=`date +"%T"`
 
    curl \
       --silent \
       --get \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       --data 'source=S%C9' \
       --data "target=GET$tag" \
-      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data "document_model_ID=$document_model_id" \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
    || ! echo "Error Adding sentence pairs (1)" >&2
@@ -121,10 +123,10 @@ function incrAddSentence_with_curl_testcase() {
    curl \
       --silent \
       --get \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       --data 'source=S%C9' \
       --data "target=GET$tag" \
-      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data "document_model_ID=$document_model_id" \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
    || ! echo "Error Adding sentence pairs (2)" >&2
@@ -136,16 +138,16 @@ function incrAddSentence_with_curl_testcase() {
 function incrAddSentence_curl_post_testcase() {
    verbose ${FUNCNAME[0]}
    # Web request using unicode.
-   export CORPORA=./plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35/corpora
+   export CORPORA="./plive/DOCUMENT_MODEL_${context}_${document_model_id}/corpora"
    #[[ -s $CORPORA ]] && rm -f $CORPORA
    local tag=`date +"%T"`
 
    curl \
       --silent \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       --data 'source=S%C9' \
       --data "target=POST$tag" \
-      --data 'document_model_ID=PORTAGE_UNITTEST_4da35' \
+      --data "document_model_ID=$document_model_id" \
       "http://$server_ip:$server_port/incrAddSentence.php" \
    | grep --quiet '{"result":true}' \
    || ! echo "Error Adding sentence pairs" >&2
@@ -176,7 +178,7 @@ function translate_with_single_query_testcase() {
       --data 'target=fr' \
       --data 'invalid_arg=bad_arg' \
       --data 'prettyprint=false' \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
@@ -191,7 +193,7 @@ function translate_with_single_query_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
@@ -213,7 +215,7 @@ function translate_with_multiple_queries_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
@@ -230,7 +232,7 @@ function translate_with_multiple_queries_testcase() {
       --data 'target=fr' \
       --data 'prettyprint=false' \
       --data 'invalid_arg=bad_arg' \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       "http://$server_ip:$server_port/translate.php" \
    | grep \
       --fixed-strings \
@@ -280,7 +282,7 @@ function handy_debugger() {
    curl \
       --silent \
       --get \
-      --data 'context=unittest.rev.en-fr' \
+      --data "context=$context" \
       --data 'target=fr' \
       --data 'prettyprint=False' \
       --data 'option=invalid' \
@@ -301,7 +303,7 @@ start_php_server || exit 1
 #handy_debugger; exit
 
 # Create an empty document model directory for use by some incrStatus unit tests.
-mkdir -p $doc_root/plive/DOCUMENT_MODEL_PORTAGE_UNITTEST_4da35_empty
+mkdir -p "$doc_root/plive/DOCUMENT_MODEL_${context}_${document_model_id}_empty"
 
 prepare_scenarios || RC=1
 cd $doc_root || exit 1

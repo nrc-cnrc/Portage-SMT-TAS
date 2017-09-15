@@ -149,6 +149,7 @@
 
 
   <message name="incrStatusRequest">
+    <part name="context" type="xsd:string"/>
     <part name="document_model_ID" type="xsd:string"/>
   </message>
 
@@ -505,6 +506,8 @@
         Get the status of incremental training for a document.
 
         Arguments:
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
          - document_model_id is the id for the document model being queried.
 
         Returns a string containing a human readable description containing the

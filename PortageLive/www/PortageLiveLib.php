@@ -62,7 +62,7 @@ class PortageLiveLib
          # We have a static context plus a document ID
          $info["context"] = $context_parts[0];
          $info["document_id"] = $context_parts[1];
-         $potential_workdir = $this->getDocumentModelWorkDir($info["document_id"]);
+         $potential_workdir = $this->getDocumentModelWorkDir($info["context"], $info["document_id"]);
          if (is_dir($potential_workdir)) {
             $info["context_dir"] = $potential_workdir;
          } else {
@@ -115,6 +115,9 @@ class PortageLiveLib
       $context = $i["context"];
       if (! $i["good"]) {
          if (!file_exists($i["context_dir"])) {
+            if (isset($i['document_id'])) {
+               $context .= '/' . $i['document_id'];
+            }
             throw new SoapFault("PortageContext",
                                 "Context \"$context\" does not exist.\n" . debug($i),
                                 "PortageLiveAPI");
@@ -229,9 +232,19 @@ class PortageLiveLib
    # Create a working directory based on $filename.
    # Throws SoapFault (faultcode=PortageServer) in case of error.
    # Returns the name of the directory created.
-   protected function makeDocumentModelWorkDir($document_model_id)
+   protected function makeDocumentModelWorkDir($context, $document_model_id)
    {
-      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid context.");
+      }
+
+      if (!isset($document_model_id) || empty($document_model_id)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid document_model_id.");
+      }
+
+      $work_dir = $this->getDocumentModelWorkDir($context, $document_model_id);
       if (is_dir($work_dir) || @mkdir($work_dir, 0755, true))
          return $work_dir;
       else if (is_dir($work_dir))   # handle potential race condition
@@ -247,10 +260,20 @@ class PortageLiveLib
    }
 
    # Return the document model workdir path for a document model ID.
-   protected function getDocumentModelWorkDir($document_model_id)
+   protected function getDocumentModelWorkDir($context, $document_model_id)
    {
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid context.");
+      }
+
+      if (!isset($document_model_id) || empty($document_model_id)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid document_model_id.");
+      }
+
       global $base_web_dir;
-      $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$document_model_id}");
+      $work_dir = $this->normalizeName("DOCUMENT_MODEL_{$context}_{$document_model_id}");
       $work_dir = "$base_web_dir/plive/$work_dir";
       return $work_dir;
    }
@@ -663,17 +686,22 @@ class PortageLiveLib
       return "PortageII-3.0.1";
    }
 
-   public function incrClearDocumentModelWorkdir($document_model_id = NULL)
+   public function incrClearDocumentModelWorkdir($context, $document_model_id = NULL)
    {
       error_log('Not yet properly implemented');
       assert(False);
+
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid context.");
+      }
 
       if (!isset($document_model_id) || empty($document_model_id)) {
          throw new SoapFault("PortageBadArgs",
                              "You must provide a valid document_model_id.");
       }
 
-      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
+      $work_dir = $this->getDocumentModelWorkDir($context, $document_model_id);
 
       if (! is_dir($work_dir))
          throw new SoapFault("PortageServer", "$document_model_id doesn't have "
@@ -719,7 +747,7 @@ class PortageLiveLib
       setlocale(LC_ALL, 'en_US.utf8');
       $source_sentence = escapeshellarg($source_sentence);
       $target_sentence = escapeshellarg($target_sentence);
-      $work_dir = $this->makeDocumentModelWorkDir($document_model_id);
+      $work_dir = $this->makeDocumentModelWorkDir($context, $document_model_id);
 
       $command = "cd $work_dir && ";
       $command .= "incr-add-sentence.sh";
@@ -744,14 +772,19 @@ class PortageLiveLib
       return $exit_status == 0 ? True : False;
    }
 
-   public function incrStatus($document_model_id = NULL)
+   public function incrStatus($context, $document_model_id = NULL)
    {
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs",
+                             "You must provide a valid context.");
+      }
+
       if (!isset($document_model_id) || empty($document_model_id)) {
          throw new SoapFault("PortageBadArgs",
                              "You must provide a valid document_model_id.");
       }
 
-      $work_dir = $this->getDocumentModelWorkDir($document_model_id);
+      $work_dir = $this->getDocumentModelWorkDir($context, $document_model_id);
 
       if (! is_dir($work_dir))
          return "N/A";

@@ -26,6 +26,8 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       global $base_web_dir;
       $document_model_dir = $base_web_dir . "/plive/DOCUMENT_MODEL_"
+                            . $this->context
+                            . "_"
                             . "{$this->document_model_id}";
       #$workdir = $service->incrClearDocumentModelWorkdir($document_model_id);
       $this->witnessFileName = "$document_model_dir/witness";
@@ -123,7 +125,7 @@ class PortageLiveLib_incrAddSentence_Test extends PHPUnit_Framework_TestCase
 
       # Create a bad document model workdir by creating it as a file.
       global $base_web_dir;
-      $document_model_workdir = $base_web_dir . "/plive/DOCUMENT_MODEL_$bad_id";
+      $document_model_workdir = $base_web_dir . "/plive/DOCUMENT_MODEL_" . $this->context . "_$bad_id";
       file_put_contents($document_model_workdir, "");
 
       $service = new PortageLiveLib();

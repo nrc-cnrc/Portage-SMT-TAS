@@ -82,3 +82,23 @@ testSteps:
             "data.translations[0].translatedText": "maison"
 
 
+   - name: "Translating with an in valid context"
+     method: "get"
+     apiUrl: "{translate}"
+     params:
+        context: "toy-regress-en2fr.invalid"
+        target: "fr"
+        prettyprint: false
+        q: "home"
+        document_model_ID: "foo"
+     asserts:
+        headers:
+           status: 404
+           Content-Type: "application/json"
+        payload:
+            error: "Object"
+            "error.type": "String"
+            "error.type": "PortageContext"
+            "error.message": "String"
+            "error.message": 'exec value.strip() == "Context \"toy-regress-en2fr.invalid/foo\" does not exist."'
+

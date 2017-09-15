@@ -16,6 +16,7 @@ name: "Incremental Training Status"
 globals:
   variables:
     service: "{base_url}/incrStatus.php"
+    context: "unittest.rev.en-fr"
 
 
 testSteps:
@@ -32,10 +33,29 @@ testSteps:
         error.message: "There is no query."
 
 
+  - name: "Empty context"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: ""
+      document_model_ID: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a valid context."
+
+
   - name: "Empty document model id"
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: ""
     asserts:
       headers:
@@ -53,6 +73,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35"
     asserts:
       headers:
@@ -74,6 +95,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35"
     asserts:
       headers:
@@ -96,6 +118,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35"
       bad: "invalid"
     asserts:
@@ -125,6 +148,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35"
       bad: "invalid"
       wrong: "Invalid"
@@ -157,6 +181,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35_nonexistent"
     asserts:
       headers:
@@ -175,6 +200,7 @@ testSteps:
     method: "get"
     apiUrl: "{service}"
     params:
+      context: "{context}"
       document_model_ID: "PORTAGE_UNITTEST_4da35_empty"
     asserts:
       headers:

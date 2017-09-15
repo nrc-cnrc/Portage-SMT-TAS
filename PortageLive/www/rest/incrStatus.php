@@ -34,6 +34,7 @@ class Warnings {
       $warnings = get_object_vars($this);
       # We don't want warningIssued to be serialized.
       unset($warnings['warningIssued']);
+      sort($warnings['invalidArgument']['options'], SORT_STRING);  # to have consistent unittesting.
       return $warnings;
    }
 }
@@ -61,6 +62,9 @@ function parseRequest($request) {
 
    foreach ($request as $k => $v) {
       switch($k) {
+         case 'context':
+            $context = decodeArgument($v);
+            break;
          case 'document_model_ID':
             $document_model_ID = decodeArgument($v);
             break;
@@ -70,8 +74,9 @@ function parseRequest($request) {
       }
    }
 
-   return array("document_model_ID" => $document_model_ID,
-                "warnings" => $warnings);
+   return array('context' => $context,
+                'document_model_ID' => $document_model_ID,
+                'warnings' => $warnings);
 }
 
 /**
@@ -117,7 +122,7 @@ try {
    $request = parseRequest(@$_REQUEST);
 
    $portageLiveLib = new PortageLiveLib();
-   $response = $portageLiveLib->incrStatus($request['document_model_ID']);
+   $response = $portageLiveLib->incrStatus($request['context'], $request['document_model_ID']);
    $incr_status = packageResponse($response);
    $message = array('incr_status' => $incr_status);
 

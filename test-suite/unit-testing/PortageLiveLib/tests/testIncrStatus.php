@@ -27,6 +27,8 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
 
       global $base_web_dir;
       $document_model_dir = $base_web_dir . "/plive/DOCUMENT_MODEL_"
+                            . $this->context
+                            . "_"
                             . $this->document_model_id;
       $this->document_model_dir = $document_model_dir;
 
@@ -45,7 +47,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
    {
       $service = new PortageLiveLib();
 
-      $result = $service->incrStatus();
+      $result = $service->incrStatus($this->context);
       $this->assertFalse($result);
    }
 
@@ -53,7 +55,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
    {
       $service = new PortageLiveLib();
 
-      $result = $service->incrStatus($this->document_model_dir);
+      $result = $service->incrStatus($this->context, $this->document_model_dir);
       $this->assertEquals($result, "N/A", "Should get 'N/A' for nonexistent document model.");
    }
 
@@ -63,7 +65,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
 
       $service = new PortageLiveLib();
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $this->assertEquals($result, "N/A", "Should get 'N/A' for empty document model.");
    }
 
@@ -75,14 +77,14 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
                                           $this->source, $this->target);
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update in_progress, N/A, corpus: 1, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' for training in progress.");
 
       # Let incremental training finish.
       sleep(3);
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update complete, 0 success, corpus: 1, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' after training is completed.");
    }
@@ -95,7 +97,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
             $this->source, $this->target);
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update in_progress, N/A, corpus: 1, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' after first sentence pair added.");
 
@@ -103,21 +105,21 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
             $this->source, $this->target);
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update pending+in_progress, N/A, corpus: 1, queue: 1";
       $this->assertEquals($result, $expected, "Should get '$expected' after second sentence pair added.");
 
       # Let first incremental training finish.
       sleep(2);
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update in_progress, 0 success, corpus: 2, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' after first training completed.");
 
       # Let second incremental training finish.
       sleep(2);
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update complete, 0 success, corpus: 2, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' after second training completed.");
    }
@@ -130,7 +132,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
             $this->source, $this->target);
       $this->assertEquals(True, $result, "Unable to add sentence pair to the queue.");
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update in_progress, N/A, corpus: 1, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' for training in progress.");
 
@@ -140,7 +142,7 @@ class PortageLiveLib_incrStatus_Test extends PHPUnit_Framework_TestCase
       # Fake a failure.
       file_put_contents("$this->document_model_dir/incr-update.status", "1");
 
-      $result = $service->incrStatus($this->document_model_id);
+      $result = $service->incrStatus($this->context, $this->document_model_id);
       $expected = "Update complete, 1 failure, corpus: 1, queue: 0";
       $this->assertEquals($result, $expected, "Should get '$expected' after training is completed.");
    }

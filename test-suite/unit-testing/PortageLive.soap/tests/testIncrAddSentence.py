@@ -53,7 +53,7 @@ class TestIncrAddSentence(unittest.TestCase):
       self.target_sentence = '"maison"'
 
       self.document_model_dir = os.path.join("doc_root", "plive",
-                                   "DOCUMENT_MODEL_"+self.document_model_id)
+                                   "DOCUMENT_MODEL_" + self.context + '_' + self.document_model_id)
       if (os.path.isdir(self.document_model_dir)):
          shutil.rmtree(self.document_model_dir)
 
@@ -140,7 +140,7 @@ class TestIncrAddSentence(unittest.TestCase):
                                                    source, target)
       self.assertEqual(result, True, 'SOAP call failed to add a sentence pair')
 
-      r = requests.get(self.url + '/plive/DOCUMENT_MODEL_' + self.document_model_id + '/corpora')
+      r = requests.get(self.url + '/plive/DOCUMENT_MODEL_' + self.context + '_' + self.document_model_id + '/corpora')
       self.assertEqual(r.status_code, 200,
                        "Failed to fetch the corpora file for: " + self.document_model_id)
 
