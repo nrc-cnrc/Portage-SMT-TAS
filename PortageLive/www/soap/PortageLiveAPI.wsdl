@@ -479,6 +479,22 @@
 
     <operation name="incrAddSentence">
       <documentation>
+        Add a segment with its translation to an incremental system defined by
+        its context and document_model_id.  Adding a sentence pair triggers
+        train of that incremental system if no training is already underway.
+
+        Arguments:
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
+         - document_model_id is the id for the document model being queried.
+         - source_sentence source segement.
+         - target_sentence translation of the source segement.
+         - extra_data some additional data in json form.
+
+        Returns True if the server was successfully able to add the sentence
+        pair to the incremental system.
+
+        Throws SoapFault in case of problems.
       </documentation>
       <input message="tns:incrAddSentenceRequest"/>
       <output message="tns:incrAddSentenceResponse"/>
