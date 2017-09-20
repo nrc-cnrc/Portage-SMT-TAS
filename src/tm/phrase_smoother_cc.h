@@ -1242,7 +1242,7 @@ CoarseModel<T>::CoarseModel(PhraseSmootherFactory<T>& factory, const string& arg
 template<class T>
 Uint CoarseModel<T>::getCMPhrasePairIndex(const typename PhraseTableGen<T>::iterator& it)
 {
-   Uint pp_index;
+   Uint pp_index(0);
    vector<string> toks1, toks2;
    it.getPhrase(1, toks1);
    it.getPhrase(2, toks2);
