@@ -15,6 +15,8 @@ HTMLLIST:=$(addprefix html/,$(addsuffix .html,$(BASELIST)))
 
 include ../build/Makefile.incl
 
+IGNORES=html/*.html
+
 docs: $(HTMLLIST)
 
 html/%.html: asciidoc/%.adoc asciidoc/header.adoc asciidoc/footer.adoc
