@@ -121,10 +121,9 @@ See also:
 * link:PortageIIOverview.html#truerescoring-model-training[Rescoring
 Model Training] -- detailed description of the algorithm used to learn
 rescoring weights,
-* `doc/README.rescoring` (or `src/rescoring/README`) -- overview of the
+* `doc/rescoring.README` (or `src/rescoring/README`) -- overview of the
 rescoring software, and
-* link:uploads/RescoringOverview.pdf[Rescoring Overview] and
-link:uploads/OchLineMax.pdf[Och Line Max] (also in `doc/`) --
+* `doc/rescoring_overview.pdf` and `doc/ochlinemax.pdf` --
 implementation information.
 
 To train a rescoring model, you need:
