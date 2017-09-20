@@ -40,6 +40,7 @@ TOY_SYSTEM ?= $(abspath ${PORTAGE}/test-suite/systems/toy-regress-en2fr)
 context.1:
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	rm $@/incremental.config
 	cp src/incremental.config $@/
 
 # Context 2: 2 LMs (main LM first), 2 TMs
@@ -75,11 +76,13 @@ context.4:
 context.bad.1:
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	rm $@/incremental.config
 
 # Bad Context 2: missing SRC_LANG, TGT_LANG in incremental.config
 context.bad.2:
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	rm $@/incremental.config
 	cp src/incremental.config.bad.nolang $@/incremental.config
 
 # Test each context
@@ -125,4 +128,3 @@ $(addprefix workdir.test.,${BAD_CONTEXTS}):  workdir.test.%: %
 
 test.existing_model: workdir.test.context.1
 	cd $< && ${INCR_INIT_MODEL} -v ../${<:workdir.test.%=%}/canoe.ini.cow
-		

@@ -46,6 +46,7 @@ TIME_FORMAT = TIMEFORMAT=$$'\n'"${1}:  "$$'real %3lR\tuser %3lU\tsys %3lS'
 context.main context.custom_cmds: context.%:
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	rm $@/incremental.config
 	mv $@/canoe.ini.cow $@/canoe.ini.cow.orig
 	cd $@ && configtool -p args:"-stack 2000" canoe.ini.cow.orig > canoe.ini.cow
 	rm $@/canoe.ini.cow.orig
@@ -54,6 +55,7 @@ context.main context.custom_cmds: context.%:
 context.bad:			# missing incremental.config
 	mkdir -p $@
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
+	rm $@/incremental.config
 
 # Test creation of an incremental model with an empty corpus
 .PHONY: test.empty check.test.empty
