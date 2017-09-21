@@ -1,0 +1,37 @@
+include::header.adoc[]
+
+PortageII Training Models
+-------------------------
+
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIIWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PortageIITrainingLanguageModels.html[Language Models]
+
+'''''
+
+*Note:* this section of the user manual presents all the different
+models you can use, but not how best to use them. The steps required to
+train PortageII following our current recommendations are automated
+in our experimental framework. See `tutorial.pdf` in `framework` for
+details.
+
+Training: Constructing Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here are the models you need to build to run PortageII:
+
+* link:PortageIITrainingLanguageModels.html[Language Models]
+* link:PortageIITrainingOtherModels.html[Translation and Other Models]
+* link:TightlyPackedTries.html[Tightly Packed Tries]
+
+'''''
+
+Up: link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIIWordAlignmentFormats.html[Word Alignment
+Formats] Down:
+link:PortageIITrainingLanguageModels.html[Language Models]
+
+'''''
+
+include::footer.adoc[]

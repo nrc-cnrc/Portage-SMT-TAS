@@ -1,0 +1,43 @@
+image:uploads/NRC_banner_e.jpg[image]
+
+////
+[width=15%,float="right"]
+|======
+a|Table of Contents
+
+* link:PortageIIOverview.html[Background]
+* link:PortageIIKnowledgePrerequisites.html[Required Prior Knowledge]
+* link:PortageIIWhereToFindThings.html[Where To Find Things]
+* link:PortageIITextProcessing.html[Text Processing]
+** link:TMXProcessing.html[Extracting corpora from a TMX]
+* File Formats
+** link:PortageIIFileFormats.html[Text File Formats]
+** link:PortageIIWordAlignmentFormats.html[Word Alignment Formats]
+* Training
+** link:PortageIITrainingModels.html[Constructing Models]
+*** link:PortageIITrainingLanguageModels.html[Language Models]
+*** link:PortageIITrainingOtherModels.html[Other Models]
+*** link:TightlyPackedTries.html[Tightly Packed Tries]
+** link:PortageIITrainingOptimizingWeights.html[Optimizing Weights]
+* link:PortageIITranslating.html[Translating]
+** link:PortageIITranslatingDecoding.html[Decoding]
+** link:PortageIITranslatingRescoringNbestLists.html[Rescoring Nbest Lists]
+** link:PortageIITranslatingPostprocessing.html[Postprocessing]
+** Detailed notes on link:PortageIIDecoderSearchAlgorithmsAndDataStructures.html[The
+Decoder Search Algorithms And Data Structures]
+** Notes about link:UsingPhrasetablesInCanoe.html[Using Phrasetables In Canoe]
+* link:PortageIIEvaluation.html[Evaluation]
+* link:ConfidenceEstimation.html[Confidence Estimation]
+* link:PortageIIPerformanceConsiderations.html[Performance Considerations]
+* link:PortageIIMagicStreams.html[Magic Streams]
+* link:PortageLiveManual.html[PortageLive Manual]
+* link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
+* link:PortageIIProgrammerReference.html[Programmer Reference]
+** link:PortageIIWritingCode.html[Writing Code]
+** link:PortageIIMakeNotes.html[Using Make] (detailed notes)
+** link:PortageIIProgrammingGuidelines.html[Programming Guidelines]
+* link:PortageIIAnnotatedBibliography.html[Annotated Bibliography]
+* link:TrainingEuroparl.html[Requirements For Training A Mid Size System]
+* link:PortageIIFAQ.html[Frequently Asked Questions]
+|======
+////

@@ -1,0 +1,78 @@
+include::header.adoc[]
+
+Portage Machine Translation
+---------------------------
+
+Software for Statistical Machine Translation.
+
+PortageII 3.0
+~~~~~~~~~~~~~
+
+The PortageII series includes several leaps forward in NRC's SMT
+technology.
+
+With Neural Network Joint Models (NNJM), version 3.0 brings deep
+learning to the set of tools used to improve machine translation
+quality, as well as NRC's improved reordering model based on sparse
+features, coarse LMs, and other improvements. The NRC has put
+significant efforts in optimizing the default training parameters to
+improve the quality of the translations produced by PortageII, and
+we expect users to see and appreciate the difference.
+
+With PortageII 2.0, we added two important features to help translators:
+the transfer of markup tags from the source sentence to the machine
+translation output, as well as handling the increasingly common xliff
+file format. 2.1 and 2.2 were maintenance releases incorporating minor
+patches.
+
+With PortageII 1.0, we brought in significant improvements to translation
+engine that resulted in better translations, and contributed to our
+success at the NIST Open Machine Translation 2012 Evaluation
+(`OpenMT12`).
+
+See file RELEASES for full details. See also
+`doc/PortageAPIComparison.pdf` for a series of tables showing the
+evolution of the API, the plugin architecture and the training
+configuration for PortageII versions 1.0, 2.0, 2.1, 2.2 and 3.0.
+
+User Manual
+~~~~~~~~~~~
+
+* link:PortageIIOverview.html[Background and Overview]
+* link:PortageIIKnowledgePrerequisites.html[Required Prior Knowledge]
+* link:PortageIIWhereToFindThings.html[Where To Find Things]
+* link:PortageIITextProcessing.html[Text Processing]
+** link:TMXProcessing.html[Extracting corpora from a TMX]
+* File Formats
+** link:PortageIIFileFormats.html[Text File Formats]
+** link:PortageIIWordAlignmentFormats.html[Word Alignment Formats]
+* Training
+** link:PortageIITrainingModels.html[Constructing Models]
+*** link:PortageIITrainingLanguageModels.html[Language Models]
+*** link:PortageIITrainingOtherModels.html[Other Models]
+*** link:TightlyPackedTries.html[Tightly Packed Tries]
+** link:PortageIITrainingOptimizingWeights.html[Optimizing Weights]
+* link:PortageIITranslating.html[Translating]
+** link:PortageIITranslatingDecoding.html[Decoding]
+** link:PortageIITranslatingRescoringNbestLists.html[Rescoring Nbest Lists]
+** link:PortageIITranslatingPostprocessing.html[Postprocessing]
+** Detailed notes on link:PortageIIDecoderSearchAlgorithmsAndDataStructures.html[The
+Decoder Search Algorithms And Data Structures]
+** Notes about link:UsingPhrasetablesInCanoe.html[Using Phrasetables In Canoe]
+* link:PortageIIEvaluation.html[Evaluation]
+* link:ConfidenceEstimation.html[Confidence Estimation]
+* link:PortageIIPerformanceConsiderations.html[Performance Considerations]
+* link:PortageIIMagicStreams.html[Magic Streams]
+* link:PortageLiveManual.html[PortageLive Manual]
+* link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
+* link:PortageIIProgrammerReference.html[Programmer Reference]
+** link:PortageIIWritingCode.html[Writing Code]
+** link:PortageIIMakeNotes.html[Using Make] (detailed notes)
+** link:PortageIIProgrammingGuidelines.html[Programming Guidelines]
+* link:PortageIIAnnotatedBibliography.html[Annotated Bibliography]
+* link:TrainingEuroparl.html[Requirements For Training A Mid Size System]
+* link:PortageIIFAQ.html[Frequently Asked Questions]
+
+'''''
+
+include::footer.adoc[]
