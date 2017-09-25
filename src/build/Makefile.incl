@@ -407,7 +407,11 @@ clean_testrunners:
 .PHONY: run_tests/%
 run_tests/%: tests/%
 	$<
-CXXTESTGEN?=$(word 1,$(wildcard $(strip ${CXXTEST})/bin/cxxtestgen*) cxxtestgen)
+# Depending on the version, CxxTest's gen script might be called cxxtestgen.pl or
+# just cxxtestgen, but cxxtestgen.* is bad because it can match cxxtestgen.bat.  The
+# tidyest I found to say cxxtestgen{,.pl} in make uses addprefix.  EJJ Sept 2017
+CXXTESTGEN?=$(word 1,$(wildcard $(addprefix $(strip ${CXXTEST})/bin/cxxtestge,n n.pl)) cxxtestgen)
+#$(info CXXTESTGEN=${CXXTESTGEN})
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
 	${CXXTESTGEN} --error-printer -o $@ $<
 
