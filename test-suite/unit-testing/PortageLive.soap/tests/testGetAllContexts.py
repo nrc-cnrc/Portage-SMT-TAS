@@ -89,10 +89,10 @@ class TestGetAllContexts(unittest.TestCase):
       #self.assertEqual(len(result), 2, "There are not two systems")
 
       expected = {u'contexts':[{
-         u'source': u'en',
+         u'source': u'',
          u'description': u'unittest.rev.en-fr ( --> )',
          u'name': u'unittest.rev.en-fr',
-         u'target': u'fr'
+         u'target': u''
       }]}
       self.assertEqual(result, expected, "Json structure has elements we expect")
       #expected = [{
@@ -142,8 +142,8 @@ class TestGetAllContexts(unittest.TestCase):
          {u'contexts':
          [{u'description': u'unittest.rev.en-fr ( --> )',
            u'name':     u'unittest.rev.en-fr',
-           u'source':   u'en',
-           u'target':   u'fr'}]})
+           u'source':   u'',
+           u'target':   u''}]})
 
    def test_07_several_contexts(self):
       """
@@ -153,11 +153,11 @@ class TestGetAllContexts(unittest.TestCase):
          'toy-regress-ch2en;toy-regress-en2fr;toy-regress-en2fr.nnjm;toy-regress-fr2en;unittest.rev.en-fr',
          'toy-regress-ch2en (CH-CA --> EN-CA);toy-regress-en2fr (EN-CA --> FR-CA) with CE;toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE;toy-regress-fr2en (FR-CA --> EN-CA) with CE;unittest.rev.en-fr ( --> )',
          {u'contexts':
-         [{u'source': u'en', u'description': u'toy-regress-ch2en (CH-CA --> EN-CA)', u'name': u'toy-regress-ch2en', u'target': u'fr'},
-          {u'source': u'en', u'description': u'toy-regress-en2fr (EN-CA --> FR-CA) with CE', u'name': u'toy-regress-en2fr', u'target': u'fr'},
-          {u'source': u'en', u'description': u'toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE', u'name': u'toy-regress-en2fr.nnjm', u'target': u'fr'},
-          {u'source': u'en', u'description': u'toy-regress-fr2en (FR-CA --> EN-CA) with CE', u'name': u'toy-regress-fr2en', u'target': u'fr'},
-          {u'source': u'en', u'description': u'unittest.rev.en-fr ( --> )', u'name': u'unittest.rev.en-fr', u'target': u'fr'}]})
+         [{u'source': u'CH-CA', u'description': u'toy-regress-ch2en (CH-CA --> EN-CA)', u'name': u'toy-regress-ch2en', u'target': u'EN-CA'},
+          {u'source': u'EN-CA', u'description': u'toy-regress-en2fr (EN-CA --> FR-CA) with CE', u'name': u'toy-regress-en2fr', u'target': u'FR-CA'},
+          {u'source': u'EN-CA', u'description': u'toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE', u'name': u'toy-regress-en2fr.nnjm', u'target': u'FR-CA'},
+          {u'source': u'FR-CA', u'description': u'toy-regress-fr2en (FR-CA --> EN-CA) with CE', u'name': u'toy-regress-fr2en', u'target': u'EN-CA'},
+          {u'source': u'', u'description': u'unittest.rev.en-fr ( --> )', u'name': u'unittest.rev.en-fr', u'target': u''}]})
 
    #TODO
    # - no contexts, one context, more than one context

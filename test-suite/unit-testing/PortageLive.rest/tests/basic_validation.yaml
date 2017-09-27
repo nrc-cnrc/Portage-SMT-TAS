@@ -41,12 +41,8 @@ testSteps:
       q: "home"
     asserts:
       headers:
-        status: 404
+        status: 200
         Content-Type: "application/json"
-      payload:
-         error: "Object"
-         error.message: "String"
-         error.message: "You need to provide a target using target=X."
 
 
   - name: "Empty target"
@@ -59,12 +55,8 @@ testSteps:
       q: "home"
     asserts:
       headers:
-        status: 404
+        status: 200
         Content-Type: "application/json"
-      payload:
-         error: "Object"
-         error.message: "String"
-         error.message: "You need to provide a target using target=X."
 
 
   - name: "There should be a query."
