@@ -154,25 +154,29 @@ class RestTranlator extends PortageLiveLib {
    public function translate() {
       $this->parseRequest(@$_REQUEST);
 
+      /*
       if (!isset($this->target) || empty($this->target)) {
          throw new Exception("You need to provide a target using target=X.");
       }
+      */
 
       # Validate that source is a valid source language / supported source
       # language.
 
       # Deduce and/or validate the source language.
+      /*
       if (!isset($this->source) || empty($this->source)) {
          if ($this->target === "fr") $this->source = "en";
          if ($this->target === "en") $this->source = "fr";
       }
+      */
 
       $performTagTransfer = false;
       $useConfidenceEstimation = false;
       $newline = "p";
 
-      # We should use source and target to validate that the user is currently 
-      # using a system that supports that language pair.
+      # If supplied, we could use source and target to validate that the user
+      # is currently using a system that supports that language pair.
       $context = $this->context;
       if (isset($this->document_model_ID) and !empty($this->document_model_ID)) {
          $context .= '/' .  $this->document_model_ID;
