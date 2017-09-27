@@ -86,11 +86,13 @@ class PortageLiveLib
                $src = $matches[1];
             else if (preg_match('/-src=(\w+)/', $cmdline, $matches))
                $src = $matches[1];
+            $info["source"] = $src;
             $tgt = "";
             if (preg_match('/-xtgt=([-a-zA-Z]+)/', $cmdline, $matches))
                $tgt = $matches[1];
             else if (preg_match('/-tgt=(\w+)/', $cmdline, $matches))
                $tgt = $matches[1];
+            $info["target"] = $tgt;
             #if (is_file("$info[context_dir]/canoe.ini.cow"))
             #   $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
             #if (is_file("$info[context_dir]/rescore.ini"))
@@ -300,8 +302,8 @@ class PortageLiveLib
                $contexts[] = array(
                   'name' => $dir,
                   'description' => $info['label'],
-                  'source' => 'en',
-                  'target' => 'fr'
+                  'source' => $info['source'],
+                  'target' => $info['target'],
                );
             else if ($verbose)
                $contexts[] = $info['label'];
