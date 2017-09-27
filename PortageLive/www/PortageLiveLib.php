@@ -28,8 +28,8 @@ $base_url = "/";
 # produce debugging information
 function debug($i)
 {
-   if (0) {
-      error_log($i, 3, '/tmp/PortageLiveAPI.debug.log');
+   if (False) {
+      error_log(print_r($i, true), 3, '/tmp/PortageLiveAPI.debug.log');
       return " " . print_r($i, true);
    }
 }
@@ -157,6 +157,8 @@ class PortageLiveLib
          'PORTAGE_INTERNAL_CALL' => 1
       );
 
+      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
+      #error_log(print_r($i, true), 3, '/tmp/PortageLiveAPI.debug.log');
       #error_log(print_r($env, true), 3, '/tmp/PortageLiveAPI.debug.log');
 
       $descriptorspec = array(
@@ -760,7 +762,7 @@ class PortageLiveLib
       }
       $command .= " -c " . $i["canoe_ini"];
       $command .= " $source_sentence $target_sentence";
-      #error_log($command);
+      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
 
       $dummy_context_info = array( 'context_dir' => '' );
       $exit_status = False;
