@@ -13,15 +13,24 @@
 
 
 # Server configuration options
-if (php_sapi_name() == 'cli-server') {
+if (php_sapi_name() == 'cli') {
+   # We need to specify a full path and not simply "." because the working
+   # directory has do be a absolute path since runCommand executes from /tmp.
+   $base_web_dir = getcwd();
+   $base_portage_dir = "$base_web_dir/tests";
+   $error_output_dir = "$base_web_dir/plive";
+}
+elseif (php_sapi_name() == 'cli-server') {
    # We need to specify a full path and not simply "." because the working
    # directory has do be a absolute path since runCommand executes from /tmp.
    $base_web_dir = $_SERVER['DOCUMENT_ROOT'];
-   $base_portage_dir = $_SERVER['DOCUMENT_ROOT'] . '/tests';
+   $base_portage_dir = "$base_web_dir/tests";
+   $error_output_dir = "$base_web_dir/plive";
 }
 else {
    $base_web_dir = "/var/www/html";
    $base_portage_dir = "/opt/PortageII";
+   $error_output_dir = '/tmp';
 }
 $base_url = "/";
 
@@ -29,7 +38,7 @@ $base_url = "/";
 function debug($i)
 {
    if (False) {
-      error_log(print_r($i, true), 3, '/tmp/PortageLiveAPI.debug.log');
+      error_log(print_r($i, true), 3, "$error_output_dir/PortageLiveAPI.debug.log");
       return " " . print_r($i, true);
    }
 }
@@ -144,22 +153,26 @@ class PortageLiveLib
    protected function runCommand($command, $src_string, &$i,
                                  &$exit_status = NULL, $wantoutput = true)
    {
+      global $error_output_dir;
       $cwd = "/tmp";
       global $base_portage_dir;
       $context_dir = $i["context_dir"];
-      $env = array(
-         'PORTAGE'         => "$base_portage_dir",
-         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
-         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin"
-                              . ":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-         'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib",
-         'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib",
-         'PORTAGE_INTERNAL_CALL' => 1
-      );
+      if (php_sapi_name() === 'cli' or php_sapi_name() === 'cli-server')
+         $env = NULL;
+      else
+         $env = array(
+            'PORTAGE'         => "$base_portage_dir",
+            'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
+            'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin"
+                                 . ":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib",
+            'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib",
+            'PORTAGE_INTERNAL_CALL' => 1
+         );
 
-      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
-      #error_log(print_r($i, true), 3, '/tmp/PortageLiveAPI.debug.log');
-      #error_log(print_r($env, true), 3, '/tmp/PortageLiveAPI.debug.log');
+      #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
+      #error_log(print_r($i, true), 3, "$error_output_dir/PortageLiveAPI.debug.log");
+      #error_log(print_r($env, true), 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       $descriptorspec = array(
          0 => array("pipe", "r"),  # stdin is a pipe that the child will read from
@@ -171,19 +184,15 @@ class PortageLiveLib
          $descriptorspec[1] = array("file", "/dev/null", "a");
       }
       # stderr is a file to write to
-      $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
+      $descriptorspec[2] = array("file", "$error_output_dir/error-output.txt", "a");
 
-      if (php_sapi_name() === 'cli' or php_sapi_name() === 'cli-server') {
-         $process = proc_open($command, $descriptorspec, $pipes, $cwd, NULL);
-      } else {
-         $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
-      }
+      $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
       if (is_resource($process)) {
          # $pipes now looks like this:
          # 0 => writeable handle connected to child stdin
          # 1 => readable handle connected to child stdout
-         # Any error output will be appended to /tmp/error-output.txt
+         # Any error output will be appended to $error_output_dir/error-output.txt
 
          fwrite($pipes[0], $src_string);
          fclose($pipes[0]);
@@ -376,7 +385,8 @@ class PortageLiveLib
    private function translateFileCE($contents_base64, $filename, $context,
                                     $useCE, $ce_threshold, $xtags, $type)
    {
-      #error_log("translateFileCE with $type\n", 3, '/tmp/PortageLiveAPI.debug.log');
+      global $error_output_dir;
+      #error_log("translateFileCE with $type\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       #if ($type === "plaintext" and !$useCE and $ce_threshold != 0) {
       #   # TODO send a meaningful SoapFault
@@ -552,7 +562,8 @@ class PortageLiveLib
    public function updateFixedTerms($content, $filename, $encoding, $context,
                       $sourceColumnIndex, $sourceLanguage, $targetLanguage)
    {
-      #error_log(func_get_args(), 3, '/tmp/PortageLiveAPI.debug.log');
+      global $error_output_dir;
+      #error_log(func_get_args(), 3, "$error_output_dir/PortageLiveAPI.debug.log");
       $encoding = strtolower($encoding);
       if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
          throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding): "
@@ -618,7 +629,7 @@ class PortageLiveLib
       $command .= " && fixed_term2tm.pl -source_column=$sourceColumnIndex "
                   . "-source=$sourceLanguage -target=$targetLanguage $fixedTerms";
       $command .= " | sort --unique > $tm\"";
-      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
+      #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       $exit_status = NULL;
       $result = $this->runCommand($command, "", $contextInfo, $exit_status, true);
@@ -724,6 +735,7 @@ class PortageLiveLib
                                    $target_sentence = NULL,
                                    $extra_data = NULL)
    {
+      global $error_output_dir;
       if (!isset($context) || empty($context)) {
          throw new SoapFault("PortageBadArgs", "You must provide a valid context.");
       }
@@ -762,11 +774,11 @@ class PortageLiveLib
       }
       $command .= " -c " . $i["canoe_ini"];
       $command .= " $source_sentence $target_sentence";
-      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
+      #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       $dummy_context_info = array( 'context_dir' => '' );
       $exit_status = False;
-      # Set $wantoutput to true for debugging and look at /tmp/error-output.txt,
+      # Set $wantoutput to true for debugging and look at $error_output_dir/error-output.txt,
       # but then updates will no longer happen in the background, the soap client
       # will have to wait on them, so do so only for debugging!
       $wantoutput = False;
