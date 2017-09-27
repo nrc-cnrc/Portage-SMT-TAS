@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 Using Phrasetables In Canoe
 ---------------------------
@@ -166,4 +166,4 @@ link:PortageIIEvaluation.html[Evaluation]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Translating Rescoring Nbest Lists
 -------------------------------------------
@@ -48,4 +48,4 @@ link:PortageIITranslatingPostprocessing.html[Postprocessing]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

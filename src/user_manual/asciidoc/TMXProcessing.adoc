@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 TMX Processing
 --------------
@@ -238,4 +238,4 @@ link:PortageIIFileFormats.html[Text File Formats]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

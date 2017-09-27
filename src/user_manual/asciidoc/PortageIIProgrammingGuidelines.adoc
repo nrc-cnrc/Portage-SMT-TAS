@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Programming Guidelines
 --------------------------------
@@ -207,4 +207,4 @@ Bibliography]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

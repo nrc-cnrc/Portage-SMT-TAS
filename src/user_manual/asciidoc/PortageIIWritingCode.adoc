@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Writing Code
 ----------------------
@@ -101,4 +101,4 @@ Next: link:PortageIIMakeNotes.html[Using Make]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

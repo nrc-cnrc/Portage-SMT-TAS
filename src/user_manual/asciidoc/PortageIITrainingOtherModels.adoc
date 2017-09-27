@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Training Other Models
 -------------------------------
@@ -358,4 +358,4 @@ Next: link:TightlyPackedTries.html[Tightly Packed Tries]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

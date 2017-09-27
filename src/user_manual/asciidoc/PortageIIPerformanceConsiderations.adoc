@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Performance Considerations
 ------------------------------------
@@ -221,4 +221,4 @@ link:PortageIIMagicStreams.html[Magic Streams]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

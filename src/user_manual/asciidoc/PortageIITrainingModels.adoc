@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Training Models
 -------------------------
@@ -34,4 +34,4 @@ link:PortageIITrainingLanguageModels.html[Language Models]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

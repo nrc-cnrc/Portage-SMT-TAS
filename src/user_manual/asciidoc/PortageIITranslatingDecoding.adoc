@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Translating Decoding
 ------------------------------
@@ -56,4 +56,4 @@ Nbest Lists]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

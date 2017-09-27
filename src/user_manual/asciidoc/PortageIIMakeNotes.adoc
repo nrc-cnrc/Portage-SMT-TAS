@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Make Notes
 --------------------
@@ -115,4 +115,4 @@ Guidelines]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

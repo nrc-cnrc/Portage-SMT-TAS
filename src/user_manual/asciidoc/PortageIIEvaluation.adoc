@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Evaluation
 --------------------
@@ -94,4 +94,4 @@ link:ConfidenceEstimation.html[Confidence Estimation]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

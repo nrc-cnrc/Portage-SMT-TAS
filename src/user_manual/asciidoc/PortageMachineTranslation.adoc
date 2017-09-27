@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 Portage Machine Translation
 ---------------------------
@@ -75,4 +75,4 @@ Decoder Search Algorithms And Data Structures]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

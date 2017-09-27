@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Text Processing
 -------------------------
@@ -237,4 +237,4 @@ Down: link:TMXProcessing.html[TMX Processing]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII FAQ
 -------------
@@ -110,4 +110,4 @@ System]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

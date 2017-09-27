@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Training Optimizing Weights
 -------------------------------------
@@ -313,4 +313,4 @@ link:PortageIITranslating.html[Translating]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

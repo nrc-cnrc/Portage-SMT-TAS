@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Word Alignment Formats
 --------------------------------
@@ -217,4 +217,4 @@ link:PortageIITrainingModels.html[Constructing Models]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Knowledge Prerequisites
 ---------------------------------
@@ -66,4 +66,4 @@ link:PortageIIWhereToFindThings.html[Where To Find Things]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

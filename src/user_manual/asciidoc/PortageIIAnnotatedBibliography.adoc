@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Annotated Bibliography
 --------------------------------
@@ -1721,4 +1721,4 @@ Training A Mid Size System]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

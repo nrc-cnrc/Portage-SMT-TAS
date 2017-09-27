@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 PortageII Overview
 ------------------
@@ -508,4 +508,4 @@ link:PortageIIKnowledgePrerequisites.html[Prerequisites]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]

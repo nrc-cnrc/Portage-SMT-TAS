@@ -1,4 +1,4 @@
-include::header.adoc[]
+include::incl/header.adoc[]
 
 Confidence Estimation
 ---------------------
@@ -30,4 +30,4 @@ link:PortageIIPerformanceConsiderations.html[Performance]
 
 '''''
 
-include::footer.adoc[]
+include::incl/footer.adoc[]
