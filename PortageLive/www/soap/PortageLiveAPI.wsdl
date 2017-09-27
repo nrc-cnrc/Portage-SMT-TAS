@@ -482,7 +482,9 @@
       <documentation>
         Add a segment with its translation to an incremental system defined by
         its context and document_model_id.  Adding a sentence pair triggers
-        train of that incremental system if no training is already underway.
+        train of that incremental system if no training is already underway, or
+        else buffers the sentence pair for re-training is soon as the current
+        training operation is completed.
 
         Arguments:
          - context is the name of the system to use to translate the document, and
@@ -493,7 +495,7 @@
          - extra_data some additional data in json form.
 
         Returns True if the server was successfully able to add the sentence
-        pair to the incremental system.
+        pair to the incremental system's queue.
 
         Throws SoapFault in case of problems.
       </documentation>
