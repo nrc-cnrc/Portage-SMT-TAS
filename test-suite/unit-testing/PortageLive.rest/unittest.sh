@@ -156,6 +156,37 @@ function incrAddSentence_curl_post_testcase() {
    || ! echo $'\nError: Cannot find entry.' >&2
 }
 
+function test_multi_word_queries() {
+   verbose ${FUNCNAME[0]}
+   export CORPORA="./plive/DOCUMENT_MODEL_${context}_${document_model_id}/corpora"
+   local tag=`date +"%T"`
+
+   curl \
+      --silent \
+      --data 'q=hello+world+,:;"' \
+      --data 'source=en' \
+      --data 'target=fr' \
+      --data 'prettyprint=false' \
+      --data "context=$context" \
+      "http://$server_ip:$server_port/translate.php" \
+   | grep --quiet --fixed-strings \
+      '{"data":{"translations":[{"translatedText":"\";:, dlrow olleh"}]}}' \
+   || ! echo "Error translating a multi-word request" >&2
+
+   curl \
+      --silent \
+      --data "context=$context" \
+      --data 'source=This is a test sentence, punctuation,;: "quotes" and stuff' \
+      --data "target=The results has tag POST$tag, and ;:\"'" \
+      --data "document_model_ID=$document_model_id" \
+      "http://$server_ip:$server_port/incrAddSentence.php" \
+   | grep --quiet '{"result":true}' \
+   || ! echo "Error Adding sentence pairs" >&2
+
+   grep --quiet "has tag POST$tag, and ;:\"'" $CORPORA \
+   || ! echo $'\nError with multi-word push: Cannot find entry.' >&2
+}
+
 function lint_php() {
    verbose ${FUNCNAME[0]}
    for c in PortageLiveLib.php rest/incrAddSentence.php rest/translate.php rest/getAllContexts.php rest/incrStatus.php; do
@@ -307,6 +338,7 @@ mkdir -p "$doc_root/plive/DOCUMENT_MODEL_${context}_${document_model_id}_empty"
 
 prepare_scenarios || RC=1
 cd $doc_root || exit 1
+test_multi_word_queries || RC=1
 phpunit_testcase || RC=1
 Rester_testcase || RC=1
 incrAddSentence_with_curl_testcase || RC=1
