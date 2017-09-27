@@ -468,6 +468,7 @@ function incrAddSentenceTestCase($WSDL) {
    $doc_id = $_POST['incrAddSentence_document_id'];
    $source_sent = $_POST['incrAddSentence_source_sent'];
    $target_sent = $_POST['incrAddSentence_target_sent'];
+   print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    print "<b>Source sentence: </b> $source_sent<br>\n";
    print "<b>Target sentence: </b> $doc_id<br>\n";
@@ -485,11 +486,13 @@ function incrAddSentenceTestCase($WSDL) {
 function incrStatusTestCase($WSDL) {
    print "<section id='incrStatusResponse'>\n";
    print "<header>Incremental Training Status</header>\n";
+   global $context;
    $doc_id = $_POST['incrStatus_document_id'];
+   print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    try {
       $client = new SoapClient($WSDL);
-      $reply = $client->incrStatus($doc_id);
+      $reply = $client->incrStatus($context, $doc_id);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
