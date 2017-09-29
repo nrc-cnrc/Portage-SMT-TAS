@@ -137,6 +137,19 @@ cp html/portage_notices.php $HTML_DIR/
 # Copy the REST files
 mkdir -p $HTML_DIR/rest
 cp PortageLiveLib.php rest/*.php rest/.htaccess $HTML_DIR/rest
+if [[ -d ../../src/user_manual ]]; then
+   USER_MANUAL_SRC=../../src/user_manual/html
+else
+   USER_MANUAL_SRC=../../doc/user-manual/pages
+fi
+if [[ -f $USER_MANUAL_SRC/PortageLiveREST.html ]]; then
+   cp $USER_MANUAL_SRC/PortageLiveREST.html $HTML_DIR/rest/index.html
+   mkdir $HTML_DIR/rest/uploads
+   cp -ar $USER_MANUAL_SRC/uploads/{NRC_banner_e.jpg,iit_sidenav_graphictop_e.gif,sidenav_graphicbottom_e.gif,mainf1.gif,mainWordmark.gif} $HTML_DIR/rest/uploads
+else
+   echo Error: cannot find PortageLiveREST.html documentation document
+   false
+fi
 
 # Copy the php and SOAP files
 cp PortageLiveLib.php soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,soap.php,determine-version.php} $SOAP_DEST
