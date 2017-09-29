@@ -23,6 +23,14 @@ code to do this, any web library will handle the encoding for you!
 The response is always a JSON object. Again, don't write code to parse this,
 there are JSON parsers in just about every programming language.
 
+== help
+
+This documentation is available in two locations: as part of the
+PortageLiveManual section of the PortageII user manual, as well as installed
+with every instance of the REST API as `_PLIVE_REST_/index.html`, so that
+typically, just using `http://host/rest` should display this documentation.
+If not, `http://host/rest/index.html` certainly will.
+
 == translate
 
 ----
