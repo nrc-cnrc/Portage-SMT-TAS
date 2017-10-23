@@ -41,11 +41,12 @@ words are replaced by their tags, or by unk if tagged files aren't specified or
 if -r is given and the tag is not found in the vocabulary. 
 
 The vocabulary file format is:
-   0 <UNK>
-   1 <BOS>
-   2 <EOS>
-   3 word1
-   4 word2
+   0 <ELID>
+   1 <UNK>
+   2 <BOS>
+   3 <EOS>
+   4 word1
+   5 word2
    ... 
    n <TAG>:tag1
    n+1 <TAG>:tag2
