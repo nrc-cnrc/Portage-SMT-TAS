@@ -6,10 +6,10 @@
 # @author Write your name here
 #
 # Traitement multilingue de textes / Multilingual Text Processing
-# Tech. de l'information et des communications / Information and Communications Tech.
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2016, Her Majesty in Right of Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2017, Her Majesty in Right of Canada
 
 """
 This program shows how to:
