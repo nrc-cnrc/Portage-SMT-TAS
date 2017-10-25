@@ -1,0 +1,1 @@
+the perimeter involves harmonizing customs and immigration policies among canada , the united states and perhaps mexico to ensure that there are common and regular standards on our external frontier so that we do not have to slow down internal trade and we do not have to excessively infringe upon the rights of our own citizens domestically . 

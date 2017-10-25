@@ -24,6 +24,7 @@ TESTPROGS = test_portage_nnjm
 PROGRAMS = $(TESTPROGS)
 
 BINSCRIPTS = \
+	nnjm-genex.py \
 	train-nnjm.py \
 	unpickle.py
 
