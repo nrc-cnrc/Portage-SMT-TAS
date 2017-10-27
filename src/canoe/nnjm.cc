@@ -353,6 +353,11 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
       else {
          error(ETFatal, "you need to specify source tags via the canoe -srctags option with this NNJM model");
       }
+   } else {
+      src_sent_tags.reserve(info.src_sent.size());
+      for (Uint i = 0; i < info.src_sent.size(); ++i) {
+         src_sent_tags.push_back(string("<unk>"));
+      }
    }
    if (src_sent_tags.size() != info.src_sent.size())
       error(ETFatal, "number of tags doesn't match number of tokens for input sentence %d",
