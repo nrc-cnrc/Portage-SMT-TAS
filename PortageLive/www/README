@@ -84,7 +84,7 @@ folders and cgi scripts therein, and write access to /var/www/html/plive.
 
 The installation instructions provided above should have accomplished that
 automatically, but if not, this will fix things:
-   chmod o+rX -r /var/www/html
+   chmod -R o+rX /var/www/html
    chmod o+w /var/www/html/plive
 
 Next steps

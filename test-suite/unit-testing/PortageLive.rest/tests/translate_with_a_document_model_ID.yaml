@@ -1,0 +1,104 @@
+---
+# @file tests/translate_with_a_document_model_ID.yaml
+# @brief 
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2017, Her Majesty in Right of Canada
+
+
+name: "translating with a document model ID."
+
+
+globals:
+   variables:
+      translate: "{base_url}/translate.php"
+      incrAddSentence: "{base_url}/incrAddSentence.php"
+
+
+testSteps:
+   - name: "First translation in an empty system."
+     method: "get"
+     apiUrl: "{translate}"
+     params:
+        context: "toy-regress-en2fr"
+        target: "fr"
+        prettyprint: false
+        q: "home"
+        document_model_ID: "foo"
+     asserts:
+        headers:
+           status: 200
+           Content-Type: "application/json"
+        payload:
+            data: "Object"
+            "data.translations": "Array"
+            "data.translations._length": 1
+            "data.translations[0]": "Object"
+            "data.translations[0].translatedText": "String"
+            "data.translations[0].translatedText": "pays"
+
+
+   - name: "Performing and incremental update to change home/pays => home/maison"
+     method: "post"
+     apiUrl: "{incrAddSentence}"
+     params:
+        context: "toy-regress-en2fr"
+        source: "home"
+        target: "MAISON"
+        document_model_ID: "foo"
+     asserts:
+        headers:
+           status: 200
+           Content-Type: "application/json"
+        payload:
+            "result": "Boolean"
+            "result": True
+
+
+   - name: "Second translation after an incremental update."
+     method: "get"
+     apiUrl: "{translate}"
+     params:
+        context: "toy-regress-en2fr"
+        target: "fr"
+        prettyprint: false
+        q: "home"
+        document_model_ID: "foo"
+     asserts:
+        headers:
+           status: 200
+           Content-Type: "application/json"
+        payload:
+            data: "Object"
+            "data.translations": "Array"
+            "data.translations._length": 1
+            "data.translations[0]": "Object"
+            "data.translations[0].translatedText": "String"
+            "data.translations[0].translatedText": "maison"
+
+
+   - name: "Translating with an in valid context"
+     method: "get"
+     apiUrl: "{translate}"
+     params:
+        context: "toy-regress-en2fr.invalid"
+        target: "fr"
+        prettyprint: false
+        q: "home"
+        document_model_ID: "foo"
+     asserts:
+        headers:
+           status: 404
+           Content-Type: "application/json"
+        payload:
+            error: "Object"
+            "error.type": "String"
+            "error.type": "PortageContext"
+            "error.message": "String"
+            "error.message": 'exec value.strip() == "Context \"toy-regress-en2fr.invalid/foo\" does not exist."'
+

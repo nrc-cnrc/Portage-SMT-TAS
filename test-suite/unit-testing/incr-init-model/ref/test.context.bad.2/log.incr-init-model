@@ -1,0 +1,4 @@
+Reading incremental config file: ../context.bad.2/incremental.config
+Error: Missing/empty required parameter in incremental model config file: SRC_LANG
+Error: Missing/empty required parameter in incremental model config file: TGT_LANG
+Fatal error: Problem(s) found in incremental model config file: ../context.bad.2/incremental.config

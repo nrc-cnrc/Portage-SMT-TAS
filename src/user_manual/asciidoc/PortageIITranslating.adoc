@@ -1,0 +1,49 @@
+include::incl/header.adoc[]
+
+PortageII Translating
+---------------------
+
+Up link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIITrainingOptimizingWeights.html[Optimizing
+Weights] Down:
+link:PortageIITranslatingDecoding.html[Decoding]
+
+'''''
+
+*Note:* this section does not reflect current best practice. The whole
+translation pipeline is now automated in our experimental framework for
+translation during training, and in script `translate.pl` for use in
+PortageLive. Please read `tutorial.pdf` in `framework` and the
+link:PortageLiveManual.html[PortageLive Manual].
+
+Translating
+~~~~~~~~~~~
+
+Source texts to be translated by PortageII must be in
+link:PortageIIFileFormats.html#truetokenized-text[Tokenized Text] or
+link:PortageIIFileFormats.html#truemarked-up-text[Marked Up Text] formats;
+the link:PortageIITextProcessing.html[Text Processing]
+section describes the required processing steps. Translation
+itself consists of three main steps, of which the last two are optional:
+decoding, rescoring, and postprocessing.
+
+* link:PortageIITranslatingDecoding.html[Decoding]
+* link:PortageIITranslatingRescoringNbestLists.html[Rescoring Nbest Lists]
+* link:PortageIITranslatingPostprocessing.html[Postprocessing]
+
+* Detailed notes on
+link:PortageIIDecoderSearchAlgorithmsAndDataStructures.html[The
+Decoder Search Algorithms And Data Structures]
+* Notes about link:UsingPhrasetablesInCanoe.html[Using
+Phrasetables In Canoe]
+
+'''''
+
+Up link:PortageMachineTranslation.html[PortageII] Previous:
+link:PortageIITrainingOptimizingWeights.html[Optimizing
+Weights] Down:
+link:PortageIITranslatingDecoding.html[Decoding]
+
+'''''
+
+include::incl/footer.adoc[]

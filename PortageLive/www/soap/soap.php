@@ -41,6 +41,10 @@ if ( $_POST ) {
          $button = "removeFixedTerms";
       if ( array_key_exists('Prime', $_POST) )
          $button = "Prime";
+      if ( array_key_exists('IncrAddSentence', $_POST) )
+         $button = "IncrAddSentence";
+      if ( array_key_exists('IncrStatus', $_POST) )
+         $button = "IncrStatus";
    }
 
    if ( array_key_exists('MonitorJob', $_POST) )
@@ -457,11 +461,56 @@ function translateTestCase($WSDL, $context) {
     */
 }
 
+function incrAddSentenceTestCase($WSDL) {
+   print "<section id='incrAddSentenceResponse'>\n";
+   print "<header>Incremental Add Sentence Pair</header>\n";
+   global $context;
+   $doc_id = $_POST['incrAddSentence_document_id'];
+   $source_sent = $_POST['incrAddSentence_source_sent'];
+   $target_sent = $_POST['incrAddSentence_target_sent'];
+   print "<b>Context: </b> $context<br>\n";
+   print "<b>Document ID: </b> $doc_id<br>\n";
+   print "<b>Source sentence: </b> $source_sent<br>\n";
+   print "<b>Target sentence: </b> $doc_id<br>\n";
+   try {
+      $client = new SoapClient($WSDL);
+      $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
+      print "<b>Reply: </b> $reply";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+
+function incrStatusTestCase($WSDL) {
+   print "<section id='incrStatusResponse'>\n";
+   print "<header>Incremental Training Status</header>\n";
+   global $context;
+   $doc_id = $_POST['incrStatus_document_id'];
+   print "<b>Context: </b> $context<br>\n";
+   print "<b>Document ID: </b> $doc_id<br>\n";
+   try {
+      $client = new SoapClient($WSDL);
+      $reply = $client->incrStatus($context, $doc_id);
+      print "<b>Reply: </b> $reply";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+
+
 function testSuite($WSDL) {
    global $button;
    global $context;
    global $PrimeMode;
    global $monitor_token;
+
+   if ( $button != "" ) {
+      print "<a name='testcase_output_anchor'>\n";
+   }
 
    if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
       primeTestCase($WSDL, $context, $PrimeMode);
@@ -497,6 +546,14 @@ function testSuite($WSDL) {
    else
    if ( $button == "MonitorJob" && !empty($monitor_token) ) {
       monitorJobTestCase($WSDL, $button, $monitor_token);
+   }
+   else
+   if ( $button == "IncrAddSentence" ) {
+      incrAddSentenceTestCase($WSDL);
+   }
+   else
+   if ( $button == "IncrStatus" ) {
+      incrStatusTestCase($WSDL);
    }
 }
 
@@ -540,7 +597,7 @@ function testSuite($WSDL) {
 </STYLE>
 </head>
 
-<body>
+<body onload=' location.href="#testcase_output_anchor" '>
 <header>
 <p align="center"><img src="images/NRC_banner_e.jpg" /></p>
 </header>
@@ -729,6 +786,20 @@ CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 </tr>
 </table>
 </div>
+</section>
+
+<section id='incrAddSentence'>
+<header>incrAddSentence()</header>
+Source sentence: <INPUT TYPE = "TEXT" Name = "incrAddSentence_source_sent" SIZE = 100 /> <br/>
+Target sentence: <INPUT TYPE = "TEXT" Name = "incrAddSentence_target_sent" SIZE = 100 /> <br/>
+Document ID: <INPUT TYPE = "TEXT" Name = "incrAddSentence_document_id" SIZE = 30 />
+<INPUT TYPE = "Submit" Name = "IncrAddSentence"    VALUE = "incrAddSentence()"/>
+</section>
+
+<section id='incrStatus'>
+<header>incrStatus()</header>
+Document ID: <INPUT TYPE = "TEXT" Name = "incrStatus_document_id" SIZE = 30 />
+<INPUT TYPE = "Submit" Name = "IncrStatus"    VALUE = "incrStatus()"/>
 </section>
 
 </FORM>

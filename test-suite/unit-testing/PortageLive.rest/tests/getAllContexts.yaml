@@ -1,0 +1,40 @@
+# @file tests/getAllContexts.yaml
+# @brief
+#
+# @author Eric Joanis
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada
+# Copyright 2017, Her Majesty in Right of Canada
+
+
+name: "getAllContexts"
+
+
+globals:
+  variables:
+    service: "{base_url}/getAllContexts.php"
+
+
+testSteps:
+  - name: "Basic usage."
+    method: "get"
+    apiUrl: "{service}"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        "contexts": "Array"
+        "contexts._length": 2
+        "contexts[0].name": "toy-regress-en2fr"
+        "contexts[0].description": "toy-regress-en2fr (EN-CA --> FR-CA) with CE"
+        "contexts[0].source": "EN-CA"
+        "contexts[0].target": "FR-CA"
+        "contexts[1].name": "unittest.rev.en-fr"
+        "contexts[1].description": "unittest.rev.en-fr ( --> )"
+        "contexts[1].source": ""
+        "contexts[1].target": ""
+        # payload should be {"contexts":[{"name":"unittest.rev.en-fr","description":"unittest.rev.en-fr ( --> )","source":"en","target":"fr"}]}

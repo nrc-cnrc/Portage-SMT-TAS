@@ -6,10 +6,10 @@
 # @author Write your name here
 # 
 # Traitement multilingue de textes / Multilingual Text Processing
-# Tech. de l'information et des communications / Information and Communications Tech.
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2016, Her Majesty in Right of Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2017, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
 BIN=`dirname $0`
@@ -71,11 +71,11 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-test $# -eq 0   && error_exit "Missing first argument argument"
+[[ $# -eq 0 ]]  && error_exit "Missing first argument argument"
 PROG_ARGUMENT1=$1; shift
-test $# -eq 0   && error_exit "Missing second argument argument"
+[[ $# -eq 0 ]]  && error_exit "Missing second argument argument"
 PROG_ARGUMENT2=$1; shift
-test $# -gt 0   && error_exit "Superfluous arguments $*"
+[[ $# -gt 0 ]]  && error_exit "Superfluous arguments $*"
 
 # [Update this block with your variables, or simply delete it, when you use
 # this template]

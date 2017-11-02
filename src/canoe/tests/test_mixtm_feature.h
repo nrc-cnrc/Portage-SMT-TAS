@@ -23,6 +23,7 @@ class TestMixTMFeature : public CxxTest::TestSuite {
    string filename;
    string mixtppt;
    vector<string> tppts;
+   bool global_systems_exist;
 public:
    TestMixTMFeature() {
       const char* pPortageEnv = getenv("PORTAGE");
@@ -30,6 +31,11 @@ public:
       tppts.push_back(PortageEnv + "/test-suite/systems/toy-regress-ch2en/models/tm/cpt.merged.hmm3-kn3-zn.tm-train.ch2en.tppt");
       tppts.push_back(PortageEnv + "/test-suite/systems/toy-regress-en2fr/models/tm/cpt.merged.hmm3-kn3-zn.tm-train.en2fr.tppt");
       tppts.push_back(PortageEnv + "/test-suite/systems/toy-regress-fr2en/models/tm/cpt.merged.hmm3-kn3-zn.tm-train.fr2en.tppt");
+
+      global_systems_exist =
+         (PhraseTableFeature::checkFileExists(tppts[0]) &&
+          PhraseTableFeature::checkFileExists(tppts[1]) &&
+          PhraseTableFeature::checkFileExists(tppts[2]));
    }
 
    void setUp() {
@@ -40,7 +46,7 @@ public:
       out << "cpt2\t0.5 0.2 0.7" << endl;
       out << "cpt3\t0.4 0.5 0.1" << endl;
 
-      mixtppt = "test_mixtm_tppts.mixtm"; 
+      mixtppt = "test_mixtm_tppts.mixtm";
       oSafeMagicStream out2(mixtppt);
       out2 << MixTMFeature::magicNumber << endl;
       out2 << tppts[0] << "\t0.1 0.3 0.2 0.5" << endl;
@@ -73,7 +79,11 @@ public:
       TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mixtppt12-bad.mixtm"));
       TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mixtppt13.mixtm"));
       TS_ASSERT(!PhraseTableFeature::checkFileExists("tests/data/mix0.mixtm"));
-      TS_ASSERT(PhraseTableFeature::checkFileExists(mixtppt));
+      if (global_systems_exist) {
+         TS_ASSERT(PhraseTableFeature::checkFileExists(mixtppt));
+      } else {
+         TS_WARN("Skipping test that depends on systems not found in $PORTAGE/test-suite/systems");
+      }
    }
 
    void testGetNumScores() {
@@ -121,13 +131,17 @@ public:
    void testTotalMemmapSize() {
       TS_ASSERT_EQUALS(0, PhraseTableFeature::totalMemmapSize("tests/data/mix12.mixtm"));
 
-      Uint64 memmap1 = PhraseTableFeature::totalMemmapSize(tppts[0]);
-      Uint64 memmap2 = PhraseTableFeature::totalMemmapSize(tppts[1]);
-      Uint64 memmap3 = PhraseTableFeature::totalMemmapSize(tppts[2]);
-      TS_ASSERT(memmap1 > 0);
-      TS_ASSERT(memmap2 > 0);
-      TS_ASSERT(memmap3 > 0);
-      TS_ASSERT_EQUALS(PhraseTableFeature::totalMemmapSize(mixtppt), memmap1 + memmap2 + memmap3);
+      if (global_systems_exist) {
+         Uint64 memmap1 = PhraseTableFeature::totalMemmapSize(tppts[0]);
+         Uint64 memmap2 = PhraseTableFeature::totalMemmapSize(tppts[1]);
+         Uint64 memmap3 = PhraseTableFeature::totalMemmapSize(tppts[2]);
+         TS_ASSERT(memmap1 > 0);
+         TS_ASSERT(memmap2 > 0);
+         TS_ASSERT(memmap3 > 0);
+         TS_ASSERT_EQUALS(PhraseTableFeature::totalMemmapSize(mixtppt), memmap1 + memmap2 + memmap3);
+      } else {
+         TS_WARN("Skipping test that depends on systems not found in $PORTAGE/test-suite/systems");
+      }
    }
 
    void testCreateBad() {
@@ -137,7 +151,7 @@ public:
       TS_ASSERT(PhraseTableFeature::create("tests/data/mixtppt13.mixtm", c, v) == NULL);
       TS_ASSERT(PhraseTableFeature::create("tests/data/mixtppt12-bad.mixtm", c, v) == NULL);
    }
-      
+
    string displayAnnotation(TScore &tscore) {
       ostringstream oss;
       tscore.annotations.write(oss);
@@ -303,17 +317,23 @@ public:
    }
 
    void testMixBigTPPT() {
-      CanoeConfig c;
-      Voc v;
-      PhraseTableFeature* pt = PhraseTableFeature::create(mixtppt, c, v);
-      MixTMFeature* mixpt = dynamic_cast<MixTMFeature*>(pt);
-      TS_ASSERT(mixpt != NULL);
-      TS_ASSERT_EQUALS(pt->getNumModels(), 2);
-      TS_ASSERT_EQUALS(pt->getNumAdir(), 0);
-      TS_ASSERT_EQUALS(pt->getNumCounts(), 0);
-      TS_ASSERT_EQUALS(pt->hasAlignments(), true);
+      if (global_systems_exist) {
+         CanoeConfig c;
+         Voc v;
+         PhraseTableFeature* pt = PhraseTableFeature::create(mixtppt, c, v);
+         MixTMFeature* mixpt = dynamic_cast<MixTMFeature*>(pt);
+         TS_ASSERT(mixpt != NULL);
+         if (pt) {
+            TS_ASSERT_EQUALS(pt->getNumModels(), 2);
+            TS_ASSERT_EQUALS(pt->getNumAdir(), 0);
+            TS_ASSERT_EQUALS(pt->getNumCounts(), 0);
+            TS_ASSERT_EQUALS(pt->hasAlignments(), true);
+         }
+      } else {
+         TS_WARN("Skipping test that depends on systems not found in $PORTAGE/test-suite/systems");
+      }
    }
-      
+
 
 }; // class TestMixTMFeature
 

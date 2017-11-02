@@ -225,7 +225,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             close MONITOR;
          }
 
-         unshift(@debuggingTools, a({-id=>'triangArray', -href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "/var/www/html/$P_triangArray_txt");
+         unshift(@debuggingTools, a({-id=>'triangArray', -href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "$WEB_PATH/$P_triangArray_txt");
          unshift(@debuggingTools, a({-id=>'pal', -href=>"$pal_url"}, "Phrase alignments"));
          unshift(@debuggingTools, a({-id=>'oov', -href=>"$oov_url"}, "Out-of-vocabulary words"));
       }

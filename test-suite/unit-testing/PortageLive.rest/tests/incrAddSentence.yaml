@@ -1,0 +1,244 @@
+# @file rest/tests/incrAddSentence.yaml
+# @brief Test PortageLive REST API's incrAddSentence.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
+
+
+name: "Incremental Training Add Sentence Pair"
+
+
+globals:
+  variables:
+    service: "{base_url}/incrAddSentence.php"
+
+
+testSteps:
+  - name: "No argument"
+    method: "get"
+    apiUrl: "{service}"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.message: "String"
+        error.message: "There is no query."
+
+
+  - name: "No document model id"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a valid document_model_id."
+
+
+  - name: "No source"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a source sentence."
+
+
+  - name: "Empty source"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a source sentence."
+
+
+  - name: "No target"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a target sentence."
+
+
+  - name: "Empty target"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == False"
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a target sentence."
+
+
+  - name: "Basic usage"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == True"
+
+
+  - name: "Basic usage, make sure there is no warning."
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == True"
+        warnings: "exec not value"
+
+
+  - name: "We should get a warning for using an invalid argument"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+      bad: "invalid"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == True"
+        warnings: "Object"
+        warnings.InvalidArgument: "Object"
+        warnings.InvalidArgument.message: "String"
+        warnings.InvalidArgument.message: "You used invalid options"
+        warnings.InvalidArgument.options: "Array"
+        warnings.InvalidArgument.options[0]: "String"
+        warnings.InvalidArgument.options[0]: "bad=invalid"
+
+
+  - name: "We should get warnings for using invalid arguments"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+      bad: "invalid"
+      wrong: "Invalid"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        result: "Boolean"
+        result: "exec value == True"
+        warnings: "Object"
+        warnings.InvalidArgument: "Object"
+        warnings.InvalidArgument.message: "String"
+        warnings.InvalidArgument.message: "You used invalid options"
+        warnings.InvalidArgument.options: "Array"
+        warnings.InvalidArgument.options[0]: "String"
+        warnings.InvalidArgument.options[0]: "bad=invalid"
+        warnings.InvalidArgument.options[1]: "String"
+        warnings.InvalidArgument.options[1]: "wrong=Invalid"
+
+
+  - name: "Providing extra data"
+    method: "get"
+    apiUrl: "{service}"
+    raw: true
+    params:
+      context: "unittest.rev.en-fr"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      source: "Source"
+      target: "Target"
+      extra: "{\"a\":1}"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        __raw__: '{"result":true}'

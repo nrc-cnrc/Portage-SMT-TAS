@@ -1,0 +1,200 @@
+
+= REST API
+
+The REST API is a simpler API we first prepared for integration of PortageLive
+in MateCat, and now generalized to facilitate integration of incremental
+training in any client. The underlying implementation of the REST API is the
+same as the SOAP API, so here we only document how to call the REST methods.
+You should consult the SOAP API documentation for details of what these methods
+do.
+
+Here we assume the REST API for the PortageLive server is made available at
+_PLIVE_REST_, typically `http(s)://host/rest`, so that
+`_PLIVE_REST_/translate?q=sent` below would mean
+`http://host/rest/translate?q=sent` or `https://host/rest/translate?q=sent`.
+
+Requests to our REST API can be sent via POST or GET interchangeably. We don't
+respect the normal semantics of GET and POST, because POST is not limited in
+the length of the sentences that can be submitted, while we have had problems
+using GET with very long sentences.
+
+You will see in the examples below that queries are URL encoded. Don't write
+code to do this, any web library will handle the encoding for you!
+The response is always a JSON object. Again, don't write code to parse this,
+there are JSON parsers in just about every programming language.
+
+== help
+
+This documentation is available in two locations: as part of the
+PortageLiveManual section of the PortageII user manual, as well as installed
+with every instance of the REST API as `_PLIVE_REST_/index.html`, so that
+typically, just using `http://host/rest` should display this documentation.
+If not, `http://host/rest/index.html` certainly will.
+
+== translate
+
+----
+PLIVE_REST/translate?context=mysystem-en2fr&q=It%27s+a+sentence.
+----
+
+[%autowidth, options="header", cols="20%la,la"]
+|===
+| Parameter           | Description
+
+| `context`           | system to use
+
+| `q`                 | text to translate ("query") (can be repeated in array
+notation to submit multiple sentences at once, e.g. `q[]=sent1&q[]=sent2`)
+
+| `document_model_ID` | optional document identifier for incremental document model
+
+| `prettyprint`       | if set to 1 or "true", result is pretty-printed JSON;
+                        if set to 0 or "false", result is raw JSON.
+|===
+
+The return value is a JSON structure such as the one below. Note that `\u00c7`
+is "Ç", so the translation for "It's a sentence." given here is "Ça, c'est une
+phrase.". This wonky example is just intended to hint at further URL and JSON
+encoding details which appropriate libraries will handle for you.
+
+----
+{
+ "data":{"translations":[{"translatedText":"\u00c7a, c'est une phrase."}]},
+ "warnings":[{"message":"You used invalid argument(s)", "arguments":["bad_arg=foo"]}]
+}
+----
+
+The "warnings" field will only exist of there are warnings.
+
+In case of error, you will get a response like this one instead:
+
+----
+{"error":{"message":"You need to provide a query using q=X.", "code":-3}}
+----
+
+== incrAddSentence
+
+----
+PLIVE_REST/incrAddSentence?context=mysystem-en2fr&document_model_ID=123&source=source+sentence&target=target+sentence
+----
+
+[%autowidth, options="header", cols="20%la,la"]
+|===
+| Parameter           | Description
+
+| `context`           | system to use
+
+| `document_model_ID` | optional document identifier for incremental document model
+
+| `source`            | source sentence
+
+| `target`            | target (i.e., translated) sentence
+
+| `extra`             | optional meta data in JSON format, for future extensions
+|===
+
+Samples responses:
+
+----
+{"result":true}
+----
+
+----
+{
+ "result":false,
+ "error":{"code":-3, "message":"You must provide a valid document_model_id.",
+          "type":"PortageBadArgs"}
+}
+----
+
+When the result is true, this method has pushed the new sentence pair in the
+incremental corpus for that document and triggered (re)training of the
+incremental model for that document. Training happens in the background.
+Translate queries submitted while training is still in progress will continue
+to use the previous model until training is complete, many seconds later, a
+which point the model will be switched to the newly traning incremental model.
+
+Arbitrarily many translate and incrAddSentence requests (up to server capacity)
+can be submitted simultaneously or in quick succession without problems:
+locking is used to prevent data corruption; new incrAddSentence requests
+submitted while training is in progress are buffered and handled as soon as the
+training system is available again.
+
+Incremental models are specific to the document_model_ID and context used and
+are only available to translate requests using the same context/document_model_ID
+pair.
+
+Incremental model training is done on a best-effort basis, but is not
+guaranteed to succeed. incrStatus can be used to query the traning status for a
+given document model.
+
+== incrStatus
+
+----
+PLIVE_REST/incrStatus?context=mysystem-en2fr&document_model_ID=123
+----
+
+[%autowidth, options="header", cols="20%la,la"]
+|===
+| Parameter           | Description
+
+| `context`           | system to use
+
+| `document_model_ID` | optional document identifier for incremental document model
+|===
+
+Sample responses:
+
+----
+{"incr_status":{"update":"pending+in_progress", "exit_status":"0 success",
+                "corpus_size":3, "queue_size":2}}
+----
+
+----
+{"incr_status":{"update":"complete", "exit_status":"0 success",
+                "corpus_size":5, "queue_size":0}}
+----
+
+----
+{"incr_status":{"update":"N\/A"}}
+----
+
+"update" can be
+
+ - N/A: document model does not exist.
+ - pending: the queue of new sentence pairs to add is not empty.
+ - in_progress: incremental training is currently in progress.
+ - pending+in_progress: both previous conditions are true.
+ - complete: neither condition is true, but training has occurred.
+
+Unless "update" is "N/A", the status is followed by the exit status of the last
+completed update cycle, as well as the incremental corpus and queue sizes
+(number of sentence pairs).
+
+== getAllContexts
+
+----
+PLIVE_REST/getAllContexts
+----
+
+getAllContexts accepts no parameters, it just lists all contexts available on
+the system in a JSON structure:
+
+----
+{"contexts":
+ [
+  {"name":"client1-ar2en", "description":"client1-ar2en (AR-LB --> EN-CA)",
+   "source":"AR-LB", "target":"EN-CA"},
+  {"name":"generic1.1.en2fr", "description":"generic1.1.en2fr (EN-CA --> FR-CA)",
+   "source":"EN-CA", "target":"FR-CA"},
+  {"name":"generic1.1.fr2en", "description":"generic1.1.fr2en (FR-CA --> EN-CA)",
+   "source":"FR-CA", "target":"EN-CA"},
+  {"name":"client2-ce-fr2en", "description":"client2-ce-fr2en (FR-CA --> EN-CA) with CE",
+   "source":"FR-CA", "target":"EN-CA"},
+  {"name":"client3-en2fr", "description":"client3-en2fr (EN-CA --> FR-CA)",
+   "source":"EN-CA", "target":"FR-CA"},
+ ]
+}
+----
+
+

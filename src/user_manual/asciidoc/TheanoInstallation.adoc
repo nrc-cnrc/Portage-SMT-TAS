@@ -1,0 +1,184 @@
+include::incl/header.adoc[]
+
+How to Install Theano-0.9 with libgpuarray/pygpu as the Backend
+---------------------------------------------------------------
+
+Installing CUDA driver, CUDA libraries and CUDNN
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download the driver for your NVIDIA card here
+
+https://developer.nvidia.com/cuda-downloads
+
+You will also need CUDNN which, unfortunately, you need to register to obtain it.
+
+https://developer.nvidia.com/cudnn
+
+You should now have two files, one that contains the driver & the CUDA library and a second file that contains CUDNN.  You can now proceed with the installation of either.
+
+.CUDA-7.5
+- cuda_7.5.18_linux.run
+- cudnn-7.5-linux-x64-v5.1.tgz
+
+[source,bash]
+----
+sudo sh cuda_7.5.18_linux.run
+sudo tar -C /usr/local zxf cudnn-7.5-linux-x64-v5.1.tgz
+----
+
+.CUDA-8.0
+- cuda_8.0.44_linux-run
+- cudnn-8.0-linux-x64-v5.1.tgz
+
+[source,bash]
+----
+sudo sh cuda_8.0.44_linux-run
+sudo tar -C /usr/local zxf cudnn-8.0-linux-x64-v5.1.tgz
+----
+
+As a quick sanity check, you can use `locate` to see if libcuda & libcudnn are now accessible.
+
+[source,bash]
+----
+locate libcuda
+locate libcudnn
+----
+
+
+
+Installing libgpuarray/pygpu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We are going to follow the instructions for installing libgpuarray & pygpu as system libraries (as admin) from the libgpuarray's official site.
+
+http://deeplearning.net/software/libgpuarray/installation.html
+
+For convenience, we have a more concise version here.
+
+
+Installing libgpuarray/pygpu Dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+libgpuarray/pygpu depend on some Python packages that can be installed using the following commands:
+
+[source,bash]
+----
+sudo pip install six
+sudo pip install nose
+sudo pip install numpy
+sudo pip install cython
+sudo pip install mako
+----
+
+
+Compiling libgpuarray
+^^^^^^^^^^^^^^^^^^^^^
+
+Start by cloning libgpuarray's git repository.  We have found that you need to use version 0.6.2 of libgpuarray as the latest version are incompatible.
+
+[source,bash]
+----
+git clone https://github.com/Theano/libgpuarray.git
+cd libgpuarray/
+git checkout v0.6.2
+----
+
+We are now ready to configure the compilation.
+
+[source,bash]
+----
+mkdir build
+cd build/
+cmake ..  -DCMAKE_BUILD_TYPE=Release
+----
+
+You should see an output that look somewhat like the following if there is no error.
+
+[source,bash]
+----
+-- The C compiler identification is GNU 4.9.2
+-- Check for working C compiler: /opt/gcc-4.9.2/bin/gcc
+-- Check for working C compiler: /opt/gcc-4.9.2/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for strlcat
+-- Looking for strlcat - not found
+-- Looking for mkstemp
+-- Looking for mkstemp - found
+-- Found PkgConfig: /usr/bin/pkg-config (found version "0.23") 
+-- Checking for one of the modules 'check'
+-- Looking for ck_assert_ptr_ne
+-- Looking for ck_assert_ptr_ne - not found
+Tests disabled because Check was not found
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/me/libgpuarray/build
+----
+
+We can now compile libgpuarray
+
+[source,bash]
+----
+make
+sudo make install
+----
+
+Installing pygpu
+^^^^^^^^^^^^^^^^
+
+Go back to the root of the repository and compile/install pygpu which makes use of libgpuarray.
+
+[source,bash]
+----
+cd ..
+python setup.py build
+sudo python setup.py install
+----
+
+Testing pygpu
+^^^^^^^^^^^^^
+
+Verifying that pygpu and libgpuarray are correctly installed, you need to exit libgpuarray's repository and run the following test command.
+
+IMPORTANT: You need to perform this test outside libgpuarray's repository folder.
+
+[source,bash]
+----
+cd
+DEVICE="cuda" python -c "import pygpu;pygpu.test()"
+----
+
+
+
+Installing Theano
+~~~~~~~~~~~~~~~~~
+
+The final step, installing Theano-0.9 with the following command.
+
+[source,bash]
+----
+pip install theano==0.9
+----
+
+A final test to see if Theano is properly installed which also has the side effect of loading pygpu, Theano's dependency.
+
+[source,bash]
+----
+python -c 'import theano; print theano.__version__'
+----
+
+You should see no error and a message stating that we are using Theano 0.9.
+
+[source,bash]
+----
+0.9.0
+----
+
+
+
+:toc: left
+
+
+include::incl/header.adoc[]

@@ -651,6 +651,10 @@ Options (in command-line format):\n\
  -triangularArrayFilename <F>           Write each triangular array [don't]\n\
      For every source sentence, write to <F> canoe's triangular array as a CPT.\
 \n\
+ -lock                                  Require a shared lock on the CONFIG file\n\
+     Before decoding or other processing starts, obtain a shared lock on the\n\
+     CONFIG file, waiting until it is obtained to proceed.\n\
+\n\
  NOTES:\n\
 \n\
    - All boolean options (i.e., all the switches that don't take an argument)\n\

@@ -76,8 +76,9 @@ BINSCRIPTS = \
         diff-round.pl \
         fast_align_glue_corpora.py \
         fast_align_normalize_ttable.py \
-        incremental-training-add-sentence-pair.sh \
-        incremental-update.sh \
+        incr-add-sentence.sh \
+        incr-init-model.py \
+        incr-update.sh \
         jobsig.pl \
         jobtree \
         load-balancing.pl \

@@ -25,8 +25,8 @@
   Technologies de l'information et des communications /
     Information and Communications Technologies
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2009 - 2016, Sa Majesté la Reine du Chef du Canada /
-  Copyright 2009 - 2016, Her Majesty in Right of Canada
+  Copyright 2009 - 2017, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2017, Her Majesty in Right of Canada
 
   ChangeLog
   </documentation>
@@ -47,6 +47,7 @@
 
   <message name="getAllContextsRequest">
     <part name="verbose" type="xsd:boolean"/>
+    <part name="json" type="xsd:boolean"/>
   </message>
 
   <message name="getAllContextsResponse">
@@ -134,14 +135,26 @@
   </message>
 
 
-  <message name="incrementalTrainingAddSentencePairRequest">
-    <part name="document_level_model_ID" type="xsd:string"/>
+  <message name="incrAddSentenceRequest">
+    <part name="context" type="xsd:string"/>
+    <part name="document_model_id" type="xsd:string"/>
     <part name="source_sentence" type="xsd:string"/>
     <part name="target_sentence" type="xsd:string"/>
+    <part name="extra_data" type="xsd:string"/>
   </message>
 
-  <message name="incrementalTrainingAddSentencePairResponse">
+  <message name="incrAddSentenceResponse">
     <part name="status" type="xsd:boolean"/>
+  </message>
+
+
+  <message name="incrStatusRequest">
+    <part name="context" type="xsd:string"/>
+    <part name="document_model_ID" type="xsd:string"/>
+  </message>
+
+  <message name="incrStatusResponse">
+    <part name="status_description" type="xsd:string"/>
   </message>
 
 
@@ -214,9 +227,12 @@
       <documentation>
         Get the list of contexts installed on the PortageLive server.
 
-        If verbose is true, each context includes a short description.
-        If verbose is false, only the name of each context is provided.
-        In all cases, the results are provided in a semi-colon separated list.
+        If json is true, return a json structure listing and description each
+        context.
+        Otherwise return a semi-colon separated list of contexts, in which case
+        if verbose is true, each context includes a short description, and
+        if verbose is false, only the name of each context is provided.
+
         See the overall PortageLive_Service documentation for more details
         about contexts.
 
@@ -462,11 +478,59 @@
     </operation>
 
 
-    <operation name="incrementalTrainingAddSentencePair">
+    <operation name="incrAddSentence">
       <documentation>
+        Add a segment with its translation to an incremental system defined by
+        its context and document_model_id.  Adding a sentence pair triggers
+        train of that incremental system if no training is already underway, or
+        else buffers the sentence pair for re-training is soon as the current
+        training operation is completed.
+
+        Arguments:
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
+         - document_model_id is the id for the document model being queried.
+         - source_sentence source segement.
+         - target_sentence translation of the source segement.
+         - extra_data some additional data in json form.
+
+        Returns True if the server was successfully able to add the sentence
+        pair to the incremental system's queue.
+
+        Throws SoapFault in case of problems.
       </documentation>
-      <input message="tns:incrementalTrainingAddSentencePairRequest"/>
-      <output message="tns:incrementalTrainingAddSentencePairResponse"/>
+      <input message="tns:incrAddSentenceRequest"/>
+      <output message="tns:incrAddSentenceResponse"/>
+    </operation>
+
+    <operation name="incrStatus">
+      <documentation>
+        Get the status of incremental training for a document.
+
+        Arguments:
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
+         - document_model_id is the id for the document model being queried.
+
+        Returns a string containing a human readable description containing the
+        status and additional details.
+        
+        The status is one of:
+        N/A : document model does not exist.
+        Update pending : the queue of new sentence pairs to add is not empty.
+        Update in_progress : incremental training currently in progress.
+        Update pending+in_progress : both previous conditions are true
+        Update complete : neither condition is true, but training has occurred.
+        
+        If the status is 'N/A', no additional information follows.
+        Otherwise, the status is followed by the incremental corpus and queue
+        sizes (number of sentence pairs). Thus, the description is of the form:
+        Update STATUS, corpus: NNN sents, queue: NNN sents
+
+        Throws SoapFault in case of problems.
+      </documentation>
+      <input message="tns:incrStatusRequest"/>
+      <output message="tns:incrStatusResponse"/>
     </operation>
 
 
@@ -658,8 +722,18 @@
     </operation>
 
 
-    <operation name="incrementalTrainingAddSentencePair">
-      <soap:operation soapAction="incrementalTrainingAddSentencePair"/>
+    <operation name="incrAddSentence">
+      <soap:operation soapAction="incrAddSentence"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+    <operation name="incrStatus">
+      <soap:operation soapAction="incrStatus"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -670,7 +744,7 @@
 
 
     <!-- ===========================================================
-         Deprecated bindings kept for backwards compability only
+         Deprecated bindings kept for backwards compatibility only
     ============================================================ -->
     <operation name="getTranslation">
       <soap:operation soapAction="getTranslation"/>

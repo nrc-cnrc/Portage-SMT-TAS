@@ -1,0 +1,215 @@
+# @file tests/incrAddSentence.yaml
+# @brief Test PortageLive REST API's incrStatus.
+#
+# @author Darlene Stewart
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2017, Sa Majeste la Reine du Chef du Canada
+# Copyright 2017, Her Majesty in Right of Canada
+
+
+name: "Incremental Training Status"
+
+
+globals:
+  variables:
+    service: "{base_url}/incrStatus.php"
+    context: "unittest.rev.en-fr"
+
+
+testSteps:
+  - name: "No argument"
+    method: "get"
+    apiUrl: "{service}"
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        error: "Object"
+        error.message: "String"
+        error.message: "There is no query."
+
+
+  - name: "Empty context"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: ""
+      document_model_ID: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a valid context."
+
+
+  - name: "Empty document model id"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: ""
+    asserts:
+      headers:
+        status: 404
+        Content-Type: "application/json"
+      payload:
+        error: "Object"
+        error.type: "String"
+        error.type: "PortageBadArgs"
+        error.message: "String"
+        error.message: "You must provide a valid document_model_id."
+
+
+  - name: "Basic usage"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "complete"
+        incr_status.exit_status: "String"
+        incr_status.exit_status: "0 success"
+        incr_status.corpus_size: "Integer"
+        incr_status.corpus_size: 5
+        incr_status.queue_size: "Integer"
+        incr_status.queue_size: 0
+
+
+  - name: "Basic usage, make sure there is no warning."
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "complete"
+        incr_status.exit_status: "String"
+        incr_status.exit_status: "0 success"
+        incr_status.corpus_size: "Integer"
+        incr_status.corpus_size: 5
+        incr_status.queue_size: "Integer"
+        incr_status.queue_size: 0
+        warnings: "exec not value"
+
+
+  - name: "We should get a warning for using an invalid argument"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      bad: "invalid"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "complete"
+        incr_status.exit_status: "String"
+        incr_status.exit_status: "0 success"
+        incr_status.corpus_size: "Integer"
+        incr_status.corpus_size: 5
+        incr_status.queue_size: "Integer"
+        incr_status.queue_size: 0
+        warnings: "Object"
+        warnings.invalidArgument: "Object"
+        warnings.invalidArgument.message: "String"
+        warnings.invalidArgument.message: "You used invalid options"
+        warnings.invalidArgument.options: "Array"
+        warnings.invalidArgument.options[0]: "String"
+        warnings.invalidArgument.options[0]: "bad=invalid"
+
+
+  - name: "We should get warnings for using invalid arguments"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35"
+      bad: "invalid"
+      wrong: "Invalid"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "complete"
+        incr_status.exit_status: "String"
+        incr_status.exit_status: "0 success"
+        incr_status.corpus_size: "Integer"
+        incr_status.corpus_size: 5
+        incr_status.queue_size: "Integer"
+        incr_status.queue_size: 0
+        warnings: "Object"
+        warnings.invalidArgument: "Object"
+        warnings.invalidArgument.message: "String"
+        warnings.invalidArgument.message: "You used invalid options"
+        warnings.invalidArgument.options: "Array"
+        warnings.invalidArgument.options[0]: "String"
+        warnings.invalidArgument.options[0]: "bad=invalid"
+        warnings.invalidArgument.options[1]: "String"
+        warnings.invalidArgument.options[1]: "wrong=Invalid"
+
+
+  - name: "Non-existent document model id"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35_nonexistent"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "N/A"
+        incr_status.exit_status: "exec not value"
+        incr_status.corpus_size: "exec not value"
+        incr_status.queue_size: "exec not value"
+
+
+  - name: "Empty document model"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "{context}"
+      document_model_ID: "PORTAGE_UNITTEST_4da35_empty"
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        incr_status: "Object"
+        incr_status.update: "String"
+        incr_status.update: "N/A"
+        incr_status.exit_status: "exec not value"
+        incr_status.corpus_size: "exec not value"
+        incr_status.queue_size: "exec not value"

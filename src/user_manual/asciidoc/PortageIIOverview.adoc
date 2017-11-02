@@ -1,0 +1,511 @@
+include::incl/header.adoc[]
+
+PortageII Overview
+------------------
+
+Up: link:PortageMachineTranslation.html[PortageII] Next:
+link:PortageIIKnowledgePrerequisites.html[Prerequisites]
+
+'''''
+
+_This page contains in-depth background information about SMT and the
+Portage project. It has not been updated since 2009. Although out of
+date in several ways, it is still presents the foundations current SMT
+technology is built on. To get started quickly, skip to the next page._
+
+Portage is a project to explore new techniques in Statistical Machine
+Translation (SMT), and to develop state-of-the-art SMT technology that
+can be used to support other projects at NRC and elsewhere. See the
+http://iit-iti.nrc-cnrc.gc.ca/projects-projets/portage_e.html[public project
+page] for a high-level view of the project.
+
+The SMT system developed under the Portage project is also called
+"Portage". The Portage system is designed so that it can automatically
+acquire translation knowledge in a process called _training_. Once it is
+trained on text from a given pair of languages, it can be used to
+translate between those languages. To translate a new source sentence,
+it tries out various ways of translating _phrases_ (short sequences of
+words) within the sentence, and in the end chooses the set of phrase
+translations and a way of concatenating them into a target sentence that
+it considers most probable.
+
+Various commercial releases of Portage have been made. Since this page
+provides background about the project and all its variants, we use
+"Portage" to refer generically to the research version or any of the
+commercial releases: PORTAGE__shared__, Portage 1.x, or PortageII.
+
+:toc-title: Contents of this page
+:toclevels: 4
+toc::[]
+
+'''''
+
+History
+~~~~~~~
+
+The Portage project began in the fall of 2004, and had produced a
+working baseline system by the end of that year. In 2005, the Portage
+system was mature enough to achieve reasonably good results in the NIST
+MT evaluation (general information:
+http://www.nist.gov/speech/tests/mt
+, specific information about 2005 evaluation:
+http://www.nist.gov/speech/tests/mt/2005/doc/mt05eval_official_results_release_20050801_v3.html)
+and the ACL WPT evaluation
+(http://www.statmt.org/wpt05). Results for
+the same two evaluations in 2006 were considerably better, both in
+absolute terms and relative to other SMT systems participating
+(http://www.nist.gov/speech/tests/mt/,
+http://www.statmt.org/wmt06/shared-task/).
+Language pairs supported by the end of 2005 included English/French
+(both directions); and Chinese, Arabic, and several European languages
+into English. Also in 2005, the Portage system began to participate in
+the massive GALE project funded by DARPA (the U.S. Defense Advanced
+Research Projects Agency), as part of the Nightingale consortium led by
+SRI International. Since then, Portage has taken part in four GALE
+evaluations (July 2006, June 2007, December 2007, and November 2008). In
+these evaluations, Portage formed part of a combination of several
+systems; though it is difficult to evaluate its contribution separately,
+there are strong indications that it contributed significantly to the
+successful final result. In addition, the system participated in the
+June 2007 WMT shared task, and in the Jan./Feb. 2008 NIST
+Chinese-English evaluation. In the former, a Portage-SYSTRAN hybrid
+system was ranked first by human evaluators and second by the automatic
+BLEU metric for the English-French Europarl task, and was ranked second
+by human evaluators and first by the BLEU metric for the News task. In
+the latter, a combination of Portage and systems from Microsoft and SRI
+placed first of 20 systems (by itself, Portage would have ranked 8th of
+20). Ongoing research topics include Chinese preprocessing, adaptation,
+significance testing of phrase table entries, and smoothing.
+
+How Portage Translates Text
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Translation is done in two passes: in the first pass (which is called
+_decoding_), a small set of information sources is used to generate a
+short _N-best_ list of highly-probable target sentences. In a second
+pass called _rescoring_, a larger set of information sources is applied
+to choose the final output. Here is a diagram illustrating the
+translation of a single source-language sentence:
+
+image::uploads/overview_translate.gif[image]
+
+By following the black arrows around the edge of this diagram step by
+step, one can see how a single, target-language translation is
+generated. The box marked _preprocessor_ cleans up and standardizes the
+source-language input in a way that is language-dependent. For instance,
+in the case of French input, the preprocessor converts all words to
+lower-case and splits units like _l'homme_ into _l' homme_; in the case
+of Chinese input, it splits continuous sequences of Chinese characters
+into Chinese words delimited by whitespace. See
+link:PortageIITextProcessing.html[Text Processing] for a
+description of these steps and related file formats.
+
+The decoder uses a scoring function based on the small set of
+information sources to generate the N-best list of hypotheses in order
+from best to worst; each hypothesis is accompanied by a score (not
+shown). The decoder in our Portage system is called "Canoe". Using a
+rescoring function based on the large set of information sources, the
+rescorer assigns new scores to each of the N hypotheses generated by the
+decoder. This may result in a new ordering from best to worst. In the
+example, the rescorer decided that based on the more complete
+information contained in the large set of information sources, the third
+hypothesis generated by the decoder deserves to be considered as the
+best hypothesis (the hypothesis that used to be Nth is promoted to
+second place, and the one that used to be second is demoted to Nth
+place). Finally, the postprocessor carries out some language-dependent
+formatting to ensure that the final output looks acceptable - for
+instance, in our current system this is where English output undergoes
+capitalization where appropriate.
+
+A reasonable question would be: if the large set of information sources
+does a better job than the small set, why not use the large set during
+decoding and eliminate the second _rescoring_ pass? Some information
+sources may be very computationally expensive; applying them to a short
+list of hypotheses is typically much less expensive than applying them
+during decoding. Other information sources may be applicable only to a
+complete sentence hypothesis (for instance, one could imagine an
+information source that assigned a score to the grammatical correctness
+of an entire sentence, but not to partial sentences). Both kinds of
+information sources belong in the rescorer, but not the decoder.
+
+Note that the diagram shows the small set as being a subset of the large
+set. This makes sense - it wouldn't make sense to deprive the rescorer
+of a type of information that's available to the decoder. Also, note
+that for both the decoder and the rescorer, there are two information
+sources that have a special status: the _phrase translation model_ and
+the _language model_. Other information sources may be omitted, but
+these two are essential; at least one of each is required for SMT to
+work (we may have several of each). Broadly speaking, the _phrase
+translation model_ tells the system how to translate a short sequence of
+words in the source language into a short sequence of words in the
+target language, while the _language model_ tells the system what
+sequences of words in the target language are most likely (the language
+model doesn't know anything about the source language).
+
+Detail on using the Canoe decoder is given in
+link:PortageIITranslating.html[Translating].
+
+How Portage is Trained
+~~~~~~~~~~~~~~~~~~~~~~
+
+image::uploads/overview_train.gif[image]
+
+The diagram above shows how the main components of the Portage SMT
+system are trained. The four green ovals in the diagram are the outputs:
+the _phrase translation model_, the target _language model_, the
+_weights on the small set_ of information sources used by the decoder,
+and the _weights on the large set_ of information sources used by the
+rescorer. The diagram does NOT show how models other than the _phrase
+translation model_ and the target _language model_ are trained.
+
+Translation Model Training
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The _phrase translation model_ is trained on parallel texts, which are
+documents that exist in both source and target language versions. These
+cannot be used in their raw form, but must be preprocessed; typically,
+the preprocessing for the source-language text is different from the
+preprocessing for the target-language text. Preprocessing culminates in
+a _sentence alignment_ process that establishes translation
+correspondences at the sentence level (thus, a sentence on the source or
+target side will be thrown out if it doesn't have a matching sentence in
+the other language). The resulting clean, sentence-aligned parallel
+corpus is input to a multi-stage training process that generates a set
+of phrase pairs.
+
+This multi-stage process has two main phases, a _word alignment model
+training_ and a _phrase pair extraction_ phase. A formal description of
+five mathematical models for translation is given in
+(link:PortageIIAnnotatedBibliography.html#truebrown-et-al-1993[Brown
+et al 1993]); since the authors of the paper were then at IBM, the
+models in the paper have become known as IBM models 1, 2, 3, and so on.
+In the current Portage system, of these IBM models, only 1 and 2 are
+used (some other SMT systems use higher-order IBM models). Practically
+speaking, these models provide a way of aligning individual words in a
+source-language sentence in the sentence-aligned parallel corpus with
+individual words in the corresponding target-language sentence (and vice
+versa). An alternative approach to word alignment is based on Hidden
+Markov Models (`HMMs`); this alternative approach is also implemented in
+Portage. We currently obtain our best experimental results by applying
+both IBM 1 & 2 and HMM-based word alignment.
+
+These IBM word-word alignments for the parallel corpus are a necessary
+precursor to the next step, _phrase pair extraction_, in which a
+contiguous sequence of N words in a source-language sentence in the
+corpus can be aligned to a continuous sequence of M words in the
+corresponding target-language sentence (with no requirement that N=M).
+In the SMT literature, these chunks of N contiguous source words or M
+contiguous target words are called "phrases", but that doesn't mean they
+are what a linguist would call phrases - they have no guaranteed
+syntactic properties. Finally, a count of extracted phrase pairs in the
+parallel corpus yields the phrase translation model (which is described
+in mathematical terms below).
+
+The Portage programs for translation model training are described in
+link:PortageIITrainingOtherModels.html#truetranslation-models[Constructing
+Translation Models].
+
+Language Model Training
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Another essential step is to train a _language model_ on target-language
+text. The _language model_ specifies which sequences of words in the
+target language are most likely. To explain things in grossly
+over-simplified terms, the role of the _phrase translation model_ is to
+suggest words and short word sequences that may occur somewhere in the
+target sentence (because they are translations of words and short word
+sequences in the source), while the role of the _language model_ is to
+arrange them in an order that looks natural in the target language. In
+Portage (and most other SMT systems) the language model evaluates the
+probability of a sequence of target-language words, based on estimates
+derived from N-gram counts. For instance, if N=3 the probability that a
+word w3 will occur is modeled as a function of the two preceding words:
+the preceding word w2, and the word preceding w2, w1. Roughly speaking,
+the conditional probability P(w3|w1 w2) is estimated as the ratio of the
+count of the word sequence (w1, w2, w3) to the count of the word
+sequence (w1, w2) in some huge corpus. As the diagram shows, this
+training corpus typically includes the target-language portion of the
+clean, aligned parallel corpus, and often additional target-language
+texts.
+
+Programs for language model training are described in
+link:PortageIITrainingLanguageModels.html[Constructing Language Models].
+
+Decoder Model Training
+^^^^^^^^^^^^^^^^^^^^^^
+
+Although the diagram above only shows one phrase translation model and
+one language model, we frequently use several different parallel corpora
+to train several phrase translation models, and also frequently use
+several target-language corpora to train several language models. Other
+information sources may also be included - for instance, a model of word
+reordering across the two languages involved (often called a _distortion
+model_), a model predicting the probability of the length of a target
+sentence given the length of the source sentence, and others. These
+other information sources will not be enumerated here because the list
+is constantly changing, and may differ from one language pair to
+another. What these information sources have in common is that all of
+them yield a numerical score to a target-language hypothesis, given the
+source (in the case of the language models and possibly some of the
+other information sources, that score is independent of the source,
+i.e., depends solely on the target hypothesis). Some of these
+information sources are more reliable than others, so the global score
+for a given target hypothesis is a weighted combination of the scores
+assigned to it by the various components. The mathematical details are
+given below.
+
+The weights assigned to each set of information sources have a powerful
+impact on the output of the system. Recall that there are two such sets
+of information sources, a small set that is used by the Canoe decoder,
+and a large set (a superset of the small set) that is used by the
+rescorer, as illustrated in the diagram below. Thus, two important steps
+of the training process are setting the weights on the small set of
+information sources, and setting the weights on the large set of
+weights. Optimization of weights for the small set is performed by
+invoking a process called _COW_ (for _Canoe Optimize Weights_);
+optimization of weights for the large set is performed by a process
+called _rescoring_. To find weights for a set of information sources,
+both COW and rescoring require a bilingual development corpus ("dev" for
+short) consisting of source sentences together with high-quality
+reference translations of these sentences into the target language.
+These two processes look for weights on the information sources that
+cause Portage to generate translations that resemble these reference
+translations, according to the chosen metric (see next section). Note
+that it is sometimes advantageous to use two different development
+corpora, dev1 and dev2, to optimize weights for the decoder and the
+rescorer respectively.
+
+image::uploads/PortageOptimizingFig1.gif[image]
+
+The algorithm used by COW is described in
+link:PortageIIAnnotatedBibliography.html#trueoch-2003[Och 2003].
+It is shown in the figure below. To understand the figure, note
+that the algorithm requires an initial set of weights on the "small" set
+of information sources (in the past, we've often initialized arbitrarily
+with a weight of 1 on every "small" information source except the
+number-of-words model, which typically received a weight of 0). Using
+these initial weights, the decoder translates each of the D
+source-language sentences in the dev corpus into N target-language
+hypotheses. We have found that a value of N around 100 or 200 yields
+good results for COW. (The dev corpus is shown here as having exactly
+one reference translation per source-language sentence, but COW can also
+be run with several reference translations per source-language
+sentence).
+
+image::uploads/PortageOptimizingFig2.gif[image]
+
+The list of the D N-best hypotheses is then passed to `rescore_train`.
+This procedure calls the BLEU scoring module to obtain a score based on
+a list of the D top-ranked hypotheses - _i.e._, by giving the BLEU
+scoring module the first translation hypothesis for each of the D
+source-language sentences. In calculating the score, the BLEU scoring
+module compares this list of D 1-best hypotheses to the corresponding
+reference translations in the dev corpus. Inside `rescore_train`, new
+weights on the "small" set are tried out. Each new set of weights puts
+the N hypotheses for a given source sentence in a different order,
+typically resulting in a change in the list of D 1-best hypotheses, and
+thus in the BLEU score based on these. As shown in the figure,
+`rescore_train` generates several different, randomly chosen, weight
+vectors that are used to initialize search. Each of the K randomly
+chosen initial vector of weights is input to a module that implements
+Powell's algorithm, which iteratively explores a region in the
+neighbourhood of the initial vector. The module returns a new weight
+vector yielding a better BLEU score for the list of hypotheses fed into
+`rescore_train` than the BLEU score yielded by the initial weight
+vector. Thus, after having called Powell's algorithm K times with K
+different random initial vectors, one ends up with K different optimized
+vectors, each yielding a reasonably good BLEU score on the D N-best
+lists. From these K vectors, `rescore_train` selects and outputs the
+one yielding the highest BLEU score. NOTE: K is not necessarily fixed -
+it may be determined dynamically. Furthermore, although we have
+described the K initial random weight vectors as being generated
+randomly, they may be set in a way that depends on earlier results.
+
+The new weights from `rescore_train` are input to the decoder, which
+applies them to the "small" set of information sources to produce N new
+hypotheses for each of the D source sentences. For each of the D source
+sentences, this new set of N hypotheses is merged with the previous set;
+ranking is done using the most recently calculated "small set" weights.
+The resulting ordered, expanded list of hypotheses may yield a lower
+BLEU score than was obtained by the same set of weights applied to the
+previous hypothesis list. The reason for this is that for a given source
+sentence, the most recent decoding may have generated a new hypothesis
+that is ranked as best by the "small set" sources but which has a poor
+BLEU score. Thus, the expanded list is resubmitted to `rescore_train`,
+which attempts to find a new vector of weights that will reorder the
+expanded hypothesis list in a way that generates a high BLEU score.
+
+The cycle is iterated, with each new set of N hypotheses for each source
+sentence from the decoder being merged with all previously generated
+hypotheses for that source sentence into the expanded hypothesis list.
+In theory, the number of hypotheses per source sentence in the expanded
+list could thus increase by N each time the decoder is called. In
+practice, since there are many duplicates, the number of unique
+hypotheses in the expanded list grows much more slowly than this.
+
+Clearly, COW is not guaranteed to improve the BLEU score monotonically -
+after each decoding, the BLEU score may go down or may go up (compared
+to the previous BLEU score). Convergence will occur eventually, when the
+decoder is no longer generating sentences that have a high score
+according to the current vector of weights on the "small" set but a poor
+BLEU score. In practice, since convergence may take many iterations, we
+often let the algorithm carry out a reasonable number of iterations and
+then choose a vector of "small" weights that are both reasonable (e.g.,
+no zero weights on any information source) and yielded a BLEU score that
+is as high as possible. Overall, COW can be thought of as a form of
+discriminative training, in which the expanded list contains hypotheses
+typical of the ones the decoder will generate in actual operation, and
+the goal is to find settings for the "small" weights that ensure the
+best-scoring of these hypotheses come out top on the N-best list most of
+the time.
+
+The Portage programs for decoder-model training are described in
+link:PortageIITrainingOptimizingWeights.html#trueoptimizing-weights-for-canoe-decoding[Optimizing
+Weights for Canoe Decoding].
+
+Rescoring Model Training
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once the weights on the "small" set of information sources have been
+determined by COW, the weights on the "large" set used by the rescorer
+are found. This step of weight training is called "rescoring", and is
+shown below:
+
+image::uploads/PortageOptimizingFig3.gif[image]
+
+This step is much less costly than COW, since the list of D N-best
+hypotheses is fixed; the decoder is called only once. The objective of
+this step is to find weights on the "large" set of information sources
+that will reorder the N hypotheses for each source sentence in a way
+that yields a high BLEU score - _i.e._, in a way that ensures that the
+top hypothesis for each source sentences is "good" according to BLEU. As
+in COW, this weight-finding is carried out by `rescore_train`. We have
+found that using a value of N larger than that used for COW works well
+here - for instance, N=1000 or N=500. Note that the information from the
+"large" set is communicated by what we call "feature functions".
+
+The Portage programs for rescoring training are described in
+link:PortageIITrainingOptimizingWeights.html#trueoptimizing-weights-for-rescoring[Optimizing Weights for Rescoring].
+
+Metrics for Evaluating MT System Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+How does one tell whether an MT system is producing good translations?
+In principle, evaluating the quality of translations should be done by
+human beings, preferably by professional translators. Two traditional
+measures of translation quality are _adequacy_ - how accurately the
+translation conveys the information contained in the source text - and
+_fluency_ - how natural the translation into the target language sounds.
+Adequacy can only be judged by a human being who is bilingual in the
+source and target languages, and fluency can only be judged by a human
+being who is extremely fluent in (ideally, a native speaker of) the
+target language.
+
+Unfortunately, the development of an SMT system requires a far greater
+amount of evaluation than can practically be done by human beings. For
+instance, each iteration of COW (the weight optimization process
+mentioned in the previous section) generates a large set of new
+translations for the source sentences, each of which must be assigned a
+quality score.
+
+Thus, the practical development of an SMT system requires metrics for MT
+quality that can be applied automatically. The SMT community's solution
+to this problem has been to develop metrics that measure the similarity
+of the computer-generated translations for the sentences in a given
+source text with reference translations for the same sentences generated
+by a professional human translator. These automatic metrics typically
+compare the choices of words, bigrams, trigrams and so on made by the
+SMT system in the target language with those made by the human
+translator. The potential pitfall is obvious: suppose that the reference
+translation of a sentence is "The man was very rude", system A's
+translation was "He expressed himself with utter tactlessness", and
+system B's translation was "The man was very polite". Under any metric
+based on N-gram overlaps, A will receive the lowest possible score,
+while B will receive a high score. To minimize the frequency with which
+this kind of faulty scoring occurs, there should ideally be several
+different reference translations, made by translators with different
+writing styles.
+
+Arguing about the details of the best automatic metric to use is a
+popular pastime in the SMT community. One of the most frequently
+employed metrics is called BLEU, originally defined in this paper
+(link:PortageIIAnnotatedBibliography.html#truebleu-paper[BLEU
+paper]); Portage is typically trained to maximize the BLEU score.
+However, the COW and rescoring algorithms can easily be called so as to
+optimize Portage according to some other metric, such as word error rate
+(WER) or position-independent word error rate (PER).
+
+Automatic evaluation of Portage's translation output is described in
+link:PortageIIEvaluation.html[Evaluation].
+
+The Mathematics of SMT
+~~~~~~~~~~~~~~~~~~~~~~
+
+image::uploads/overview_math.gif[image]
+
+The figure above illustrates the evolution of the mathematical framework
+underlying SMT systems. The first equation shown is derived from Bayes's
+Law: if we let S represent the sequence of words in the source language
+that should be translated, then we are looking for the sequence of
+target-language words T that have the highest probability given S. Thus,
+we are trying to maximize P(T|S). Since P(T|S) = P(S|T)*P(T)/P(S), and
+since P(S) (the probability of the source-language sentence) is
+constant, finding the T that maximizes P(T|S) is equivalent to
+maximizing P(S|T)*P(T).
+
+Surprisingly, it turns out to be a better strategy to attack the SMT
+task indirectly by maximizing P(S|T)*P(T) rather than directly, by
+maximizing P(T|S). A possible explanation is that researchers in the
+field still haven't come up with particularly good direct models of
+translation, while the monolingual N-gram language models used to
+estimate P(T) are remarkably effective for modeling most potential
+target languages. These language models, incidentally, were developed
+before modern SMT, mainly by researchers in automatic speech
+recognition; two excellent public-domain language-modeling toolkits are
+available (from SRI and CMU). Thus, the indirect approach to SMT allows
+one to benefit from a powerful, easily available information source that
+has been very useful in other contexts. Note also that the language
+model component P(T) can often be trained on far more data than either
+the P(S|T) or the P(T|S) models, since bilingual, sentence-aligned data
+is required to train the latter two models, while P(T) is trained on
+unilingual target-language texts.
+
+This brings us to the next stage in the evolution of SMT systems. If one
+of the two components in the expression P(S|T)*P(T) is more reliably
+modeled than the other (in most cases, the language model is the more
+reliable of the two), then one can assign a higher weight to it as shown
+in the figure under "SMT with Two Weighted Components". Note that this
+weighted combination of two components is typically expressed in
+loglinear form.
+
+Finally, we can add other information sources: see the part of the
+figure labeled "Loglinear Combination of Multiple Components". These
+information sources will be of two types: those that depend on the
+relationship between the source sentence and the target hypothesis,
+which are denoted f() in the figure (we can think of these as "adequacy"
+information sources) and those that depend only on the quality of the
+target hypothesis, which are denoted g() in the figure (we can think of
+these as "fluency" information sources). A typical SMT system such as
+Portage will include an estimate of the backward translation probability
+P(S|T) as one of the f() information sources, and the language model
+probability P(T) as one of the g() information sources. Above, we noted
+that it seems strange that P(T|S), the forward translation probability,
+isn't used in the Bayes's Law formulation of SMT; in the multicomponent
+loglinear formulation, we can include this information source as one of
+the f() sources, if we wish.
+
+The above is a very high-level overview describing how our SMT system,
+Portage, currently works. For insight into the research (mainly
+performed by people outside our group) underlying this kind of SMT
+system, see our
+link:PortageIIAnnotatedBibliography.html[Annotated
+Bibliography].
+
+'''''
+
+Up: link:PortageMachineTranslation.html[PortageII] Next:
+link:PortageIIKnowledgePrerequisites.html[Prerequisites]
+
+'''''
+
+include::incl/footer.adoc[]

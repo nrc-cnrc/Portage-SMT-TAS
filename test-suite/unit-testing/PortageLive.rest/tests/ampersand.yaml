@@ -1,0 +1,62 @@
+# @file rest/tests/ampersand.yaml
+# @brief Test PortageLive's REST API for correct handling of ampersand in url
+#        arguments.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
+
+
+name: "Translate with ampersand"
+
+
+globals:
+  variables:
+    service: "{base_url}/translate.php"
+
+
+testSteps:
+  - name: "urlencode"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      target: "fr"
+      prettyprint: false
+      q: "home & hardware"  # => q=home+%26+hardware
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        data: "Object"
+        "data.translations": "Array"
+        "data.translations._length": 1
+        "data.translations[0]": "Object"
+        "data.translations[0].translatedText": "String"
+        "data.translations[0].translatedText": "erawdrah & emoh"
+
+
+  - name: "html_entity_encode & urlencode"
+    method: "get"
+    apiUrl: "{service}"
+    params:
+      context: "unittest.rev.en-fr"
+      target: "fr"
+      prettyprint: false
+      q: "tree &amp; lake"  # => q=tree+%26amp%3B+lake
+    asserts:
+      headers:
+        status: 200
+        Content-Type: "application/json"
+      payload:
+        data: "Object"
+        "data.translations": "Array"
+        "data.translations._length": 1
+        "data.translations[0]": "Object"
+        "data.translations[0].translatedText": "String"
+        "data.translations[0].translatedText": "ekal & eert"

@@ -6,19 +6,20 @@
  *
  * This rest api mimics Google's translation api and is used in Matecat's integration.
  *
- * Technologies langagieres interactives / Interactive Language Technologies
- * Inst. de technologie de l'information / Institute for Information Technology
+ * Traitement multilingue de textes / Multilingual Text Processing
+ * Technologies de l'information et des communications /
+ *   Information and Communications Technologies
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2016, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2016, Her Majesty in Right of Canada
+ * Copyright 2017, Sa Majeste la Reine du Chef du Canada
+ * Copyright 2017, Her Majesty in Right of Canada
  */
 
 # curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
-# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data key=toy-regress-
-# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data key=toy-regress- --data prettyprint=false
+# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data context=toy-regress-
+# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data context=toy-regress- --data prettyprint=false
 
-# QUERY_STRING="q=tree&target=fr&key=toy-regress-&prettyprint=false" php translate.php
-# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&key=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="q=tree&target=fr&context=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&context=toy-regress-&prettyprint=false" php translate.php
 
 /*
  * This is a sample of the expected output format.
@@ -60,42 +61,49 @@ class RestTranlator extends PortageLiveLib {
    protected $source = '';
    protected $target = '';
    protected $prettyprint = true;
-   protected $key = '';
+   protected $context = '';
    protected $q = array();
+   protected $document_model_ID;
 
    protected $invalid_url_arguments = array();
 
 
    /**
-    * This function is necessary in order to properly extract multiple q(ueries) from the url.
-    * Simply relying on $_GET['q'] is not sufficient since it will only return
-    * the last q(uery) value.
+    * This actually performs per argument check.
     */
    protected function parseRequest($request) {
-      #print_r($request);
+      #var_dump($request);
       if (!isset($request) || empty($request)) {
          throw new Exception("There is no query.");
       }
 
-      foreach (split('&', $request) as $a) {
-         list($k, $v) = split('=', $a, 2);
+      foreach ($request as $k => $v) {
          switch($k) {
-            case "key":
-               $this->key = $v;
+            case "context":
+               $this->context = $v;
                break;
             case "prettyprint":
                $this->prettyprint = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
                break;
             case "q":
-               $v = urldecode($v);
-               $v = html_entity_decode($v);
-               array_push($this->q, $v);
+               if (!is_array($v)) {
+                  $v = array($v);
+               }
+               $this->q = array_map(function($q) {
+                     $q = urldecode($q);
+                     $q = html_entity_decode($q);
+                     return $q;
+                  },
+                  $v);
                break;
             case "source":
                $this->source = $v;
                break;
             case "target":
                $this->target = $v;
+               break;
+            case "document_model_ID":
+               $this->document_model_ID = $v;
                break;
             default:
                array_push($this->invalid_url_arguments, "$k=$v");
@@ -130,8 +138,8 @@ class RestTranlator extends PortageLiveLib {
 
       if (count($this->invalid_url_arguments) > 0) {
          $invalid_url_arguments_warning = array(
-            'message' => 'You used invalid options',
-            'options' => $this->invalid_url_arguments
+            'message' => 'You used invalid argument(s)',
+            'arguments' => $this->invalid_url_arguments
          );
          if (!isset($translations['warnings'])) {
             $translations['warnings'] = array();
@@ -144,32 +152,37 @@ class RestTranlator extends PortageLiveLib {
 
 
    public function translate() {
-      $this->parseRequest($_SERVER['QUERY_STRING']);
+      $this->parseRequest(@$_REQUEST);
 
+      /*
       if (!isset($this->target) || empty($this->target)) {
          throw new Exception("You need to provide a target using target=X.");
       }
+      */
 
       # Validate that source is a valid source language / supported source
       # language.
 
-      # Deduce and/or validate the target language.
+      # Deduce and/or validate the source language.
+      /*
       if (!isset($this->source) || empty($this->source)) {
          if ($this->target === "fr") $this->source = "en";
          if ($this->target === "en") $this->source = "fr";
       }
+      */
 
       $performTagTransfer = false;
       $useConfidenceEstimation = false;
       $newline = "p";
-      # System's format:
-      #   <key> dot <source> dash <target>
-      if (substr($this->key, -1) !== '.') {
-         $this->key .= '.';
-      }
-      $context = $this->key . $this->source . "-" . $this->target;
 
-      if ((int)$this->q > 0) {
+      # If supplied, we could use source and target to validate that the user
+      # is currently using a system that supports that language pair.
+      $context = $this->context;
+      if (isset($this->document_model_ID) and !empty($this->document_model_ID)) {
+         $context .= '/' .  $this->document_model_ID;
+      }
+
+      if (count($this->q) > 0) {
          # For efficiency, let's glue all queries into a single request for Portage.
          $q = join("\n", $this->q);
          # Translate the queries.
@@ -187,7 +200,7 @@ class RestTranlator extends PortageLiveLib {
 
 
 try {
-   header('content-type: application/json');
+   header('Content-Type: application/json');
    $translator = new RestTranlator();
    print $translator->translate();
 }
