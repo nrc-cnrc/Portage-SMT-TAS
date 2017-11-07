@@ -52,10 +52,11 @@ Mandatory option-like arguments:
 
 Options:
 
+  -test TEST_S TEST_T TEST_WAL Test corpus files: tok'd source, tok'd target, word alignment
   -workdir WD                 Put intermediate files in dir WD instead of a temporary one
   -train-nnjm-opts "OPTS"     Additional options for train-nnjm.py
   -nnjm-genex-opts "OPTS"     Additional options for nnjm-genex.py
-  -n(otreally)                Don't do the work, just create the .cmds file
+  -n(otreally)                Don't do the work, just create the train.cmds file
   -h(elp)                     Print this help message
   -v(erbose)                  Increment the verbosity level by 1 (may be repeated)
   -d(ebug)                    Print debugging information
@@ -72,6 +73,9 @@ while [[ $# -gt 0 ]]; do
    case "$1" in
    -dev)              arg_check 3 $# $1;
                       DEV_S=$2; DEV_T=$3; DEV_WAL=$4;
+                      shift; shift; shift;;
+   -test)             arg_check 3 $# $1;
+                      TEST_S=$2; TEST_T=$3; TEST_WAL=$4;
                       shift; shift; shift;;
    -cls-s)            arg_check 1 $# $1; CLS_S=$2; shift;;
    -cls-t)            arg_check 1 $# $1; CLS_T=$2; shift;;
@@ -96,6 +100,12 @@ done
 [[ -r $DEV_S && -s $DEV_S ]] || error_exit "Cannot read dev source file $DEV_S"
 [[ -r $DEV_T && -s $DEV_T ]] || error_exit "Cannot read dev target file $DEV_T"
 [[ -r $DEV_WAL && -s $DEV_WAL ]] || error_exit "Cannot read dev alignment file $DEV_WAL"
+
+if [[ $TEST_S ]]; then
+   [[ -r $TEST_S && -s $TEST_S ]] || error_exit "Cannot read test source file $TEST_S"
+   [[ -r $TEST_T && -s $TEST_T ]] || error_exit "Cannot read test target file $TEST_T"
+   [[ -r $TEST_WAL && -s $TEST_WAL ]] || error_exit "Cannot read test alignment file $TEST_WAL"
+fi
 
 [[ $# -gt 3 ]] && MULTIPLE_TRAIN_FILES=1
 while [[ $# -ge 3 ]]; do
@@ -159,8 +169,10 @@ fi
 ERROR_STATE=
 r_cmd() {
    cmd=$*
-   echo "$cmd" >> $WD/cmds
-   if [[ $NOTREALLY ]]; then
+   echo "$cmd" >> $WD/train.cmds
+   if [[ $ERROR_STATE ]]; then
+      echo "$cmd" >&2
+   elif [[ $NOTREALLY ]]; then
       echo "$cmd"
    else
       verbose 1 "[`date`] $cmd"
@@ -171,9 +183,9 @@ r_cmd() {
          verbose 2 "[`date` Done rc=$RC]"
       else
          verbose 1 "[`date` Done *** rc=$RC ***]"
-         warn "Stopping after failed command. Below are the other commands that would have been run."
+         warn "Stopping after failed command. Below are the other commands that would have been run." \
+              "You can also find the whole procedure in $WD/train.cmds ."
          ERROR_STATE=1
-         NOTREALLY=1
       fi
       return $RC
    fi
@@ -198,13 +210,17 @@ r_cmd "{ zcat -f $TRAIN_T | \
          gzip > $WD/train-t.cls.gz ; } >& $WD/log.train-t.cls"
 r_cmd word2class -no-error -v $DEV_S $CLS_S $WD/dev-s.cls ">&" $WD/log.dev-s.cls
 r_cmd word2class -no-error -v $DEV_T $CLS_T $WD/dev-t.cls ">&" $WD/log.dev-t.cls
+if [[ $TEST_S ]]; then
+   r_cmd word2class -no-error -v $TEST_S $CLS_S $WD/test-s.cls ">&" $WD/log.test-s.cls
+   r_cmd word2class -no-error -v $TEST_T $CLS_T $WD/test-t.cls ">&" $WD/log.test-t.cls
+fi
 
 # Step 3: use nnjm-genex.py to generate the training examples and (if no pre-trained NNJM
 # is provided) the three NNJM vocabulary files.
 COMMON_GENEX_OPTIONS="-v -eos -voc $OUT/train-voc -ng 4 -ws 11 $NNJM_GENEX_OPTS"
 if [[ $PRE_NNJM ]]; then
    for EXT in src tgt out; do
-      r_cmd "cp $PRE_NNJM/train-voc.$EXT $OUT/"
+      r_cmd "cp -a $PRE_NNJM/train-voc.$EXT $OUT/"
    done
    r_cmd "{ nnjm-genex.py -r -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  \
             $COMMON_GENEX_OPTIONS   $TRAIN_S $TRAIN_T $TRAIN_WAL \
@@ -220,9 +236,15 @@ fi
 r_cmd "{ nnjm-genex.py -r -stag $WD/dev-s.cls -ttag $WD/dev-t.cls \
          $COMMON_GENEX_OPTIONS   $DEV_S $DEV_T $DEV_WAL \
          | gzip > $WD/dev-ex.gz ; } >& $WD/log.dev-ex"
+if [[ $TEST_S ]]; then
+   r_cmd "{ nnjm-genex.py -r -stag $WD/test-s.cls -ttag $WD/test-t.cls \
+            $COMMON_GENEX_OPTIONS   $TEST_S $TEST_T $TEST_WAL \
+            | gzip > $WD/test-ex.gz ; } >& $WD/log.test-ex"
+   TEST_EX_FILE="-test_file $WD/test-ex.gz"
+fi
 
 # Step 5: use train-nnjm.py to train the NNJM (outputs nnjm.pkl)
-r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz \
+r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz $TEST_EX_FILE \
        -swin_size 11 -thist_size 3 -embed_size 192 -n_hidden_layers 1 -slice_size 64000 \
        -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 $ETA_0 \
        -rnd_elide_max 3 -rnd_elide_prob 0.1 -val_batch_size 10000 -batches_per_epoch 20000 \
