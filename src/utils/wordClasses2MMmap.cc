@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file wordClass2tpmap.cc
+ * @file wordClass2MMmap.cc
  * @brief Converts a word class to its memory mapped representation.
  *
  * Traitement multilingue de textes / Multilingual Text Processing
@@ -20,7 +20,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-wordClass2tpmap INFILE [OUTFILE]\n\
+wordClass2MMmap INFILE [OUTFILE]\n\
 \n\
   Converts a word class file (word\\tclass) to its memory mapped representation.\n\
 \n\
