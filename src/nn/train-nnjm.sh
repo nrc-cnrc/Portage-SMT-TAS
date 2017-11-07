@@ -39,24 +39,26 @@ Positional arguments:
 
 Mandatory option-like arguments:
 
-  -out NNJMDIR             Output NNJM directory.
-  -dev DEV_S DEV_T DEV_WAL Dev corpus files: tokenized source, tokenized target, word alignment
-  -cls-s     CLS_S         Source-language word classes (typically 400 classes)
-  -cls-t     CLS_T         Target-language word classes (typically 400 classes)
+  -out NNJMDIR                Output NNJM directory.
+  -dev DEV_S DEV_T DEV_WAL    Dev corpus files: tok'd source, tok'd target, word alignment
+
+  Plus either -pre-trained-nnjm, or both -cls-s and -cls-t:
+  -cls-s     CLS_S            Source-language word classes (typically 400 classes)
+  -cls-t     CLS_T            Target-language word classes (typically 400 classes)
+  -pre-trained-nnjm PRE_NNJM  Start training from PRE_NNJM instead of from scratch
 
   The CLS files can be in .classes format produced by word2vec or .mmcls format produced
   by wordClasses2MMmap.
 
 Options:
 
-  -workdir WD   place intermediate files in directory WD instead of a temporary one
-  -pre-trained-nnjm PRE_NNJM  Start training from PRE_NNJM instead of from scratch
+  -workdir WD                 Put intermediate files in dir WD instead of a temporary one
   -train-nnjm-opts "OPTS"     Additional options for train-nnjm.py
   -nnjm-genex-opts "OPTS"     Additional options for nnjm-genex.py
-  -n(otreally)  don't do the work, just create the .cmds file
-  -h(elp)       print this help message
-  -v(erbose)    increment the verbosity level by 1 (may be repeated)
-  -d(ebug)      print debugging information
+  -n(otreally)                Don't do the work, just create the .cmds file
+  -h(elp)                     Print this help message
+  -v(erbose)                  Increment the verbosity level by 1 (may be repeated)
+  -d(ebug)                    Print debugging information
 
 ==EOF==
 
@@ -91,11 +93,56 @@ done
 
 [[ $DEV_S ]] || error_exit "Missing required -dev flag"
 [[ $OUT ]] || error_exit "Missing required -out flag"
-[[ $CLS_S ]] || error_exit "Missing required -cls-s flag"
-[[ $CLS_T ]] || error_exit "Missing required -cls-t flag"
 [[ -r $DEV_S && -s $DEV_S ]] || error_exit "Cannot read dev source file $DEV_S"
 [[ -r $DEV_T && -s $DEV_T ]] || error_exit "Cannot read dev target file $DEV_T"
 [[ -r $DEV_WAL && -s $DEV_WAL ]] || error_exit "Cannot read dev alignment file $DEV_WAL"
+
+[[ $# -gt 3 ]] && MULTIPLE_TRAIN_FILES=1
+while [[ $# -ge 3 ]]; do
+   [[ -r $1 && -s $1 ]] || error_exit "Cannot read training source file $1"
+   TRAIN_S="$TRAIN_S $1"
+   [[ -r $2 && -s $2 ]] || error_exit "Cannot read training target file $2"
+   TRAIN_T="$TRAIN_T $2"
+   [[ -r $3 && -s $3 ]] || error_exit "Cannot read training word alignment file $3"
+   TRAIN_WAL="$TRAIN_WAL $3"
+   shift; shift; shift
+done
+[[ $# == 0 ]] || error_exit "Positional arguments should come in SRC TGT WAL tripplets; the last tripplet is incomplete: $*"
+verbose 2 TRAIN_S=$TRAIN_S
+verbose 2 TRAIN_T=$TRAIN_T
+verbose 2 TRAIN_WAL=$TRAIN_WAL
+
+if [[ $PRE_NNJM ]]; then
+   # When a pre-trained NNJM is specified, we're really strict about the file names, they
+   # have to match the ones produced by this script.
+   for FILE in train-voc.src train-voc.tgt train-voc.out nnjm.bin nnjm.pkl model; do
+      [[ -r $PRE_NNJM/$FILE && -s $PRE_NNJM/$FILE ]] ||
+         error_exit "Cannot read file $FILE in pre-trained NNJM $PRE_NNJM"
+   done
+
+   PRE_CLS_S=`grep srcclasses $PRE_NNJM/model | sed -e 's/ *\[srcclasses\]  *//' -e 's/ *//g'`
+   PRE_CLS_T=`grep tgtclasses $PRE_NNJM/model | sed -e 's/ *\[tgtclasses\]  *//' -e 's/ *//g'`
+   [[ $CLS_S ]] && warn "Ignoring -cls-s flag since -pre-trained-nnjm was specified"
+   [[ $CLS_T ]] && warn "Ignoring -cls-t flag since -pre-trained-nnjm was specified"
+   if [[ $PRE_CLS_S =~ ^/ ]]; then
+      CLS_S=$PRE_CLS_S
+   else
+      CLS_S=$PRE_NNJM/$PRE_CLS_S
+   fi
+
+   if [[ $PRE_CLS_T =~ ^/ ]]; then
+      CLS_T=$PRE_CLS_T
+   else
+      CLS_T=$PRE_NNJM/$PRE_CLS_T
+   fi
+
+   ETA_0=0.03
+else
+   [[ $CLS_S ]] || error_exit "Missing required -cls-s flag"
+   [[ $CLS_T ]] || error_exit "Missing required -cls-t flag"
+   ETA_0=0.3
+fi
+
 [[ -r $CLS_S && -s $CLS_S ]] || error_exit "Cannot read source classes file $CLS_S"
 [[ -r $CLS_T && -s $CLS_T ]] || error_exit "Cannot read target classes file $CLS_T"
 
@@ -132,22 +179,10 @@ r_cmd() {
    fi
 }
 
+# Step 0: create the output directory.
 r_cmd mkdir -p $OUT
 
 # Step 1: if the training corpus is in multiple files, create a concatenated copy in $WD
-[[ $# -gt 3 ]] && MULTIPLE_TRAIN_FILES=1
-while [[ $# -ge 3 ]]; do
-   TRAIN_S="$TRAIN_S $1"
-   TRAIN_T="$TRAIN_T $2"
-   TRAIN_WAL="$TRAIN_WAL $3"
-   shift; shift; shift
-done
-[[ $# = 0 ]] || error_exit "Positional arguments should come in SRC TGT WAL tripplets"
-
-verbose 2 TRAIN_S=$TRAIN_S
-verbose 2 TRAIN_T=$TRAIN_T
-verbose 2 TRAIN_WAL=$TRAIN_WAL
-
 if [[ $MULTIPLE_TRAIN_FILES ]]; then
    r_cmd "zcat -f $TRAIN_S | gzip > $WD/train-s.gz"; TRAIN_S=$WD/train-s.gz
    r_cmd "zcat -f $TRAIN_T | gzip > $WD/train-t.gz"; TRAIN_T=$WD/train-t.gz
@@ -166,23 +201,30 @@ r_cmd word2class -no-error -v $DEV_T $CLS_T $WD/dev-t.cls ">&" $WD/log.dev-t.cls
 
 # Step 3: use nnjm-genex.py to generate the training examples and (if no pre-trained NNJM
 # is provided) the three NNJM vocabulary files.
-r_cmd "{ nnjm-genex.py -v -eos -voc $OUT/train-voc -isv 16000 -itv 16000 -ov 32000 \
-         -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  -ng 4 -ws 11 \
-         $NNJM_GENEX_OPTS \
-         $TRAIN_S $TRAIN_T $TRAIN_WAL \
-         | gzip > $WD/train-ex.gz ; } >& $WD/log.train-ex"
+COMMON_GENEX_OPTIONS="-v -eos -voc $OUT/train-voc -ng 4 -ws 11 $NNJM_GENEX_OPTS"
+if [[ $PRE_NNJM ]]; then
+   for EXT in src tgt out; do
+      r_cmd "cp $PRE_NNJM/train-voc.$EXT $OUT/"
+   done
+   r_cmd "{ nnjm-genex.py -r -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  \
+            $COMMON_GENEX_OPTIONS   $TRAIN_S $TRAIN_T $TRAIN_WAL \
+            | gzip > $WD/train-ex.gz ; } >& $WD/log.train-ex"
+else
+   r_cmd "{ nnjm-genex.py -isv 16000 -itv 16000 -ov 32000 \
+            -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  \
+            $COMMON_GENEX_OPTIONS   $TRAIN_S $TRAIN_T $TRAIN_WAL \
+            | gzip > $WD/train-ex.gz ; } >& $WD/log.train-ex"
+fi
 
 # Step 4: use nnjm-genex.py to generate the dev examples
-r_cmd "{ nnjm-genex.py -v -eos -voc $OUT/train-voc -r \
-         -stag $WD/dev-s.cls -ttag $WD/dev-t.cls -ng 4 -ws 11 \
-         $NNJM_GENEX_OPTS \
-         $DEV_S $DEV_T $DEV_WAL \
+r_cmd "{ nnjm-genex.py -r -stag $WD/dev-s.cls -ttag $WD/dev-t.cls \
+         $COMMON_GENEX_OPTIONS   $DEV_S $DEV_T $DEV_WAL \
          | gzip > $WD/dev-ex.gz ; } >& $WD/log.dev-ex"
 
 # Step 5: use train-nnjm.py to train the NNJM (outputs nnjm.pkl)
 r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz \
        -swin_size 11 -thist_size 3 -embed_size 192 -n_hidden_layers 1 -slice_size 64000 \
-       -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 0.3 \
+       -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 $ETA_0 \
        -rnd_elide_max 3 -rnd_elide_prob 0.1 -val_batch_size 10000 -batches_per_epoch 20000 \
        $TRAIN_NNJM_OPTS \
        $OUT/nnjm.pkl >& $WD/log.train-nnjm.py"
