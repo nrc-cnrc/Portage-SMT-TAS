@@ -14,6 +14,8 @@
 
 import sys, os
 import numpy
+import mmap
+import gzip
 
 verbose = 1
 
@@ -33,16 +35,25 @@ def log(msg, *other_vars):
 def read_datafile(filename, swin_size, thist_size, thist_elide_size):
    """Read training file into numpy array"""
    thist_end = swin_size+1+thist_size
-   x = numpy.loadtxt(filename, dtype=numpy.int32, usecols=range(swin_size)+range(swin_size+1,thist_end))
+   x = numpy.loadtxt(filename, dtype=numpy.int32, usecols=range(swin_size)+range(swin_size+1, thist_end))
    y = numpy.loadtxt(filename, dtype=numpy.int32, usecols=range(thist_end+1, thist_end+2))
    log("read %d examples from %s" % (len(x), filename))
    assert(len(x) == len(y))
    if thist_elide_size > 0:
       log("In read_datafile elide")
       if thist_elide_size < thist_size:
-         x[:,-thist_size:-thist_size+thist_elide_size] = numpy.zeros(thist_elide_size)
+         x[:, -thist_size:-thist_size+thist_elide_size] = numpy.zeros(thist_elide_size)
       elif thist_elide_size == thist_size:
-         x[:,-thist_size:] = numpy.zeros(thist_elide_size)
+         x[:, -thist_size:] = numpy.zeros(thist_elide_size)
       else:
          error("thist_elide_size greater than thist_size")
-   return (x,y)
+   return (x, y)
+
+
+
+def line_count(filename):
+   with gzip.open(filename, "r") as f:
+      lines = 0
+      for _ in f:
+         lines += 1
+      return lines

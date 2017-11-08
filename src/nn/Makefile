@@ -17,6 +17,7 @@ PYTHON_LIBS = \
 	embed.pyc \
 	msgd.pyc \
 	multilayers.pyc \
+	nnjm_data_iterator.py \
 	nnjm_utils.pyc
 
 TESTPROGS = test_portage_nnjm
