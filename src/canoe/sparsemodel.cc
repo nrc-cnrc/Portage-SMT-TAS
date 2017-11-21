@@ -1495,6 +1495,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
    verbose(verbose), learn_conjunctions(false), max_features_for_conjoin(0), 
    min_freq_for_conjoin(0), prune0(false), precompute_future_score(false), voc(NULL)
 {
+   time_t start_time = time(NULL);
    // will use 'real' voc to read in EventTemplates that don't depend on stored
    // voc
    voc = newvoc;
@@ -1641,6 +1642,8 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
 
       buildDecodingEventMaps();
    }
+
+   cerr << "Loaded SparseModel in " << (time(NULL) - start_time) << "s" << endl;
 }
 
 void SparseModel::rebuildEventMap()
