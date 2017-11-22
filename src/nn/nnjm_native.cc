@@ -30,6 +30,7 @@
 
 using namespace Portage;
 
+
 // log(exp(x)+exp(y)), dodging underflow and overflow
 struct logadd : binary_function<double,double,double> {
 
@@ -38,16 +39,16 @@ struct logadd : binary_function<double,double,double> {
 
    double operator() (const double& x, const double& y) const {
 
-      if(x <= -LogBig && y <= -LogBig) return -LogBig;
+      if (x <= -LogBig && y <= -LogBig) return -LogBig;
 
       // Sort x and y into min and max
       double dMin = x, dMax = y;
-      if(dMin > dMax) {
+      if (dMin > dMax) {
          dMin = y; dMax = x;
       }
 
       // Numerically stable log add
-      if(dMax - dMin > LogBig) {
+      if (dMax - dMin > LogBig) {
          return dMax;
       }
       else {
@@ -57,8 +58,10 @@ struct logadd : binary_function<double,double,double> {
    }
 };
 
+
 const double logadd::LogBig = 50;
 const double logadd::LogZero = -1000.0;
+
 
 NNJMEmbed::NNJMEmbed(iSafeMagicStream& istr, bool binMode)
 : voc_n(0) // How many items in the vocabulary?
@@ -69,33 +72,41 @@ NNJMEmbed::NNJMEmbed(iSafeMagicStream& istr, bool binMode)
    string line;
    vector<string> toks;
    // Get summary from first line
-   getline(istr,line);
-   splitZ(line,toks);
+   if (!getline(istr, line)) {
+      error(ETFatal, "Invalid model format.  Embeddings are missing their descriptor.");
+   }
+   if (splitZ(line, toks) != 4) {
+      error(ETFatal, "Invalid model format.  Embeddings' descriptor format doesn't have the right number of parameters.");
+   }
    name = toks[0];
    voc_n = conv<Uint>(toks[1]);
    vec_n = conv<Uint>(toks[2]);
    pos_n = conv<Uint>(toks[3]);
    // Get embedding parameters from next voc_n lines
    w = new double*[voc_n];
-   for(Uint i=0;i<voc_n;i++) {
+   for (Uint i=0; i<voc_n; i++) {
       w[i] = new double[vec_n];
       if (binMode) {
          BinIO::readbin(istr, w[i], vec_n);
-      }
-      else {
-         getline(istr,line);
-         splitZ(line,toks);
-         if(toks.size()!=vec_n)
-            error(ETFatal,"mismatching vector for w line of embedding %s",name.c_str());
-         for(Uint j=0;j<vec_n;j++) {
-            w[i][j] = conv<double>(toks[j]);
+         if (!istr) {
+            error(ETFatal, "Invalid model format.  The embedding[%d] is incomplete.", i);
          }
       }
+      else {
+         if (!getline(istr, line)) {
+            error(ETFatal, "Invalid model format.  The embeddings have not enough data.");
+         }
+         if (split(line.c_str(), w[i], convT<double>, " \t\n", vec_n) != vec_n) {
+            error(ETFatal, "Invalid model format.  Embedding[%d] is incomplete.", i);
+         }
+      }
+      //cerr << join(w[i], w[i] + vec_n, " ") << endl;   // Debugging
    }
 }
 
+
 NNJMEmbed::~NNJMEmbed() {
-   for(Uint i=0;i<voc_n;i++) {
+   for (Uint i=0;i<voc_n;i++) {
       delete [] w[i];
    }
    delete [] w;
@@ -114,13 +125,17 @@ NNJMLayer::NNJMLayer(Uint inSize, iSafeMagicStream& istr, bool binMode, ExpTable
    string line;
    vector<string> toks;
    // Get summary from first line
-   getline(istr,line);
-   splitZ(line,toks);
+   if (!getline(istr, line)) {
+      error(ETFatal, "Invalid model format.  Layer have no descriptor.");
+   }
+   if (splitZ(line, toks) != 3) {
+      error(ETFatal, "Invalid model format.  Layers' description doesn't have the right number of parameters.");
+   }
    name = toks[0];
-   if (toks[1].find("tanh")!=string::npos) {
+   if (toks[1].find("tanh") != string::npos) {
       act = tanh;
    }
-   else if(toks[1].find("sigmoid")!=string::npos) {
+   else if (toks[1].find("sigmoid") != string::npos) {
       act = sigmoid;
    }
    else {
@@ -132,42 +147,50 @@ NNJMLayer::NNJMLayer(Uint inSize, iSafeMagicStream& istr, bool binMode, ExpTable
    b = new double[out_n];
    if (binMode) {
       BinIO::readbin(istr, b, out_n);
-   }
-   else {
-      getline(istr,line);
-      splitZ(line,toks);
-      if(toks.size()!=out_n)
-         error(ETFatal,"mismatching vector for b of layer %s",name.c_str());
-      for(Uint j=0;j<out_n;j++) {
-         b[j] = conv<double>(toks[j]);
+      if (!istr) {
+         error(ETFatal, "Invalid model format.  Layer's b is incomplete.");
       }
    }
+   else {
+      if (!getline(istr, line)) {
+         error(ETFatal, "Invalid model format.  The layer has no data for its b.");
+      }
+      if (split(line.c_str(), b, convT<double>, " \t\n", out_n) != out_n) {
+         error(ETFatal, "Invalid model format.  Layer's b is incomplete.");
+      }
+   }
+   //cerr << join(b, b+out_n, " ") << endl;   // Debugging
 
    // Get w from next in_n lines
    w = new double*[in_n];
-   for(Uint i=0;i<in_n;i++) {
+   for (Uint i=0; i<in_n; i++) {
       w[i] = new double[out_n];
       if (binMode) {
          BinIO::readbin(istr, w[i], out_n);
-      }
-      else {
-         getline(istr,line);
-         splitZ(line,toks);
-         if(toks.size()!=out_n)
-            error(ETFatal,"mismatching vector for w line of layer %s",name.c_str());
-         for(Uint j=0;j<out_n;j++) {
-            w[i][j] = conv<double>(toks[j]);
+         if (!istr) {
+            error(ETFatal, "Invalid model format. Layers's W[%d] is incomplete.", i);
          }
       }
+      else {
+         if (!getline(istr, line)) {
+            error(ETFatal, "Invalid model format.  The layer has no data for its W[%d].", i);
+         }
+         if (split(line.c_str(), w[i], convT<double>, " \t\n", out_n) != out_n) {
+            error(ETFatal, "Invalid model format. Layers's W[%d] is incomplete.", i);
+         }
+      }
+      //cerr << join(w[i], w[i] + out_n, " ") << endl;   // Debugging
    }
 }
 
+
 NNJMLayer::~NNJMLayer() {
    delete [] b;
-   for(Uint i=0;i<in_n;i++)
+   for (Uint i=0; i<in_n; i++)
       delete[] w[i];
    delete[] w;
 }
+
 
 
 template <typename InputIterator, typename OutputIterator>
@@ -176,19 +199,21 @@ void NNJMLayer::eval(InputIterator beg, InputIterator end, OutputIterator result
    apply_b(result);
 
    // Apply w
-   const Uint in_i = part_eval(beg,end,0,result);
-   if(in_i!=in_n) {
-      error(ETFatal,"incorrect input length for %s, expected %d, got %d",name.c_str(),in_n,in_i);
+   const Uint in_i = part_eval(beg, end, 0, result);
+   if (in_i != in_n) {
+      error(ETFatal, "incorrect input length for %s, expected %d, got %d", name.c_str(), in_n, in_i);
    }
 
    apply_activation(result);
 }
 
+
+
 template <typename InputIterator>
 double NNJMLayer::evalAt(Uint out_i, InputIterator beg, InputIterator end) const {
    double toRet = b[out_i];
    Uint in_i = 0;
-   for(InputIterator it_in(beg); it_in!=end; ++it_in) {
+   for (InputIterator it_in(beg); it_in!=end; ++it_in) {
       toRet += *it_in * w[in_i][out_i];
       ++in_i;
    }
@@ -196,10 +221,12 @@ double NNJMLayer::evalAt(Uint out_i, InputIterator beg, InputIterator end) const
 }
 
 
+
 template <typename OutputIterator>
 void NNJMLayer::apply_b(OutputIterator result) const {
-   std::copy(b,b+out_n,result);
+   std::copy(b, b+out_n, result);
 }
+
 
 template <typename InputIterator, typename OutputIterator>
 Uint NNJMLayer::part_eval(InputIterator beg, InputIterator end, Uint modelOffset, OutputIterator result) const {
@@ -219,53 +246,57 @@ Uint NNJMLayer::part_eval(InputIterator beg, InputIterator end, Uint modelOffset
    return in_i - modelOffset;
 }
 
+
 template <typename OutputIterator>
 void NNJMLayer::apply_activation(OutputIterator result) const {
    // Apply non-linear activation function
    if (act == tanh) {
       if (table) {
-         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
+         for (OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = table->tanh(*out);
          }
       }
       else {
-         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
+         for (OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = std::tanh(*out);
          }
       }
    }
    else if (act == sigmoid) {
       if (table) {
-         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
+         for (OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = table->sig(*out);
          }
       }
       else {
-         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
-            *out = 1.0/(1.0+exp(-(*out)));
+         for (OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
+            *out = 1.0 / (1.0 + exp(-(*out)));
          }
       }
    }
    else {
-      error(ETFatal, "Unsupported activation function.");
+      error(ETFatal, "Unsupported activation function %d.", act);
    }
 }
 
+
 double NNJMLayer::activate_at(double d) const {
    // Apply non-linear activation function
-   if(act==tanh) {
+   if (act == tanh) {
       return std::tanh(d);
-   } else if(act==sigmoid) {
-      return 1.0/(1.0+exp(-(d)));
+   } else if (act == sigmoid) {
+      return 1.0 / (1.0 + exp(-(d)));
    } else {
       return d;
    }
 }
 
+
 static bool isBinary(const string& filename) {
    const size_t dot = filename.rfind(".");
    return dot != string::npos && filename.substr(dot) == ".bin";
 }
+
 
 
 NNJMNative::NNJMNative(const string& modelfile, bool selfNormalized, bool useLookup)
@@ -284,29 +315,29 @@ NNJMNative::NNJMNative(const string& modelfile, bool selfNormalized, bool useLoo
 
    // Source embedding
    src_embed = new NNJMEmbed(istr, binMode);
-   if(src_embed->getName()!="[source]")
+   if (src_embed->getName()!="[source]")
       error(ETFatal, "expected to find [source] embedding first");
 
    // Target embedding
    tgt_embed = new NNJMEmbed(istr, binMode);
-   if(tgt_embed->getName()!="[target]")
+   if (tgt_embed->getName()!="[target]")
       error(ETFatal, "expected to find [target] embedding second");
 
    // Layers
    Uint next_layer_in =
-      (src_embed->getPosN()+tgt_embed->getPosN())*src_embed->getVecN();
-   while(!istr.eof() && (layers.empty() || layers.back()->getName()!="[output]")) {
+      (src_embed->getPosN() + tgt_embed->getPosN()) * src_embed->getVecN();
+   while (!istr.eof() && (layers.empty() || layers.back()->getName() != "[output]")) {
       layers.push_back(new NNJMLayer(next_layer_in, istr, binMode, table));
       next_layer_in = layers.back()->getOutN();
    }
    // Make sure last layer is output layer
-   if(layers.back()->getName()!="[output]")
+   if (layers.back()->getName() != "[output]")
       error(ETFatal, "expected final layer to be [output]");
    // Print any remainder
    string line;
-   Uint iRead=0;
-   while(getline(istr, line)) iRead++;
-   if(iRead!=0) error(ETFatal, "Error, extra line at end of nnjm model file %s", modelfile.c_str());
+   Uint iRead = 0;
+   while (getline(istr, line)) iRead++;
+   if (iRead != 0) error(ETFatal, "Error, extra line at end of nnjm model file %s", modelfile.c_str());
 
    // Build caches
    src_cache.clear();
@@ -317,40 +348,42 @@ NNJMNative::NNJMNative(const string& modelfile, bool selfNormalized, bool useLoo
    tgt_embed_offset = src_embed->getVecN() * src_embed->getPosN();
 }
 
+
 NNJMNative::~NNJMNative() {
    delete table;
 
-   for(Uint i=0; i<src_cache.size(); i++) {
-      for(Uint j=0; j<src_cache[i].size(); j++) {
-         if(src_cache[i][j]!=NULL) delete src_cache[i][j];
+   for (Uint i=0; i<src_cache.size(); i++) {
+      for (Uint j=0; j<src_cache[i].size(); j++) {
+         if (src_cache[i][j] != NULL) delete src_cache[i][j];
       }
    }
 
-   for(Uint i=0; i<tgt_cache.size(); i++) {
-      for(Uint j=0; j<tgt_cache[i].size(); j++) {
-         if(tgt_cache[i][j]!=NULL) delete tgt_cache[i][j];
+   for (Uint i=0; i<tgt_cache.size(); i++) {
+      for (Uint j=0; j<tgt_cache[i].size(); j++) {
+         if (tgt_cache[i][j] != NULL) delete tgt_cache[i][j];
       }
    }
 
    delete src_embed;
    delete tgt_embed;
-   for(Uint i=0;i<layers.size();i++) {
+   for (Uint i=0; i<layers.size(); i++) {
       delete layers[i];
    }
 
    cerr << "nnjm hidden layer cache hits: " << cache_hits << " misses: " << cache_misses << endl;
-   if(mean_norm>1e-8 || abs(mean_logprob)>1e-8)
+   if (mean_norm>1e-8 || abs(mean_logprob)>1e-8)
       cerr << "avgerage logprob: " << mean_logprob << " average norm: " << mean_norm << endl;
 }
 
+
 Uint NNJMNative::wordPos2VecPos(Uint pos) const {
-   if(pos < src_embed->getPosN()) {
+   if (pos < src_embed->getPosN()) {
       // src position
       return pos * src_embed->getVecN();
    }
-   else if(pos < src_embed->getPosN() + tgt_embed->getPosN()) {
+   else if (pos < src_embed->getPosN() + tgt_embed->getPosN()) {
       // tgt position
-      return tgt_embed_offset + (pos - src_embed->getPosN())*tgt_embed->getVecN();
+      return tgt_embed_offset + (pos - src_embed->getPosN()) * tgt_embed->getVecN();
    }
    else {
       // invalid position
@@ -359,13 +392,14 @@ Uint NNJMNative::wordPos2VecPos(Uint pos) const {
    }
 }
 
+
 template <typename OutputIterator>
 void NNJMNative::embedThroughLayer(NNJMLayer* layer, Uint word, Uint pos, OutputIterator result) {
 
    NNJMEmbed* embed = NULL;
    EmbedCache* cache = NULL;
    Uint prel = -1;
-   if(pos < src_embed->getPosN()) {
+   if (pos < src_embed->getPosN()) {
       embed = src_embed;
       cache = &src_cache;
       prel = pos;
@@ -376,7 +410,7 @@ void NNJMNative::embedThroughLayer(NNJMLayer* layer, Uint word, Uint pos, Output
    }
 
    VDP toAdd = (*cache)[prel][word];
-   if(toAdd==NULL) {
+   if (toAdd==NULL) {
       ++cache_misses;
       toAdd = new vector<double>(layer->getOutN(), 0.0);
 
@@ -391,12 +425,14 @@ void NNJMNative::embedThroughLayer(NNJMLayer* layer, Uint word, Uint pos, Output
    std::transform(toAdd->begin(),toAdd->end(),result,result,std::plus<double>());
 }
 
+
 double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uint w) {
    if (!newSrcSentCache.empty()) {
       error(ETFatal, "You shouldn't call this logprob when caching is enabled.");
    }
    return logprob(src_beg, src_end, hist_beg, hist_end, w, 0);
 }
+
 
 double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uint w, Uint src_pos) {
    // Find embedding and immediately apply bottom layer
@@ -405,7 +441,7 @@ double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end,
    bottom->apply_b(firstHidden->begin());
    Uint pos = 0;
    if (newSrcSentCache.empty()) {
-      for(VUI it=src_beg;it!=src_end;it++)
+      for (VUI it=src_beg;it!=src_end;it++)
          embedThroughLayer(bottom, *it, pos++, firstHidden->begin());
    }
    else {
@@ -413,19 +449,19 @@ double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end,
       apply(src_pos, firstHidden->begin());
    }
 
-   for(VUI it=hist_beg;it!=hist_end;it++)
+   for (VUI it=hist_beg;it!=hist_end;it++)
       embedThroughLayer(bottom, *it, pos++, firstHidden->begin());
    bottom->apply_activation(firstHidden->begin());
 
    // Feed through each remaining layer of the network
    NNJMLayer* top = layers.back();
    Uint numFeedForward = layers.size();
-   if( isSelfNormalized ) {
+   if ( isSelfNormalized ) {
       // Self normalized networks can stop one layer early
       numFeedForward = layers.size()-1;
    }
    vector<double>* next = firstHidden;
-   for(Uint i=1;i<numFeedForward;i++) {
+   for (Uint i=1;i<numFeedForward;i++) {
       vector<double>* output = new vector<double>(layers[i]->getOutN(),0.0);
       layers[i]->eval(next->begin(),next->end(),output->begin());
       delete next; next = output;
@@ -433,7 +469,7 @@ double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end,
 
    // Special handling for output layer
    double score_w;
-   if( isSelfNormalized ) {
+   if ( isSelfNormalized ) {
       // Self-normalized:
       // We stop one layer early and evaluate the top layer for only one word
       score_w = top->evalAt(w,next->begin(),next->end());
@@ -451,12 +487,14 @@ double NNJMNative::logprob(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end,
    return score_w;
 }
 
+
 template <typename OutputIterator>
 void NNJMNative::apply(Uint src_pos, OutputIterator result) const {
    assert(src_pos < newSrcSentCache.size());
    const vector<double>& c = newSrcSentCache[src_pos];
    std::transform(c.begin(), c.end(), result, result, std::plus<double>());
 }
+
 
 void NNJMNative::newSrcSent(const vector<Uint>& src_pad, Uint srcWindow) {
    const Uint src_len(src_pad.size() - srcWindow + 1);
@@ -465,8 +503,8 @@ void NNJMNative::newSrcSent(const vector<Uint>& src_pad, Uint srcWindow) {
    NNJM_MEMORY_FOOTPRINT_PRINT(
    if (true) {
       Uint size = 0;
-      for(Uint i=0; i<src_cache.size(); i++) {
-         for(Uint j=0; j<src_cache[i].size(); j++) {
+      for (Uint i=0; i<src_cache.size(); i++) {
+         for (Uint j=0; j<src_cache[i].size(); j++) {
             if (src_cache[i][j] != NULL)
                size += sizeof(double) * src_cache[i][j]->capacity() + sizeof(src_cache[i][j]);
          }
@@ -474,8 +512,8 @@ void NNJMNative::newSrcSent(const vector<Uint>& src_pad, Uint srcWindow) {
       cerr << "src_embed size: " << size << " Bytes" << endl;
 
       size = 0;
-      for(Uint i=0; i<tgt_cache.size(); i++) {
-         for(Uint j=0; j<tgt_cache[i].size(); j++) {
+      for (Uint i=0; i<tgt_cache.size(); i++) {
+         for (Uint j=0; j<tgt_cache[i].size(); j++) {
             if (tgt_cache[i][j] != NULL)
                size += sizeof(double) * tgt_cache[i][j]->capacity() + sizeof(tgt_cache[i][j]);
          }
@@ -488,9 +526,9 @@ void NNJMNative::newSrcSent(const vector<Uint>& src_pad, Uint srcWindow) {
    newSrcSentCache.clear();
    newSrcSentCache.resize(src_len, vector<double>(bottom->getOutN(), 0.0));
 
-   for(Uint src_pos(0); src_pos<src_len; ++src_pos) {
+   for (Uint src_pos(0); src_pos<src_len; ++src_pos) {
       vector<double>& result = newSrcSentCache[src_pos];
-      for(Uint i(0); i<srcWindow; ++i) {
+      for (Uint i(0); i<srcWindow; ++i) {
          Uint wordIndex = src_pos+i;
          assert(wordIndex < src_pad.size());
          Uint word = src_pad[wordIndex];
