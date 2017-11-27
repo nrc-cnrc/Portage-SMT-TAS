@@ -187,12 +187,12 @@ void NNJM::Config::read(const string& arg, bool arg_is_filename) {
 bool NNJM::prime(const string& arg, bool arg_is_filename, bool full) {
    Config c(arg, arg_is_filename);
 
-   if (!c.srcTagFilename.empty() && IWordClassesMapping::isMemoryMapped(c.srcTagFilename)) {
+   if (!c.srcTagFilename.empty() && IWordClassesMapper::isMemoryMapped(c.srcTagFilename)) {
       cerr << "\tPriming: " << c.srcTagFilename << endl;  // SAM DEBUGGING
       gulpFile(c.srcTagFilename);
    }
 
-   if (!c.tgtTagFilename.empty() && IWordClassesMapping::isMemoryMapped(c.tgtTagFilename)) {
+   if (!c.tgtTagFilename.empty() && IWordClassesMapper::isMemoryMapped(c.tgtTagFilename)) {
       cerr << "\tPriming: " << c.tgtTagFilename << endl;  // SAM DEBUGGING
       gulpFile(c.tgtTagFilename);
    }
@@ -521,79 +521,3 @@ void NNJM::dumpContext(VUI src_beg, VUI src_end, VUI hist_beg, VUI hist_end, Uin
    if (nnjm_wrap && config.caching) cerr << " (misses=" << cache_misses << ")";
    cerr << endl;
 }
-
-
-
-bool NNJM::IWordClassesMapping:: isMemoryMapped(const string& fname) {
-   string magicNumber;
-   iSafeMagicStream is(fname);
-   if (!getline(is, magicNumber))
-      error(ETFatal, "Empty classfile %s", fname.c_str());
-
-   return magicNumber == MMMap::version2;
-}
-
-
-NNJM::IWordClassesMapping* NNJM::getWord2ClassesMapper(const string& fname, const string& unknown) {
-   IWordClassesMapping* mapper(NULL);
-   if (IWordClassesMapping::isMemoryMapped(fname))
-      mapper = new WordClassesMemoryMappedMapper(fname, unknown);
-   else
-      mapper = new WordClassesTextMapper(fname, unknown);
-   assert(mapper != NULL);
-
-   return mapper;
-}
-
-
-
-NNJM::WordClassesTextMapper::WordClassesTextMapper(const string& fname, const string& unknown)
-: IWordClassesMapping(unknown)
-{
-   //cerr << "Loading text classes " << fname << endl;
-   iSafeMagicStream is(fname);
-   string line;
-   const char* sep = " \t";
-   while (getline(is, line)) {
-      const Uint len = strlen(line.c_str());
-      char work[len+1];
-      strcpy(work, line.c_str());
-      assert(work[len] == '\0');
-
-      char* strtok_state;
-      const char* word = strtok_r(work, sep, &strtok_state);
-      if (word == NULL)
-         error(ETFatal, "expected 'word\ttag' entries in <%s>", fname.c_str());
-      const char* tag = strtok_r(NULL, sep, &strtok_state);
-      if (tag == NULL)
-         error(ETFatal, "expected 'word\ttag' entries in <%s>", fname.c_str());
-
-      word2class[word] = tag;
-   }
-}
-
-
-const string& NNJM::WordClassesTextMapper::operator()(const string& word) const {
-   Word2class::const_iterator it = word2class.find(word);
-   if (it == word2class.end()) return unknown;
-   return it->second;
-}
-
-
-
-NNJM::WordClassesMemoryMappedMapper::WordClassesMemoryMappedMapper(const string& fname, const string& unknown)
-: IWordClassesMapping(unknown)
-, word2class(fname)
-{
-}
-
-
-const string& NNJM::WordClassesMemoryMappedMapper::operator()(const string& word) const {
-   MMMap::const_iterator it = word2class.find(word.c_str());
-   if (it == word2class.end())
-      return unknown;
-
-   className = it.getValue();
-   return className;
-}
-
