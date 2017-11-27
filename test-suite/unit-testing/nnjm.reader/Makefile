@@ -115,7 +115,15 @@ bin_embedding_description_long:  nnjm.bin
 testSuiteBin:  bin_embedding_description_missing
 .PHONY: bin_embedding_description_missing
 bin_embedding_description_missing:  nnjm.bin
-	touch $@.bin
+	cat /dev/null > $@.bin
+	${TEST_PORTAGE_NNJM}  -native -s 2 -n 2  $@.bin  <(echo '1 1 / 1 / 4') \
+	|& grep --fixed-strings "Error: Invalid model format.  Embeddings are missing their descriptor."  --quiet
+
+
+testSuiteBin:  bin_empty_model
+.PHONY: bin_empty_model
+bin_empty_model:
+	cat /dev/null > $@.bin
 	${TEST_PORTAGE_NNJM}  -native -s 2 -n 2  $@.bin  <(echo '1 1 / 1 / 4') \
 	|& grep --fixed-strings "Error: Invalid model format.  Embeddings are missing their descriptor."  --quiet
 
@@ -221,9 +229,14 @@ txt_embedding_description_long:  nnjm.txt
 testSuiteTxt:  txt_embedding_description_missing
 .PHONY: txt_embedding_description_missing
 txt_embedding_description_missing:  nnjm.txt
-	touch $@.txt
+	cat /dev/null > $@.txt
 	${TEST_PORTAGE_NNJM}  -native -s 2 -n 2  $@.txt  <(echo '1 1 / 1 / 4') \
 	|& grep --fixed-strings "Error: Invalid model format.  Embeddings are missing their descriptor."  --quiet
 
 
-
+testSuiteTxt:  txt_empty_model
+.PHONY: txt_empty_model
+txt_empty_model:
+	cat /dev/null > $@.txt
+	${TEST_PORTAGE_NNJM}  -native -s 2 -n 2  $@.txt  <(echo '1 1 / 1 / 4') \
+	|& grep --fixed-strings "Error: Invalid model format.  Embeddings are missing their descriptor."  --quiet
