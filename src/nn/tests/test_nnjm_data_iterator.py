@@ -50,7 +50,13 @@ class TestOpenShuffleNoTempFile(unittest.TestCase):
       mocked_popen.return_value.terminate.assert_called_once_with()
       expected_calls = [ call('gzip -cqdf {} | shuf 2> /dev/null'.format(self.data_filename), shell=True, stdout=-1),
 	     call().terminate() ]
-      mocked_popen.assert_has_calls(expected_calls)
+      # From mock==1.0.1 to mock==2.0.0 the assert_has_calls has changed
+      # behavior and we can no longer use it for our purpose.
+      # See: https://github.com/testing-cabal/mock/issues/353
+      #from pudb import set_trace; set_trace()
+      #mocked_popen.assert_has_calls('gzip -cqdf {} | shuf 2> /dev/null'.format(self.data_filename), shell=True, stdout=-1)
+      for e, c in zip(expected_calls, mocked_popen.mock_calls):
+         self.assertEqual(e, c)
 
 
 
