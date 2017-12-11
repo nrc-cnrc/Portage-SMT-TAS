@@ -9,8 +9,8 @@
 # Traitement multilingue de textes / Multilingual Text Processing
 # Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2014, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2014, Her Majesty in Right of Canada
+# Copyright 2014 - 2017, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2014 - 2017, Her Majesty in Right of Canada
 
 """
 Transform a pickle file produced by train-nnjm into a human-readable gzipped
@@ -27,15 +27,20 @@ Version 1.1
 """
 
 # Taken from portage_utils.py
-from __future__ import print_function, unicode_literals, division, absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
 import __builtin__
-from subprocess import Popen, PIPE
+from subprocess import Popen
+from subprocess import PIPE
 
 import sys
 import cPickle
 from argparse import ArgumentParser
 import operator
 import json
+from functools import partial
 
 import theano
 import numpy
@@ -139,18 +144,18 @@ def loadNNJMModel(modelIn):
    (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(modelIn)
 
    # Output layer
-   out = Layer(out.params[0].get_value(), out.params[1].get_value(), "none")
+   out = Layer(out.w.get_value(), out.b.get_value(), "none")
    o_voc_n = numpy.shape(out.w)[1]
 
    # Source embeddings
-   s_embed = sbed.params[0].get_value()
+   s_embed = sbed.lookup.get_value()
    # Number of source words is size of source vector divided by size of embedding vector
    s_vec_size = numpy.shape(s_embed)[1]
    s_voc_n    = numpy.shape(s_embed)[0]
    s_words    = int(sbed.x_size / s_vec_size)
 
    # Target embeddings
-   t_embed = tbed.params[0].get_value()
+   t_embed = tbed.lookup.get_value()
    # Number of target words is size of target vector divided by size of embedding vector
    t_vec_size = numpy.shape(t_embed)[1]
    t_voc_n    = numpy.shape(t_embed)[0]
@@ -162,7 +167,7 @@ def loadNNJMModel(modelIn):
    # Layer 0 is bottom layer, connects to embeddings
    expected_in_size = (s_words+t_words)*s_vec_size
    for i,m in enumerate(hidden_layers):
-      layer = Layer(m.params[0].get_value(), m.params[1].get_value(), m.output)
+      layer = Layer(m.w.get_value(), m.b.get_value(), m.output)
       h.append(layer)
       assert numpy.shape(layer.w)[0] == expected_in_size, "hidden layer {} error".format(i)
       expected_in_size = numpy.shape(layer.w)[1]
@@ -214,6 +219,77 @@ def describeModel(stvec, ovec, out, sbed, tbed, st_x, hidden_layers):
 
 
 
+def writeModelToFile(modelOut, textMode, source_embeddings, target_embeddings, hidden_layers, o_voc_n, out):
+   with modelOut as f:
+      myPrint = partial(print, file=f)
+
+      def writeTextFile(source_embeddings, target_embeddings, hidden_layers, o_voc_n, out):
+         """ Write to a text file."""
+         def printStrVec(vec):
+             """ Transform a vector to a string """
+             myPrint(" ".join(['%.17f' % m for m in vec]))
+
+         #Source embeddings
+         if source_embeddings is not None:
+            myPrint("[source]", source_embeddings.voc_n, source_embeddings.vec_size, source_embeddings.words)
+            for vec in source_embeddings.embed:
+               printStrVec(vec)
+
+         #Target embeddings
+         if target_embeddings is not None:
+            myPrint("[target]", target_embeddings.voc_n, target_embeddings.vec_size, target_embeddings.words)
+            for vec in target_embeddings.embed:
+               printStrVec(vec)
+
+         #Hidden layers
+         for l in hidden_layers:
+            myPrint("[hidden]", l.act, numpy.shape(l.w)[1])
+            printStrVec(l.b)
+            for vec in l.w:
+               printStrVec(vec)
+
+         #Output layer
+         myPrint("[output]", "none", o_voc_n)
+         printStrVec(out.b)
+         for vec in out.w:
+            printStrVec(vec)
+
+      def writeBinFile(source_embeddings, target_embeddings, hidden_layers, o_voc_n, out):
+         """ Write in binary format."""
+         def printVectorToFile(vec):
+            """ Make sure we write double for Portage."""
+            vec.astype('float64').tofile(f, format='%d')
+
+         #Source embeddings
+         if source_embeddings is not None:
+            myPrint("[source]", source_embeddings.voc_n, source_embeddings.vec_size, source_embeddings.words)
+            printVectorToFile(source_embeddings.embed)
+
+         #Target embeddings
+         if target_embeddings is not None:
+            myPrint("[target]", target_embeddings.voc_n, target_embeddings.vec_size, target_embeddings.words)
+            printVectorToFile(target_embeddings.embed)
+
+         #Hidden layers
+         for l in hidden_layers:
+            myPrint("[hidden]", l.act, numpy.shape(l.w)[1])
+            printVectorToFile(l.b)
+            printVectorToFile(l.w)
+
+         #Output layer
+         myPrint("[output]", "none", o_voc_n)
+         printVectorToFile(out.b)
+         printVectorToFile(out.w)
+
+
+      if textMode:
+         writeTextFile(source_embeddings, target_embeddings, hidden_layers, o_voc_n, out)
+      else:
+         writeBinFile(source_embeddings, target_embeddings, hidden_layers, o_voc_n, out)
+
+
+
+
 def main():
    cmd_args = get_args()
 
@@ -226,9 +302,9 @@ def main():
 
    def loadModel(modelIn):
       s_voc_n, s_vec_size, s_words, sbed, t_voc_n, t_vec_size, t_words, tbed, hidden_layers, o_voc_n, out = loadNNJMModel(modelIn)
-      s_embed = sbed.params[0].get_value()
-      t_embed = tbed.params[0].get_value()
-      h       = [Layer(m.params[0].get_value(), m.params[1].get_value(), m.output) for m in hidden_layers]
+      s_embed = sbed.lookup.get_value()
+      t_embed = tbed.lookup.get_value()
+      h       = [Layer(m.w.get_value(), m.b.get_value(), m.output) for m in hidden_layers]
       return Embed(s_voc_n, s_vec_size, s_words, s_embed), Embed(t_voc_n, t_vec_size, t_words, t_embed), h, o_voc_n, out
 
    if cmd_args.summary is None:
@@ -236,66 +312,8 @@ def main():
    else:
       s, t, h, o_voc_n, out = loadBlocksNNJM(cmd_args.modelIn, cmd_args.summary)
 
-   with cmd_args.modelOut as f:
-      def myPrint(*args, **kwargs):
-         print(*args, file=f, **kwargs)
+   writeModelToFile(cmd_args.modelOut, cmd_args.textMode, s, t, h, o_voc_n, out)
 
-      if cmd_args.textMode:
-         """ Write to a text file."""
-         def printStrVec(vec):
-             """ Transform a vector to a string """
-             myPrint(" ".join(['%.17f' % m for m in vec]))
-
-         #Source embeddings
-         if s is not None:
-            myPrint("[source]", s.voc_n, s.vec_size, s.words)
-            for vec in s.embed:
-               printStrVec(vec)
-
-         #Target embeddings
-         if t is not None:
-            myPrint("[target]", t.voc_n, t.vec_size, t.words)
-            for vec in t.embed:
-               printStrVec(vec)
-
-         #Hidden layers
-         for l in h:
-            myPrint("[hidden]", l.act, numpy.shape(l.w)[1])
-            printStrVec(l.b)
-            for vec in l.w:
-               printStrVec(vec)
-
-         #Output layer
-         myPrint("[output]", "none", o_voc_n)
-         printStrVec(out.b)
-         for vec in out.w:
-            printStrVec(vec)
-      else:
-         """ Write in binary format."""
-         def printVectorToFile(vec):
-            """ Make sure we write double for Portage."""
-            vec.astype('float64').tofile(f, format='%d')
-
-         #Source embeddings
-         if s is not None:
-            myPrint("[source]", s.voc_n, s.vec_size, s.words)
-            printVectorToFile(s.embed)
-
-         #Target embeddings
-         if t is not None:
-            myPrint("[target]", t.voc_n, t.vec_size, t.words)
-            printVectorToFile(t.embed)
-
-         #Hidden layers
-         for l in h:
-            myPrint("[hidden]", l.act, numpy.shape(l.w)[1])
-            printVectorToFile(l.b)
-            printVectorToFile(l.w)
-
-         #Output layer
-         myPrint("[output]", "none", o_voc_n)
-         printVectorToFile(out.b)
-         printVectorToFile(out.w)
 
 
 # Taken from portage_utils.py
@@ -350,6 +368,8 @@ def open(filename, mode='r', quiet=True):
       theFile = __builtin__.open(filename, mode)
 
    return theFile
+
+
 
 
 if __name__ == '__main__':

@@ -45,6 +45,7 @@ OBJECTS = \
         voc.o \
         voc_map.o \
         vocab_filter.o \
+        wordClassMapper.o \
         word_classes.o
 
 LIBRARY = libportage_utils

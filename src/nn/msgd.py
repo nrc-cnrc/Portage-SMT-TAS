@@ -175,22 +175,22 @@ def optimize(
     if not quiet: print >> sys.stderr, '... building the model'
 
     index = T.lscalar('index')               # index to a [mini]batch
-    itern = theano.shared(numpy.asarray(0.,dtype=theano.config.floatX),name='itern')
+    itern = theano.shared(numpy.asarray(0., dtype=theano.config.floatX), name='itern')
     eta = eta_0 / ((1. + eta_0*itern)**decay) # learning rate
 
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
     if update_cap is not None:
         updates = [ (p, p - T.minimum(update_cap, T.maximum(-update_cap, eta * ep * T.grad(cost, p))))
-                    for p,ep in zip(params,eta_params) ]
+                    for p, ep in zip(params, eta_params) ]
     else:
         updates = [ (p, p - eta * ep * T.grad(cost, p))
-                    for p,ep in zip(params,eta_params) ]
+                    for p, ep in zip(params, eta_params) ]
     # Not sure automatic learning rate reductions are the way to go, especially for MNIST
     # updates.append( (itern, itern+1) )
 
     # Function to trigger learning rate reduction on a failure to improve
-    update_eta = theano.function(inputs=[],outputs=[itern],updates=[(itern,itern+1)])
+    update_eta = theano.function(inputs=[], outputs=[itern], updates=[(itern, itern+1)])
 
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
@@ -227,7 +227,7 @@ def optimize(
         valid_i = 0
         valid_check = n_train_batches - calc_valid_check(valid_i, valid_n)
         for minibatch_index in g:
-            minibatch_avg_cost,eta = train_model(minibatch_index)
+            minibatch_avg_cost, eta = train_model(minibatch_index)
             loss = loss + minibatch_avg_cost
             # iteration number
             iter = iter + 1
@@ -275,7 +275,7 @@ def optimize(
 
     end_time = time.clock()
     if not quiet:
-        print >> sys.stderr,('Optimization complete with final loss of %f' % (loss))
+        print >> sys.stderr, ('Optimization complete with final loss of %f' % (loss))
         if valid_set is not None:
             print >> sys.stderr, ('Best validation score is: %f' % (best_validation_loss))
         if test_set is not None:

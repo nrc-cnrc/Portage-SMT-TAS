@@ -13,7 +13,7 @@
 
 #include "file_utils.h"
 #include "arg_reader.h"
-#include "word_classes.h"
+#include "wordClassMapper.h"
 #include "errors.h"
 #include "printCopyright.h"
 
@@ -43,6 +43,7 @@ static string in_file;
 static string classes_file;
 static string out_file("-");
 
+
 void getArgs(int argc, char* argv[])
 {
    const char* switches[] = {"no-error", "v", "d"};
@@ -60,28 +61,18 @@ void getArgs(int argc, char* argv[])
 
 
 struct classIdConverter {
-   WordClasses word_classes;
-   vector<string> class_str; ///< strings for class numbers
    Uint map_errors;
+   IWordClassesMapper* word_classes;
 
    classIdConverter(const string& filename)
       : map_errors(0)
-   {
-      word_classes.read(filename);
-
-      class_str.reserve(word_classes.getHighestClassId()+1);
-      char buf[24];
-      for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
-         sprintf(buf, "%d", i);
-         class_str.push_back(buf);
-      }
-   }
+      , word_classes(getWord2ClassesMapper(filename, "<unk>"))
+   { }
 
    bool operator()(const char* const w, string& dest) {
-      const Uint cl(word_classes.classOf(w));
-      if (cl == WordClasses::NoClass)
+      dest = (*word_classes)(w);
+      if (dest == "<unk>")
          ++map_errors;
-      dest = (cl == WordClasses::NoClass ? "<unk>" : class_str[cl]);
       if (debug) cerr << "  class of " << w << " : " << dest << nf_endl;
       return true;
    }

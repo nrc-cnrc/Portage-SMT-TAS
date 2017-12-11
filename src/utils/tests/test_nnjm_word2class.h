@@ -11,19 +11,20 @@
 
 #include <cxxtest/TestSuite.h>
 #include "portage_defs.h"
-#include "nnjm.h"
+#include "file_utils.h"
+#include "wordClassMapper.h"
 
 using namespace Portage;
 
 namespace Portage {
 
-class TestNNJMIWord2ClassesMapping : public CxxTest::TestSuite, public NNJM
+class TestNNJMIWord2ClassesMapper : public CxxTest::TestSuite
 {
    const string unknown;
    const string wordClassFilename;
 
 public:
-   TestNNJMIWord2ClassesMapping()
+   TestNNJMIWord2ClassesMapper()
       : unknown("NOT FOUND")
       , wordClassFilename("tests/test_nnjm_word2class")
    {
@@ -43,7 +44,7 @@ public:
    }
 
    void testWord2ClassesMemoryMapMapper() {
-      IWordClassesMapping* mapper = getWord2ClassesMapper(wordClassFilename + ".MMmap", unknown);
+      IWordClassesMapper* mapper = getWord2ClassesMapper(wordClassFilename + ".MMmap", unknown);
 
       TS_ASSERT_EQUALS((*mapper)(string("DDD")), "1");
       TS_ASSERT_EQUALS((*mapper)(string("A")), "34");
@@ -55,7 +56,7 @@ public:
    }
 
    void testWord2ClasseTextMapper() {
-      IWordClassesMapping* mapper = getWord2ClassesMapper(wordClassFilename + ".txt", unknown);
+      IWordClassesMapper* mapper = getWord2ClassesMapper(wordClassFilename + ".txt", unknown);
 
       TS_ASSERT_EQUALS((*mapper)(string("DDD")), "1");
       TS_ASSERT_EQUALS((*mapper)(string("A")), "34");
@@ -66,6 +67,6 @@ public:
       TS_ASSERT_EQUALS((*mapper)(string("1")), unknown);
    }
 
-}; // TestNNJMIWord2ClassesMapping
+}; // TestNNJMIWord2ClassesMapper
 
 } // Portage

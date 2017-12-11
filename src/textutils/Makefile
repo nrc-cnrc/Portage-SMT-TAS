@@ -30,12 +30,12 @@ BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 
 PERL_LIBS = hashtags.pm
 
+include ../build/Makefile.incl
+
 test: check_perl_dependencies
 
 check_perl_dependencies:
 	perldoc -l FindBin
-
-include ../build/Makefile.incl
 
 # Custom install target for tokenize Arabic Data Perl module.
 install_perl_lib:   $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm
