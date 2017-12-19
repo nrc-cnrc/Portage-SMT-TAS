@@ -24,6 +24,10 @@ PortageII 4.0  2018-??-??
   - Incremental document adaptation
 
  Major changes:
+  - PortageII 3.0 introduced NNJMs, but only supported models that were trained
+    at the NRC. PortageII 4.0 now provides the training software so you can
+    train these models on your own data and on your own GPU-enabled PortageII
+    training server.
   - Added the incremental document adaptation module, and augmented the API to
     support it. With this module, when a translator post-edits a document, they
     can push the changes back to the PortageLive server to create a small
@@ -32,13 +36,10 @@ PortageII 4.0  2018-??-??
     previously pushed.
     Note: this is not incremental retraining of the global model, only
     incremental updates of a small document-specific model.
-  - PortageII 3.0 introduced NNJMs, but only supported models that were trained
-    at the NRC. PortageII 4.0 now provides the traning software so you can
-    train these models on your own data and on your own GPU-enabled PortageII
-    training server.
 
  Minor changes:
   - The user manual is now generated using asciidoctor.
+  - We now recommend to use Conda (miniconda2) to install Python.
 
  Minor bug fixes:
   - Release 3.0.1 did not make the SOAP API as backwards compatible as we

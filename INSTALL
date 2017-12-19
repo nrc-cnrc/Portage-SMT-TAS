@@ -1,11 +1,10 @@
                                PortageII_cur
 
 Traitement multilingue de textes / Multilingual Text Processing
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2016, Her Majesty in Right of Canada
+Copyright 2004-2018, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2018, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -15,8 +14,11 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
                           Installing PortageII_cur
 
-We don't use autoconf, so the installation is done manually, but we tried to
-keep it as simple as possible.
+We don't use autoconf, so the installation is done manually. We tried to
+keep it simple, but that's not always easy...
+
+This section describes installing PortageII itself. Please scroll down to the
+External dependencies section below for instructions on installing those.
 
 Copy the full contents of the CD to a directory of your choice, say
 $HOME/PortageII-cur
@@ -140,13 +142,19 @@ Binary distributions only:
 
 Now you're ready to run the PortageII suite of programs.
 
+1- Framework
+
 We also provide a template experimental framework in subdirectory framework.
 This is intended as a reasonable out-of-the-box baseline system.  We recommend
 you use this framework as your starting point for real experiments.
 
+2- Tutorial
+
 In framework, you will also find the document tutorial.pdf.  This document
 walks you through a complete experiment using a toy corpus.  It is intended as
 a tutorial to get you started with PortageII.
+
+3- Others
 
 For further documentation, see doc/user-manual.html.
 
@@ -155,6 +163,10 @@ pre-process TMX files to use as a training corpus.
 
 Refer to $HOME/PortageII-cur/generic-model/README for instructions on how to
 install the PortageII generic models in the generic-model directory.
+
+For instructions on how to install a PortageLive server, refer to the
+PortageLive/ subdirectory and the "PortageLive Manual" section of the
+PortageII user manual: doc/user-manual.html / Portage Live Manual.
 
 
                            Hardware requirements
@@ -216,6 +228,10 @@ Mandatory dependencies for all distributions:
    If you install Perl in a non-standard location, make sure it comes first on
    your PATH, or set PERL_HOME_OVERRIDE in SETUP.bash/tcsh.
 
+   Using yum: if your distro's package manager has Perl >= 5.14, use it.
+
+   Manual installation (avoid this if you can):
+
    This worked for us:
       # Obtain perl-5.22.0.tar.gz from www.perl.org
       tar -zxf perl-5.22.0.tar.gz
@@ -225,16 +241,11 @@ Mandatory dependencies for all distributions:
       make -j 5 test
       make -j 5 install
 
-   PortageLive also needs to see Perl-5.22, and the above won't suffice because
-   PortageLive binaries are normally installed in a different location.  Once
-   you've completed the PortageLive installation itself (see PortageLive/
-   subdirectory as well as the "PortageLive Manual" section of the PortageII
-   user manual: doc/user-manual.html / Portage Live Manual), you need to create
-   the symlinks so PortageLive sees your custom perl installation:
-      ln -s /PATH_TO/perl-5.22.0/bin/perl /opt/PortageII/bin/perl
-   If using multiple PortageLive servers, you need to perform the full
-   Perl-5.22 installation procedure on each of them, unlike other third party
-   software, which automatically get installed along with PortageLive itself.
+   Tell PortageLive where to find Perl by creating these this symlink:
+      ln -s /PATH_TO_PERL/bin/perl /opt/PortageII/bin/perl
+   If using multiple PortageLive servers, you need to perform the full Perl
+   installation procedure on each of them, unlike other third party software,
+   which automatically get installed along with PortageLive itself.
 
  - Perl packages: the following Perl packages are required to run PortageII:
     - XML::XPath
@@ -284,34 +295,52 @@ Mandatory dependencies for all distributions:
    (using ln -s) in $PORTAGE/bin to the python executable and in $PORTAGE/lib
    to libpython2.7.so*.  (Creating symlinks is the best solution for your
    PortageLive server(s), where you must also make sure the apache user has
-   sufficient permissions to use python 2.7.)  If you compile Python 2.7 by
-   hand, make sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package
-   installedfirst, or download zlib from http://www.zlib.net and install it by
-   hand.  Also, PortageII requires Python 2.7 to be compiled with dynamic
-   (shared) library support (--enabled-shared).  You can determine if your
-   Python 2.7 has been compiled appropriately by looking for libpython2.7.so*
-   in the output of the following command:
+   sufficient permissions to use python 2.7.)
+
+   Recommended: use Conda
+
+   The easiest way to install Python is to use Conda.
+   Download and install Miniconda2 (https://conda.io/miniconda.html), the
+   smallest Conda package for Python 2.7:
+      wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
+      sh Miniconda2-latest-Linux-x86_64.sh
+   The second command will ask you to accept a license and chose an
+   installation location. $PORTAGE/third-party/miniconda2 is a good choice. On
+   a PortageLive server, /opt/PortageII/miniconda2 is a good choice.
+
+   Tell PortageII where to find Python by setting PYTHON_HOME_OVERRIDE in
+   SETUP.bash/tcsh:
+      PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/miniconda2
+
+   Tell PortageLive where to find Python 2.7 by creating these two symlinks:
+      ln -s /PATH_TO/miniconda2/bin/python /opt/PortageII/bin/python
+      ln -s /PATH_TO/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
+
+   Last resort: manual compilation
+
+   If you compile Python 2.7 by hand, make sure you have the zlib-devel (or
+   zlib-dev, or zlib1g-dev) package installed first, or download zlib from
+   http://www.zlib.net and install it by hand.  Also, PortageII requires Python
+   2.7 to be compiled with dynamic (shared) library support (--enabled-shared).
+   You can determine if your Python 2.7 has been compiled appropriately by
+   looking for libpython2.7.so* in the output of the following command:
       ldd $(which python)
 
    This procedure worked for us:
-      # Obtain Python-2.7.10.tgz from the web.
-      tar -xzf Python-2.7.10.tgz
-      cd Python-2.7.10
+      # Obtain Python-2.7.14.tgz from the web.
+      tar -xzf Python-2.7.14.tgz
+      cd Python-2.7.14
       ./configure --enable-shared --prefix=$PORTAGE/third-party/python-2.7
       make -j 5
       make install -j 5
 
-   PortageLive also needs to see Python 2.7, and the above won't suffice
-   because PortageLive binaries are normally installed in a different location.
-   Once you've completed the PortageLive installation itself (see PortageLive/
-   subdirectory as well as the "PortageLive Manual" section of the PortageII
-   user manual: doc/user-manual.html / Portage Live Manual), you need to create
-   the symlinks so PortageLive sees your custom python installation:
+   Tell PortageLive where to find Python 2.7 by creating these two symlinks:
       ln -s /PATH_TO/python-2.7/bin/python /opt/PortageII/bin/python
       ln -s /PATH_TO/python-2.7/lib/libpython2.7.so* /opt/PortageII/lib/
-   If using multiple PortageLive servers, you need to perform the full Python
-   2.7 installation procedure on each of them, unlike other third party
-   software, which automatically get installed along with PortageLive itself.
+
+   (For more information on setting up PortageLive, see the PortageLive/
+   subdirectory as well as the "PortageLive Manual" section of the PortageII
+   user manual: doc/user-manual.html / Portage Live Manual.)
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
@@ -496,6 +525,10 @@ Optional dependencies for all distributions:
    by setting the USE_ICTCLAS variable to 1 in framework/Makefile.params
    (again, search for ICTCLAS in that file).
 
+ - Theano - training NNJMs on your own data using your own GPU-enabled machine
+   requires CUDA, cuDNN and Theano. See the Theano Installation page in the
+   user manual: doc/user-manual.html / Theano Installation.
+
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - PortageII compilation has only been tested with g++, and makes use
@@ -638,6 +671,10 @@ Optional dependencies for source code distributions:
    want.  That's true for using PortageII, but some of the unit tests depend on
    srilm and others depend on mitlm.  You can safely ignore those unit test
    failures if you don't have both toolkits installed.
+
+ - asciidoctor - generating the user manual requires asciidoctor.
+   http://asciidoctor.org/docs/install-toolchain/
+
 
 Optional PortageLive dependencies
 
