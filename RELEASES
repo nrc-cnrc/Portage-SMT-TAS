@@ -1,11 +1,10 @@
                               PortageII_cur
 
 Traitement multilingue de textes / Multilingual Text Processing
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2016, Her Majesty in Right of Canada
+Copyright 2004-2018, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2018, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -18,6 +17,32 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 
 PortageII is the second generation of SMT software released by the NRC.
+
+PortageII 4.0  2018-??-??
+ This release incorporates two significant modules to PortageII:
+  - Training of Neural Network Joint Models (NNJMs) on your own data
+  - Incremental document adaptation
+
+ Major changes:
+  - Added the incremental document adaptation module, and augmented the API to
+    support it. With this module, when a translator post-edits a document, they
+    can push the changes back to the PortageLive server to create a small
+    document-specific model. Subsequent translation request for the same
+    document will benefit from the post-edited sentence pairs that were
+    previously pushed.
+    Note: this is not incremental retraining of the global model, only
+    incremental updates of a small document-specific model.
+  - PortageII 3.0 introduced NNJMs, but only supported models that were trained
+    at the NRC. PortageII 4.0 now provides the traning software so you can
+    train these models on your own data and on your own GPU-enabled PortageII
+    training server.
+
+ Minor changes:
+  - The user manual is now generated using asciidoctor.
+
+ Minor bug fixes:
+  - Release 3.0.1 did not make the SOAP API as backwards compatible as we
+    intended: the 3.0.1 API worked with 2.2 and 3.0, but not 2.1 or earlier.
 
 PortageII 3.0.1 2016-10-07
  This maintenance release makes the SOAP API backwards compatible, so that
