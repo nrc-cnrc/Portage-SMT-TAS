@@ -2,10 +2,9 @@ include::incl/header.adoc[]
 
 == PortageLive Manual
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageIIMagicStreams.html[Magic Streams] Next:
-link:PortageLiveCustomizationPlugins.html[PortageLive
-Customization Plugins]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:TheanoInstallation.html[Theano Installation]
+Next: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 
 '''''
 
@@ -431,10 +430,9 @@ call to `translate.pl` or `soap-translate.sh`.
 
 '''''
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageIIMagicStreams.html[Magic Streams] Next:
-link:PortageLiveCustomizationPlugins.html[PortageLive
-Customization Plugins]  
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:TheanoInstallation.html[Theano Installation]
+Next: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 
 '''''
 

@@ -3,9 +3,9 @@ include::incl/header.adoc[]
 PortageII Magic Streams
 -----------------------
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageIIPerformanceConsiderations.html[Performance]
-Next: link:PortageLiveManual.html[PortageLive]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageIIPerformanceConsiderations.html[Performance]
+Next: link:TheanoInstallation.html[Theano Installation]
 
 '''''
 
@@ -66,9 +66,9 @@ yield mixed output on cout (stdout).
 
 '''''
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageIIPerformanceConsiderations.html[Performance]
-Next: link:PortageLiveManual.html[PortageLive]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageIIPerformanceConsiderations.html[Performance]
+Next: link:TheanoInstallation.html[Theano Installation]
 
 '''''
 

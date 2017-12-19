@@ -3,7 +3,17 @@ include::incl/header.adoc[]
 How to Install Theano with libgpuarray/pygpu as the Backend
 -----------------------------------------------------------
 
-Installing CUDA driver, CUDA libraries and CUDNN
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageIIMagicStreams.html[Magic Streams]
+Next: link:PortageLiveManual.html[PortageLive]
+
+'''''
+
+The software to train PortageII's Neural Network Joint Models (NNJMs) requires
+the use of the Theano deep learning library, a GPU, the CUDA driver, the CUDA
+libraries, and cuDNN.
+
+Installing CUDA driver, CUDA libraries and cuDNN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the driver for your NVIDIA card here
@@ -240,8 +250,12 @@ You should see no error and a message stating that we are using Theano 0.9.
 ----
 
 
+'''''
 
-:toc: left
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageIIMagicStreams.html[Magic Streams]
+Next: link:PortageLiveManual.html[PortageLive]
 
+'''''
 
-include::incl/header.adoc[]
+include::incl/footer.adoc[]

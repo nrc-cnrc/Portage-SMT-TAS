@@ -5,7 +5,7 @@ Portage Machine Translation
 
 Software for Statistical Machine Translation.
 
-PortageII 3.0
+PortageII 4.0
 ~~~~~~~~~~~~~
 
 The PortageII series includes several leaps forward in NRC's SMT
@@ -63,6 +63,7 @@ Decoder Search Algorithms And Data Structures]
 * link:ConfidenceEstimation.html[Confidence Estimation]
 * link:PortageIIPerformanceConsiderations.html[Performance Considerations]
 * link:PortageIIMagicStreams.html[Magic Streams]
+* link:TheanoInstallation.html[Theano Installation]
 * link:PortageLiveManual.html[PortageLive Manual]
 * link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 * link:PortageIIProgrammerReference.html[Programmer Reference]
