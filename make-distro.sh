@@ -394,10 +394,24 @@ get_test_systems() {
    r popd
 }
 
-get_user_manual() {
+generate_user_manual() {
+   # The user manual is now generated from src/user_manual using asciidoctor
+   print_header generate_user_manual
+   r pushd ./$OUTPUT_DIR
+      r pushd PORTAGEshared
+         r pushd src/user_manual
+            r make docs
+         r popd
+         r rm -rf doc/user-manual
+         r cp -ar src/user_manual/html doc/user-manual
+      r popd
+   r popd
+}
+
+get_user_manual_lizzy() {
    # Note: the user manual snapshot is created by loading this link:
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
-   print_header get_user_manual
+   print_header get_user_manual_lizzy
    r pushd ./$OUTPUT_DIR
       r rsync -arz $LIZZY_ROOT/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
@@ -570,10 +584,11 @@ identify_host
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.
 if
-   #true ||
+   true ||
    false; then
    #do_checkout
-   get_user_manual
+   #get_user_manual_lizzy
+   generate_user_manual
    exit
 fi
 
@@ -581,7 +596,7 @@ do_checkout
 
 if [[ ! $COMPILE_ONLY ]]; then
    get_test_systems
-   get_user_manual
+   get_user_manual_lizzy
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
       # We launch doxy in the background because it can't be parallelized and
