@@ -400,7 +400,7 @@ generate_user_manual() {
    r pushd ./$OUTPUT_DIR
       r pushd PORTAGEshared
          r pushd src/user_manual
-            r make docs
+            r make docs '>&' ../../../asciidoctor-user-manual.log
          r popd
          r rm -rf doc/user-manual
          r cp -ar src/user_manual/html doc/user-manual
@@ -584,9 +584,9 @@ identify_host
 # Block for manually calling just parts of this script - uncomment "true ||" to
 # activate.
 if
-   true ||
+   #true ||
    false; then
-   #do_checkout
+   do_checkout
    #get_user_manual_lizzy
    generate_user_manual
    exit
@@ -596,7 +596,8 @@ do_checkout
 
 if [[ ! $COMPILE_ONLY ]]; then
    get_test_systems
-   get_user_manual_lizzy
+   #get_user_manual_lizzy
+   generate_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
       # We launch doxy in the background because it can't be parallelized and
