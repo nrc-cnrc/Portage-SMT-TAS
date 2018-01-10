@@ -21,7 +21,7 @@ VPATH := ${NNJM_DIR} ${INPUT}
 
 -include Makefile.params
 
-TEMP_FILES = *.mmcls
+TEMP_FILES = *.mmcls dev1_en.al
 include ../Makefile.incl
 
 
@@ -37,6 +37,8 @@ clean:
 .PHONY:  testSuite
 testSuite:
 
+dev1_en.al: dev1_en.raw
+	utokenize.pl -lang en -noss < $< > $@
 
 .PHONY:  text_testcase
 testSuite:  text_testcase
