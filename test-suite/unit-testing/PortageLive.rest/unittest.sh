@@ -15,6 +15,26 @@ readonly server_ip=127.0.0.1
 readonly context=unittest.rev.en-fr
 readonly document_model_id=PORTAGE_UNITTEST_4da35
 
+function check_dependencies() {
+   if [[ ! $PHPUNIT_HOME ]]; then
+      echo "Error: cannot find phpunit. Please download the right version of phpunit for your version of php at https://phpunit.de/ and set PHPUNIT_HOME to the directory where you saved it." >&2
+      exit 1
+   fi
+   PHPUNIT=`\ls -1 $PHPUNIT_HOME/phpunit*.phar 2> /dev/null | head -1`
+   if [[ ! -s $PHPUNIT ]]; then
+      echo "ERROR: cannot find phpunit*.phar in PHPUNIT_HOME=$PHPUNIT_HOME" >&2
+      exit 1
+   fi
+
+   if ! which-test.sh apirunner; then
+      echo "ERROR: cannot find Rester's apirunner. Please install it from source:"
+      echo "   git clone https://github.com/chitamoor/Rester"
+      echo "   cd Rester"
+      echo "   pip install -e ."
+      exit 1
+   fi >&2
+}
+
 function verbose() {
    echo $'\n'============= $* =============
 }
@@ -46,7 +66,7 @@ function phpunit_testcase() {
    verbose ${FUNCNAME[0]}
    php \
       --define 'include_path=../../../../PortageLive/www:../../../../PortageLive/www/rest' \
-      $PHPUNIT_HOME/phpunit-4.8.phar  \
+      $PHPUNIT \
       --colors=always  \
       tests/incrAddSentence.php
 }
@@ -329,6 +349,7 @@ export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'
 
 rm -fr plive
 RC=0
+check_dependencies || exit 1
 lint_php || exit 1
 start_php_server || exit 1
 #handy_debugger; exit

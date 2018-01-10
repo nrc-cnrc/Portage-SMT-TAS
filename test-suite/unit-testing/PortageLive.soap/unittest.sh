@@ -13,6 +13,14 @@
 
 readonly server_ip=127.0.0.1
 
+function check_dependencies() {
+   if ! python -c 'import suds'; then
+      echo 'ERROR: cannot find Python module "suds". Please install it using pip:'
+      echo "   pip install suds"
+      exit 1
+   fi
+}
+
 function verbose() {
    echo $'\n'============= $* =============
 }
@@ -88,6 +96,7 @@ export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'
 
 [[ $DEPLOY ]] && deploy
 
+check_dependencies
 prepare_scenarios
 start_php_server
 python_unittests
