@@ -12,5 +12,11 @@
 
 
 make clean
-make
-exit
+
+if which-test.sh jq; then
+   make
+   exit
+else
+   echo 'ERROR: jq required to run this test suite: https://stedolan.github.io/jq/'
+   exit 1
+fi
