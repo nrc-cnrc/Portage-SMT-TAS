@@ -17,7 +17,7 @@ include ../build/Makefile.incl
 
 IGNORES=html/*.html
 
-docs: $(HTMLLIST)
+docs: $(HTMLLIST) html/index.html
 
 html/PortageLiveManual.html: asciidoc/incl/PortageLiveRESTAPI.adoc
 html/PortageLiveREST.html: asciidoc/incl/PortageLiveRESTAPI.adoc
@@ -27,3 +27,5 @@ html/%.html: asciidoc/%.adoc asciidoc/incl/header.adoc asciidoc/incl/footer.adoc
 #	asciidoc -a data-uri -a icons -a toc -a toclevels=3 -a max-width=55em -o $@ $<
 #	asciidoc --doctype=book -a icons -a toc -a toc.max.depth=4 -a generate.section.toc.level=4 -a max-width=55em -o $@ $<
 
+html/index.html:
+	echo '<META HTTP-EQUIV="refresh" CONTENT="0; URL=PortageMachineTranslation.html">' > $@
