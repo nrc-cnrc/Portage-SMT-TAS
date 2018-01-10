@@ -6,6 +6,7 @@ loaded 54268 SparseModel features from data/../ref1/sparsemodel.feats.gz
 loaded 54268 SparseModel weights from data/r.._ref1_sparsemodel.wts.gz -- non-0 weights found
 created 54268 SparseModel events
 compiled 47374 partial features
+
 loading phrase table from data/../data/cpt.all.fr2en.gz: 
 92440 lines read, 4028 entries kept.
 
