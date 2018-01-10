@@ -444,6 +444,8 @@ Mandatory dependencies for all distributions:
    XML::Twig.  xmllint is fairly standard and should be available via the
    package manager in most distros.
 
+ - php >= 5.4 - required for PortageLive and its unit tests.
+
 Optional dependencies for all distributions:
 
  - ICU - PortageII relies on includes a few tools that use ICU to correctly do
@@ -643,7 +645,9 @@ Optional dependencies for source code distributions:
    .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
    "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
 
- - jq - This command line JSON processor is used to run some unit tests.
+ - jq, Rester apirunner, phpunit, suds Python module - used to run various unit
+   tests. Installation instructions or URLs are provided in the error messages
+   when you run tests with missing dependencies.
 
  - srilm & mitlm - The instructions above say you can chose the LM toolkit you
    want.  That's true for using PortageII, but some of the unit tests depend on

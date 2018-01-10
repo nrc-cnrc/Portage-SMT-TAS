@@ -33,6 +33,7 @@ PORTAGE_GENERIC_MODEL=$PORTAGE/generic-model
 #PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
 #JAVA_HOME_OVERRIDE=$PORTAGE/third-party/jdk-1.7
 #MITLM_HOME_OVERRIDE=$PORTAGE/third-party/mitlm
+#PHPUNIT_HOME_OVERRIDE=$PORTAGE/third-party/phpunit
 
 # Extra software configuration
 # Add scripts called <prog-name>.bash in third-party/conf.d/, following the
