@@ -1,6 +1,12 @@
 ############ PYTHON ############
 # Set PYTHON_HOME_OVERRIDE to override where Python is installed
-PYTHON_HOME=${PYTHON_HOME_OVERRIDE:-$PORTAGE/third-party/python-2.7}
+if [[ $PYTHON_HOME_OVERRIDE ]]; then
+   PYTHON_HOME=$PYTHON_HOME_OVERRIDE
+elif [[ -d $PORTAGE/third-party/miniconda2 ]]; then
+   PYTHON_HOME=$PORTAGE/third-party/miniconda2
+else
+   PYTHON_HOME=$PORTAGE/third-party/python2.7
+fi
 
 if [[ -d $PYTHON_HOME ]]; then
    export PYTHON=${PYTHON_HOME}/bin/python

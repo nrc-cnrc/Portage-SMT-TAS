@@ -1,6 +1,10 @@
 ############ PYTHON ############
 if (! $?PYTHON_HOME_OVERRIDE) then
-   set PYTHON_HOME=$PORTAGE/third-party/python-2.7
+   if ( -d $PORTAGE/third-party/miniconda2 ) then
+      set PYTHON_HOME=$PORTAGE/third-party/miniconda2
+   else
+      set PYTHON_HOME=$PORTAGE/third-party/python-2.7
+   endif
 else
    set PYTHON_HOME=$PYTHON_HOME_OVERRIDE
 endif
