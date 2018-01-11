@@ -227,7 +227,8 @@ for c in $features; do
                file=${toks[1]}
                nclust=${toks[2]}
                niters=${toks[3]}
-               echo "mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt" >> $cmdfile_tmp
+               echo -n ".mmcls" >> $mfile
+               echo "mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt && wordClasses2MMmap $outfile $outfile.mmcls" >> $cmdfile_tmp
                ;;
             auto:df1*)
                argCheck ${toks[0]} 1 ${#toks[*]}
