@@ -157,12 +157,12 @@ check_make381:
 test: check_perl_dependencies
 
 # Term::ANSIColor 3.00 is needed for the bright_ colours; otherwise Term::ANSIColor 2.02 is needed for colorvalid.
-# Note: we make the Term::ANSIColor 3.00 test issue only a warning because this
-# is only for jobtree and therefore only for clusters.
+# Note: we make the Term::ANSIColor 3.00, Data::TreeDumper and Tree::Simple tests issue only
+# a warning because these are only for jobtree and therefore only for clusters.
 .PHONY: check_perl_dependencies
 check_perl_dependencies:
-	perldoc -l Data::TreeDumper
-	perldoc -l Tree::Simple
+	-perldoc -l Data::TreeDumper
+	-perldoc -l Tree::Simple
 	perldoc -l Time::Piece
 	-perl -e 'use Term::ANSIColor 3.00;'
 
