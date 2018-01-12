@@ -50,6 +50,8 @@ public:
 
    static bool prime(const string& arg, bool arg_is_filename, bool full = false);
 
+   static Uint64 totalMemmapSize(const string& arg);
+
 
 protected:
    // For cxxtest

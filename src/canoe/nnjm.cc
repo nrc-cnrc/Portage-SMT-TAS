@@ -11,6 +11,7 @@
 
 #include <boost/unordered_map.hpp>
 #include "str_utils.h"
+#include "file_utils.h"
 #include "nnjm.h"
 #include "alignment_annotation.h"
 
@@ -200,6 +201,19 @@ bool NNJM::prime(const string& arg, bool arg_is_filename, bool full) {
    return true;
 }
 
+Uint64 NNJM::totalMemmapSize(const string& arg) {
+   Config c(arg, true);
+
+   Uint64 total_size = 0;
+   if (!c.srcTagFilename.empty() && IWordClassesMapper::isMemoryMapped(c.srcTagFilename)) {
+      total_size += fileSize(c.srcTagFilename);
+   }
+   if (!c.tgtTagFilename.empty() && IWordClassesMapper::isMemoryMapped(c.tgtTagFilename)) {
+      total_size += fileSize(c.tgtTagFilename);
+   }
+
+   return total_size;
+}
 
 NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
    config(arg, arg_is_filename),

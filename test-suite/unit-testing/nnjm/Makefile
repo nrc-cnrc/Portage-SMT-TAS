@@ -12,13 +12,15 @@
 # Copyright 2014, Her Majesty in Right of Canada
 
 CANOE := canoe
+SHELL := /bin/bash
 
 TEMP_DIRS=out out2
-TEMP_FILES= *~
+TEMP_FILES= *~ canoe.ini.mm
 include ../Makefile.incl
 
 all: cmp_out/log cmp_out/log.noal
 all: cmp_out2/log cmp_out2/log.noal
+all: memmap
 
 out:
 	mkdir -p out
@@ -43,3 +45,14 @@ out2/log:
 
 out2/log.noal:
 	${CANOE} -f models/canoe.noal.ini -nnjm-file models/nnjm2 < corpus/train_fr.tok >& $@
+
+ifdef PORTAGE_GENERIC_MODEL
+canoe.ini.mm: models/canoe.ini
+	configtool args:"-nnjm-file $$PORTAGE_GENERIC_MODEL/generic-2.0/nnjm/nnjm.generic-2.0.fr2en.mm/model" $< $@
+
+memmap: canoe.ini.mm
+	M=`configtool memmap $<`; echo $$M; if [[ $$M < 10 ]]; then echo "configtool memmap is not including NNJM: got $$M, expected 200+"; exit 1; fi
+else
+memmap:
+	@echo "Warning: Skipping NNJM memmap test since PORTAGE_GENERIC_MODEL is not defined"
+endif

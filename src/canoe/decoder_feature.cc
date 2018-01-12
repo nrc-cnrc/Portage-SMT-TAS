@@ -3,9 +3,6 @@
  * @file decoder_feature.cc  Abstract parent class for all features used
  *                           in the decoder, except LMs and TMs.
  *
- * $Id$
- *
- * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -82,8 +79,10 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
 
 Uint64 DecoderFeature::totalMemmapSize(const string& group, const string& args)
 {
-   if ( group == "BiLMModel" )
+   if (group == "BiLMModel")
       return BiLMModel::totalMemmapSize(args);
+   else if (group == "NNJM")
+      return NNJM::totalMemmapSize(args);
    else
       return 0;
 }
