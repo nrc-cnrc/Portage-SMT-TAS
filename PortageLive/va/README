@@ -1,22 +1,62 @@
+
 Traitement multilingue de textes / Multilingual Text Processing
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2016, Her Majesty in Right of Canada
+Copyright 2004-2018, Sa Majesté la Reine du Chef du Canada
+Copyright 2004-2018, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                                PortageLive
-                        Virtual Application creation
+                       PortageLive Server Deployment
 
-This directory contains the virtual appliance creation instructions, with
-samples for the three scripts you can manually cut-and-paste into the VMWare
-Studio interface, if you chose to use VMWare Studio.
+Before you start, please make sure you have read the "PortageLive Manual"
+section of the PortageII User Manual under doc/user-manual.html.
 
-Please read the "PortageLive Manual" section of the PortageII User Manual
-first!
+Option 1: deploy to an existing physical or virtual server.
 
-The document PLiveVA.pdf explains what each file found in this directly does.
+OS requirement: We typically use RedHat or CentOS, and have tested PortageLive
+on versions 6 and 7. RH5 is no longer supported.
+
+Application requirements - install through yum:
+ - apache
+ - mod_ssl
+ - php 5.4 or more recent
+ - php-soap
+
+Other software requirements:
+ - Install the latest Python 2.7.x using Miniconda2 as described in INSTALL at
+   the root of this CD.
+ - Install Perl (5.10 or more recent) and its packages as described in INSTALL.
+
+PortageII itself and its files:
+ - Follow instructions in the PortageLive Manual and sibling directories
+   ../bin for PortageII software; ../www for PortageII web layout; and
+   ../models and the framework for trained PortageII models.
+
+Post installation
+ - Read through application-post-install-script and manually perform steps
+   3.1, 3.4, 3.5, 3.7, 3.8
+ - Read through first-boot-script and manually perform steps 4.1, 4.2, 4.3,
+   4.4, makeing sure to "export LC_ALL=C" in your shell before doing so:
+   although PortageII is generally compatible with any locale, this setup
+   script is not!
+ - The script subsequent-boot-script is required each time the IP address
+   changes. If your server get a dynamic IP address assigned using DHCP, we
+   recommend making sure this script is run each time the machine boots up.
+   See "Static or dynamic IP?" in ../www/README for more details.
+
+
+Option 2: Virtual Appliance creation
+
+When we first created PortageLive, the intention was to deploy it as a virtual
+appliance that could be easily replicated in a cloud setting. The PLiveVA.pdf
+document explains how to create such a virtual appliance, but it has not been
+update for several years. We keep it here for reference on the VA creation
+methodology, but if you create a VA, you should adapt it with the current
+instructions provided above in Option 1.
+
+The scripts and files contained in this directory are samples you can manually
+cut-and-paste into the VMWare Studio interface, if you chose to use VMWare
+Studio.

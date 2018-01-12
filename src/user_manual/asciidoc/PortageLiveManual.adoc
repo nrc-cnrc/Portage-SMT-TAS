@@ -312,15 +312,16 @@ general-purpose machine, but rather an appliance with a specific
 purpose.
 
 If you choose the Virtual Appliance option, instructions showing how to
-create it using VMWare Studio are found in `PLiveVA.pdf` in
+create it using VMWare Studio are found in `README` and `PLiveVA.pdf` in
 `PortageLive/va`. The RPMs we created previously are installed on the
 virtual machine as part of its creation process.
 
 ===== Installing PortageLive on a physical machine
 
-If you choose the physical machine option, you can manually copy the
+If you choose the physical machine option, start with OS and software
+requirements in `README` under `PortageLive/va`, then you can manually copy the
 runtime file layout using `rsync`, `scp` or similar tools. `rsync` is
-probably the easiest option, since it can reproduce the structure in a
+the easiest option, since it can reproduce the structure in a
 single command even if it already exists partially on the destination
 host:
 

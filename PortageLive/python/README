@@ -1,3 +1,15 @@
+=============================================================================
+IMPORTANT CLIENT INFORMATION:
+
+If you are installing PortageII at your non-NRC site, please ignore this
+directory. Instead, install the latest Python 2.7.x using Miniconda2 to
+/opt/PortageII/miniconda2, as described in the INSTALL file at the root of
+this CD and mentioned in ../va/README.
+=============================================================================
+
+
+
+
 This file is for NRC-internal purposes and documents our procedure that we've
 used to compile python in our environment but could be of some help to others
 as well.  Note that PortageII accepts any version of Python-2.7.X.
