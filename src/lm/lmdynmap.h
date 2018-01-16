@@ -216,6 +216,10 @@ public:
                           Uint limit_order,
                           ostream *const os_filtered,
                           bool quiet);
+   private:
+      string embedded_lm;
+      string map_type;
+      string classes_file;
    };
 
    static const char* header;     ///< DynMap;

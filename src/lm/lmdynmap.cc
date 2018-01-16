@@ -45,36 +45,45 @@ Examples:\n\
 ";
 
 LMDynMap::Creator::Creator(
-      const string& lm_physical_filename, Uint naming_limit_order)
-   : PLM::Creator(lm_physical_filename.substr(strlen(header)),
+      const string& _lm_physical_filename, Uint naming_limit_order)
+   : PLM::Creator(_lm_physical_filename.substr(strlen(header)),
                   naming_limit_order)
 {
-   assert(lm_physical_filename.substr(0,strlen(header)) == header);
-}
+   assert(_lm_physical_filename.substr(0,strlen(header)) == header);
 
-bool LMDynMap::Creator::checkFileExists(vector<string>* list)
-{
    // Removing the map type
    const string::size_type p = lm_physical_filename.find(separator);
    if (p == string::npos || p+1 == lm_physical_filename.size())
       error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
                help_the_poor_user);
-   const string embedded_lm = lm_physical_filename.substr(p+1);
-   const string map_type = lm_physical_filename.substr(0, p);
+   embedded_lm = lm_physical_filename.substr(p+1);
+   map_type = lm_physical_filename.substr(0, p);
 
-   bool ok = true;
-
+   // Parsing the classes file for Coarse LMs
    if (isPrefix("wordClasses", map_type)) {      // word classes mapping
       const Uint keylen = strlen("wordClasses");
-      string classesFile;
-      if (map_type.size() > keylen + 1) {
-         classesFile = map_type.substr(keylen+1);
-         if (list) list->push_back(classesFile);
-         if (!check_if_exists(classesFile)) {
-            ok = false;
-            error(ETWarn, "Can't access class file %s in DynMap LM %s",
-                  classesFile.c_str(), lm_physical_filename.c_str());
-         }
+      classes_file = "";
+      if (map_type.size() > keylen + 1)
+         classes_file = map_type.substr(keylen+1);
+      else
+         error(ETFatal, "Syntax error in LMDynMap map type spec: " + map_type);
+   }
+
+   //cerr << "embedded_lm: " << embedded_lm << endl;
+   //cerr << "classes_file: " << classes_file << endl;
+   //cerr << "map_type: " << classes_file << endl;
+}
+
+bool LMDynMap::Creator::checkFileExists(vector<string>* list)
+{
+   bool ok = true;
+
+   if (!classes_file.empty()) {
+      if (list) list->push_back(classes_file);
+      if (!check_if_exists(classes_file)) {
+         ok = false;
+         error(ETWarn, "Can't access class file %s in DynMap LM %s",
+               classes_file.c_str(), lm_physical_filename.c_str());
       }
    }
 
@@ -83,36 +92,23 @@ bool LMDynMap::Creator::checkFileExists(vector<string>* list)
 
 Uint64 LMDynMap::Creator::totalMemmapSize()
 {
-   const string::size_type p = lm_physical_filename.find(separator);
-   if (p == string::npos || p+1 == lm_physical_filename.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
-            help_the_poor_user);
-   const string embedded_lm = lm_physical_filename.substr(p+1);
+   // Memory mapped class files.
+   Uint64 result = 0;
+   if (!classes_file.empty() && IWordClassesMapping::isMemoryMapped(classes_file))
+      result += fileSize(classes_file);
 
-   // TODO: include memory mapped class files.
-   return PLM::totalMemmapSize(embedded_lm);
+   //cerr << "LMDynMap::Creator::totalMemmapSize() on class files: " << result << endl;
+
+   // + Embedded LM size
+   return result + PLM::totalMemmapSize(embedded_lm);
 }
 
 bool LMDynMap::Creator::prime(bool full)
 {
-   const string::size_type p = lm_physical_filename.find(separator);
-   if (p == string::npos || p+1 == lm_physical_filename.size())
-      error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s",
-            help_the_poor_user);
-   const string embedded_lm = lm_physical_filename.substr(p+1);
-
-   const string map_type = lm_physical_filename.substr(0, p);
-   if (isPrefix("wordClasses", map_type)) {      // word classes mapping
-      const Uint keylen = strlen("wordClasses");
-      string classesFile;
-      if (map_type.size() > keylen + 1)
-         classesFile = map_type.substr(keylen+1);
-      else
-         error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
-
-      if (IWordClassesMapping::isMemoryMapped(classesFile)) {
-         cerr << "\tPriming: " << classesFile << endl;  // SAM DEBUGGING
-         gulpFile(classesFile);
+   if (!classes_file.empty() && IWordClassesMapping::isMemoryMapped(classes_file)) {
+      if (IWordClassesMapping::isMemoryMapped(classes_file)) {
+         cerr << "\tPriming: " << classes_file << endl;  // SAM DEBUGGING
+         gulpFile(classes_file);
       }
    }
 
