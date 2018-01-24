@@ -2,8 +2,6 @@
  * @author J Howard Johnson
  * @file nbesttranslation.h  This file produces the N-Best translations directly (using BGL algorithms).
  *
- * $Id$
- * 
  * Canoe Decoder
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -16,7 +14,7 @@
 #ifndef NBESTTRANSLATION_H
 #define NBESTTRANSLATION_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <map>
 #include <iostream>

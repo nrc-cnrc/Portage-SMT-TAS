@@ -14,7 +14,7 @@
 #ifndef IBM_FEATURE_H
 #define IBM_FEATURE_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <ibm.h>
 #include <str_utils.h>
 #include "decoder_feature.h"

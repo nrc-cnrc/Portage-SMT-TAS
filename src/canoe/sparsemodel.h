@@ -815,6 +815,9 @@ public:
    bool isRecombinable(const PartialTranslation &pt1,
                        const PartialTranslation &pt2);
    Uint lmLikeContextNeeded() { return 1; }
+
+   /// Priming memory-mapped components
+   static void prime(const string& file, const string& relative_to);
 };
 
 /*==============================================================================

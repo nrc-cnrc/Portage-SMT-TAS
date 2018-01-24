@@ -1450,6 +1450,11 @@ bool CanoeConfig::prime(bool full)
       BiLMModel::prime(*it, true);
    }
 
+   FeatureGroup *sparse = featureGroup("sparse");
+   for (IT it=sparse->args.begin(); it != sparse->args.end(); ++it){
+      SparseModel::prime(*it, DirName(configFile));
+   }
+
    return true;
 }
 

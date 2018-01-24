@@ -1940,6 +1940,25 @@ double SparseModel::score(const PartialTranslation& hyp) {
    return r;
 }
 
+void SparseModel::prime(const string& file, const string& relative_to)
+{
+   const string partial_file = stripSuffixFlags(file);
+   string full_file;
+   if (relative_to.empty() || partial_file[0] == '/') {
+      full_file = partial_file;
+   } else {
+      full_file = relative_to + "/" + partial_file;
+   }
+   string path = DirName(full_file);
+
+   if (is_directory(path)) {
+      string cmd = "cat '" + path + "'/*.mmcls > /dev/null";
+      cerr << "\tPriming: " << path << "/*.mmcls" << endl;  // SAM DEBUGGING
+      //cerr << "Cmd = " << cmd << endl;
+      ::system(cmd.c_str());
+   }
+}
+
 // The returned value is the sum of partial_feature indexes, which is not a
 // unique signature for sets of indexes, but satisfies the requirement for this
 // function.
