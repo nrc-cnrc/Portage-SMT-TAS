@@ -122,7 +122,7 @@ NO_UTILS_LIB = true
 
 DOCUMENTS =
 
-IGNORES = tests/test_*.mmMap
+IGNORES = tests/test_*.mmMap tests/test_nnjm_word2class.MMmap tests/test_nnjm_word2class.txt
 
 # Module/directory specific compile flags
 MODULE_CF=
