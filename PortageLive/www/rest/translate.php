@@ -15,11 +15,14 @@
  */
 
 # curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car
-# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data target=fr  --data context=toy-regress-
-# curl --get http://132.246.128.219/language/translate/translate.php --data target=fr --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data target=fr  --data context=toy-regress- --data prettyprint=false
+# curl --get http://132.246.128.219/language/translate/v3.php --data q=hello  --data q=tree  --data q=car --data context=toy-regress-
+# curl --get http://132.246.128.219/language/translate/translate.php --data q=hello  --data q='tree+%26amp%3B+lake'  --data q='home+%26+hardware' --data context=toy-regress- --data prettyprint=false
 
-# QUERY_STRING="q=tree&target=fr&context=toy-regress-&prettyprint=false" php translate.php
-# QUERY_STRING="target=fr&q=hello&q=tree+%26amp%3B+lake&q=car&target=fr&context=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="q=tree&context=toy-regress-&prettyprint=false" php translate.php
+# QUERY_STRING="q=hello&q=tree+%26amp%3B+lake&q=car&context=toy-regress-&prettyprint=false" php translate.php
+
+# http://132.246.128.221/rest/translate.php?q=tree%0Abranch%0AThis%20is%20a%20test.%20This%20is%20a%20test.&context=house-38.incr-en2fr&prettyprint=true
+# http://132.246.128.221/rest/translate.php?q[]=tree&q[]=branch&q[]=This%20is%20a%20test.%20This%20is%20a%20test.&context=house-38.incr-en2fr&prettyprint=true
 
 /*
  * This is a sample of the expected output format.

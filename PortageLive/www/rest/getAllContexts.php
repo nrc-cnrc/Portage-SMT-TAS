@@ -14,10 +14,6 @@
  */
 
 
-/*
- * Replace this stub and create a class to handle and parse getAllContexts() requests.
- */
-
 require 'PortageLiveLib.php';
 
 try {
