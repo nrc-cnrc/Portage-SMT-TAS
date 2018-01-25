@@ -471,7 +471,7 @@ function incrAddSentenceTestCase($WSDL) {
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    print "<b>Source sentence: </b> $source_sent<br>\n";
-   print "<b>Target sentence: </b> $doc_id<br>\n";
+   print "<b>Target sentence: </b> $target_sent<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
@@ -529,7 +529,11 @@ function testSuite($WSDL) {
    }
    else
    if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
-      translateTestCase($WSDL, $context);
+      $expanded_context = $_POST['translate_document_id']
+         ? $context . "/" . $_POST['translate_document_id']
+         : $context;
+      #print "expanded_context = $expanded_context<br/>";
+      translateTestCase($WSDL, $expanded_context);
    }
    else
    if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
@@ -717,6 +721,9 @@ Prime:
 -- Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace.
 </td>
 </tr>
+<tr valign="top"><td></td><td>
+Document ID: <INPUT TYPE = "TEXT" Name = "translate_document_id" SIZE = 30 />
+</td> </tr>
 </table>
 </div>
 </section>

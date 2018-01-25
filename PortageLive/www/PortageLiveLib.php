@@ -346,7 +346,7 @@ class PortageLiveLib
    }
 
    # param src_string:  input to translate
-   # param context:  translate src_string using what context
+   # param context:  model to use for translation
    # param newline:  what is the interpretation of newline in the input
    # param xtags:  Transfer tags
    # param useCE:  Should we use confidence estimation?
