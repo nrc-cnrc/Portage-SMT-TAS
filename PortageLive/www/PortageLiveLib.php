@@ -323,7 +323,7 @@ class PortageLiveLib
          }
       }
       if ($json)
-         return json_encode(array('contexts' => $contexts));
+         return json_encode(array('contexts' => $contexts), JSON_PRETTY_PRINT);
       else
          return join(";",$contexts);
    }
