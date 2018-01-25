@@ -21,7 +21,7 @@ Contents:
    models/      tools to build the PortageLive models layout
    www/         web service software, and tools to install it
    scripts/     scripts shared between all of the above
-   va/          specific documentation for creating a PortageLive Virtual
-                Appliance - don't start here, it won't make sense until you
-                read the PortageLive Manual.
+   va/          documentation for OS and OS-provided software required to run
+                PortageLive, including how to create a PortageLive Virtual
+                Appliance (VA).
    python/      tools to create a custom python package for PortageLive VMs
