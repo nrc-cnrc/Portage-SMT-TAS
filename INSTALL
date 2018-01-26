@@ -285,24 +285,25 @@ Mandatory dependencies for all distributions:
    work will be required so those libraries are seen by Perl at runtime.  Ask
    your sysadmin for help if you don't already know how to do this.
 
- - Python 2.7 - our tuning script, tune.py and the truecasing module, as well
-   as some some convenience scripts, use Python.  In most distros, Python
-   should be standard, or available via the package manager, but it might not
-   be the right version: version 2.7 (any 2.7.x) is required.
+ - Python 2.7 - our tuning script, tune.py, the truecasing module, the NNJM
+   training module, as well as some some convenience scripts, use Python.
+   Your distro probably provides Python but that will not work for PortageII,
+   you must follow these installation instructions.
 
-   Recommended: use Conda
+   Required: use Conda
 
-   The easiest way to install Python is to use Conda.
+   The good news is, Conda is the easiest way to install Python.
+
    Download and install Miniconda2 (https://conda.io/miniconda.html), the
    smallest Conda package for Python 2.7:
       wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
       sh Miniconda2-latest-Linux-x86_64.sh
    The second command will ask you to accept a license and chose an
-   installation location.  $PORTAGE/third-party/miniconda2 or the default
-   (~/miniconda2) are good choices. On a PortageLive server,
-   /opt/PortageII/miniconda2 is a preferable choice.
+   installation location.  Use $PORTAGE/third-party/miniconda2 on your
+   PortageII training machine. Use /opt/PortageII/miniconda2 on your
+   PortageLive servers.
 
-   If you install Python 2.7 in a non-standard location, tell PortageII
+   If you must install Python 2.7 in a non-standard location, tell PortageII
    training software where to find it by setting PYTHON_HOME_OVERRIDE in
    SETUP.bash/tcsh:
       PYTHON_HOME_OVERRIDE=/path/to/python2.7-or-miniconda2
@@ -312,9 +313,10 @@ Mandatory dependencies for all distributions:
       # shell, and then:
       conda install numpy mock
 
-   Tell PortageLive where to find Python 2.7 by creating these two symlinks:
-      ln -s /path/to/miniconda2/bin/python /opt/PortageII/bin/python
-      ln -s /path/to/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
+   Once you've created a PortageLive server, tell PortageLive where to find
+   Python 2.7 by creating these two symlinks:
+      ln -s /opt/PortageII/miniconda2/bin/python /opt/PortageII/bin/python
+      ln -s /opt/PortageII/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
 
    (For more information on setting up PortageLive, see the PortageLive/
    subdirectory as well as the "PortageLive Manual" section of the PortageII

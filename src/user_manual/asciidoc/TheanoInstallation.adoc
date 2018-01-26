@@ -61,34 +61,20 @@ Recommended: Install Theano 1.0 with Conda
 Install Theano
 ~~~~~~~~~~~~~~
 
-The rest of the installation of Theano and its dependencies is trivial if you use
-Conda. It can also replace the instructions we provide in INSTALL for installing Python
-2.7. In fact, we now recommend using Conda
+The rest of the installation of Theano and its dependencies is trivial if you use Conda,
+as we now require in INSTALL for installing Python 2.7.
 
-Download and install Miniconda2 (https://conda.io/miniconda.html), the smallest Conda
-package for Python 2.7:
+Follow the instructions in INSTALL to download and install Miniconda2, and start a new
+shell so conda and python 2.7 are available in your environment.
+
+Then download and install Theano and all of its dependencies:
 [source,bash]
 ----
-wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
-sh Miniconda2-latest-Linux-x86_64.sh
-----
-
-Put it on your path (this line should be added to your .bashrc as well):
-[source,bash]
-----
-export PATH=$HOME/miniconda2/bin:$PATH
-----
-
-Download and install Theano and all of its dependencies:
-[source,bash]
-----
-conda install -c mila-udem theano
+conda install theano
 ----
 This command should install a number of packages, include libgpuarray, pygpu, numpy, a
-bunch more packages and, of course, Theano itself.
-
-The option `-c mila-udem` allows you to obtain the latest version of Theano, namely 1.0.
-Without it, you will get Theano 0.9 instead, which works too but is slower.
+bunch more packages and, of course, Theano itself. The version of Theano installed at the
+time of writing these instructions was 1.0.1.
 
 Test Theano
 ~~~~~~~~~~~
@@ -107,17 +93,9 @@ version and some information about your GPU:
 MKL_THREADING_LAYER=GNU THEANO_FLAGS="mode=FAST_RUN,device=cuda,floatX=float32" python -c 'import theano; print theano.__version__'
 ----
 
-Theano 0.9 only: if Theano 0.9 can see your GPU, the following command will complain about
-using the deprecated backend (ignore this warning, or use Theano 1.0 to get rid of it) but
-will eventually output information about your GPU and the Theano version:
-[source,bash]
-----
-MKL_THREADING_LAYER=GNU THEANO_FLAGS="mode=FAST_RUN,device=gpu,floatX=float32" python -c 'import theano; print theano.__version__'
-----
 
-
-Alternative: Install Theano 0.9 manually
-----------------------------------------
+Alternative: Install Theano 0.9 manually (not recommended)
+----------------------------------------------------------
 
 Installing libgpuarray/pygpu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -247,6 +225,25 @@ You should see no error and a message stating that we are using Theano 0.9.
 [source,bash]
 ----
 0.9.0
+----
+
+Testing Theano
+^^^^^^^^^^^^^^
+
+If Theano itself was installed correctly, the following command should output Theano's
+current version, 0.9 if you followed this section's instructions.
+
+[source,bash]
+----
+MKL_THREADING_LAYER=GNU THEANO_FLAGS="device=cpu" python -c 'import theano; print theano.__version__'
+----
+
+If Theano 0.9 can see your GPU, the following command will complain about using the
+deprecated backend (ignore this warning, or use Theano 1.0 to get rid of it) but
+will eventually output information about your GPU and the Theano version:
+[source,bash]
+----
+MKL_THREADING_LAYER=GNU THEANO_FLAGS="mode=FAST_RUN,device=gpu,floatX=float32" python -c 'import theano; print theano.__version__'
 ----
 
 
