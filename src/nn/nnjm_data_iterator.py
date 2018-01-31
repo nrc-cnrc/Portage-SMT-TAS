@@ -23,6 +23,9 @@ from subprocess import PIPE
 from contextlib import contextmanager
 from itertools import islice
 import numpy as np
+import numpy.random as rng
+
+import logging
 
 
 @contextmanager
@@ -119,8 +122,7 @@ class DataIterator(object):
          iteratable,
          block_size = 4,
          swin_size = 11,
-         thist_size = 3,
-         thist_elide_size = 0):
+         thist_size = 3):
       """
       iteratable should yield a line of the follow form:
       2 2 2 2 2 13 184 439 254 5 197 / 2 2 2 / 28
@@ -129,7 +131,6 @@ class DataIterator(object):
       self.block_size = block_size
       self.swin_size = swin_size
       self.thist_size = thist_size
-      self.thist_elide_size = thist_elide_size
 
       self.thist_end = self.swin_size + 1 + self.thist_size
       self.usecols = range(self.swin_size) + range(self.swin_size+1, self.thist_end)
@@ -140,16 +141,20 @@ class DataIterator(object):
       assert len(t.split()) == self.thist_size
       assert len(o.split()) == 1
 
+
    @property
    def block_size(self):
       return self._block_size
+
 
    @block_size.setter
    def block_size(self, value):
       self._block_size = value
 
+
    def __iter__(self):
       return self
+
 
    def next(self):
       #data = np.asarray([ self.iteratable.next().strip().split() for _ in xrange(self.block_size) ])
@@ -158,5 +163,97 @@ class DataIterator(object):
          raise StopIteration
       x = np.asarray(data[:, self.usecols]).astype('int32')
       y = np.asarray(data[:, -1]).astype('int32')
+
       return x, y
 
+
+
+class HardElideDataIterator(object):
+   """
+   Given a DataIterator, elide some target words from the history.
+   """
+   def __init__(self, iteratable, thist_size, thist_elide_size = 0):
+      self.iteratable = iteratable
+      self.thist_size = thist_size
+      self.thist_elide_size = thist_elide_size
+
+      assert self.thist_size == self.iteratable.thist_size,  'Error: Incompatible thist_sizes.'
+      assert self.thist_elide_size <= self.thist_size, 'Error: You cannot elide more token than you have.'
+
+
+   @property
+   def block_size(self):
+      return self.iteratable.block_size
+
+
+   @block_size.setter
+   def block_size(self, value):
+      self.iteratable.block_size = value
+
+
+   def __iter__(self):
+      return self
+
+
+   def next(self):
+      x, y = self.iteratable.next()
+      assert len(x) == len(y), 'Error: you should have the same number of X and y.'
+      if self.thist_elide_size > 0:
+         #logging.info("In read_datafile elide")
+         #print("In read_datafile elide")
+         if self.thist_elide_size < self.thist_size:
+            x[:, -self.thist_size:-self.thist_size+self.thist_elide_size] = np.zeros(self.thist_elide_size)
+         elif self.thist_elide_size == self.thist_size:
+            x[:, -self.thist_size:] = np.zeros(self.thist_elide_size)
+         else:
+            assert False, 'thist_elide_size greater than thist_size'
+
+      return (x, y)
+
+
+
+class SoftElideDataIterator(object):
+   def __init__(self, iteratable, thist_size, max_elide, elide_prob):
+      self.iteratable = iteratable
+      self.thist_size = thist_size
+      self.max_elide  = max_elide
+      self.elide_prob = elide_prob
+
+      assert self.max_elide <= self.thist_size, 'You cannot elide more of the history than you have.'
+
+
+   @property
+   def block_size(self):
+      return self.iteratable.block_size
+
+
+   @block_size.setter
+   def block_size(self, value):
+      self.iteratable.block_size = value
+
+
+   def __iter__(self):
+      return self
+
+
+   def next(self):
+      x, y = self.iteratable.next()
+
+      if self.max_elide<=0 or self.elide_prob<=0.0:
+         return (x, y)
+
+      for i in range(len(x)):
+         if rng.uniform() < self.elide_prob:
+            elide = rng.randint(self.max_elide + 1)
+         else:
+            elide = 0
+
+         if elide > 0:
+            if elide < self.thist_size:
+               x[i, -self.thist_size:-self.thist_size+elide] = np.zeros(elide)
+            elif elide == self.thist_size:
+               x[i, -self.thist_size:] = np.zeros(elide)
+            else:
+               assert False, 'thist_elide_size greater than thist_size'
+
+      return (x, y)

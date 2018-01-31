@@ -25,12 +25,13 @@ from embed import EmbedLayer
 from nnjm_data_iterator import DataIterator
 from nnjm_data_iterator import InfiniteIterator
 from nnjm_data_iterator import openShuffleNoTempFile
+from nnjm_data_iterator import HardElideDataIterator
+from nnjm_data_iterator import SoftElideDataIterator
 import argparse
 from collections import Counter
 import operator
 import time
 import cPickle
-import copy
 
 rng.seed(1)
 
@@ -91,34 +92,9 @@ class GenRndDataIterator(object):
       y = self.D[1][self.block_begin : self.block_begin+self.block_size]
       self.block_begin += self.block_size
 
+      # I think we should copy.deepcopy(X) since eliding will be applied on X
+      # and it will change our pool of samples.
       return X, y
-
-
-
-def rnd_elide(D, thist_size, max_elide, elide_prob):
-   assert max_elide <= thist_size
-
-   if max_elide<=0 or elide_prob<=0.0:
-      return D
-
-   x = copy.deepcopy(D[0])
-   y = D[1]
-   for i in range(len(x)):
-
-      if rng.uniform() < elide_prob:
-         elide = rng.randint(max_elide+1)
-      else:
-         elide = 0
-
-      if elide>0:
-         if elide < thist_size:
-            x[i, -thist_size:-thist_size+elide] = numpy.zeros(elide)
-         elif elide == thist_size:
-            x[i, -thist_size:] = numpy.zeros(elide)
-         else:
-            assert False
-
-   return (x, y)
 
 
 
@@ -211,7 +187,7 @@ def train(args):
    def check_max_ovoc(v): return v[1].max() if v else 0
    def check_max(filename, svoc_max = 0, tvoc_max = 0, ovoc_max = 0):
       with gzip.open(filename) as f:
-         E = DataIterator(f, block_size = 1024, swin_size = args.swin_size, thist_size = args.thist_size, thist_elide_size = args.elide_thist)
+         E = DataIterator(f, block_size = 1024, swin_size = args.swin_size, thist_size = args.thist_size)
          for X, y in E:
             svoc_max = max(svoc_max, X[:, :args.swin_size].max())
             tvoc_max = max(tvoc_max, X[:, args.swin_size:].max())
@@ -228,8 +204,7 @@ def train(args):
 
       D      = DataIterator(InfiniteIterator(args.train_file, opener=openShuffleNoTempFile),
                             swin_size = args.swin_size,
-                            thist_size = args.thist_size,
-                            thist_elide_size = args.elide_thist)
+                            thist_size = args.thist_size)
 
       svoc_max, tvoc_max, ovoc_max = check_max(args.train_file)
 
@@ -254,6 +229,15 @@ def train(args):
       D_test = gen_rnd_data(args.N_test, args.swin_size, args.thist_size, args.svoc_size, args.tvoc_size, args.ovoc_size)
    else:
       error("one of -train_file or -N must be specified")
+
+   # Add eliding layers to our train data iterator.
+   D = HardElideDataIterator(D,
+         thist_size = args.thist_size,
+         thist_elide_size = args.elide_thist)
+   D = SoftElideDataIterator(D,
+         thist_size = args.thist_size,
+         max_elide = args.rnd_elide_max,
+         elide_prob = args.rnd_elide_prob) # optionally elide some target history at random
 
    # Build model (N stands for num examples)
 
@@ -341,12 +325,12 @@ def train(args):
    for epoch in range(args.n_epochs):
       beg_time = time.clock()
       for slice_id in range(nslices_per_epoch):
-         D0, D1 = rnd_elide(D.next(), args.thist_size, args.rnd_elide_max, args.rnd_elide_prob) # optionally elide some target history at random
+         X, y = D.next()
          err = msgd.optimize(stvec,
                              ovec,
                              reg_nll,
                              params,
-                             (D0, D1),
+                             (X, y),
                              valid_set = D_dev if slice_id+1 == nslices_per_epoch else None,
                              test_set  = D_test if slice_id+1 == nslices_per_epoch else None,
                              error = out.nll.mean(),

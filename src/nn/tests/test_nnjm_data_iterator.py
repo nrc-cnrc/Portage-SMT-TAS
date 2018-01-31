@@ -5,6 +5,7 @@ from __future__ import print_function
 import unittest
 import os
 import numpy as np
+import numpy.random as rng
 import subprocess
 from mock import patch
 from mock import MagicMock
@@ -14,6 +15,8 @@ from mock import call
 from nnjm_data_iterator import openShuffleNoTempFile
 from nnjm_data_iterator import InfiniteIterator
 from nnjm_data_iterator import DataIterator
+from nnjm_data_iterator import HardElideDataIterator
+from nnjm_data_iterator import SoftElideDataIterator
 
 
 class TestOpenShuffleNoTempFile(unittest.TestCase):
@@ -163,6 +166,163 @@ class TestDataIterator(unittest.TestCase):
       # Technically, the first 3 sample blocks should contain the same samples
       # as the last three blocks but since we are losing a sample to validate
       # the format, I'm not quite sure how to test the equality.
+
+
+
+class TestHardElideDataIterator(unittest.TestCase):
+   def __init__(self, *args, **kwargs):
+      super(TestHardElideDataIterator, self).__init__(*args, **kwargs)
+      self.data = [
+               '6 104 11 193 388 453 210 10 3 3 3 / 16 252 14 / 333',
+               '206 7 205 339 11 6 207 380 269 309 10 / 329 23 133 / 37',
+               '339 11 6 207 380 269 309 10 3 3 3 / 133 37 12 / 334',
+               '5 12 396 7 285 380 269 5 174 269 5 / 156 324 16 / 226',
+               '2 2 2 2 6 308 436 275 296 294 483 / 2 2 15 / 364'
+            ]
+
+
+   def testNoElide(self):
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      X_expected = [
+            [206,   7, 205, 339,  11,   6, 207, 380, 269, 309,  10, 329,  23, 133],
+            [339,  11,   6, 207, 380, 269, 309,  10,   3,   3,   3, 133,  37,  12],
+            [  5,  12, 396,   7, 285, 380, 269,   5, 174, 269,   5, 156, 324,  16],
+            [  2,   2,   2,   2,   6, 308, 436, 275, 296, 294, 483,   2,   2,  15]]
+      y_expected = [ 37, 334, 226, 364 ]
+
+      iteratable = HardElideDataIterator(iteratable, thist_size = 3, thist_elide_size = 0)
+      X, y = iteratable.next()
+      self.assertTrue(np.all(X == X_expected))
+      self.assertTrue(np.all(y == y_expected))
+
+
+   def testMaxElide(self):
+      X_expected = [
+            [206,   7, 205, 339,  11,   6, 207, 380, 269, 309,  10, 0, 0, 0],
+            [339,  11,   6, 207, 380, 269, 309,  10,   3,   3,   3, 0, 0, 0],
+            [  5,  12, 396,   7, 285, 380, 269,   5, 174, 269,   5, 0, 0, 0],
+            [  2,   2,   2,   2,   6, 308, 436, 275, 296, 294, 483, 0, 0, 0]]
+      y_expected = [ 37, 334, 226, 364 ]
+
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      iteratable = HardElideDataIterator(iteratable, thist_size = 3, thist_elide_size = 3)
+      X, y = iteratable.next()
+      self.assertTrue(np.all(X == X_expected))
+      self.assertTrue(np.all(y == y_expected))
+
+
+   def testTwoElide(self):
+      X_expected = [
+            [206,   7, 205, 339,  11,   6, 207, 380, 269, 309,  10, 0, 0, 133],
+            [339,  11,   6, 207, 380, 269, 309,  10,   3,   3,   3, 0, 0,  12],
+            [  5,  12, 396,   7, 285, 380, 269,   5, 174, 269,   5, 0, 0,  16],
+            [  2,   2,   2,   2,   6, 308, 436, 275, 296, 294, 483, 0, 0,  15]]
+      y_expected = [ 37, 334, 226, 364 ]
+
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      iteratable = HardElideDataIterator(iteratable, thist_size = 3, thist_elide_size = 2)
+      X, y = iteratable.next()
+      self.assertTrue(np.all(X == X_expected))
+      self.assertTrue(np.all(y == y_expected))
+
+
+   def testOneElide(self):
+      X_expected = [
+            [206,   7, 205, 339,  11,   6, 207, 380, 269, 309,  10, 0,  23, 133],
+            [339,  11,   6, 207, 380, 269, 309,  10,   3,   3,   3, 0,  37,  12],
+            [  5,  12, 396,   7, 285, 380, 269,   5, 174, 269,   5, 0, 324,  16],
+            [  2,   2,   2,   2,   6, 308, 436, 275, 296, 294, 483, 0,   2,  15]]
+      y_expected = [ 37, 334, 226, 364 ]
+
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      iteratable = HardElideDataIterator(iteratable, thist_size = 3, thist_elide_size = 1)
+      X, y = iteratable.next()
+      self.assertTrue(np.all(X == X_expected))
+      self.assertTrue(np.all(y == y_expected))
+
+
+   def testTooMuchElide(self):
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      with self.assertRaises(Exception) as context:
+         iteratable = HardElideDataIterator(iteratable, thist_size = 3, thist_elide_size = 4)
+      self.assertTrue('Error: You cannot elide more token than you have.' in context.exception)
+
+
+   def testWrong_thist_size(self):
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 2,
+            swin_size = 11,
+            thist_size = 3)
+      with self.assertRaises(Exception) as context:
+         iteratable = HardElideDataIterator(iteratable, thist_size = 4, thist_elide_size = 0)
+      self.assertTrue('Error: Incompatible thist_sizes.' in context.exception)
+
+
+
+class TestHardElideDataIterator(unittest.TestCase):
+   def __init__(self, *args, **kwargs):
+      super(TestHardElideDataIterator, self).__init__(*args, **kwargs)
+      self.data = [
+               '6 104 11 193 388 453 210 10 3 3 3 / 16 252 14 / 333',
+               '206 7 205 339 11 6 207 380 269 309 10 / 329 23 133 / 37',
+               '339 11 6 207 380 269 309 10 3 3 3 / 133 37 12 / 334',
+               '5 12 396 7 285 380 269 5 174 269 5 / 156 324 16 / 226',
+               '2 2 2 2 6 308 436 275 296 294 483 / 2 2 15 / 364'
+            ]
+
+
+   def testTooMuchElide(self):
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      with self.assertRaises(Exception) as context:
+         iteratable = SoftElideDataIterator(iteratable, thist_size = 3, max_elide = 4, elide_prob = 1.0)
+      self.assertTrue('You cannot elide more of the history than you have.' in context.exception)
+
+
+   def testTooMuchElide(self):
+      rng.seed(1382)
+      X_expected = [
+            [206,  7, 205, 339,  11,   6, 207, 380, 269, 309,  10,   0,   0, 133],
+            [339, 11,   6, 207, 380, 269, 309,  10,   3,   3,   3,   0,  37, 12],
+            [  5, 12, 396,   7, 285, 380, 269,   5, 174, 269,   5, 156, 324, 16],
+            [  2,  2,   2,   2,   6, 308, 436, 275, 296, 294, 483,   2,   2, 15]]
+      y_expected = [ 37, 334, 226, 364 ]
+
+      iteratable = DataIterator(
+            iter(self.data),
+            block_size = 4,
+            swin_size = 11,
+            thist_size = 3)
+      iteratable = SoftElideDataIterator(iteratable, thist_size = 3, max_elide = 2, elide_prob = 0.5)
+      X, y = iteratable.next()
+      self.assertTrue(np.all(X == X_expected))
+      self.assertTrue(np.all(y == y_expected))
+
+
 
 
 
