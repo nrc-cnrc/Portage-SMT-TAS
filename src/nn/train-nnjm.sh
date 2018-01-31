@@ -305,4 +305,4 @@ cat > $WD/model <<==EOF==
 ==EOF==
 r_cmd cp $WD/model $OUT/model
 
-[[ $ERROR_STATE ]] && error_exit "A command failed. Model not successfully built."
+[[ ! $ERROR_STATE ]] || error_exit "A command failed. Model not successfully built."
