@@ -71,11 +71,11 @@ def get_args():
    parser.add_argument("-d", "--debug", action=DebugAction)
 
    parser.add_argument("-lm-wt", "--incr-lm-weight", dest="incr_cmpt_lm_wt",
-                        metavar="INCR_LM_WT", type=float, default=0.1,
+                        metavar="INCR_LM_WT", type=float, default=0.2,
                        help="""incremental component LM model weight
                                between 0.0 and 1.0 [%(default)s]""")
    parser.add_argument("-tm-wt", "--incr-tm-weights", dest="incr_cmpt_tm_wts",
-                       metavar="INCR_TM_WT", type=float, nargs='+', default=[0.1],
+                       metavar="INCR_TM_WT", type=float, nargs='+', default=[0.6],
                        help="""incremental component TM model weights (1: same
                               for all columns, or 4: separate weight for each column)
                               between 0.0 and 1.0 [%(default)s]""")
