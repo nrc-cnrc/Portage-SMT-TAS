@@ -212,6 +212,7 @@ test.rolling: %: check.%
 check.test.rolling: check.%: workdir.%
 	! grep -q src4 $</cpt.incremental.en2fr
 	grep -q src5 $</cpt.incremental.en2fr
+	[[ `wc -l < $</corpora` -eq 5 ]]
 
 workdir.test.rolling: TIME_TAG = incr-update rolling
 
