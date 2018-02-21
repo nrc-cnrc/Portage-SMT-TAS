@@ -17,7 +17,7 @@ export PORTAGE_NOCLUSTER=1
 
 .PHONY: all
 all:  test.locking test.empty test.too_small test.s1t1 test.custom_cmds \
-      test.bad_init test.2_init
+      test.bad_init test.2_init test.rolling
 
 
 TEMP_DIRS = context.* workdir.test.*
@@ -57,6 +57,8 @@ context.bad:			# missing incremental.config
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
 	rm $@/incremental.config
 
+
+#################################################################
 # Test creation of an incremental model with an empty corpus
 .PHONY: test.empty check.test.empty
 
@@ -74,6 +76,8 @@ workdir.test.empty: context.main
 	mkdir -p $@
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >& log.update-empty
 
+
+#################################################################
 # Test creation of an incremental model with too small a target corpus for
 # regular LM creation
 .PHONY: test.too_small check.test.too_small
@@ -90,6 +94,8 @@ workdir.test.too_small: context.main
 	echo -e "`date +"%F %T"`\t.\t." > $@/corpora
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-too_small
 
+
+#################################################################
 # Create a model with the s1 t1 sentence pair update, and redecode to see
 # "Mr. Boazek" correctly translated to "M. Baozeck".
 .PHONY: test.s1t1 check.test.s1t1
@@ -114,6 +120,8 @@ workdir.test.s1t1/s1.out.incr: TIME_TAG = canoe s1t1
 workdir.test.s1t1/s1.out.incr: workdir.test.s1t1 s1.rule
 	time canoe -f $</canoe.ini.cow -input s1.rule > $@ 2> $</log.s1.out.incr
 
+
+#################################################################
 # Use custom commands in the config and make sure they work
 .PHONY: test.custom_cmds check.test.custom_cmds
 
@@ -131,6 +139,8 @@ workdir.test.custom_cmds: context.custom_cmds
 	paste <(echo `date +"%F %T"`) s1 t1 > $@/corpora
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-custom_cmds
 
+
+#################################################################
 # Test initialization failure
 .PHONY: test.bad_init check.test.bad_init
 
@@ -147,6 +157,8 @@ workdir.test.bad_init: context.bad
 		&& echo "Failure for a bad context occurred as expected." >&2 \
 		|| ! echo "ERROR: Failure was expected for a bad context, but it did not occur." >&2
 
+
+#################################################################
 # Test double initialization
 .PHONY: test.2_init check.test.2_init
 
@@ -162,6 +174,8 @@ workdir.test.2_init: context.main
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >& log.update-2_init
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >> log.update-2_init 2>&1
 
+
+#################################################################
 # Test locking
 .PHONY: test.locking check.test.locking
 
@@ -187,3 +201,24 @@ workdir.test.locking: context.main dev1_en.rule
 	mkdir -p $@
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >& log.locking-init
 	cd $@ && ../run-locking-test.sh >& ../log.locking-test
+
+
+#################################################################
+# Test the rolling window
+.PHONY: test.rolling check.test.rolling
+
+test.rolling: %: check.%
+
+check.test.rolling: check.%: workdir.%
+	! grep -q src4 $</cpt.incremental.en2fr
+	grep -q src5 $</cpt.incremental.en2fr
+
+workdir.test.rolling: TIME_TAG = incr-update rolling
+
+workdir.test.rolling: context.main
+	mkdir -p $@
+	echo -e "`date +"%F %T"`\t.\t." > $@/corpora
+	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-rolling
+	echo 'MAX_INCR_CORPUS_SIZE=5' >> $@/incremental.config
+	for i in `seq 1 9`; do echo -e "`date +"%F %T"`\tsrc$$i\ttgt$$i\t." >> $@/corpora; done
+	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-rolling-2

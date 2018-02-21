@@ -142,6 +142,9 @@ fi
 [[ $SRC_LOWERCASE_CMD ]] || SRC_LOWERCASE_CMD="utf8_casemap -c l"
 [[ $TGT_LOWERCASE_CMD ]] || TGT_LOWERCASE_CMD="utf8_casemap -c l"
 
+[[ $MAX_INCR_CORPUS_SIZE ]] || MAX_INCR_CORPUS_SIZE=2000
+TAIL_CMD="tail -$MAX_INCR_CORPUS_SIZE"
+
 # Don't try to make any models if there is nothing in the corpora.
 [[ `wc -l < $INCREMENTAL_CORPUS` -gt 0 ]] || exit 0
 
@@ -155,8 +158,8 @@ verbose 1 Created working directory $WD
 # Separate the tab-separated corpus file into clean OSPL source and target files
 # Warning: don't call clean-utf8-text.pl before cut, since it replaces tab characters by spaces.
 verbose 1 Split the corpus into source and target
-run_cmd "cut -f 2 $INCREMENTAL_CORPUS | $SRC_PREPROCESS_CMD > $WD/source.raw"
-run_cmd "cut -f 3 $INCREMENTAL_CORPUS | $TGT_PREPROCESS_CMD > $WD/target.raw"
+run_cmd "$TAIL_CMD < $INCREMENTAL_CORPUS | cut -f 2 | $SRC_PREPROCESS_CMD > $WD/source.raw"
+run_cmd "$TAIL_CMD < $INCREMENTAL_CORPUS | cut -f 3 | $TGT_PREPROCESS_CMD > $WD/target.raw"
 
 # Tokenize
 verbose 1 Tokenize the source
@@ -185,6 +188,7 @@ run_cmd "$TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc"
 # LM
 verbose 1 Train the incremental LM on target
 set +o errexit
+ulimit -c 0 # suppress estimate-ngram's core dump files (when corpus is too small)
 run_cmd "estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM"
 RC=$?
 set -o errexit
