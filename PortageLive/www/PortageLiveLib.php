@@ -72,7 +72,12 @@ class PortageLiveLib
          $info["context"] = $context_parts[0];
          $info["document_id"] = $context_parts[1];
          $potential_workdir = $this->getDocumentModelWorkDir($info["context"], $info["document_id"]);
-         if (is_dir($potential_workdir)) {
+         # If the initial incrAddSentence is immediately followed by a
+         # translate request, there is a potential race condition that can be
+         # prevented by making sure the canoe.ini.cow also exists which will
+         # trigger a fallback on the context while the document_model gets
+         # finalized.
+         if (is_dir($potential_workdir) and is_file("$potential_workdir/canoe.ini.cow")) {
             $info["context_dir"] = $potential_workdir;
          } else {
             $info["context_dir"] = "$base_portage_dir/models/" . $info['context'];
