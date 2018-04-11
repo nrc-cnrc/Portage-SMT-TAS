@@ -117,13 +117,17 @@ sub NRCFooter {
                  Tr(td({width=>'20%', valign=>'center', align=>'right'},
                        img({src=>'/images/sidenav_graphic.png', height=>44,
                             alt=>'NRC-ICT'})),
+                    "\n",
                     td({width=>'60%', valign=>'center', align=>'center'},
                        img({src=>'/images/mainf1.gif', height=>44, width=>286,
                             alt=>'National Research Council Canada'})),
+                    "\n",
                     td({width=>'20%', valign=>'center', align=>'left'},
                        img({src=>'/images/mainWordmark.gif', height=>44, width=>93,
                             alt=>'Government of Canada'}))),
+                 "\n",
                  Tr(td(),
+                    "\n",
                     td({valign=>'top', align=>'center'},
                        small(
                           "PortageII cur", br(),
@@ -133,7 +137,8 @@ sub NRCFooter {
                           "Copyright 2004&ndash;2016, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           a({href=>"/portage_notices.php"}, "Third party Copyright notices")
-                          ))));
+                          ))),
+                 "\n");
 }
 
 

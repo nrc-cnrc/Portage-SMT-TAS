@@ -483,16 +483,19 @@ sub translationTextOutput {
     $source =~ s/\n/<br \/>/g;
     print
         NRCBanner(),
+        "\n",
         h1("PORTAGELive"),
+        "\n",
         div({-id=>'source'},
            h2("Source text:"),
            p($source)),
         "\n",
         div({-id=>'translation'},
            h2("Translation:"),
-           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)),
-        "\n");
-    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
+           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target))),
+        "\n";
+    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text")),
+          "\n";
 
     my @debuggingTools = (
        a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
@@ -501,8 +504,11 @@ sub translationTextOutput {
     push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
 
     print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
+       "\n",
        h3("Debugging Tools"),
-       ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools)));
+       "\n",
+       ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools))),
+       "\n";
 
     #my @params = param();
     #print "<PRE> @params </PRE>";
@@ -679,6 +685,8 @@ sub timeStamp() {
 
 sub copyright() {
     return (hr(),
+            "\n",
             NRCFooter(),
+            "\n",
             end_html());
 }
