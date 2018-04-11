@@ -355,7 +355,8 @@ sub processText {
             || problem("Can't make work directory for $work_name");
         open(my $fh, "> $work_dir/Q.in")
             || problem("Can't create input file Q.in in work directory $work_dir");
-        print {$fh} param('source_text'), "\n";
+        my $source_text = param('source_text');
+        print {$fh} $source_text, "\n";
         close $fh;
 
         push @tr_opt, "-xtags" if (param('text_xtags'));
@@ -435,7 +436,8 @@ sub processText {
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
         my @p = readline($P);
         close $P;
-        translationTextOutput(param('source_text'), $work_dir, @p);
+        my $source_text = param('source_text');
+        translationTextOutput($source_text, $work_dir, @p);
     }
 }
 
