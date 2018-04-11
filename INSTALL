@@ -255,6 +255,7 @@ Mandatory dependencies for all distributions:
     - JSON
     - YAML
     - Time::HiRes
+    - SOAP::Lite    # Used by plive.cgi
     - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
@@ -276,6 +277,7 @@ Mandatory dependencies for all distributions:
          install JSON
          install YAML
          install Time::HiRes
+         install SOAP::Lite
    You have to let cpan install all dependencies.  (Say y or yes to all
    questions.)  You mileage may vary because various compilation steps are
    required.

@@ -2,7 +2,7 @@
 # @file plive.cgi
 # @brief PortageLive CGI script
 #
-# @author Michel Simard
+# @author Michel Simard & Samuel Larkin
 #
 # COMMENTS:
 #
@@ -64,6 +64,7 @@ Michel Simard
 # HOW TO test this script from the command line:
 # http://curl.haxx.se/docs/httpscripting.html
 # curl --form "is_xml=1" --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" --form "translate_file=Translate File" --form "context=reversed" 'http://localhost/cgi-bin/plive.cgi'
+# PERL5LIB=.:cgi/:$PERL5LIB ./cgi/plive.cgi translate_text=1 context=BtB-METEO.v2.E2Fe_text=$'This is a test.\nIt has two sentences.'  newline=s    document_id=plive
 
 use strict;
 use warnings;
@@ -227,6 +228,12 @@ sub printForm {
                          -label=>'')),
              td(strong("phrase table"),
                 "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")),
+          Tr(td(),
+             td('Document_ID:',
+                textfield(-name=>'document_id',
+                          -value=>param('document_id') || '',
+                          -size=>20,
+                          -maxlength=>40))),
           Tr(td({colspan=>2, align=>'center'},
                 submit(-name=>'translate_text', -value=>'Translate Text'))),
 
@@ -350,6 +357,48 @@ sub processText {
     elsif (param('translate_text') and param('source_text')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('source_text')) > $MAX_TEXTBOX;
+
+        if (defined(param('document_id'))) {
+           eval {
+              #TODO: Add SOAP::Lite's dependency in the documentation.
+              use SOAP::Lite;
+
+              # SETUP the services
+              # URL must be absolute, according to the documentation of SOAP::Lite.
+              my $WSDL = 'http://0.0.0.0/PortageLiveAPI.wsdl';
+              my $services = SOAP::Lite
+                 ->readable(1)
+                 ->service($WSDL)
+                 ->on_fault(sub {
+                       #http://www.perlmonks.org/?node_id=1114848
+                       my($soap, $result) = @_;
+                       die ref $result ?
+                       "Fault Code: " . $result->faultcode . "\n"
+                       . "Fault String: " . $result->faultstring . "\n"
+                       : $soap->transport->status, "\n";
+                    });
+
+              my $work_dir = '';
+              my $document_id = param('document_id');
+              my $source_text = param('source_text');
+              my $use_xtags = defined(param('text_xtags'));
+              my $useConfidenceEstimation = defined(param('useConfidenceEstimation'));
+              my $newline = param('newline') || "p";
+
+              my $translation = $services->translate($source_text,
+                 $context . '/' . $document_id,
+                 $newline,
+                 $use_xtags,
+                 $useConfidenceEstimation);
+              translationTextOutput($source_text, $work_dir, split(/\n/, $translation));
+           }
+           or do {
+              print "ERROR translating $@\n";
+              exit 1;
+           };
+           return;
+        }
+
         $work_name = join("_", $context, "Text-Box");
         $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
@@ -494,7 +543,9 @@ sub translationTextOutput {
            h2("Translation:"),
            p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target))),
         "\n";
-    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text")),
+    my $href = "plive.cgi?context=".param('context');
+    $href .= '&document_id=' . param('document_id') if (defined(param('document_id')));
+    print p(a({-id=>'translateMore', -href=>$href}, "Translate more text")),
           "\n";
 
     my @debuggingTools = (
@@ -503,12 +554,14 @@ sub translationTextOutput {
        a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
     push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
 
-    print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
-       "\n",
-       h3("Debugging Tools"),
-       "\n",
-       ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools))),
-       "\n";
+    if ($workDir) {
+       print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
+          "\n",
+          h3("Debugging Tools"),
+          "\n",
+          ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools))),
+          "\n";
+    }
 
     #my @params = param();
     #print "<PRE> @params </PRE>";
