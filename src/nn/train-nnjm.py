@@ -13,6 +13,10 @@
 # Copyright 2014 - 2017, Her Majesty in Right of Canada
 
 import sys, os
+
+# MKL_THREADING_LAYER=GNU is always required, so set it in here, before importing Theano
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
 import numpy
 import numpy.random as rng
 import theano
