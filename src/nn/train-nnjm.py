@@ -250,17 +250,17 @@ def train(args):
             (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(f)
             log('Successfully loaded symbolic variables.')
 
-         assert sbed.x_size == args.swin_size * args.embed_size
-         assert sbed.vocabularySize() >= args.svoc_size
-         assert sbed.embeddingSize() == args.embed_size
+         assert sbed.x_size == args.swin_size * args.embed_size, "You have provided source size and/or embedding size that are incompatible with the pretrained model."
+         assert sbed.vocabularySize() >= args.svoc_size, "You have provided a source vocabulary which is smaller than the model's vocabulary."
+         assert sbed.embeddingSize() == args.embed_size, "You have provided source embedding's size that is incompatible with the pretrained model."
 
-         assert tbed.x_size == args.thist_size * args.embed_size
-         assert tbed.vocabularySize() >= args.tvoc_size
-         assert tbed.embeddingSize() == args.embed_size
+         assert tbed.x_size == args.thist_size * args.embed_size, "You have provided target size and/or embedding size that are incompatible with the pretrained model."
+         assert tbed.vocabularySize() >= args.tvoc_size, "You have provided a target vocabulary which is smaller than the model's vocabulary."
+         assert tbed.embeddingSize() == args.embed_size, "You have provided target embedding's size that is incompatible with the pretrained model."
 
-         assert len(hidden_layers) == len(hidden_layer_sizes)
+         assert len(hidden_layers) == len(hidden_layer_sizes), "You have provided the wrong number of hidden layers."
          for i in xrange(len(hidden_layer_sizes)):
-            assert hidden_layer_sizes[i] == numpy.shape(hidden_layers[i].w.get_value())[1]
+            assert hidden_layer_sizes[i] == numpy.shape(hidden_layers[i].w.get_value())[1], "There is an hidden size mismatch for layer {}".format(i)
       except AssertionError as e:
          error(e)
       except EOFError:

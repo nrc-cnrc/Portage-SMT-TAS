@@ -244,11 +244,13 @@ if [[ $TEST_S ]]; then
 fi
 
 # Step 5: use train-nnjm.py to train the NNJM (outputs nnjm.pkl)
+PRETRAINING=
+[[ $PRE_NNJM ]] && PRETRAINING=" -pretrain_model $PRE_NNJM/nnjm.pkl "
 r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz $TEST_EX_FILE \
        -swin_size 11 -thist_size 3 -embed_size 192 -n_hidden_layers 1 -slice_size 64000 \
        -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 $ETA_0 \
        -rnd_elide_max 3 -rnd_elide_prob 0.1 -val_batch_size 10000 -batches_per_epoch 20000 \
-       $TRAIN_NNJM_OPTS \
+       $PRETRAINING  $TRAIN_NNJM_OPTS \
        $OUT/nnjm.pkl >& $WD/log.train-nnjm.py"
 
 # Step 6: use unpickle.py to convert nnjm.pkl into the binary format required for canoe,
