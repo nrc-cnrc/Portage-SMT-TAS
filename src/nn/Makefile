@@ -18,7 +18,8 @@ PYTHON_LIBS = \
 	msgd.pyc \
 	multilayers.pyc \
 	nnjm_data_iterator.pyc \
-	nnjm_utils.pyc
+	nnjm_utils.pyc \
+	repickle.pyc
 
 TESTPROGS = test_portage_nnjm
 
@@ -27,6 +28,7 @@ PROGRAMS = $(TESTPROGS)
 BINSCRIPTS = \
 	train-nnjm.sh \
 	nnjm-genex.py \
+	repickle.py \
 	train-nnjm.py \
 	unpickle.py
 

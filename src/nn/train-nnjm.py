@@ -21,6 +21,7 @@ import numpy
 import numpy.random as rng
 import theano
 import theano.tensor as T
+
 import msgd, multilayers, embed
 import nnjm_utils
 from nnjm_utils import *
@@ -31,6 +32,8 @@ from nnjm_data_iterator import InfiniteIterator
 from nnjm_data_iterator import openShuffleNoTempFile
 from nnjm_data_iterator import HardElideDataIterator
 from nnjm_data_iterator import SoftElideDataIterator
+from repickle import loadBinModel
+
 import argparse
 from collections import Counter
 import operator
@@ -249,10 +252,17 @@ def train(args):
    ovec  = T.ivector("ovec") # output classes: N x 1
    if args.pretrain_model is not None:
       try:
-         with file(args.pretrain_model, 'rb') as f:
-            log('Trying to loading symbolic variables from file {}'.format(args.pretrain_model))
-            (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(f)
-            log('Successfully loaded symbolic variables.')
+	 if args.pretrain_model.endswith('.pkl'):
+	    with file(args.pretrain_model, 'rb') as f:
+	       log('Trying to loading symbolic variables from file {}'.format(args.pretrain_model))
+	       (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(f)
+	       log('Successfully loaded symbolic variables.')
+	 elif args.pretrain_model.endswith('.bin'):
+	    log('Trying to loading symbolic variables from file a binary file format: {}'.format(args.pretrain_model))
+	    stvec, ovec, out, sbed, tbed, st_x, hidden_layers = loadBinModel(name = args.pretrain_model)
+	    log('Successfully loaded symbolic variables.')
+	 else:
+	    error('Unsupported model extension.')
 
          assert sbed.x_size == args.swin_size * args.embed_size, "You have provided source size and/or embedding size that are incompatible with the pretrained model."
          assert sbed.vocabularySize() >= args.svoc_size, "You have provided a source vocabulary which is smaller than the model's vocabulary."
