@@ -220,7 +220,7 @@ fi
 COMMON_GENEX_OPTIONS="-v -eos -voc $OUT/train-voc -ng 4 -ws 11 $NNJM_GENEX_OPTS"
 if [[ $PRE_NNJM ]]; then
    for EXT in src tgt out; do
-      r_cmd "cp -a $PRE_NNJM/train-voc.$EXT $OUT/"
+      r_cmd "cp -aL $PRE_NNJM/train-voc.$EXT $OUT/"
    done
    r_cmd "{ nnjm-genex.py -r -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  \
             $COMMON_GENEX_OPTIONS   $TRAIN_S $TRAIN_T $TRAIN_WAL \
