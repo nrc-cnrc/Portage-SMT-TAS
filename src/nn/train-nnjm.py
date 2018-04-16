@@ -388,6 +388,9 @@ def main():
    vocabularies will be set to the values of -*voc_size parameters (default values
    if no switches provided) or the maximum values in the train/dev/test files,
    whichever is larger.
+
+   Warning: in this script, "epoch" is used incorrectly to mean going through
+   batch_size*batches_per_epoch examples, not a whole pass through the data.
    """
 
    parser = argparse.ArgumentParser(
@@ -419,7 +422,7 @@ def main():
    parser.add_argument('-reg', type=float, default=0.0, help='weight on L2 regularization penalty [0.0]')
    parser.add_argument('-eta_0', type=float, default=0.001, help='initial learning rate [0.001]')
    parser.add_argument('-eta_params', type=str, default=None, help='comma-separated list of parameter-specific learning rate modifiers, order is [sbed,tbed,hl,out]')
-   parser.add_argument('-n_epochs', type=int, default=10000, help='number of passes through the data [10000]')
+   parser.add_argument('-n_epochs', type=int, default=10000, help='number of passes through batch_size*batches_per_epoch samples from the data [10000]')
    parser.add_argument('-batch_size', type=int, default=128, help='size of mini-batches [128]')
    parser.add_argument('-val_batch_size', type=int, default=50000, help='size of batches for devtest (affects memory use only) [50000]')
    parser.add_argument('-decay', type=float, default=0.5, help='learning rate decay [0.5]')
