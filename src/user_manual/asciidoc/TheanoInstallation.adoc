@@ -86,7 +86,7 @@ current version, 1.0.1 at the time of writing this:
 MKL_THREADING_LAYER=GNU THEANO_FLAGS="device=cpu" python -c 'import theano; print theano.__version__'
 ----
 
-Theano 1.0 only: if Theano 1.0 can see your GPU, the following command should output a cuDNN
+Theano 1.* only: if Theano 1.* can see your GPU, the following command should output a cuDNN
 version and some information about your GPU:
 [source,bash]
 ----
