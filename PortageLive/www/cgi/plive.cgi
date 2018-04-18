@@ -358,7 +358,7 @@ sub processText {
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('source_text')) > $MAX_TEXTBOX;
 
-        if (defined(param('document_id'))) {
+        if (defined(param('document_id')) and param('document_id')) {
            eval {
               #TODO: Add SOAP::Lite's dependency in the documentation.
               use SOAP::Lite;
