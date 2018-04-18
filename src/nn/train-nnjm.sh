@@ -133,6 +133,12 @@ if [[ ! $THEANO_FLAGS && ! -r ~/.theanorc ]]; then
       export THEANO_FLAGS="device=cpu,floatX=float32,mode=FAST_RUN"
       warn "THEANO_FLAGS not set, no GPU found; setting THEANO_FLAGS=$THEANO_FLAGS"
    fi
+elif [[ $THEANO_FLAGS ]]; then
+   echo Using THEANO_FLAGS=$THEANO_FLAGS
+fi
+if [[ -r ~/.theanorc ]]; then
+   echo Using settings from ~/.theanorc if not overridden by THEANO_FLAGS=$THEANO_FLAGS
+   cat ~/.theanorc
 fi
 
 
