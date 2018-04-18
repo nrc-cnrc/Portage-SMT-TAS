@@ -122,6 +122,20 @@ verbose 2 TRAIN_S=$TRAIN_S
 verbose 2 TRAIN_T=$TRAIN_T
 verbose 2 TRAIN_WAL=$TRAIN_WAL
 
+
+if [[ ! $THEANO_FLAGS && ! -r ~/.theanorc ]]; then
+   if nvidia-smi >& /dev/null; then
+      # There appears to be a GPU, use it
+      export THEANO_FLAGS="device=cuda,floatX=float32,mode=FAST_RUN"
+      warn "THEANO_FLAGS not set, but a GPU seems to be available; setting THEANO_FLAGS=$THEANO_FLAGS"
+   else
+      # No GPU, use the CPU to train NNJMs
+      export THEANO_FLAGS="device=cpu,floatX=float32,mode=FAST_RUN"
+      warn "THEANO_FLAGS not set, no GPU found; setting THEANO_FLAGS=$THEANO_FLAGS"
+   fi
+fi
+
+
 if [[ $PRE_NNJM ]]; then
    # When a pre-trained NNJM is specified, we're really strict about the file names, they
    # have to match the ones produced by this script.
