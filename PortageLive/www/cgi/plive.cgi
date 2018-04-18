@@ -172,12 +172,11 @@ sub printForm {
 
     print start_html("PORTAGELive");
 
-    print NRCBanner();
+    print NRCBanner(), "\n";
 
-    print h1({align=>'center'}, "PORTAGELive"),
+    print h1({align=>'center'}, "PORTAGELive"), "\n";
 
-    p();
-
+    # This is not used?
     my @actions = qw(preview translate);
 
     my %labels = (
@@ -195,80 +194,81 @@ sub printForm {
 
     my $context = param('context');
     print start_multipart_form(),
-    table({align=>'center', width=>600},
+       "\n",
+       table({align=>'center', width=>600},
           Tr(td(strong("Select a system:")),
              td(popup_menu(-name=>'context',
                            -values=>["", sort keys %CONTEXT],
                            -default => $context ? [$context, $context_labels{$context}] : ["", '-- Please pick one --'],
                            -labels=>{ ""=>'-- Please pick one --',
-                                      %context_labels }))),
+                                      %context_labels }))), "\n",
           Tr(td({colspan=>2, align=>'left', border=>0},
                 p("Either type in some text, or select a text file to translate (plain text or TMX or SDLXLIFF).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
-                br())),
+                br())), "\n",
 
 
           ## Text-box (textarea) interface:
 
           Tr(td({colspan=>2, align=>'left'},
-                strong("Type in source-language text:"))),
+                strong("Type in source-language text:"))), "\n",
           Tr(td({colspan=>2, align=>'left'},
                 textarea(-name=>'source_text',
                          -value=>'',
                          -columns=>66,
-                         -rows=>10))),
+                         -rows=>10))), "\n",
           Tr(td({align=>'center'},
                 checkbox(-name=>'text_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
-                "-- Check this box if input text contains tags and you want to process & transfer them.")),
+                "-- Check this box if input text contains tags and you want to process & transfer them.")), "\n",
           Tr(td({align=>'center'},
                 checkbox(-name=>'enable_phrase_table_debug',
                          -checked=>0,
                          -label=>'')),
              td(strong("phrase table"),
-                "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")),
+                "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")), "\n",
           Tr(td(),
              td('Document_ID:',
                 textfield(-name=>'document_id',
                           -value=>param('document_id') || '',
                           -size=>20,
-                          -maxlength=>40))),
+                          -maxlength=>40))), "\n",
           Tr(td({colspan=>2, align=>'center'},
-                submit(-name=>'translate_text', -value=>'Translate Text'))),
+                submit(-name=>'translate_text', -value=>'Translate Text'))), "\n",
 
 
           ## File-upload interface:
 
           Tr(td({colspan=>2, align=>'center'},
-                h3("-- OR --"))),
+                h3("-- OR --"))), "\n",
           Tr(td({align=>'right'},
                 strong("Select a file:")),
              td(filefield(-name=>'filename',
                           -value=>'',
                           -default=>'',
-                          -size=>60))),
+                          -size=>60))), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'is_xml',
                          -checked=>0,
                          -label=>'')),
              td(strong("TMX/SDLXLIFF"),
-                "-- Check this box if input file is TMX or SDLXLIFF.")),
+                "-- Check this box if input file is TMX or SDLXLIFF.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'file_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
-                "-- Check this box if input file contains tags and you want to process & transfer them.")),
+                "-- Check this box if input file contains tags and you want to process & transfer them.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'useConfidenceEstimation',
                          -checked=>0,
                          -label=>'')),
              td(strong("Confidence Estimation"),
-                "-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.")),
+                "-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 scrolling_list(-name=>'filter',
@@ -276,19 +276,19 @@ sub printForm {
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
                                -size=>1)),
              td(strong("Filter"),
-                "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")),
+                "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")), "\n",
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                submit(-name=>'translate_file', -value=>'Translate File'))),
-          Tr(td({colspan=>2, align=>'center'},
+                submit(-name=>'translate_file', -value=>'Translate File'))), "\n",
 
 
           ## Advanced options.
           #
-          hr())),
+          Tr(td({colspan=>2, align=>'center'},
+             hr())), "\n",
 
           Tr(td({colspan=>2, align=>'left'},
-                strong("Advanced Options (plain text input):"))),
+                strong("Advanced Options (plain text input):"))), "\n",
           Tr({valign=>'top'},
              td({align=>'left', colspan=>2},
                 radio_group(-name=>'newline',
@@ -296,19 +296,19 @@ sub printForm {
                    -default=>'p',
                    -linebreak=>'true',
                    -labels=>\%labels,
-                   ))),
+                   ))), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'notok',
                          -checked=>0,
                          -label=>'')),
              td(strong("pre-tokenized"),
-                "-- Check this box if word-tokens are already space-separated in the source text file.")),
+                "-- Check this box if word-tokens are already space-separated in the source text file.")), "\n",
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                defaults('Clear Form'))));
+                defaults('Clear Form'))), "\n"), "\n";
 
-    print end_multipart_form();
+    print end_multipart_form(), "\n";
 
     print copyright();
 }
