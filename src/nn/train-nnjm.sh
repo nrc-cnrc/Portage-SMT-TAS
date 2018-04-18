@@ -125,10 +125,20 @@ verbose 2 TRAIN_WAL=$TRAIN_WAL
 if [[ $PRE_NNJM ]]; then
    # When a pre-trained NNJM is specified, we're really strict about the file names, they
    # have to match the ones produced by this script.
-   for FILE in train-voc.src train-voc.tgt train-voc.out nnjm.bin nnjm.pkl model; do
+   for FILE in train-voc.src train-voc.tgt train-voc.out model; do
       [[ -r $PRE_NNJM/$FILE && -s $PRE_NNJM/$FILE ]] ||
-         error_exit "Cannot read file $FILE in pre-trained NNJM $PRE_NNJM"
+         error_exit "Cannot read file $FILE in pre-trained NNJM $PRE_NNJM."
    done
+
+   # We can use either the nnjm.bin or nnjm.pkl file, but we prefer nnjm.bin
+   if [[ -r $PRE_NNJM/nnjm.bin && -s $PRE_NNJM/nnjm.bin ]]; then
+      PRETRAINING="-pretrain_model $PRE_NNJM/nnjm.bin"
+   elif [[ -r $PRE_NNJM/nnjm.pkl && -s $PRE_NNJM/nnjm.pkl ]]; then
+      warn "Cannot read file nnjm.bin in pre-trained NNJM $PRE_NNJM, using nnjm.pkl instead."
+      PRETRAINING="-pretrain_model $PRE_NNJM/nnjm.pkl"
+   else
+      error_exit "Cannot read file nnjm.bin nor file nnjm.pkl in pre-trained NNJM $PRE_NNJM."
+   fi
 
    PRE_CLS_S=`grep srcclasses $PRE_NNJM/model | sed -e 's/ *\[srcclasses\]  *//' -e 's/ *//g'`
    PRE_CLS_T=`grep tgtclasses $PRE_NNJM/model | sed -e 's/ *\[tgtclasses\]  *//' -e 's/ *//g'`
@@ -148,6 +158,7 @@ if [[ $PRE_NNJM ]]; then
 
    ETA_0=0.03
 else
+   PRETRAINING=
    [[ $CLS_S ]] || error_exit "Missing required -cls-s flag"
    [[ $CLS_T ]] || error_exit "Missing required -cls-t flag"
    ETA_0=0.3
@@ -244,8 +255,6 @@ if [[ $TEST_S ]]; then
 fi
 
 # Step 5: use train-nnjm.py to train the NNJM (outputs nnjm.pkl)
-PRETRAINING=
-[[ $PRE_NNJM ]] && PRETRAINING=" -pretrain_model $PRE_NNJM/nnjm.pkl "
 r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz $TEST_EX_FILE \
        -swin_size 11 -thist_size 3 -embed_size 192 -n_hidden_layers 1 -slice_size 64000 \
        -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 $ETA_0 \
