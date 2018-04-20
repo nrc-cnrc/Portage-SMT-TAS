@@ -41,7 +41,7 @@ public:
        * the structure, and assumes the rest of the file matches it.
        */
       virtual void getNumScores(Uint& numModels, Uint& numAdir, Uint& numCounts, bool& hasAlignments);
-      virtual MultiProbPTFeature* create(const CanoeConfig &c, Voc& vocab) { assert(false); }
+      virtual MultiProbPTFeature* create(const CanoeConfig &c, Voc& vocab) { assert(false); return NULL; }
       virtual bool checkFileExists(vector<string>* list);
       virtual Uint64 totalMemmapSize() { return 0; }
       virtual bool prime(bool full = false) { return true; }

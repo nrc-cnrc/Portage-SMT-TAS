@@ -332,7 +332,7 @@ const vector<Uint>& FwdHierDistortion::type(const Range& shift,
    if(u==0) return m;
    else if(u==1) return s;
    else if(u==2) return d;
-   else assert(false);
+   else { assert(false); return m; }
 }
 
 const vector<Uint>& FwdHierDistortion::type(const PartialTranslation& pt) const {
@@ -421,8 +421,10 @@ Uint FwdLRSplitHierDistortion::sig(const Range& shift,
          return 2+offset; //DL
       else if(shift.start > stack->end())
          return 3+offset; //DR
-      else
+      else {
          assert(false); // Should be impossible
+         return 0;
+      }
    }
 }
 
@@ -446,6 +448,7 @@ const vector<Uint>& FwdLRSplitHierDistortion::type(const Range& shift,
    else {
       cerr << "Error: " << u << " unrecognized with offset " << offset << endl;
       assert(false);
+      return m;
    }
 }
 
@@ -495,6 +498,7 @@ Uint SparseModel::vocId(map<Uint,Uint>* subvoc, Uint subvoc_id)
          return p->first;
       }
    assert(false); // should have found subvoc_id somewhere!
+   return 0;
 }
 
 void SparseModel::createEventTemplates(const string& spec)
@@ -1955,7 +1959,8 @@ void SparseModel::prime(const string& file, const string& relative_to)
       string cmd = "cat '" + path + "'/*.mmcls > /dev/null";
       cerr << "\tPriming: " << path << "/*.mmcls" << endl;  // SAM DEBUGGING
       //cerr << "Cmd = " << cmd << endl;
-      ::system(cmd.c_str());
+      int rc = ::system(cmd.c_str());
+      FOR_ASSERT(rc);
    }
 }
 

@@ -276,6 +276,7 @@ void HMMJumpMAP::estimate() {
          } else {
             if ( new_i < i ) {
                const Uint new_index = new_voc.add(voc.word(i));
+               FOR_ASSERT(new_index);
                assert(new_index == new_i);
                word_count[new_i].swap(word_count[i]);
             }

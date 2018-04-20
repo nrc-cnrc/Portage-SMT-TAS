@@ -214,16 +214,14 @@ class HMM {
     * @return modifiable ref to B_ijk
     */
    double & B(Uint i, Uint j, Uint k) {
-      #ifndef NDEBUG
       assert(i < N);
       assert(j < N);
       assert(k < M);
-      #endif
       switch (emission_type) {
          case arc_emit:         return B_storage[i](j,k);
          case state_entry_emit: return B_storage[0](j,k);
          case state_exit_emit:  return B_storage[0](i,k);
-         default:               assert(false);
+         default:               assert(false); return B_storage[0](0,0);
       }
    }
    const double & B(Uint i, Uint j, Uint k) const {

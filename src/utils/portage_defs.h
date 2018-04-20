@@ -102,5 +102,10 @@ public:
    NonCopyable() {}
 };
 
+// The FOR_ASSERT(x) macro lets me declared a variable is only intended for assertions and
+// avoids having the compiler error out because that variable is unused when -DNDEBUG is
+// specified on the compiler command line.
+#define FOR_ASSERT(x) ((void)(x))
+
 }
 #endif

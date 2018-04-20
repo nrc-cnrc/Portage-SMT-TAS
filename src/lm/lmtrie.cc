@@ -143,7 +143,7 @@ float LMTrie::wordProbQuery(const Uint query[], Uint query_length) {
    // The above formula is what is implemented below.
 
    float prob(0);
-   Uint depth;
+   Uint depth(0);
    if ( trie.find(query, query_length, prob, &depth) ) {
       if ( debug_wp ) cerr << "[" << depth << "gram prob=" << prob << "]" << endl;
       hits.hit(depth);  // Record this query's depth aka N value

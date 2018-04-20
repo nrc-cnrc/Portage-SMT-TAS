@@ -26,6 +26,7 @@ public:
    void setUp() {
       char tmpfilename[] = "/tmp/testLineIndex.XXXXXX";
       int fd = mkstemp(tmpfilename);
+      FOR_ASSERT(fd);
       tmpfile = tmpfilename;
       assert(fd != -1);
 

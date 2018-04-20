@@ -339,6 +339,7 @@ template <class PhraseIter>
 string phrase2string(PhraseIter begin, PhraseIter end, const Voc& voc, const char* sep = " ") {
    string result;
    const Uint voc_size = voc.size();
+   FOR_ASSERT(voc_size);
    bool first(true);
    for ( PhraseIter it = begin; it != end; ++it ) {
       if ( first ) first = false; else result += sep;
