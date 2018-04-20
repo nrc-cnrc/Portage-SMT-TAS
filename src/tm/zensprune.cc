@@ -185,7 +185,8 @@ int main(int argc, char* argv[])
       }
       if (!low_mem) {  // need to store values string
          vals = join(v, PhraseTableBase::ToksIter(toks.end()));
-         assert(pi.vals = strdup_new(vals.c_str()));
+         pi.vals = strdup_new(vals.c_str());
+         assert(pi.vals);
       }
       infos.push_back(pi);
    }
@@ -282,7 +283,7 @@ int main(int argc, char* argv[])
       istr.open(infile);
       assert(istr.good());
       for (Uint i = 0; i < infos.size() && nwritten < num_to_keep; ++i) {
-         assert(getline(istr, line));
+         if (!getline(istr, line)) assert(false);
          float s = infos[i].score();
          if (s > thresh || (s == thresh && nwritten_at_thresh < num_to_keep_at_thresh)) {
             if (read_scores) getScore(line, NULL); // remove final score field

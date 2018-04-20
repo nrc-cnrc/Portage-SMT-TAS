@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
       for (Uint k = 0; k < K; ++k) {
 
-         assert(getline(nbest, line));
+         if (!getline(nbest, line)) assert(false);
          splitZ(line, tgt_toks);
 
          if (ppnbest) {

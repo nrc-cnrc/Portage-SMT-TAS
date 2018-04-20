@@ -991,7 +991,7 @@ void SparseModel::getFeatures(const PartialTranslation& context,
         p != potential_features.end(); ++p) {
       //assert(p->second <= features[p->first].events.size()); // Expensive assertion
       if (p->second == features[p->first].events.size())
-         assert(fset.insert(p->first).second);
+         if (!fset.insert(p->first).second) assert(false);
    }
    if (verbose > 2) cerr << fset.size() << " active features; ";
 
@@ -1585,7 +1585,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
       splitZ(line, toks);       // t,e t,e ...
       for (Uint i = 0; i < toks.size(); ++i) {
          inds.clear();
-         assert(split(toks[i], inds, ",") == 2);
+         if (split(toks[i], inds, ",") != 2) assert(false);
          const Uint newid = event_templates[inds[0]]->remapEvent(inds[1], newvoc);
          features.back().events.push_back(Event(inds[0], newid));
       }
@@ -1785,7 +1785,7 @@ void SparseModel::pruneZeroWeightFeatures(Uint start_index)
             vector<Uint>::iterator e = remove(flist.begin(), flist.end(), i);
             flist.resize(e - flist.begin());
             if (flist.size() == 0)
-               assert(events.erase(features[i].events[j]) == 1);
+               if(events.erase(features[i].events[j]) != 1) assert(false);
          }
       } else {   // re-index feature if necessary
          const Uint fi = start_index + num_retained++;  // new index

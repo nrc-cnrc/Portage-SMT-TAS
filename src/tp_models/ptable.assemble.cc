@@ -256,7 +256,8 @@ encodeAllEntries(string& dest, size_t o)
       r = trgCoder.readNumber(r,foo);
 
       cerr << "t[" << k << "]: " << v[z] << " " << foo << endl;
-      assert(foo == v[z++]);
+      assert(foo == v[z]);
+      z++;
       for (size_t x = 0; x < num_float_scores; x++)
       {
 #if 0
@@ -269,7 +270,8 @@ encodeAllEntries(string& dest, size_t o)
 #endif          
          r = scoreCoder[x].readNumber(r,foo);
          cerr << "s[" << x << "]: " << v[z] << " " << foo << endl;
-         assert(foo == v[z++]);
+         assert(foo == v[z]);
+         z++;
       }
    }
 #endif
