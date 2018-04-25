@@ -30,6 +30,10 @@ Usage: $PROG [options] TRAIN_S TRAIN_T TRAIN_WAL [TRAIN_S2 TRAIN_T2 TRAIN_WAL2 [
 
   Train an NNJM model from a training and a dev corpus, optionally starting from a
   model pre-trained on a background or larger corpus.
+  The training corpus is used to train the actual NNJM neural network.
+  The dev corpus is used to determine early stopping.
+  If provided, the test corpus is simply used to evaluate each model but does not
+  affect the training procedure.
 
 Positional arguments:
 
