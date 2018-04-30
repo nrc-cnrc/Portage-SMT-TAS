@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   width="454"
+   height="40"
+   viewBox="0 0 454 40"
+   preserveAspectRatio="xMinYMin meet"
+   id="svg3389"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="nrc-eng.svg">
+  <metadata
+     id="metadata3402">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1871"
+     inkscape:window-height="1056"
+     id="namedview3400"
+     showgrid="false"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="208.75975"
+     inkscape:cy="9.9346377"
+     inkscape:window-x="49"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3389" />
+  <!-- Web Experience Toolkit (WET) / Boîte à outils de l'expérience Web (BOEW)
+wet-boew.github.io/wet-boew/License-en.html / wet-boew.github.io/wet-boew/Licence-fr.html  -->
+  <defs
+     id="defs3391">
+    <style
+       type="text/css"
+       id="style3393">
+			.fip_text {fill:#000;}.fip_flag {fill:#F00;}
+			@media screen {.fip_text, .fip_flag {fill: #FFF;}}
+		</style>
+  </defs>
+  <g
+     id="g3365"
+     transform="matrix(1.9387755,0,0,1.9387755,0,-38.163267)">
+    <rect
+       inkscape:label="Canada Flag Background"
+       y="20.200001"
+       x="0"
+       height="19.6"
+       width="39.5"
+       id="CanadaFlagBackground"
+       style="fill:#ffffff">
+      <desc
+         id="desc3363">Canada Flag Background</desc>
+      <title
+         id="title3361">Canada Flag Background</title>
+    </rect>
+    <path
+       inkscape:label="Canada Flag"
+       class="fip_flag"
+       d="m 39.5,39.800001 -9.9,0 0,-19.6 9.9,0 0,19.6 0,0 z m -19.7,-18.1 c 0,0 -1.2,2.4 -1.4,2.6 -0.2,0.3 -0.3,0.3 -0.6,0.2 -0.3,-0.2 -1.3,-0.7 -1.3,-0.7 0,0 0.9,3.9 0.9,4.2 0.1,0.3 -0.2,0.6 -0.6,0.3 -0.1,-0.1 -1.8,-2 -1.8,-2 0,0 -0.4,0.9 -0.5,1.1 -0.1,0.2 -0.2,0.3 -0.4,0.2 -0.3,-0.1 -1.9,-0.4 -1.9,-0.4 0,0 0.6,1.9 0.7,2.2 0.1,0.2 0.2,0.4 -0.2,0.6 l -0.6,0.2 c 0,0 3.3,2.9 3.4,3 0.2,0.2 0.3,0.2 0.2,0.7 -0.2,0.5 -0.3,1.1 -0.3,1.1 0,0 3.1,-0.7 3.4,-0.7 0.3,0 0.6,0.1 0.6,0.4 0,0.3 -0.2,3.7 -0.2,3.7 l 1,0 c 0,0 -0.2,-3.3 -0.2,-3.7 0,-0.3 0.3,-0.4 0.6,-0.4 0.3,0.1 3.4,0.7 3.4,0.7 0,0 -0.2,-0.7 -0.3,-1.1 -0.2,-0.5 0,-0.6 0.2,-0.7 0.1,-0.1 3.4,-3 3.4,-3 l -0.6,-0.2 c -0.3,-0.2 -0.2,-0.4 -0.2,-0.6 0.1,-0.2 0.7,-2.2 0.7,-2.2 0,0 -1.6,0.3 -1.9,0.4 -0.2,0.1 -0.3,-0.1 -0.4,-0.2 -0.1,-0.2 -0.5,-1.1 -0.5,-1.1 0,0 -1.7,2 -1.8,2 -0.3,0.2 -0.7,0 -0.6,-0.3 0,-0.3 0.9,-4.2 0.9,-4.2 0,0 -1,0.6 -1.3,0.7 -0.2,0.2 -0.4,0.2 -0.6,-0.2 0,-0.3 -1.2,-2.6 -1.2,-2.6 l 0,0 z m -9.8999998,18.1 0,-19.6 -9.90000005,0 0,19.6 9.90000005,0 0,0 z"
+       id="CanadaFlag"
+       style="fill:#ff0000"
+       inkscape:connector-curvature="0">
+      <desc
+         id="desc3359">Canada Flag</desc>
+      <title
+         id="title3357">Canada Flag</title>
+    </path>
+  </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:21.68949699px;line-height:100%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="81.040001"
+     y="17.059999"
+     id="text3406"
+     sodipodi:linespacing="100%"
+     inkscape:label="National Research Council Canada"><desc
+       id="desc3351">National Research Council Canada</desc><title
+       id="title3349">National Research Council Canada</title><tspan
+       sodipodi:role="line"
+       id="tspan3408"
+       x="81.040001"
+       y="17.059999"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:100%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L'">National Research</tspan><tspan
+       sodipodi:role="line"
+       x="81.040001"
+       y="37.059998"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:100%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L'"
+       id="tspan3420">Council Canada</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:21.54195023px;line-height:100%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="250.51073"
+     y="17.18"
+     id="CNRC"
+     sodipodi:linespacing="100%"
+     inkscape:label="Conseil national de recherches Canada"><desc
+       id="desc3355">Conseil national de recherches Canada</desc><title
+       id="title3353">Conseil national de recherches Canada</title><tspan
+       sodipodi:role="line"
+       x="250.51073"
+       y="17.18"
+       id="tspan3414"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:100%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L'"
+       dx="0">Conseil national</tspan><tspan
+       sodipodi:role="line"
+       x="250.51073"
+       y="37.18"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:100%;font-family:'Nimbus Sans L';-inkscape-font-specification:'Nimbus Sans L'"
+       id="tspan3418">de recherches Canada</tspan></text>
+</svg>

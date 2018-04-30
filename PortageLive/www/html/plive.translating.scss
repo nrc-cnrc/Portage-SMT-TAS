@@ -1,0 +1,82 @@
+/**
+ * @author Samuel Larkin
+ * @file plive.translating.scss
+ * @brief plive client-side translating style (css generator code).
+ *
+ * Traitement multilingue de textes / Multilingual Text Processing
+ * Centre de recherche en technologies numériques / Digital Technologies Research Centre
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2018, Sa Majeste la Reine du Chef du Canada
+ * Copyright 2018, Her Majesty in Right of Canada
+ */
+
+/*
+<div class="translating">
+   <div class="translating-text">
+      <span class="translating-text-words">T</span>
+      <span class="translating-text-words">r</span>
+      <span class="translating-text-words">a</span>
+      <span class="translating-text-words">n</span>
+      <span class="translating-text-words">s</span>
+      <span class="translating-text-words">l</span>
+      <span class="translating-text-words">a</span>
+      <span class="translating-text-words">t</span>
+      <span class="translating-text-words">i</span>
+      <span class="translating-text-words">n</span>
+      <span class="translating-text-words">g</span>
+   </div>
+</div>
+*/
+
+@import url(https://fonts.googleapis.com/css?family=Quattrocento+Sans);
+
+@mixin position-center($text-align: center) {
+   top: 0;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: auto;
+   text-align: $text-align;
+}
+
+.translating {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: #000;
+   z-index: 9999;
+}
+
+.translating-text {
+   @include position-center;
+   width: 100%;
+   height: 100px;
+   line-height: 100px;
+   span {
+      display: inline-block;
+      margin: 0 5px;
+      color: #fff;
+      font-family: 'Quattrocento Sans', sans-serif;
+      @for $i from 0 through 10 {
+         &:nth-child(#{$i + 1}) {
+            filter: blur(0px);
+            animation-name: blur-text;
+            animation-duration: 2.5s;
+            animation-delay: (#{$i/5})+s;
+            animation-iteration-count: infinite;
+            //animation-timing-function: linear;
+            animation-timing-function: cubic-bezier(0.1, 0.9, 1.0, 0.1);
+            animation-direction: alternate;
+         }
+      }
+   }
+}
+
+@keyframes blur-text {
+   0% {filter: blur(0px);}
+   50% {filter: blur(0px);}
+   100% {filter: blur(10px);}
+}
+
