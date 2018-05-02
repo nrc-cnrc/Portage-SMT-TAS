@@ -520,14 +520,14 @@
 
         Returns a string containing a human readable description containing the
         status and additional details.
-        
+
         The status is one of:
         N/A : document model does not exist.
         Update pending : the queue of new sentence pairs to add is not empty.
         Update in_progress : incremental training currently in progress.
         Update pending+in_progress : both previous conditions are true
         Update complete : neither condition is true, but training has occurred.
-        
+
         If the status is 'N/A', no additional information follows.
         Otherwise, the status is followed by the incremental corpus and queue
         sizes (number of sentence pairs). Thus, the description is of the form:
