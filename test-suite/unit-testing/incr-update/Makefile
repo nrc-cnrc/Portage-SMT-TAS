@@ -16,9 +16,6 @@ export PORTAGE_NOCLUSTER=1
 .SECONDARY:
 
 .PHONY: all
-all:  test.locking test.empty test.too_small test.s1t1 test.custom_cmds \
-      test.bad_init test.2_init test.rolling
-
 
 TEMP_DIRS = context.* workdir.test.*
 TEMP_FILES = s1.rule dev1_* log.*
@@ -57,24 +54,76 @@ context.bad:			# missing incremental.config
 	cd $@ && ln -sf ${TOY_SYSTEM}/* .
 	rm $@/incremental.config
 
+# This special context, context.empty-cpt, changes the HMM3 models to have p0=0.9 instead
+# of p0=0.6, which makes OOVs remain unaligned and allows us to exercise the intended test
+# case, which is to have gen_phrase_tables generate no phrase pairs at all from a sentence
+# pair having only an OOV on each side. With p0=0.6, our HMM3 model aligns these words
+# together, with p0=0.9, it leaves them unaligned. For empty-cpt-2, we need to set it even
+# higher to leave 5 consecutive OOVs unaligned, so we set it to p0=0.99 in the end.
+context.empty-cpt: context.main
+	mkdir -p $@
+	cd $@ && cp -a ../$</* .
+	cd $@ && mkdir -p my-ibm
+	cd $@/my-ibm && ln -sf ../models/tm/hmm3*given_??.gz .
+	cd $@ && cp models/tm/hmm3*.dist.gz my-ibm/.
+	cd $@ && gunzip my-ibm/*.dist.gz
+	cd $@ && sed -i 's/20 0.6 0.5 0 1/20 0.99 0.5 0 1/' my-ibm/*.dist
+	cd $@ && gzip my-ibm/*.dist
+	cd $@ && sed -i 's/models\/tm/my-ibm/' incremental.config
+
 
 #################################################################
 # Test creation of an incremental model with an empty corpus
-.PHONY: test.empty check.test.empty
+.PHONY: test.empty-corpus check.test.empty-corpus
 
-test.empty: %: check.%
+all: test.empty-corpus
+test.empty-corpus: %: check.%
 
-check.test.empty: check.%: workdir.%
+check.test.empty-corpus: check.%: workdir.%
 	grep -q __DUMMY__ $</lm.incremental_fr
 	grep -q "[lock]" $</canoe.ini.cow
 	grep -q cpt-incr.mixtm $</canoe.ini.cow
 	grep -q lm-incr.mixlm $</canoe.ini.cow
 
-workdir.test.empty: TIME_TAG = incr-update empty
+workdir.test.empty-corpus: TIME_TAG = incr-update empty-corpus
 
-workdir.test.empty: context.main
+workdir.test.empty-corpus: context.main
 	mkdir -p $@
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v /dev/null >& log.update-empty
+
+
+#################################################################
+# Test creation of an incremental model with no resulting phrase pairs
+.PHONY: test.empty-cpt check.test.empty-cpt
+
+all: test.empty-cpt
+test.empty-cpt: %: check.%
+
+check.test.empty-cpt: check.%: workdir.%
+	grep -q qwerty $</incremental-tmp.???/cpt.incremental.en2fr
+
+# In this sub-test, phrase pair extraction yields nothing because qwerty is not aligned
+# with asdfgh, so the cpt is empty. Fix: use gen_phrase_tables with switch to generate
+# whole sent pair as a single phrase pair if it respects the max phrase length.
+workdir.test.empty-cpt: TIME_TAG = incr-update empty-cpt
+workdir.test.empty-cpt: context.empty-cpt
+	mkdir -p $@
+	echo -e "`date +"%F %T"`\tqwerty\tasdfgh" > $@/corpora
+	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-empty
+
+.PHONY: test.empty-cpt-2 check.test.empty-cpt-2
+
+all: test.empty-cpt-2
+test.empty-cpt-2: %: check.%
+
+check.test.empty-cpt-2: check.%: workdir.%
+	grep -q __DUMMY__ $</incremental-tmp.???/cpt.incremental.en2fr
+
+workdir.test.empty-cpt-2: TIME_TAG = incr-update empty-cpt-2
+workdir.test.empty-cpt-2: context.empty-cpt
+	mkdir -p $@
+	echo -e "`date +"%F %T"`\tqwerty qwerty qwerty qwerty qwerty\tasdf asdf asdf asdf asdf" > $@/corpora
+	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-empty
 
 
 #################################################################
@@ -82,6 +131,7 @@ workdir.test.empty: context.main
 # regular LM creation
 .PHONY: test.too_small check.test.too_small
 
+all: test.too_small
 test.too_small: %: check.%
 
 check.test.too_small: check.%: workdir.%
@@ -100,6 +150,7 @@ workdir.test.too_small: context.main
 # "Mr. Boazek" correctly translated to "M. Baozeck".
 .PHONY: test.s1t1 check.test.s1t1
 
+all: test.s1t1
 test.s1t1: %: check.%
 
 check.test.s1t1: check.%: workdir.%/s1.out.incr
@@ -125,6 +176,7 @@ workdir.test.s1t1/s1.out.incr: workdir.test.s1t1 s1.rule
 # Use custom commands in the config and make sure they work
 .PHONY: test.custom_cmds check.test.custom_cmds
 
+all: test.custom_cmds
 test.custom_cmds: %: check.%
 
 check.test.custom_cmds: check.%: workdir.%
@@ -144,6 +196,7 @@ workdir.test.custom_cmds: context.custom_cmds
 # Test initialization failure
 .PHONY: test.bad_init check.test.bad_init
 
+all: test.bad_init
 test.bad_init: %: check.%
 
 check.test.bad_init: check.%: workdir.%
@@ -162,6 +215,7 @@ workdir.test.bad_init: context.bad
 # Test double initialization
 .PHONY: test.2_init check.test.2_init
 
+all: test.2_init
 test.2_init: %: check.%
 
 check.test.2_init: check.%: workdir.%
@@ -179,6 +233,7 @@ workdir.test.2_init: context.main
 # Test locking
 .PHONY: test.locking check.test.locking
 
+all: test.locking
 test.locking: %: check.%
 
 check.test.locking: check.%: workdir.%
@@ -207,6 +262,7 @@ workdir.test.locking: context.main dev1_en.rule
 # Test the rolling window
 .PHONY: test.rolling check.test.rolling
 
+all: test.rolling
 test.rolling: %: check.%
 
 check.test.rolling: check.%: workdir.%
