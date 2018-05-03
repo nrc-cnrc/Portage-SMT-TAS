@@ -337,7 +337,7 @@ def train(args):
    log("... epoch size = %d (%0.f%% train data), slice size = %d (%d per epoch), minibatch size = %d" \
        % (nsamples_per_epoch, 100.0*nsamples_per_epoch/data_size, args.slice_size, nslices_per_epoch, args.batch_size))
    for epoch in range(args.n_epochs):
-      beg_time = time.clock()
+      beg_time = time.time()
       for slice_id in range(nslices_per_epoch):
          X, y = D.next()
          err = msgd.optimize(stvec,
@@ -358,7 +358,7 @@ def train(args):
                              shuffle = False,
                              quiet = True)
       log("... epoch %d: %d secs, eta = %f, nlls: train = %f, val = %f, test = %f" \
-          % (epoch+1, time.clock()-beg_time, eta, err[0], err[1], err[2]))
+          % (epoch+1, time.time()-beg_time, eta, err[0], err[1], err[2]))
       if low_val_err is None or err[1] < low_val_err:
          low_val_err = err[1]
          pending = 0
