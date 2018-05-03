@@ -100,7 +100,7 @@ all: test.empty-cpt
 test.empty-cpt: %: check.%
 
 check.test.empty-cpt: check.%: workdir.%
-	grep -q qwerty $</incremental-tmp.???/cpt.incremental.en2fr
+	grep -q qwerty $</cpt.incremental.en2fr
 
 # In this sub-test, phrase pair extraction yields nothing because qwerty is not aligned
 # with asdfgh, so the cpt is empty. Fix: use gen_phrase_tables with switch to generate
@@ -117,7 +117,8 @@ all: test.empty-cpt-2
 test.empty-cpt-2: %: check.%
 
 check.test.empty-cpt-2: check.%: workdir.%
-	grep -q __DUMMY__ $</incremental-tmp.???/cpt.incremental.en2fr
+	grep -q __DUMMY__ $</cpt.incremental.en2fr
+	grep -q "asdf asdf asdf" $</lm.incremental_fr
 
 workdir.test.empty-cpt-2: TIME_TAG = incr-update empty-cpt-2
 workdir.test.empty-cpt-2: context.empty-cpt
