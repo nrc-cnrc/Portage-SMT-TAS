@@ -88,6 +88,7 @@ class PortageLiveLib
       }
       $info["script"] = "$info[context_dir]/soap-translate.sh";
       $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
+      $info['is_incremental'] = is_file("$info[context_dir]/incremental.config");
       if (is_file($info["script"])) {
          $info["good"] = true;
          $cmdline = `tail -n -1 < $info[script]`;
@@ -113,8 +114,9 @@ class PortageLiveLib
             #   $info["rescore_ini"] = "$info[context_dir]/rescore.ini";
             if (is_file("$info[context_dir]/ce_model.cem"))
                $info["ce_model"] = "$info[context_dir]/ce_model.cem";
-            $info["label"] = "$context ($src --> $tgt)" .
-                           (empty($info["ce_model"]) ? "" : " with CE");
+            $info["label"] = "$context ($src --> $tgt)"
+               . (empty($info["ce_model"]) ? "" : " with CE")
+               . ($info['is_incremental'] ? ' [Incr]' : '');
          }
       } else {
          $info["good"] = false;
@@ -320,6 +322,7 @@ class PortageLiveLib
                   'description' => $info['label'],
                   'source' => $info['source'],
                   'target' => $info['target'],
+                  'is_incremental' => $info['is_incremental'],
                );
             else if ($verbose)
                $contexts[] = $info['label'];

@@ -872,7 +872,8 @@
       getAllContexts().  The non-verbose mode is meant for machine
       processing, listing just the contexts installed on the server, while
       the verbose mode adds human-readable details such as language
-      direction and whether confidence estimation is available.
+      direction, whether confidence estimation is available and if the context
+      supports incremental training.
 
       To translate text, call translate() with the desired context.
       srcString is used for the raw text to be translated.  It should
