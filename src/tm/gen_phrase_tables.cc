@@ -93,6 +93,9 @@ Options:\n\
        target phrases. [4]\n\
 -ali   Allow phrase pairs consisting only of unaligned words in each language\n\
        [don't]\n\
+-whole Add sent pair as phrase pair if it generated no phrase pairs and is\n\
+       shorter than the max length (intended for incremental; use only if you\n\
+       are sure of your sentence alignments) [don't]\n\
 -ibm   Use IBM model <n>: 1 or 2\n\
 -hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
        [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
@@ -166,7 +169,7 @@ Output selection options (specify as many as you need):\n\
 static const char* const switches[] = {
    "v", "vv", "vs", "i", "j", "z", "prune1:", "prune1w:",
    "a:", "s:",
-   "m:", "min:", "d:", "ali", "w:", "wf:", "wfvoc:", "1:", "2:", "ibm:",
+   "m:", "min:", "d:", "ali", "whole", "w:", "wf:", "wfvoc:", "1:", "2:", "ibm:",
    "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
    "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
@@ -256,6 +259,7 @@ public:
       mp_arg_reader->testAndSet("min", ppe.min_phrase_string);
       mp_arg_reader->testAndSet("d", ppe.max_phraselen_diff);
       mp_arg_reader->testAndSet("ali", ppe.allow_linkless_pairs);
+      mp_arg_reader->testAndSet("whole", ppe.whole_sent_if_no_phrase_pairs);
       mp_arg_reader->testAndSet("w", ppe.add_word_translations);
       mp_arg_reader->testAndSet("wf", add_word_trans_file);
       mp_arg_reader->testAndSet("wfvoc", add_word_trans_voc);
@@ -500,7 +504,8 @@ void doEverything(const char* prog_name, ARG& args)
          IBM1* model = NULL;
          if (ppe.aligner_factory) delete ppe.aligner_factory;
          ppe.aligner_factory = new WordAlignerFactory(
-               model, model, ppe.verbose, ppe.twist, ppe.add_single_word_phrases);
+               model, model, ppe.verbose, ppe.twist, ppe.add_single_word_phrases,
+               ppe.allow_linkless_pairs, ppe.whole_sent_if_no_phrase_pairs);
 
          ppe.align_methods.clear();
          ppe.align_methods.push_back("ExternalAligner " + alfile1);
@@ -523,7 +528,8 @@ void doEverything(const char* prog_name, ARG& args)
          al_2 = new GizaAlignmentFile(alfile2);
          if (ppe.aligner_factory) delete ppe.aligner_factory;
          ppe.aligner_factory = new WordAlignerFactory(
-               al_1, al_2, ppe.verbose, ppe.twist, ppe.add_single_word_phrases);
+               al_1, al_2, ppe.verbose, ppe.twist, ppe.add_single_word_phrases,
+               ppe.allow_linkless_pairs, ppe.whole_sent_if_no_phrase_pairs);
 
          ppe.aligners.clear();
          for (Uint i = 0; i < ppe.align_methods.size(); ++i)

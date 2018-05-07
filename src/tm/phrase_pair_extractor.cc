@@ -39,7 +39,8 @@ void PhrasePairExtractor::dumpParameters() const
         << "display_alignments=" << display_alignments << endl
         << "twist=" << twist << endl
         << "add_single_word_phrases=" << add_single_word_phrases << endl
-        << "allow_linkless_pairs=" << allow_linkless_pairs << endl;
+        << "allow_linkless_pairs=" << allow_linkless_pairs << endl
+        << "whole_sent_if_no_phrase_pairs=" << whole_sent_if_no_phrase_pairs << endl;
 }
 
 bool PhrasePairExtractor::getArgs(int argc, const char* const argv[], bool errors_are_fatal)
@@ -205,7 +206,7 @@ void PhrasePairExtractor::loadModels(bool createAligner)
 
    aligner_factory = new WordAlignerFactory(
          ibm_1, ibm_2, verbose, twist,
-         add_single_word_phrases, allow_linkless_pairs);
+         add_single_word_phrases, allow_linkless_pairs, whole_sent_if_no_phrase_pairs);
    for (Uint i = 0; createAligner and i < align_methods.size(); ++i)
       aligners.push_back(aligner_factory->createAligner(align_methods[i]));
 }

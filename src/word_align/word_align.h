@@ -111,6 +111,7 @@ class WordAlignerFactory
    bool twist;
    bool addSingleWords;
    bool allow_linkless_pairs;
+   bool whole_sent_if_no_phrase_pairs;
 
    /// Generic object to create various WordAligner.
    template<class T> struct DCon {
@@ -159,10 +160,14 @@ public:
     * @param addSingleWords add single-word phrase pairs for each alignment link
     * @param allow_linkless_pairs during phrase extraction, allow phrase pairs
     *        that consist only of unaligned words in each language
+    * @param whole_sent_if_no_phrase_pairs if set, when a sententence pair
+    *        generates no phrase pairs, add it as a phrase pair, as long as
+    *        it's shorter than the max phrase length.
     */
    WordAlignerFactory(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2,
                       Uint verbose, bool twist, bool addSingleWords,
-                      bool allow_linkless_pairs = false);
+                      bool allow_linkless_pairs = false,
+                      bool whole_sent_if_no_phrase_pairs = false);
 
    /**
     * Construct with GizaAlignmentFile in both directions.
@@ -173,11 +178,15 @@ public:
     * @param addSingleWords add single-word phrase pairs for each alignment link
     * @param allow_linkless_pairs during phrase extraction, allow phrase pairs
     *        that consist only of unaligned words in each language
+    * @param whole_sent_if_no_phrase_pairs if set, when a sententence pair
+    *        generates no phrase pairs, add it as a phrase pair, as long as
+    *        it's shorter than the max phrase length.
     */
    WordAlignerFactory(IBMAlignmentFile* file_lang2_given_lang1,
                       IBMAlignmentFile* file_lang1_given_lang2,
                       Uint verbose, bool twist, bool addSingleWords,
-                      bool allow_linkless_pairs = false);
+                      bool allow_linkless_pairs = false,
+                      bool whole_sent_if_no_phrase_pairs = false);
 
    /**
     * Create a new aligner according to specifications.
@@ -807,6 +816,8 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
    earliest1.assign(toks1.size(), toks2.size()); latest1.assign(toks1.size(), 0);
    earliest2.assign(toks2.size(), toks1.size()); latest2.assign(toks2.size(), 0);
 
+   bool added_something(false);
+
    for (Uint i = 0; i < sets1.size(); ++i) {
       if (sets1[i].size() && i < toks1.size()) {
          earliest1[i] = sets1[i].front();
@@ -820,6 +831,7 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
 
             if (addSingleWords) {
                phrase_adder(i, i+1, jj, jj+1, green_alignment);
+               added_something = true;
             }
          }
       }
@@ -849,6 +861,7 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                      green_alignment = green_alignment_s.c_str();
                   }
                   phrase_adder(b1,e1,b2,e2,green_alignment);
+                  added_something = true;
 
                   if (verbose > 1) {
                      const string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");
@@ -861,6 +874,18 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
          }
       }
    }
+
+   if (!added_something && whole_sent_if_no_phrase_pairs &&
+         toks1.size() <= max_phrase_len1 && toks2.size() <= max_phrase_len2) {
+      Uint b1(0), e1(toks1.size()), b2(0), e2(toks2.size());
+      if ( store_alignments ) {
+         green_writer.write_partial_alignment(green_alignment_s,
+            toks1, b1, e1, toks2, b2, e2, sets1, '_');
+         green_alignment = green_alignment_s.c_str();
+      }
+      phrase_adder(b1,e1,b2,e2,green_alignment);
+   }
+
    if (verbose > 1) cerr << endl;
 }
 

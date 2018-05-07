@@ -175,7 +175,7 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
 WordAlignerFactory::WordAlignerFactory(IBM1* ibm_lang2_given_lang1,
                                        IBM1* ibm_lang1_given_lang2,
                                        Uint verbose, bool twist, bool addSingleWords,
-                                       bool allow_linkless_pairs)
+                                       bool allow_linkless_pairs, bool whole_sent_if_no_phrase_pairs)
    : ibm_lang2_given_lang1(ibm_lang2_given_lang1)
    , ibm_lang1_given_lang2(ibm_lang1_given_lang2)
    , file_lang2_given_lang1(NULL)
@@ -184,13 +184,14 @@ WordAlignerFactory::WordAlignerFactory(IBM1* ibm_lang2_given_lang1,
    , twist(twist)
    , addSingleWords(addSingleWords)
    , allow_linkless_pairs(allow_linkless_pairs)
+   , whole_sent_if_no_phrase_pairs(whole_sent_if_no_phrase_pairs)
 {
 }
 
 WordAlignerFactory::WordAlignerFactory(IBMAlignmentFile* file_lang2_given_lang1,
                                        IBMAlignmentFile* file_lang1_given_lang2,
                                        Uint verbose, bool twist, bool addSingleWords,
-                                       bool allow_linkless_pairs)
+                                       bool allow_linkless_pairs, bool whole_sent_if_no_phrase_pairs)
    : ibm_lang2_given_lang1(NULL)
    , ibm_lang1_given_lang2(NULL)
    , file_lang2_given_lang1(file_lang2_given_lang1)
@@ -199,6 +200,7 @@ WordAlignerFactory::WordAlignerFactory(IBMAlignmentFile* file_lang2_given_lang1,
    , twist(twist)
    , addSingleWords(addSingleWords)
    , allow_linkless_pairs(allow_linkless_pairs)
+   , whole_sent_if_no_phrase_pairs(whole_sent_if_no_phrase_pairs)
 {
 }
 

@@ -21,6 +21,7 @@ TEMP_DIRS = context.* workdir.test.*
 TEMP_FILES = s1.rule dev1_* log.*
 include ../Makefile.incl
 
+SHELL := /bin/bash
 
 # Absolute pathname needed for $TOY_SYSTEM
 TOY_SYSTEM ?= $(abspath ${PORTAGE}/test-suite/systems/toy-regress-en2fr)
@@ -101,6 +102,7 @@ test.empty-cpt: %: check.%
 
 check.test.empty-cpt: check.%: workdir.%
 	grep -q qwerty $</cpt.incremental.en2fr
+	[[ `wc -l < $</cpt.incremental.en2fr` -eq 4 ]] || { echo $</cpt.incremental.en2fr should have exactly 4 lines && false ; }
 
 # In this sub-test, phrase pair extraction yields nothing because qwerty is not aligned
 # with asdfgh, so the cpt is empty. Fix: use gen_phrase_tables with switch to generate
@@ -108,7 +110,13 @@ check.test.empty-cpt: check.%: workdir.%
 workdir.test.empty-cpt: TIME_TAG = incr-update empty-cpt
 workdir.test.empty-cpt: context.empty-cpt
 	mkdir -p $@
-	echo -e "`date +"%F %T"`\tqwerty\tasdfgh" > $@/corpora
+	for i in `seq 1 9`; do \
+	   echo -ne "`date +"%F %T"`\t"; \
+	   for j in `seq 1 $$i`; do echo -n qwerty\  ; done; \
+	   echo -ne "\t"; \
+	   for j in `seq 1 $$i`; do echo -n asdf\  ; done; \
+	   echo; \
+	done > $@/corpora
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-empty
 
 .PHONY: test.empty-cpt-2 check.test.empty-cpt-2

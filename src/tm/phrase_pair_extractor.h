@@ -51,6 +51,7 @@ struct PhrasePairExtractor {
    bool twist;
    bool add_single_word_phrases;
    bool allow_linkless_pairs;
+   bool whole_sent_if_no_phrase_pairs;
    Uint add_word_translations;
 
    optional<double> p0;
@@ -98,6 +99,7 @@ struct PhrasePairExtractor {
       , twist(false)
       , add_single_word_phrases(false)
       , allow_linkless_pairs(false)
+      , whole_sent_if_no_phrase_pairs(false)
       , add_word_translations(0)
       , ibm_1(NULL)
       , ibm_2(NULL)
