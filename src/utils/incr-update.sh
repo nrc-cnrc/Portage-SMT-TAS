@@ -216,7 +216,7 @@ run_cmd "(cd $WD; arpalm2tplm.sh $INCREMENTAL_LM)" ||
 # TM
 verbose 1 Train the incremental TM from source and target
 run_cmd "gen_phrase_tables -o $WD/$INCREMENTAL_TM_BASE -1 $SRC_LANG -2 $TGT_LANG -multipr fwd \
-   -s RFSmoother -s ZNSmoother -write-count -write-al top -whole \
+   -s RFSmoother -s ZNSmoother -write-count -write-al top -whole -m 8 \
    $ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz \
    $ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz \
    $WD/source.lc $WD/target.lc" ||

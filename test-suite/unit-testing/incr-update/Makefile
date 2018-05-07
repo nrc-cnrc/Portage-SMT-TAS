@@ -102,7 +102,7 @@ test.empty-cpt: %: check.%
 
 check.test.empty-cpt: check.%: workdir.%
 	grep -q qwerty $</cpt.incremental.en2fr
-	[[ `wc -l < $</cpt.incremental.en2fr` -eq 4 ]] || { echo $</cpt.incremental.en2fr should have exactly 4 lines && false ; }
+	[[ `wc -l < $</cpt.incremental.en2fr` -eq 8 ]] || { echo Error: $</cpt.incremental.en2fr should have exactly 8 lines && false ; }
 
 # In this sub-test, phrase pair extraction yields nothing because qwerty is not aligned
 # with asdfgh, so the cpt is empty. Fix: use gen_phrase_tables with switch to generate
@@ -131,7 +131,7 @@ check.test.empty-cpt-2: check.%: workdir.%
 workdir.test.empty-cpt-2: TIME_TAG = incr-update empty-cpt-2
 workdir.test.empty-cpt-2: context.empty-cpt
 	mkdir -p $@
-	echo -e "`date +"%F %T"`\tqwerty qwerty qwerty qwerty qwerty\tasdf asdf asdf asdf asdf" > $@/corpora
+	echo -e "`date +"%F %T"`\tqwerty qwerty qwerty qwerty qwerty qwerty qwerty qwerty qwerty\tasdf qwerty qwerty qwerty qwerty asdf asdf asdf asdf" > $@/corpora
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-empty
 
 
