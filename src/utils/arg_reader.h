@@ -221,10 +221,10 @@ public:
       if (b_set && b_reset) {
          // Get the index of the switches.
          Uint set_idx = 0;
-         assert(conv(set_idx_s, set_idx) == true);
+         if (!conv(set_idx_s, set_idx)) assert(false);
 
          Uint reset_idx = 0;
-         assert(conv(reset_idx_s, reset_idx) == true);
+         if (!conv(reset_idx_s, reset_idx)) assert(false);
 
          assert(set_idx != reset_idx);
 

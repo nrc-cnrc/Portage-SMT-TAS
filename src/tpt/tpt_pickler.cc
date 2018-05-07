@@ -388,7 +388,8 @@ namespace ugdiss
         return ++p;
       }
     buf += uint32_t(*p)<<21;
-    assert(*(++p) < 0);
+    ++p;
+    assert(*p < 0);
     buf += uint32_t((*p)&mask)<<28;
     return ++p;
   }
@@ -453,7 +454,8 @@ namespace ugdiss
         return ++p;
       }
     buf += filepos_type(*p)<<56;
-    assert(*(++p) < 0);
+    ++p;
+    assert(*p < 0);
     buf += filepos_type((*p)&mask)<<63;
     return ++p;
   }

@@ -42,6 +42,10 @@ import operator
 import json
 from functools import partial
 
+# MKL_THREADING_LAYER=GNU is always required, so set it in here, before importing Theano
+import os
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
 import theano
 import numpy
 from theano import pp
@@ -78,9 +82,7 @@ def get_args():
    """
 
    # Use the argparse module, not the deprecated optparse module.
-   parser = ArgumentParser(usage=usage, description=help, add_help=False)
-
-   parser.add_argument("-h", "-help", "--help")
+   parser = ArgumentParser(usage=usage, description=help)
 
    parser.add_argument("-t", "--text", dest="textMode", action='store_true', default=False,
                        help="write in text format [%(default)s]")

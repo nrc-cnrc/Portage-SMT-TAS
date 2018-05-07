@@ -142,8 +142,11 @@ fi
 [[ $SRC_LOWERCASE_CMD ]] || SRC_LOWERCASE_CMD="utf8_casemap -c l"
 [[ $TGT_LOWERCASE_CMD ]] || TGT_LOWERCASE_CMD="utf8_casemap -c l"
 
+[[ $MAX_INCR_CORPUS_SIZE ]] || MAX_INCR_CORPUS_SIZE=2000
+
 # Don't try to make any models if there is nothing in the corpora.
-[[ `wc -l < $INCREMENTAL_CORPUS` -gt 0 ]] || exit 0
+CORPUS_SIZE=`wc -l < $INCREMENTAL_CORPUS`
+[[ $CORPUS_SIZE -gt 0 ]] || exit 0
 
 INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG
 INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
@@ -151,6 +154,14 @@ INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
 WD=`mktemp -d incremental-tmp.XXX` ||
    error_exit "Cannot create temporary working directory"
 verbose 1 Created working directory $WD
+
+# Apply the rolling window
+if [[ $CORPUS_SIZE -gt $MAX_INCR_CORPUS_SIZE ]]; then
+   TMP_CORPUS=`mktemp $INCREMENTAL_CORPUS.truncated.XXX`
+   verbose 1 Truncating corpus via $TMP_CORPUS to max size $MAX_INCR_CORPUS_SIZE
+   run_cmd "tail -$MAX_INCR_CORPUS_SIZE < $INCREMENTAL_CORPUS > $TMP_CORPUS"
+   run_cmd "mv $TMP_CORPUS $INCREMENTAL_CORPUS"
+fi
 
 # Separate the tab-separated corpus file into clean OSPL source and target files
 # Warning: don't call clean-utf8-text.pl before cut, since it replaces tab characters by spaces.
@@ -185,6 +196,7 @@ run_cmd "$TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc"
 # LM
 verbose 1 Train the incremental LM on target
 set +o errexit
+ulimit -c 0 # suppress estimate-ngram's core dump files (when corpus is too small)
 run_cmd "estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM"
 RC=$?
 set -o errexit

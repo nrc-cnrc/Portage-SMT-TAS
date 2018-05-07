@@ -217,6 +217,7 @@ bool InputParser::readMarkedSent(newSrcSentInfo& nss,
          // EJJ 12JUL2005: Allow < and > inside the string, since the first
          // character is not <.
          bool rc = readString(sent.back(), c, (char)0, (char)0, true);
+         FOR_ASSERT(rc);
          assert(rc);
       }
       skipSpaces(c);

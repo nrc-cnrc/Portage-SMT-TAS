@@ -482,9 +482,15 @@
       <documentation>
         Add a segment with its translation to an incremental system defined by
         its context and document_model_id.  Adding a sentence pair triggers
-        train of that incremental system if no training is already underway, or
+        training of that incremental system if no training is already underway, or
         else buffers the sentence pair for re-training is soon as the current
         training operation is completed.
+
+        Incremental models are specific to the document_model_id and context used and
+        are only available to translate requests using the same context /
+        document_model_id pair. Document_model_id's should be unique: if you reuse
+        the same ID for two documents with the same context, they will share the same
+        incremental model.
 
         Arguments:
          - context is the name of the system to use to translate the document, and

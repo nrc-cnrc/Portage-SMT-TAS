@@ -679,6 +679,7 @@ void HMMAligner::count_symmetrized(const vector<string>& src_toks,
       if ( chunks > 1 ) {
          for ( Uint c = 0; c < chunks; ++c ) {
             const Uint old_src_size = src_toks_v[c].size();
+            FOR_ASSERT(old_src_size);
             src_toks_v[c].erase(src_toks_v[c].begin());
             assert(src_toks_v[c].size() + 1 == old_src_size);
             count_symmetrized(src_toks_v[c], tgt_toks_v[c], use_null, r_ibm1);

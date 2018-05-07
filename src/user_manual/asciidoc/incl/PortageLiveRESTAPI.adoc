@@ -121,8 +121,9 @@ submitted while training is in progress are buffered and handled as soon as the
 training system is available again.
 
 Incremental models are specific to the document_model_ID and context used and
-are only available to translate requests using the same context/document_model_ID
-pair.
+are only available to translate requests using the same context + document_model_ID
+pair. Document_model_ID's should be unique: if you reuse the same ID for two
+documents with the same context, they will share the same incremental model.
 
 Incremental model training is done on a best-effort basis, but is not
 guaranteed to succeed. incrStatus can be used to query the traning status for a

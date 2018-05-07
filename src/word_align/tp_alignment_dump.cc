@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
       Uint end = file->size();
       for (Uint i = 0; i < end; ++i) {
          bool rc = file->get(i, sets);
+         FOR_ASSERT(rc);
          assert(rc);
          greenwriter(cout, dummy, dummy, sets);
       }
@@ -76,6 +77,7 @@ int main(int argc, char* argv[])
          // dump [begin,end)
          for (Uint i = begin; i < end; ++i) {
             bool rc = file->get(i, sets);
+            FOR_ASSERT(rc);
             assert(rc);
             greenwriter(cout, dummy, dummy, sets);
          }

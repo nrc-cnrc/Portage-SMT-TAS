@@ -30,6 +30,10 @@ Usage: $PROG [options] TRAIN_S TRAIN_T TRAIN_WAL [TRAIN_S2 TRAIN_T2 TRAIN_WAL2 [
 
   Train an NNJM model from a training and a dev corpus, optionally starting from a
   model pre-trained on a background or larger corpus.
+  The training corpus is used to train the actual NNJM neural network.
+  The dev corpus is used to determine early stopping.
+  If provided, the test corpus is simply used to evaluate each model but does not
+  affect the training procedure.
 
 Positional arguments:
 
@@ -122,13 +126,43 @@ verbose 2 TRAIN_S=$TRAIN_S
 verbose 2 TRAIN_T=$TRAIN_T
 verbose 2 TRAIN_WAL=$TRAIN_WAL
 
+
+if [[ ! $THEANO_FLAGS && ! -r ~/.theanorc ]]; then
+   if nvidia-smi >& /dev/null; then
+      # There appears to be a GPU, use it
+      export THEANO_FLAGS="device=cuda,floatX=float32,mode=FAST_RUN"
+      warn "THEANO_FLAGS not set, but a GPU seems to be available; setting THEANO_FLAGS=$THEANO_FLAGS"
+   else
+      # No GPU, use the CPU to train NNJMs
+      export THEANO_FLAGS="device=cpu,floatX=float32,mode=FAST_RUN"
+      warn "THEANO_FLAGS not set, no GPU found; setting THEANO_FLAGS=$THEANO_FLAGS"
+   fi
+elif [[ $THEANO_FLAGS ]]; then
+   echo Using THEANO_FLAGS=$THEANO_FLAGS
+fi
+if [[ -r ~/.theanorc ]]; then
+   echo Using settings from ~/.theanorc if not overridden by THEANO_FLAGS=$THEANO_FLAGS
+   cat ~/.theanorc
+fi
+
+
 if [[ $PRE_NNJM ]]; then
    # When a pre-trained NNJM is specified, we're really strict about the file names, they
    # have to match the ones produced by this script.
-   for FILE in train-voc.src train-voc.tgt train-voc.out nnjm.bin nnjm.pkl model; do
+   for FILE in train-voc.src train-voc.tgt train-voc.out model; do
       [[ -r $PRE_NNJM/$FILE && -s $PRE_NNJM/$FILE ]] ||
-         error_exit "Cannot read file $FILE in pre-trained NNJM $PRE_NNJM"
+         error_exit "Cannot read file $FILE in pre-trained NNJM $PRE_NNJM."
    done
+
+   # We can use either the nnjm.bin or nnjm.pkl file, but we prefer nnjm.bin
+   if [[ -r $PRE_NNJM/nnjm.bin && -s $PRE_NNJM/nnjm.bin ]]; then
+      PRETRAINING="-pretrain_model $PRE_NNJM/nnjm.bin"
+   elif [[ -r $PRE_NNJM/nnjm.pkl && -s $PRE_NNJM/nnjm.pkl ]]; then
+      warn "Cannot read file nnjm.bin in pre-trained NNJM $PRE_NNJM, using nnjm.pkl instead."
+      PRETRAINING="-pretrain_model $PRE_NNJM/nnjm.pkl"
+   else
+      error_exit "Cannot read file nnjm.bin nor file nnjm.pkl in pre-trained NNJM $PRE_NNJM."
+   fi
 
    PRE_CLS_S=`grep srcclasses $PRE_NNJM/model | sed -e 's/ *\[srcclasses\]  *//' -e 's/ *//g'`
    PRE_CLS_T=`grep tgtclasses $PRE_NNJM/model | sed -e 's/ *\[tgtclasses\]  *//' -e 's/ *//g'`
@@ -148,6 +182,7 @@ if [[ $PRE_NNJM ]]; then
 
    ETA_0=0.03
 else
+   PRETRAINING=
    [[ $CLS_S ]] || error_exit "Missing required -cls-s flag"
    [[ $CLS_T ]] || error_exit "Missing required -cls-t flag"
    ETA_0=0.3
@@ -220,7 +255,7 @@ fi
 COMMON_GENEX_OPTIONS="-v -eos -voc $OUT/train-voc -ng 4 -ws 11 $NNJM_GENEX_OPTS"
 if [[ $PRE_NNJM ]]; then
    for EXT in src tgt out; do
-      r_cmd "cp -a $PRE_NNJM/train-voc.$EXT $OUT/"
+      r_cmd "cp -aL $PRE_NNJM/train-voc.$EXT $OUT/"
    done
    r_cmd "{ nnjm-genex.py -r -stag $WD/train-s.cls.gz -ttag $WD/train-t.cls.gz  \
             $COMMON_GENEX_OPTIONS   $TRAIN_S $TRAIN_T $TRAIN_WAL \
@@ -248,7 +283,7 @@ r_cmd "train-nnjm.py -v -train_file $WD/train-ex.gz -dev_file $WD/dev-ex.gz $TES
        -swin_size 11 -thist_size 3 -embed_size 192 -n_hidden_layers 1 -slice_size 64000 \
        -print_interval 1 -hidden_layer_sizes 512 -n_epochs 60 -self_norm_alpha 0.1 -eta_0 $ETA_0 \
        -rnd_elide_max 3 -rnd_elide_prob 0.1 -val_batch_size 10000 -batches_per_epoch 20000 \
-       $TRAIN_NNJM_OPTS \
+       $PRETRAINING  $TRAIN_NNJM_OPTS \
        $OUT/nnjm.pkl >& $WD/log.train-nnjm.py"
 
 # Step 6: use unpickle.py to convert nnjm.pkl into the binary format required for canoe,

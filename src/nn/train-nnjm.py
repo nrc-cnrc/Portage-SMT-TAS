@@ -13,10 +13,15 @@
 # Copyright 2014 - 2017, Her Majesty in Right of Canada
 
 import sys, os
+
+# MKL_THREADING_LAYER=GNU is always required, so set it in here, before importing Theano
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
 import numpy
 import numpy.random as rng
 import theano
 import theano.tensor as T
+
 import msgd, multilayers, embed
 import nnjm_utils
 from nnjm_utils import *
@@ -27,6 +32,8 @@ from nnjm_data_iterator import InfiniteIterator
 from nnjm_data_iterator import openShuffleNoTempFile
 from nnjm_data_iterator import HardElideDataIterator
 from nnjm_data_iterator import SoftElideDataIterator
+from repickle import loadBinModel
+
 import argparse
 from collections import Counter
 import operator
@@ -245,22 +252,29 @@ def train(args):
    ovec  = T.ivector("ovec") # output classes: N x 1
    if args.pretrain_model is not None:
       try:
-         with file(args.pretrain_model, 'rb') as f:
-            log('Trying to loading symbolic variables from file {}'.format(args.pretrain_model))
-            (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(f)
-            log('Successfully loaded symbolic variables.')
+	 if args.pretrain_model.endswith('.pkl'):
+	    with file(args.pretrain_model, 'rb') as f:
+	       log('Trying to loading symbolic variables from file {}'.format(args.pretrain_model))
+	       (stvec, ovec, out, sbed, tbed, st_x, hidden_layers) = cPickle.load(f)
+	       log('Successfully loaded symbolic variables.')
+	 elif args.pretrain_model.endswith('.bin'):
+	    log('Trying to loading symbolic variables from file a binary file format: {}'.format(args.pretrain_model))
+	    stvec, ovec, out, sbed, tbed, st_x, hidden_layers = loadBinModel(name = args.pretrain_model)
+	    log('Successfully loaded symbolic variables.')
+	 else:
+	    error('Unsupported model extension.')
 
-         assert sbed.x_size == args.swin_size * args.embed_size
-         assert sbed.vocabularySize() >= args.svoc_size
-         assert sbed.embeddingSize() == args.embed_size
+         assert sbed.x_size == args.swin_size * args.embed_size, "You have provided source size and/or embedding size that are incompatible with the pretrained model."
+         assert sbed.vocabularySize() >= args.svoc_size, "You have provided a source vocabulary which is smaller than the model's vocabulary."
+         assert sbed.embeddingSize() == args.embed_size, "You have provided source embedding's size that is incompatible with the pretrained model."
 
-         assert tbed.x_size == args.thist_size * args.embed_size
-         assert tbed.vocabularySize() >= args.tvoc_size
-         assert tbed.embeddingSize() == args.embed_size
+         assert tbed.x_size == args.thist_size * args.embed_size, "You have provided target size and/or embedding size that are incompatible with the pretrained model."
+         assert tbed.vocabularySize() >= args.tvoc_size, "You have provided a target vocabulary which is smaller than the model's vocabulary."
+         assert tbed.embeddingSize() == args.embed_size, "You have provided target embedding's size that is incompatible with the pretrained model."
 
-         assert len(hidden_layers) == len(hidden_layer_sizes)
+         assert len(hidden_layers) == len(hidden_layer_sizes), "You have provided the wrong number of hidden layers."
          for i in xrange(len(hidden_layer_sizes)):
-            assert hidden_layer_sizes[i] == numpy.shape(hidden_layers[i].w.get_value())[1]
+            assert hidden_layer_sizes[i] == numpy.shape(hidden_layers[i].w.get_value())[1], "There is an hidden size mismatch for layer {}".format(i)
       except AssertionError as e:
          error(e)
       except EOFError:
@@ -323,7 +337,7 @@ def train(args):
    log("... epoch size = %d (%0.f%% train data), slice size = %d (%d per epoch), minibatch size = %d" \
        % (nsamples_per_epoch, 100.0*nsamples_per_epoch/data_size, args.slice_size, nslices_per_epoch, args.batch_size))
    for epoch in range(args.n_epochs):
-      beg_time = time.clock()
+      beg_time = time.time()
       for slice_id in range(nslices_per_epoch):
          X, y = D.next()
          err = msgd.optimize(stvec,
@@ -344,7 +358,7 @@ def train(args):
                              shuffle = False,
                              quiet = True)
       log("... epoch %d: %d secs, eta = %f, nlls: train = %f, val = %f, test = %f" \
-          % (epoch+1, time.clock()-beg_time, eta, err[0], err[1], err[2]))
+          % (epoch+1, time.time()-beg_time, eta, err[0], err[1], err[2]))
       if low_val_err is None or err[1] < low_val_err:
          low_val_err = err[1]
          pending = 0
@@ -384,6 +398,9 @@ def main():
    vocabularies will be set to the values of -*voc_size parameters (default values
    if no switches provided) or the maximum values in the train/dev/test files,
    whichever is larger.
+
+   Warning: in this script, "epoch" is used incorrectly to mean going through
+   batch_size*batches_per_epoch examples, not a whole pass through the data.
    """
 
    parser = argparse.ArgumentParser(
@@ -415,7 +432,7 @@ def main():
    parser.add_argument('-reg', type=float, default=0.0, help='weight on L2 regularization penalty [0.0]')
    parser.add_argument('-eta_0', type=float, default=0.001, help='initial learning rate [0.001]')
    parser.add_argument('-eta_params', type=str, default=None, help='comma-separated list of parameter-specific learning rate modifiers, order is [sbed,tbed,hl,out]')
-   parser.add_argument('-n_epochs', type=int, default=10000, help='number of passes through the data [10000]')
+   parser.add_argument('-n_epochs', type=int, default=10000, help='number of passes through batch_size*batches_per_epoch samples from the data [10000]')
    parser.add_argument('-batch_size', type=int, default=128, help='size of mini-batches [128]')
    parser.add_argument('-val_batch_size', type=int, default=50000, help='size of batches for devtest (affects memory use only) [50000]')
    parser.add_argument('-decay', type=float, default=0.5, help='learning rate decay [0.5]')

@@ -37,6 +37,7 @@ static const Uint MAX_BLEU_STAT_TYPE = numeric_limits<signed int>::max();
 Uint BLEUstats::MAX_NGRAMS = 4;
 void BLEUstats::setMaxNgrams(Uint n) {
    static bool bHasBeenInitialized(false);
+   FOR_ASSERT(bHasBeenInitialized);
    assert(bHasBeenInitialized == false);
 
    MAX_NGRAMS = n;
@@ -46,6 +47,7 @@ void BLEUstats::setMaxNgrams(Uint n) {
 Uint BLEUstats::MAX_NGRAMS_SCORE = 4;
 void BLEUstats::setMaxNgramsScore(Uint n) {
    static bool bHasBeenInitialized(false);
+   FOR_ASSERT(bHasBeenInitialized);
    assert(bHasBeenInitialized == false);
 
    MAX_NGRAMS_SCORE = n;
@@ -55,6 +57,7 @@ void BLEUstats::setMaxNgramsScore(Uint n) {
 Uint BLEUstats::DEFAULT_SMOOTHING = DEFAULT_SMOOTHING_VALUE;
 void BLEUstats::setDefaultSmoothing(const Uint n) {
    static bool bHasBeenInitialized(false);
+   FOR_ASSERT(bHasBeenInitialized);
    assert(bHasBeenInitialized == false);
    
    DEFAULT_SMOOTHING = n;

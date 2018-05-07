@@ -26,6 +26,7 @@ void WordClasses::add_helper(const char* word, Uint class_id) {
 
    pair<ClassMap::const_iterator, bool> res =
       class_map.insert(make_pair(w, class_id));
+   FOR_ASSERT(res);
    assert(res.second);
 
    if ( class_id > highest_class_id )

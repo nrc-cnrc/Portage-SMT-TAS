@@ -100,6 +100,9 @@ namespace ugdiss
 	Token const* t = root->corpus->getToken(A); 
         assert(t);
         char const* hi = root->getUpperBound(t->id());
+#ifdef NDEBUG
+        (void)(hi); // bypass compiler error
+#endif
         assert (lo < hi);
         lower.push_back(lo);
         Token const* foo = this->getToken(0); 
@@ -374,6 +377,9 @@ namespace ugdiss
     Token const* t   = root->corpus->getToken(A); assert(t);
     Token const* bos = root->corpus->sntStart(A.sid);
     Token const* eos = root->corpus->sntEnd(A.sid);
+    #ifdef NDEBUG
+    (void)(bos); (void)(eos); // bypass compiler error if -DNDEBUG is set
+    #endif
     if (p < 0) p += lower.size();
     // cerr << p << ". " << t->id() << endl;
     while (p-- > 0)

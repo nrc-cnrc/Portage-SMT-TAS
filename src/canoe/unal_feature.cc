@@ -116,6 +116,7 @@ Uint UnalFeature::count_unal_words(Uint src_len, Uint tgt_len,
 
       default:
          assert(false);
+         return 0;
    } // switch(cur_type)
 } // count_unal_words(src_len,tgt_len,sets)
 

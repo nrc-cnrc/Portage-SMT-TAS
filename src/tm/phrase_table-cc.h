@@ -459,6 +459,8 @@ void PhraseTableGen<T>::prunePhraseFreqs(PhraseFreqs &phrase_freqs, Uint lang1_n
       phrase_freqs_ptr[i] = &(phrase_freqs.at(i));
    const PhraseFreqItem* const phrase_freqs_begin = &(*(phrase_freqs.begin()));
    const PhraseFreqItem* const phrase_freqs_end = &(*(phrase_freqs.end()));
+   FOR_ASSERT(phrase_freqs_begin);
+   FOR_ASSERT(phrase_freqs_end);
 
    // sort by reverse frequency - use partial sort to order the top n only.
    partial_sort(phrase_freqs_ptr.begin(), phrase_freqs_ptr.begin()+n,
@@ -522,6 +524,7 @@ void PhraseTableGen<T>::remap_psep_helper(Voc& voc, const string& token, const s
             remap_psep_helper(voc, replacement, "_" + replacement);
          }
          const bool rc = voc.remap(token.c_str(), replacement.c_str());
+         FOR_ASSERT(rc);
          assert(rc);
       }
    }

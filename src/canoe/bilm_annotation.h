@@ -103,7 +103,7 @@ class CoarseBiLMAnnotation : public BiLMAnnotation {
 protected:
    struct IWordClassesMapping {
       virtual ~IWordClassesMapping() {}
-      virtual const char* operator()(const char* word) const { assert(false); }
+      virtual const char* operator()(const char* word) const { assert(false); return NULL; }
    };
 
    struct WordClassesTextMapper : public IWordClassesMapping, private NonCopyable {

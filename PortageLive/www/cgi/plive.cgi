@@ -2,7 +2,7 @@
 # @file plive.cgi
 # @brief PortageLive CGI script
 #
-# @author Michel Simard
+# @author Michel Simard & Samuel Larkin
 #
 # COMMENTS:
 #
@@ -10,8 +10,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2010, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2010, Her Majesty in Right of Canada
+# Copyright 2010-2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2010-2018, Her Majesty in Right of Canada
 
 =pod
 
@@ -63,7 +63,28 @@ Michel Simard
 # NOTE
 # HOW TO test this script from the command line:
 # http://curl.haxx.se/docs/httpscripting.html
-# curl --form "is_xml=1" --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" --form "translate_file=Translate File" --form "context=reversed" 'http://localhost/cgi-bin/plive.cgi'
+# curl \
+#   --form "is_xml=1" \
+#   --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" \
+#   --form "translate_file=Translate File" \
+#   --form "context=reversed" \
+#   'http://localhost/cgi-bin/plive.cgi'
+# Test translating with an incremental system.
+# PERL5LIB=.:cgi/:$PERL5LIB \
+#   ./cgi/plive.cgi \
+#     translate_text=1 \
+#     context=BtB-METEO.v2.E2Fe \
+#     source_text=$'This is a test.\nIt has two sentences.' \
+#     newline=s \
+#     document_id=plive
+# Test adding a sentence pair to an incremental system.
+# PERL5LIB=.:cgi/:$PERL5LIB \
+#   ./cgi/plive.cgi \
+#     incr_add_sentence=1 \
+#     context='BtB-METEO.v2.E2F' \
+#     incr_document_id='plive' \
+#     incr_source_segment="This is a test." \
+#     incr_target_segment="Ceci est un test."
 
 use strict;
 use warnings;
@@ -107,6 +128,8 @@ my $WORK_PATH = "${WEB_PATH}/plive";
 # a risk for the page to time-out.  Hence this practical limit on
 # job size:
 my $MAX_TEXTBOX = 3000;
+
+my $incr_error = '';
 
 ## ---------------------- END USER CONFIGURATION ---------------------------
 ##
@@ -152,10 +175,94 @@ if (param('translate_text') or param('translate_file')) {
     processText();
 }
 else {
-    printForm();
+   if (param('incr_add_sentence')) {
+      eval {
+         #TODO: Add SOAP::Lite's dependency in the documentation.
+         use SOAP::Lite;
+
+         # SETUP the services
+         # URL must be absolute, according to the documentation of SOAP::Lite.
+         my $WSDL = 'http://0.0.0.0/PortageLiveAPI.wsdl';
+         my $services = SOAP::Lite
+            ->readable(1)
+            ->service($WSDL)
+            ->on_fault(sub {
+               #http://www.perlmonks.org/?node_id=1114848
+               my($soap, $result) = @_;
+               die ref $result ?
+               "Fault Code: " . $result->faultcode . "\n"
+               . "Fault String: " . $result->faultstring . "\n"
+               : $soap->transport->status, "\n";
+            });
+
+         my $context = param('context');
+         unless (defined($context) and $context ne '') {
+            die "You are missing the context, a required field.\n";
+         }
+         my $document_id = param('incr_document_id');
+         unless (defined($document_id) and $document_id ne '') {
+            die "You are missing the document id, a required field.\n";
+         }
+         my $source_segment = param('incr_source_segment');
+         unless (defined($source_segment) and $source_segment ne '') {
+            die "You are missing the source segment, a required field.\n";
+         }
+         my $target_segment = param('incr_target_segment');
+         unless (defined($target_segment) and $target_segment ne '') {
+            die "You are missing the target segment, a required field.\n";
+         }
+         my $extra = '';
+
+         my $translation = $services->incrAddSentence($context,
+            $document_id,
+            $source_segment,
+            $target_segment,
+            $extra);
+         # Sentence pair was added, let's clear the form.
+         param(-name=>'incr_document_id', -values=>'');
+         param('incr_source_segment', '');
+         param('incr_target_segment', '');
+      }
+      or do {
+         # This will later be used when displaying the form.
+         $incr_error = $@;
+      };
+   }
+   printForm();
 }
 
 exit 0;
+
+
+sub incrementalForm {
+   return (
+      Tr({align=>'left'},
+         td({colspan=>3}, strong('Add a sentence pair for a document id.'))), "\n",
+      Tr(td({colspan=>3}, 'Please, also select a context')), "\n",
+      Tr(td({colspan=>3, -style=>'Color: red;'}, $incr_error)), "\n",
+      Tr({align=>'left'},
+         td({colspan=>3}, 'Source segment:',
+            textfield(-name => 'incr_source_segment',
+               -value => param('incr_source_segment') || '',
+               -size => 80,
+               -maxlength => 200)
+         )), "\n",
+      Tr({align=>'left'},
+         td({colspan=>3}, 'Target segment:',
+            textfield(-name => 'incr_target_segment',
+               -value => param('incr_target_segment') || '',
+               -size => 80,
+               -maxlength => 200)
+         )), "\n",
+      Tr({align=>'left'},
+         td({colspan=>3}, 'Document_ID:',
+            textfield(-name=>'incr_document_id',
+               -value=>param('incr_document_id') || '',
+               -size=>20,
+               -maxlength=>40))), "\n",
+      Tr(td({colspan=>3, align=>'center'},
+      submit(-name=>'incr_add_sentence', -value=>'Add Sentence Pair'))), "\n")
+}
 
 
 ## ------------------------------------------------------------------------
@@ -171,12 +278,11 @@ sub printForm {
 
     print start_html("PORTAGELive");
 
-    print NRCBanner();
+    print NRCBanner(), "\n";
 
-    print h1({align=>'center'}, "PORTAGELive"),
+    print h1({align=>'center'}, "PORTAGELive"), "\n";
 
-    p();
-
+    # This is not used?
     my @actions = qw(preview translate);
 
     my %labels = (
@@ -194,74 +300,83 @@ sub printForm {
 
     my $context = param('context');
     print start_multipart_form(),
-    table({align=>'center', width=>600},
+       "\n",
+       table({align=>'center', width=>600},
           Tr(td(strong("Select a system:")),
              td(popup_menu(-name=>'context',
                            -values=>["", sort keys %CONTEXT],
                            -default => $context ? [$context, $context_labels{$context}] : ["", '-- Please pick one --'],
                            -labels=>{ ""=>'-- Please pick one --',
-                                      %context_labels }))),
+                                      %context_labels }))), "\n",
           Tr(td({colspan=>2, align=>'left', border=>0},
                 p("Either type in some text, or select a text file to translate (plain text or TMX or SDLXLIFF).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
-                br())),
+                br())), "\n",
 
 
           ## Text-box (textarea) interface:
 
           Tr(td({colspan=>2, align=>'left'},
-                strong("Type in source-language text:"))),
+                strong("Type in source-language text:"))), "\n",
           Tr(td({colspan=>2, align=>'left'},
                 textarea(-name=>'source_text',
                          -value=>'',
                          -columns=>66,
-                         -rows=>10))),
+                         -rows=>10))), "\n",
           Tr(td({align=>'center'},
                 checkbox(-name=>'text_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
-                "-- Check this box if input text contains tags and you want to process & transfer them.")),
+                "-- Check this box if input text contains tags and you want to process & transfer them.")), "\n",
           Tr(td({align=>'center'},
                 checkbox(-name=>'enable_phrase_table_debug',
                          -checked=>0,
                          -label=>'')),
              td(strong("phrase table"),
-                "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")),
+                "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")), "\n",
+          Tr(td(),
+             td('Document_ID:',
+                textfield(-name=>'document_id',
+                          -value=>param('document_id') || '',
+                          -size=>20,
+                          -maxlength=>40))), "\n",
           Tr(td({colspan=>2, align=>'center'},
-                submit(-name=>'translate_text', -value=>'Translate Text'))),
+                submit(-name=>'translate_text', -value=>'Translate Text'))), "\n",
 
+
+          incrementalForm, "\n",
 
           ## File-upload interface:
 
           Tr(td({colspan=>2, align=>'center'},
-                h3("-- OR --"))),
+                h3("-- OR --"))), "\n",
           Tr(td({align=>'right'},
                 strong("Select a file:")),
              td(filefield(-name=>'filename',
                           -value=>'',
                           -default=>'',
-                          -size=>60))),
+                          -size=>60))), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'is_xml',
                          -checked=>0,
                          -label=>'')),
              td(strong("TMX/SDLXLIFF"),
-                "-- Check this box if input file is TMX or SDLXLIFF.")),
+                "-- Check this box if input file is TMX or SDLXLIFF.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'file_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
-                "-- Check this box if input file contains tags and you want to process & transfer them.")),
+                "-- Check this box if input file contains tags and you want to process & transfer them.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'useConfidenceEstimation',
                          -checked=>0,
                          -label=>'')),
              td(strong("Confidence Estimation"),
-                "-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.")),
+                "-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.")), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 scrolling_list(-name=>'filter',
@@ -269,19 +384,19 @@ sub printForm {
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
                                -size=>1)),
              td(strong("Filter"),
-                "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")),
+                "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")), "\n",
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                submit(-name=>'translate_file', -value=>'Translate File'))),
-          Tr(td({colspan=>2, align=>'center'},
+                submit(-name=>'translate_file', -value=>'Translate File'))), "\n",
 
 
           ## Advanced options.
           #
-          hr())),
+          Tr(td({colspan=>2, align=>'center'},
+             hr())), "\n",
 
           Tr(td({colspan=>2, align=>'left'},
-                strong("Advanced Options (plain text input):"))),
+                strong("Advanced Options (plain text input):"))), "\n",
           Tr({valign=>'top'},
              td({align=>'left', colspan=>2},
                 radio_group(-name=>'newline',
@@ -289,19 +404,19 @@ sub printForm {
                    -default=>'p',
                    -linebreak=>'true',
                    -labels=>\%labels,
-                   ))),
+                   ))), "\n",
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'notok',
                          -checked=>0,
                          -label=>'')),
              td(strong("pre-tokenized"),
-                "-- Check this box if word-tokens are already space-separated in the source text file.")),
+                "-- Check this box if word-tokens are already space-separated in the source text file.")), "\n",
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                defaults('Clear Form'))));
+                defaults('Clear Form'))), "\n"), "\n";
 
-    print end_multipart_form();
+    print end_multipart_form(), "\n";
 
     print copyright();
 }
@@ -350,12 +465,55 @@ sub processText {
     elsif (param('translate_text') and param('source_text')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('source_text')) > $MAX_TEXTBOX;
+
+        if (defined(param('document_id')) and param('document_id')) {
+           eval {
+              #TODO: Add SOAP::Lite's dependency in the documentation.
+              use SOAP::Lite;
+
+              # SETUP the services
+              # URL must be absolute, according to the documentation of SOAP::Lite.
+              my $WSDL = 'http://0.0.0.0/PortageLiveAPI.wsdl';
+              my $services = SOAP::Lite
+                 ->readable(1)
+                 ->service($WSDL)
+                 ->on_fault(sub {
+                       #http://www.perlmonks.org/?node_id=1114848
+                       my($soap, $result) = @_;
+                       die ref $result ?
+                       "Fault Code: " . $result->faultcode . "\n"
+                       . "Fault String: " . $result->faultstring . "\n"
+                       : $soap->transport->status, "\n";
+                    });
+
+              my $work_dir = '';
+              my $document_id = param('document_id');
+              my $source_text = param('source_text');
+              my $use_xtags = defined(param('text_xtags'));
+              my $useConfidenceEstimation = defined(param('useConfidenceEstimation'));
+              my $newline = param('newline') || "p";
+
+              my $translation = $services->translate($source_text,
+                 $context . '/' . $document_id,
+                 $newline,
+                 $use_xtags,
+                 $useConfidenceEstimation);
+              translationTextOutput($source_text, $work_dir, split(/\n/, $translation));
+           }
+           or do {
+              print "ERROR translating $@\n";
+              exit 1;
+           };
+           return;
+        }
+
         $work_name = join("_", $context, "Text-Box");
         $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
         open(my $fh, "> $work_dir/Q.in")
             || problem("Can't create input file Q.in in work directory $work_dir");
-        print {$fh} param('source_text'), "\n";
+        my $source_text = param('source_text');
+        print {$fh} $source_text, "\n";
         close $fh;
 
         push @tr_opt, "-xtags" if (param('text_xtags'));
@@ -435,7 +593,8 @@ sub processText {
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
         my @p = readline($P);
         close $P;
-        translationTextOutput(param('source_text'), $work_dir, @p);
+        my $source_text = param('source_text');
+        translationTextOutput($source_text, $work_dir, @p);
     }
 }
 
@@ -481,16 +640,21 @@ sub translationTextOutput {
     $source =~ s/\n/<br \/>/g;
     print
         NRCBanner(),
+        "\n",
         h1("PORTAGELive"),
+        "\n",
         div({-id=>'source'},
            h2("Source text:"),
            p($source)),
         "\n",
         div({-id=>'translation'},
            h2("Translation:"),
-           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)),
-        "\n");
-    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
+           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target))),
+        "\n";
+    my $href = "plive.cgi?context=".param('context');
+    $href .= '&document_id=' . param('document_id') if (defined(param('document_id')));
+    print p(a({-id=>'translateMore', -href=>$href}, "Translate more text")),
+          "\n";
 
     my @debuggingTools = (
        a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
@@ -498,9 +662,14 @@ sub translationTextOutput {
        a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
     push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
 
-    print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
-       h3("Debugging Tools"),
-       ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools)));
+    if ($workDir) {
+       print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
+          "\n",
+          h3("Debugging Tools"),
+          "\n",
+          ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools))),
+          "\n";
+    }
 
     #my @params = param();
     #print "<PRE> @params </PRE>";
@@ -677,6 +846,8 @@ sub timeStamp() {
 
 sub copyright() {
     return (hr(),
+            "\n",
             NRCFooter(),
+            "\n",
             end_html());
 }

@@ -17,7 +17,7 @@ include ../build/Makefile.incl
 
 IGNORES=html/*.html
 
-docs: $(HTMLLIST) html/index.html
+docs: .gitignore $(HTMLLIST) html/index.html
 
 html/PortageLiveManual.html: asciidoc/incl/PortageLiveRESTAPI.adoc
 html/PortageLiveREST.html: asciidoc/incl/PortageLiveRESTAPI.adoc

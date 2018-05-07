@@ -332,7 +332,7 @@ const vector<Uint>& FwdHierDistortion::type(const Range& shift,
    if(u==0) return m;
    else if(u==1) return s;
    else if(u==2) return d;
-   else assert(false);
+   else { assert(false); return m; }
 }
 
 const vector<Uint>& FwdHierDistortion::type(const PartialTranslation& pt) const {
@@ -421,8 +421,10 @@ Uint FwdLRSplitHierDistortion::sig(const Range& shift,
          return 2+offset; //DL
       else if(shift.start > stack->end())
          return 3+offset; //DR
-      else
+      else {
          assert(false); // Should be impossible
+         return 0;
+      }
    }
 }
 
@@ -446,6 +448,7 @@ const vector<Uint>& FwdLRSplitHierDistortion::type(const Range& shift,
    else {
       cerr << "Error: " << u << " unrecognized with offset " << offset << endl;
       assert(false);
+      return m;
    }
 }
 
@@ -495,6 +498,7 @@ Uint SparseModel::vocId(map<Uint,Uint>* subvoc, Uint subvoc_id)
          return p->first;
       }
    assert(false); // should have found subvoc_id somewhere!
+   return 0;
 }
 
 void SparseModel::createEventTemplates(const string& spec)
@@ -987,7 +991,7 @@ void SparseModel::getFeatures(const PartialTranslation& context,
         p != potential_features.end(); ++p) {
       //assert(p->second <= features[p->first].events.size()); // Expensive assertion
       if (p->second == features[p->first].events.size())
-         assert(fset.insert(p->first).second);
+         if (!fset.insert(p->first).second) assert(false);
    }
    if (verbose > 2) cerr << fset.size() << " active features; ";
 
@@ -1581,7 +1585,7 @@ SparseModel::SparseModel(const string& ofile, const string& relative_to,
       splitZ(line, toks);       // t,e t,e ...
       for (Uint i = 0; i < toks.size(); ++i) {
          inds.clear();
-         assert(split(toks[i], inds, ",") == 2);
+         if (split(toks[i], inds, ",") != 2) assert(false);
          const Uint newid = event_templates[inds[0]]->remapEvent(inds[1], newvoc);
          features.back().events.push_back(Event(inds[0], newid));
       }
@@ -1781,7 +1785,7 @@ void SparseModel::pruneZeroWeightFeatures(Uint start_index)
             vector<Uint>::iterator e = remove(flist.begin(), flist.end(), i);
             flist.resize(e - flist.begin());
             if (flist.size() == 0)
-               assert(events.erase(features[i].events[j]) == 1);
+               if(events.erase(features[i].events[j]) != 1) assert(false);
          }
       } else {   // re-index feature if necessary
          const Uint fi = start_index + num_retained++;  // new index
@@ -1955,7 +1959,8 @@ void SparseModel::prime(const string& file, const string& relative_to)
       string cmd = "cat '" + path + "'/*.mmcls > /dev/null";
       cerr << "\tPriming: " << path << "/*.mmcls" << endl;  // SAM DEBUGGING
       //cerr << "Cmd = " << cmd << endl;
-      ::system(cmd.c_str());
+      int rc = ::system(cmd.c_str());
+      FOR_ASSERT(rc);
    }
 }
 

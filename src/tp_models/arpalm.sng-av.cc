@@ -146,6 +146,9 @@ assemble_value(vector<pv_ngram, boost::pool_allocator<pv_ngram> > const& pv,
 {
   TPT_DBG2(cerr << "assembling value for " << bong << " pi = " << pi << endl);
   size_t cnt = 0; id_type prev = 0;
+#ifdef NDEBUG
+  (void)(prev); // avoid compiler error if -DNDEBUG is set
+#endif
   ostringstream buf;
   for (;pi < pv.size() && pv[pi].match(bong); pi++)
     {

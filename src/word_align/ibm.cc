@@ -859,7 +859,7 @@ void IBM2::read(const string& pos_file)
 
    string line;
    // Swallow the  newline from the 3 integers.
-   assert(ifs.get() == '\n');
+   if (ifs.get() != '\n') assert(false);
    if (!ifs)
       error(ETFatal, "Unexpected end of file in %s after reading 3 parameters.", pos_file.c_str());
 

@@ -424,8 +424,8 @@ map<Uint,double> SimpleOverlay::insideOutside()
          const LatticeEdge& edge = *ei;
          map<Uint,double>::const_iterator inIt, outIt;
          assert ( inOut.find(edge.id()) == inOut.end() );           // Edge ids should be unique
-         assert ( (outIt=out.find(edge.from()->id)) != out.end() ); // Should have out score banked
-         assert ( (inIt=in.find(edge.to()->id)) != in.end() );      // Should have in score banked
+         if ( (outIt=out.find(edge.from()->id)) == out.end() ) assert(false); // Should have out score banked
+         if ( (inIt=in.find(edge.to()->id)) == in.end() ) assert(false);      // Should have in score banked
          double edgeScore = inIt->second + edge.score() + outIt->second;
          if ( !(edgeScore <= maxScore_plus_tolerance) ) // Score should be bounded by max inside score
             error(ETFatal, "SimpleOverlay::insideOutside edgeScore=%.16g maxScore=%.16g (tolerance for edgeScore is <=%.16g)\n",

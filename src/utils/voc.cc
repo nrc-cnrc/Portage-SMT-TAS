@@ -163,6 +163,7 @@ Voc& Voc::operator=(const Voc& that) {
    for ( Uint i(0); i < words.size(); ++i ) {
       words[i] = strdup_new(that.words[i]);
       pair<MapIter,bool> res = map.insert(make_pair(words[i], i));
+      FOR_ASSERT(res);
       assert(res.second);
    }
    return *this;

@@ -42,7 +42,7 @@ public:
 
    /// Get matrix-format word alignment for sentence pair i.
    /// Returns false, without modifying links, if i is out of range.
-   virtual bool get(Uint i, vector< vector<float> >& links) const {assert(false);}
+   virtual bool get(Uint i, vector< vector<float> >& links) const {assert(false); return false; }
 
    /// Return true if this class instantiates the matrix version of get().
    virtual bool isMatrix() {return false;}
