@@ -398,6 +398,9 @@
          terms, update its list of fixed terms.
 
          - ContentsBase64 is the contents of the fixed term file in base64 encoding.
+           Note: unlike for the translate*() functions, the type for this variable is
+           xsd:base64Binary, so this contents might be base64-endoded automatically and
+           you might not have to do it explicitly.
          - Filename is the fixed term file name.
          - encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
          - context must be a valid context identifier as returned by getAllContexts().
@@ -439,6 +442,9 @@
 
          Returns the UTF-8 fixed term list base64 encoded in the format
          described by updateFixedTerms.
+         Note: unlike with the translate*() functions, the type for the return value is
+         xsd:base64Binary, so this contents might be base64-decoded automatically and
+         you might not have to do it explicitly.
 
          Throws a SoapFault exception in case of a protocol or connection error.
       </documentation>
