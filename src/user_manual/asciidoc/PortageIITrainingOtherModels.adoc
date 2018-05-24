@@ -232,7 +232,7 @@ should at least test them with your data, to see if they help.
 Sparse Models
 ^^^^^^^^^^^^^
 
-With PortageII 3.0, we introduce sparse models, including the
+With PortageII 3.0, we introduced sparse models, including the
 original sparse features of
 link:PortageIIAnnotatedBibliography.html#truehopkins-and-may-2011[Hopkins
 and May 2011] as adapted for Portage by
@@ -265,12 +265,11 @@ improve how target words are chosen to translate source text, taking
 into account up to 11 source words and 3 target words all at the same
 time.
 
-With PortageII 3.0, we include the NNJM decoder feature, which
+Starting with PortageII 3.0, we include the NNJM decoder feature, which
 allows users to incorporate NNJMs trained at the NRC in their systems.
 We also include pre-trained NNJMs for English-French translation in
-either direction as part of our updated Generic Model 2.0. We plan to
-release the training software for NNJMs in a future release of PORTAGE
-shared.
+either direction as part of our updated Generic Model 2.0.
+Training software for NNJMs is now available, with PortageII 4.0.
 
 Truecasing Models
 ^^^^^^^^^^^^^^^^^

@@ -706,7 +706,7 @@ class PortageLiveLib
    # Returns the current API's version.
    public function getVersion()
    {
-      return "PortageII-3.0.1";
+      return "PortageII-4.0";
    }
 
    public function incrClearDocumentModelWorkdir($context, $document_model_id = NULL)

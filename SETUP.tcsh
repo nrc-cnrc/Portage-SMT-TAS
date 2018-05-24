@@ -4,11 +4,10 @@
 # Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
-# Technologies de l'information et des communications /
-#   Information and Communications Technologies
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2016, Her Majesty in Right of Canada
+# Copyright 2006 - 2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2018, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -50,7 +49,7 @@ setenv PORTAGE_GENERIC_MODEL $PORTAGE/generic-model
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada' > /dev/stderr
+echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2018, Her Majesty in Right of Canada' > /dev/stderr
 
 # Setup third-party software in the default location
 # Setup architecture-specific binaries last, so they come ahead of everything else

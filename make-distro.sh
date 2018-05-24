@@ -5,13 +5,12 @@
 # PROGRAMMER: Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
-# Technologies de l'information et des communications /
-#   Information and Communications Technologies
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2007-2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2007-2016, Her Majesty in Right of Canada
+# Copyright 2007-2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2007-2018, Her Majesty in Right of Canada
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2016, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2018, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 if [[ -d /space/project/portage ]]; then
@@ -47,14 +46,14 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag -a PortageII-3.0 master
+                   git tag -a PortageII-4.0 master
                    git push --tags
                 run in both PORTAGEshared, portage.framework and tmx-prepro
 
   -dir OUTPUT_DIR  The distro will be created in OUTPUT_DIR, which must not
                 already exist.
 
-  -cur VERSION  Gives the number of the version begin created, e.g., 3.0
+  -cur VERSION  Gives the number of the version begin created, e.g., 4.0
                 Changes all PortageII{-,_, }cur to PortageII{-,_, }VERSION
 
 Options:
@@ -99,13 +98,17 @@ Canned options for specific licensees:
 
 Distro creation check list:
   - Tag the PORTAGEshared, portage.framework and tmx-prepro Git repos with the
-    current version, e.g., git tag -a PortageII-3.0 master; git push --tags
+    current version, e.g., git tag -a PortageII-4.0 master; git push --tags
   - Change the year in src/utils/portage_info.cc, SETUP.{bash,tcsh}, the
     INSTALL file, all the README files
   - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
     printCopyright.h
   - Update the API version in PortageLiveAPI.php's getVersion() method.
   - Update the RELEASES file
+  - Change the version number in the user manual in src/user_manual/asciidoc/
+  - Change the year in the user manual in asciidoc/incl/footer.adoc
+
+Old changes, obsolete with the user manual now in src/user_manual/
   - Change the version number on the Wiki
   - Change the year on the Wiki in /export/projets/Lizzy/PORTAGEshared/resources/layout/LayoutSnapshotFrench.html
   - Make a fresh snapshot of the wiki by loading this link:
@@ -305,8 +308,8 @@ identify_host() {
 
 # Usage: set_cur dir
 # Change all instances of PortageII{-,_, }cur PortageII{-, , }$CUR_VERSION,
-# e.g., PortageII-3.0, PortageII 3.0, PortageII 3.0.
-# Change with 3.0: we now replace _ by space, since the name is with a space,
+# e.g., PortageII-4.0, PortageII 4.0, PortageII 4.0.
+# Change since 3.0: we now replace _ by space, since the name is with a space,
 # not an underscore. The hyphen is kept for file/dir names and CD volid etc.
 set_cur() {
    local dir=$1

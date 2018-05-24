@@ -11,6 +11,8 @@ PortageII 4.0
 The PortageII series includes several leaps forward in NRC's SMT
 technology.
 
+Version 4.0 adds NNJM training software and incremental document models to the system.
+
 With Neural Network Joint Models (NNJM), version 3.0 brings deep
 learning to the set of tools used to improve machine translation
 quality, as well as NRC's improved reordering model based on sparse
@@ -33,7 +35,7 @@ success at the NIST Open Machine Translation 2012 Evaluation
 See file RELEASES for full details. See also
 `doc/PortageAPIComparison.pdf` for a series of tables showing the
 evolution of the API, the plugin architecture and the training
-configuration for PortageII versions 1.0, 2.0, 2.1, 2.2 and 3.0.
+configuration for PortageII versions 1.0, 2.0, 2.1, 2.2, 3.0 and 4.0.
 
 User Manual
 ~~~~~~~~~~~
