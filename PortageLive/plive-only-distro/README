@@ -1,11 +1,10 @@
-                        PortageLive - PortageII 3.0
+                        PortageLive - PortageII 4.0
 
 Traitement multilingue de textes / Multilingual Text Processing
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2016, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2016, Her Majesty in Right of Canada
+Copyright 2004-2018, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2018, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -16,11 +15,11 @@ See NOTICE for the Copyright notices of 3rd party libraries.
                              Brief Description
 
 This CD contains the files required to install PortageLive from the
-PortageII-3.0 machine translation software suite.
+PortageII-4.0 machine translation software suite.
 
 Contents:
-   plive.bin.PortageII-3.0.tar.gz  PortageLive runtime software layout
-   plive.www.PortageII-3.0.tar.gz  Web service software
+   plive.bin.PortageII-4.0.tar.gz  PortageLive runtime software layout
+   plive.www.PortageII-4.0.tar.gz  Web service software
    NOTICE                          3rd party Copyright notices
    first-boot-script               Commands needed before first use
    subsequent-boot-script          Commands needed when the IP address changes
@@ -36,19 +35,19 @@ and the models in /opt/PortageII/models/<systemname>/. The bin/ and www/
 directories on this CD are built according to that layout.
 
 To install PortageLive on a server, you can run the following commands:
-   mkdir bin; cd bin; tar -xzf ../plive.bin.PortageII-3.0.tar.gz; cd ..
-   mkdir www; cd www; tar -xzf ../plive.www.PortageII-3.0.tar.gz; cd ..
+   mkdir bin; cd bin; tar -xzf ../plive.bin.PortageII-4.0.tar.gz; cd ..
+   mkdir www; cd www; tar -xzf ../plive.www.PortageII-4.0.tar.gz; cd ..
    rsync -arz bin/* hostname:/
    rsync -arz www/* hostname:/
 or equivalently, if you're already working on the destination host:
-   tar -xzf plive.bin.PortageII-3.0.tar.gz --diretory=/
-   tar -xzf plive.www.PortageII-3.0.tar.gz --diretory=/
+   tar -xzf plive.bin.PortageII-4.0.tar.gz --diretory=/
+   tar -xzf plive.www.PortageII-4.0.tar.gz --diretory=/
 
 Notes:
  - These commands install files directly in /opt/ and /var/www/. Review their
    effects carefully before running them. They are appropriate if you are
    building a dedicated virtual appliance, but consider copying the files by
-   smaller units if the server is not dedicated to PortageII-3.0.
+   smaller units if the server is not dedicated to PortageII-4.0.
  - In particular, these commands assume you don't have any other web pages on
    the same server, and install pages directly in /var/www/html.
  - Will overwrite any previous version of PortageLive on the same server.
