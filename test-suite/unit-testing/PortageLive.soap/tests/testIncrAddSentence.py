@@ -12,7 +12,10 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
-from __future__ import print_function, unicode_literals, division, absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
 
 #import zeep
 #client = zeep.Client(wsdl=url)
@@ -33,6 +36,8 @@ logging.basicConfig(level=logging.CRITICAL)
 #logging.basicConfig(level=logging.DEBUG)
 
 url = 'http://127.0.0.1'
+
+
 
 class TestIncrAddSentence(unittest.TestCase):
    """
@@ -57,6 +62,7 @@ class TestIncrAddSentence(unittest.TestCase):
       if (os.path.isdir(self.document_model_dir)):
          shutil.rmtree(self.document_model_dir)
 
+
    def test_01_no_argument(self):
       """
       incrAddSentence() should warn the user that it needs some parameters.
@@ -65,6 +71,7 @@ class TestIncrAddSentence(unittest.TestCase):
          self.client.service.incrAddSentence()
       self.assertEqual(cm.exception.message, "Server raised fault: 'Missing parameter'")
 
+
    def test_02_all_arguments_null(self):
       """
       incrAddSentence() expects 3 arguments that cannot be None/NULL.
@@ -72,6 +79,7 @@ class TestIncrAddSentence(unittest.TestCase):
       with self.assertRaises(WebFault) as cm:
          self.client.service.incrAddSentence(None, None, None, None, None)
       self.assertEqual(cm.exception.message, "Server raised fault: 'Missing parameter'")
+
 
    def test_03_no_document_model_id(self):
       """
@@ -156,6 +164,9 @@ class TestIncrAddSentence(unittest.TestCase):
          status = sf.read().strip()
       self.assertEqual(status, '0',
                        "0 exit status for incr-update.sh not found in incr-update.status.")
+
+
+
 
 if __name__ == '__main__':
    unittest.main()

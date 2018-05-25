@@ -88,7 +88,7 @@ function start_php_server() {
 function python_unittests() {
    # Web Unittest that use a functional web service.
    verbose 'Running Python unittests.'
-   python -m unittest discover -v -s tests -p 'test*.py'
+   python -m unittest tests
 }
 
 # Dummy incr-update.sh for speed and because we have a fake PortageLive model.

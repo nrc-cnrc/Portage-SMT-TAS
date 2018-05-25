@@ -11,7 +11,10 @@
 # Copyright 2017, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2017, Her Majesty in Right of Canada
 
-from __future__ import print_function, unicode_literals, division, absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
 
 from suds.cache import DocumentCache
 from suds.client import Client
@@ -31,6 +34,8 @@ logging.basicConfig(level=logging.CRITICAL)
 #logging.basicConfig(level=logging.DEBUG)
 
 url = 'http://127.0.0.1'
+
+
 
 class TestIncrStatus(unittest.TestCase):
    """
@@ -57,6 +62,7 @@ class TestIncrStatus(unittest.TestCase):
       for dir in document_model_dirs:
          if (os.path.isdir(dir)): shutil.rmtree(dir)
 
+
    def test_01_no_argument(self):
       """
       incrStatus() should warn the user that it needs some parameters.
@@ -65,6 +71,7 @@ class TestIncrStatus(unittest.TestCase):
          self.client.service.incrStatus()
       expected = "Server raised fault: 'Missing parameter'"
       self.assertEqual(cm.exception.message, expected)
+
 
    def test_02_all_arguments_null(self):
       """
@@ -75,6 +82,7 @@ class TestIncrStatus(unittest.TestCase):
       expected = "Server raised fault: 'Missing parameter'"
       self.assertEqual(cm.exception.message, expected)
 
+
    def test_03_no_document_model_id(self):
       """
       It is invalid to use the empty string as document model ID.
@@ -84,6 +92,7 @@ class TestIncrStatus(unittest.TestCase):
       expected = "Server raised fault: 'You must provide a valid document_model_id.'"
       self.assertEqual(cm.exception.message, expected)
 
+
    def test_04_nonexistent_document_model_id(self):
       """
       Expect 'N/A' for a non-existent document model ID.
@@ -91,6 +100,7 @@ class TestIncrStatus(unittest.TestCase):
       result = self.client.service.incrStatus(self.context, self.document_model_id)
       self.assertEqual(result, "N/A",
          'Unexpected output from incrStatus SOAP call for a non-existent document model id')
+
 
    def test_05_empty_document_model(self):
       """
@@ -102,6 +112,7 @@ class TestIncrStatus(unittest.TestCase):
       self.assertEqual(result, "N/A",
          'Unexpected output from incrStatus SOAP call for an empty document model')
 
+
    @unittest.skip("Should we check for too many parameters?")
    def test_06_too_many_parameters(self):
       """
@@ -111,6 +122,7 @@ class TestIncrStatus(unittest.TestCase):
       with self.assertRaises(WebFault) as cm:
          self.client.service.incrStatus(self.context, self.document_model_id, 'extra_dummy_argument')
       self.assertEqual(cm.exception.message, "Server raised fault: 'Too many arguments.'")
+
 
    def test_07_one_incr_training(self):
       """
@@ -137,6 +149,7 @@ class TestIncrStatus(unittest.TestCase):
       expected = "Update complete, 0 success, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after training is completed.")
+
 
    def test_08_two_incr_training(self):
       """
@@ -184,6 +197,7 @@ class TestIncrStatus(unittest.TestCase):
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after second training completed.")
 
+
    def test_09_failure_status(self):
       """
       This tests calls to incrStatus() during a single round of incremental
@@ -213,6 +227,8 @@ class TestIncrStatus(unittest.TestCase):
       expected = "Update complete, 1 failure, corpus: 1, queue: 0"
       self.assertEqual(result, expected,
          "Unexpected output from incrStatus SOAP call after failed training is completed.")
+
+
 
 
 if __name__ == '__main__':
