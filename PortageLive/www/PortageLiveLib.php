@@ -401,6 +401,13 @@ class PortageLiveLib
       #   throw new SoapFault("Client", "Translating plain text file");
       #}
 
+      # preg_match() returns 1 if the pattern matches given subject, 0 if it 
+      # does not, or FALSE if an error occurred.
+      if (preg_match("/.(?:txt|tmx|sdlxliff|xliff)$/", $filename) == 0) {
+         throw new SoapFault("PortageServer",
+            "Your filename must end with either '.txt' or '.tmx' or '.sdlxliff' or '.xliff'");
+      }
+
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
       $is_xml = ($type === "tmx" or $type === "sdlxliff");
@@ -468,26 +475,49 @@ class PortageLiveLib
       return $monitor;
    }
 
+   private function guardFilename($filename, $expected_extension) {
+      $possible_extensions = $expected_extension === 'sdlxliff' ? 'sdlxliff|xliff' : $expected_extension;
+      if (preg_match('/.(?:' . $possible_extensions . ')$/', $filename) == 0) {
+         $filename .= '.' . $expected_extension;
+      }
+      return $filename;
+   }
+
    public function translateTMX($TMX_contents_base64, $TMX_filename, $context,
                                 $useCE, $ce_threshold, $xtags)
    {
-      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context,
-                                    $useCE, $ce_threshold, $xtags, "tmx");
+      return $this->translateFileCE($TMX_contents_base64,
+         $this->guardFilename($TMX_filename, 'tmx'),
+         $context,
+         $useCE,
+         $ce_threshold,
+         $xtags,
+         'tmx');
    }
 
    public function translateSDLXLIFF($SDLXLIFF_contents_base64, $SDLXLIFF_filename,
                                      $context, $useCE, $ce_threshold, $xtags)
    {
-      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename,
-                                    $context, $useCE, $ce_threshold, $xtags, "sdlxliff");
+      return $this->translateFileCE($SDLXLIFF_contents_base64,
+         $this->guardFilename($SDLXLIFF_filename, 'sdlxliff'),
+         $context,
+         $useCE,
+         $ce_threshold,
+         $xtags,
+         'sdlxliff');
    }
 
    public function translatePlainText($PlainText_contents_base64, $PlainText_filename,
                                       $context, $useCE, $xtags)
    {
       $ce_threshold = 0;
-      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename,
-                                    $context, $useCE, $ce_threshold, $xtags, "plaintext");
+      return $this->translateFileCE($PlainText_contents_base64,
+         $this->guardFilename($PlainText_filename, 'txt'),
+         $context,
+         $useCE,
+         $ce_threshold,
+         $xtags,
+         'plaintext');
    }
 
    public function translateFileStatus($monitor_token)
@@ -891,20 +921,35 @@ class PortageLiveLib
                                   $ce_threshold, $xtags)
    {
       if (!isset($xtags)) $xtags = false; # xtags arg was added in PortageII 2.0
-      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context,
-                                    true, $ce_threshold, $xtags, "tmx");
+      return $this->translateFileCE($TMX_contents_base64,
+         $this->guardFilename($TMX_filename, 'tmx'),
+         $context,
+         true,
+         $ce_threshold,
+         $xtags,
+         'tmx');
    }
    public function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename,
                                        $context, $ce_threshold, $xtags)
    {
-      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename,
-                                    $context, true, $ce_threshold, $xtags, "sdlxliff");
+      return $this->translateFileCE($SDLXLIFF_contents_base64,
+         $this->guardFilename($SDLXLIFF_filename, 'sdlxliff'),
+         $context,
+         true,
+         $ce_threshold,
+         $xtags,
+         'sdlxliff');
    }
    public function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename,
                                         $context, $ce_threshold, $xtags)
    {
-      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename,
-                                    $context, true, $ce_threshold, $xtags, "plaintext");
+      return $this->translateFileCE($PlainText_contents_base64,
+         $this->guardFilename($PlainText_filename, 'txt'),
+         $context,
+         true,
+         $ce_threshold,
+         $xtags,
+         'plaintext');
    }
    public function translateTMXCE_Status($monitor_token)
    {

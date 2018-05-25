@@ -91,6 +91,9 @@ function python_unittests() {
    python -m unittest tests
 }
 
+
+which canoe &> /dev/null || { ! echo "You need to do portage_setbuild first!"; exit 1; }
+
 # Dummy incr-update.sh for speed and because we have a fake PortageLive model.
 export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'
 
