@@ -25,7 +25,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -43,7 +43,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -63,7 +63,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -84,7 +84,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -105,7 +105,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -127,7 +127,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == False"
@@ -149,7 +149,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == True"
@@ -166,7 +166,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == True"
@@ -185,7 +185,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == True"
@@ -211,7 +211,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         result: "Boolean"
         result: "exec value == True"
@@ -239,6 +239,6 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         __raw__: '{"result":true}'

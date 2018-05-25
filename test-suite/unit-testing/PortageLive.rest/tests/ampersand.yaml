@@ -31,7 +31,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         data: "Object"
         "data.translations": "Array"
@@ -52,7 +52,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         data: "Object"
         "data.translations": "Array"

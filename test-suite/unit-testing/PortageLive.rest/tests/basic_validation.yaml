@@ -25,7 +25,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          error: "Object"
          error.message: "String"
@@ -42,7 +42,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
 
 
   - name: "Empty target"
@@ -56,7 +56,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
 
 
   - name: "There should be a query."
@@ -69,7 +69,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          error: "Object"
          error.message: "String"
@@ -87,7 +87,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          error: "Object"
          error.type: "String"
@@ -108,7 +108,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         __raw__: '{"data":{"translations":[{"translatedText":"emoh"}]}}'
 
@@ -125,7 +125,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         __raw__: |
          {
@@ -150,7 +150,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          data: "Object"
          data.translations: "Array"
@@ -173,7 +173,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          data: "Object"
          data.translations: "Array"
@@ -203,7 +203,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
          data: "Object"
          data.translations: "Array"

@@ -26,7 +26,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         error: "Object"
         error.message: "String"
@@ -42,7 +42,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         error: "Object"
         error.type: "String"
@@ -60,7 +60,7 @@ testSteps:
     asserts:
       headers:
         status: 404
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         error: "Object"
         error.type: "String"
@@ -78,7 +78,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"
@@ -100,7 +100,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"
@@ -124,7 +124,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"
@@ -155,7 +155,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"
@@ -186,7 +186,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"
@@ -205,7 +205,7 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         incr_status: "Object"
         incr_status.update: "String"

@@ -25,12 +25,12 @@ testSteps:
     asserts:
       headers:
         status: 200
-        Content-Type: "application/json"
+        content-type: "application/json"
       payload:
         "contexts": "Array"
         "contexts._length": 2
         "contexts[0].name": "toy-regress-en2fr"
-        "contexts[0].description": "toy-regress-en2fr (EN-CA --> FR-CA) with CE"
+        "contexts[0].description": "toy-regress-en2fr (EN-CA --> FR-CA) with CE [Incr]"
         "contexts[0].source": "EN-CA"
         "contexts[0].target": "FR-CA"
         "contexts[1].name": "unittest.rev.en-fr"
