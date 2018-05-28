@@ -386,6 +386,7 @@ do_checkout() {
       r rm -f PORTAGEshared/make-distro.sh
       r rm -f PORTAGEshared/generic-model/make-distro.sh
       r rm -rf PORTAGEshared/PortageLive/plive-only-distro
+      r rm -f PORTAGEshared/doc/PortageAPIComparison.xlsx
    r popd
 }
 
