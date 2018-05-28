@@ -30,6 +30,8 @@ import time
 import random
 import os
 import sys
+import shutil
+
 
 logging.basicConfig(level=logging.CRITICAL)
 # If you need to debug what is happening, uncomment the following line
