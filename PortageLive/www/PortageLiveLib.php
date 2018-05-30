@@ -403,7 +403,7 @@ class PortageLiveLib
 
       # preg_match() returns 1 if the pattern matches given subject, 0 if it 
       # does not, or FALSE if an error occurred.
-      if (preg_match("/.(?:txt|tmx|sdlxliff|xliff)$/", $filename) == 0) {
+      if (preg_match("/.(?:txt|tmx|sdlxliff|xliff)$/i", $filename) == 0) {
          throw new SoapFault("PortageServer",
             "Your filename must end with either '.txt' or '.tmx' or '.sdlxliff' or '.xliff'");
       }
@@ -477,7 +477,7 @@ class PortageLiveLib
 
    private function guardFilename($filename, $expected_extension) {
       $possible_extensions = $expected_extension === 'sdlxliff' ? 'sdlxliff|xliff' : $expected_extension;
-      if (preg_match('/.(?:' . $possible_extensions . ')$/', $filename) == 0) {
+      if (preg_match('/.(?:' . $possible_extensions . ')$/i', $filename) == 0) {
          $filename .= '.' . $expected_extension;
       }
       return $filename;

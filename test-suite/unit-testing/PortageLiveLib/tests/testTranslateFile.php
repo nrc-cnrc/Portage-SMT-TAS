@@ -111,6 +111,33 @@ class PortageLiveLib_translateFile_Test extends PHPUnit_Framework_TestCase
    }
 
 
+   public function testTranslatePlainTextWithUppercaseExtension()
+   {
+      $filename = 'testTranslatePlainTextWithUppercaseExtension.TXT';
+      $service = new PortageLiveLib();
+
+      $_SERVER['SERVER_NAME'] = 'phpUnit';
+      $response = $service->translatePlainText(
+         $this->content_base64,
+         $filename,
+         $this->context,
+         false,
+         0,
+         false);
+      # This is not the most elegant code but it transforms the response into a associatve array.
+      $temp = array_map(function($val) { return explode('=', $val); }, explode('&', explode('?', $response)[1]));
+      $args = array();
+      foreach ($temp as $k => $v) {
+         $args[$v[0]] = $v[1];
+      }
+      #print_r($args);
+      $this->assertContains($filename, $args['file']);
+      $this->assertContains($this->context, $args['context']);
+      $this->assertContains($filename, $args['dir']);
+      $this->assertContains($this->context, $args['dir']);
+   }
+
+
    /**
     * @expectedException SoapFault
     * @expectedExceptionMessage tmx check failed for va.php.tmx
@@ -153,6 +180,9 @@ class PortageLiveLib_translateFile_Test extends PHPUnit_Framework_TestCase
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.txt', 'txt'));
       $this->assertEquals('filename.txt', $answer);
 
+      $answer = $this->invokeMethod($service, 'guardFilename', array('filename.TXT', 'txt'));
+      $this->assertEquals('filename.TXT', $answer);
+
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.unsupported_ext', 'txt'));
       $this->assertEquals('filename.unsupported_ext.txt', $answer);
    }
@@ -164,6 +194,9 @@ class PortageLiveLib_translateFile_Test extends PHPUnit_Framework_TestCase
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.tmx', 'tmx'));
       $this->assertEquals('filename.tmx', $answer);
 
+      $answer = $this->invokeMethod($service, 'guardFilename', array('filename.TMX', 'tmx'));
+      $this->assertEquals('filename.TMX', $answer);
+
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.unsupported_ext', 'tmx'));
       $this->assertEquals('filename.unsupported_ext.tmx', $answer);
    }
@@ -174,6 +207,9 @@ class PortageLiveLib_translateFile_Test extends PHPUnit_Framework_TestCase
 
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.sdlxliff', 'sdlxliff'));
       $this->assertEquals('filename.sdlxliff', $answer);
+
+      $answer = $this->invokeMethod($service, 'guardFilename', array('filename.SDLXLIFF', 'sdlxliff'));
+      $this->assertEquals('filename.SDLXLIFF', $answer);
 
       $answer = $this->invokeMethod($service, 'guardFilename', array('filename.xliff', 'sdlxliff'));
       $this->assertEquals('filename.xliff', $answer);
