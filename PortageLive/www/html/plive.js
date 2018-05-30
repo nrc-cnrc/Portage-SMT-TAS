@@ -79,7 +79,7 @@ var plive_app = new Vue({
       context: 'unselected',
       text_source: '',
       text_xtags: false,
-      document_id: undefined,
+      document_id: '',
       enable_phrase_table_debug: false,
       translation: '',
       is_translating_text: false,
@@ -500,7 +500,7 @@ var plive_app = new Vue({
          app.context = 'unselected';
          app.text_source = '';
          app.text_xtags = false;
-         app.document_id = undefined;
+         app.document_id = '';
          app.enable_phrase_table_debug = false;
          app.translation = '';
          app.is_translating_text = false;

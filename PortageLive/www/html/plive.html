@@ -374,7 +374,7 @@
                            name="incrStatus"
                            title="Select a context, provide a document id then click to get the incremental status"
                            v-on:click="incrStatus"
-                           :disabled="context === 'unselected' || document_id === ''"
+                           :disabled="context === 'unselected' || document_id === '' || document_id === undefined"
                            accesskey="s">
                            Incremental Document Status
                         </button>
