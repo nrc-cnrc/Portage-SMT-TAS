@@ -47,16 +47,15 @@ plive-monitor.cgi.
 
 =head1 AUTHOR
 
-Michel Simard
+Michel Simard & Samuel Larkin
 
 =head1 COPYRIGHT
 
  Traitement multilingue de textes / Multilingual Text Processing
- Technologies de l'information et des communications /
-   Information and Communications Technologies
+ Centre de recherche en technologies numériques / Digital Technologies Research Centre
  Conseil national de recherches Canada / National Research Council Canada
- Copyright 2010, Sa Majeste la Reine du Chef du Canada /
- Copyright 2010, Her Majesty in Right of Canada
+ Copyright 2010-2018, Sa Majeste la Reine du Chef du Canada /
+ Copyright 2010-2018, Her Majesty in Right of Canada
 
 =cut
 
@@ -445,9 +444,16 @@ sub processText {
 
     # Create the work dir, get the source text in there:
     if (param('translate_file') and param('filename')) {  # File upload
+        # We need the original filename to be able to retrieve it from CGI.
         my $src_file = tmpFileName(param('filename'))
             || problem("Can't get tmpFileName()");
-        my @src_file_parts = split(/[:\\\/]+/, param('filename'));
+        # We will impose and extension to prevent vulnerabilities.
+        my $filename = param('filename');
+        unless ($filename =~ /\.(?:txt|tmx|xliff|sdlxliff)$/i) {
+           $filename .= '.txt';
+        }
+
+        my @src_file_parts = split(/[:\\\/]+/, $filename);
         $work_name = normalizeName(join("_", $context, $src_file_parts[-1]));
         $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
