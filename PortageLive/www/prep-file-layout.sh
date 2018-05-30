@@ -64,6 +64,28 @@ arg_check() {
    fi
 }
 
+
+function install_plive_html {
+   local dest=$1
+   wget \
+      -O $dest/jquery.soap.js \
+      'https://raw.githubusercontent.com/doedje/jquery.soap/master/jquery.soap.js'
+   pushd html
+   cp \
+      jquery.xml2json.js \
+      nrc-eng.svg \
+      nrc.gc.ca.css \
+      plive.css \
+      plive.html \
+      plive.js \
+      plive.translating.css \
+      sig-eng.svg \
+      wmms.svg \
+      ../$dest
+   popd
+}
+
+
 set -o errexit
 
 FIXED_IP=
@@ -133,6 +155,9 @@ cp  $PORTAGE_JQUERY  $HTML_DIR/ \
 
 # Copy notices
 cp html/portage_notices.php $HTML_DIR/
+
+# Install plive.html
+install_plive_html $HTML_DIR
 
 # Copy the REST files
 mkdir -p $HTML_DIR/rest
