@@ -19,7 +19,7 @@ if [[ -d /space/project/portage ]]; then
    LIZZY_ROOT=gpsc-in:/space/project/portage/PORTAGEshared/Lizzy
 else
    # Black:
-   REF_PORTAGE_DIR=balzac.iit.nrc.ca:/home/portage
+   REF_PORTAGE_DIR=132.246.129.27:/home/portage
    LIZZY_ROOT=wiki-ilt:/export/projets/Lizzy
 fi
 
