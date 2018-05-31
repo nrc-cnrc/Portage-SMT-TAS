@@ -1,6 +1,6 @@
 #!/bin/bash
-# @file incremental-training-add-sentence-pair.sh
-# @brief
+# @file incr-add-sentence.sh
+# @brief Add one sentence pair to an incremental document model.
 #
 # @author Samuel Larkin
 #
