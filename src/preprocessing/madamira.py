@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# @file madamira.py
+# @brief Wrapper for MADAMIRA with OSPL input/output
+#
+# @author Samuel Larking
+#
+# Note: requires xmltodict - run "pip install xmltodict" to install
+
 # We encourage use of Python 3 features such as the print function.
 from __future__ import print_function, unicode_literals, division, absolute_import
 
