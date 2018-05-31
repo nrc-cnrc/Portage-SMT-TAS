@@ -304,15 +304,15 @@
                         </div>
                         <div id="translate_file_urls" v-show="translation_url != undefined">
                            <ul>
-                              <li><a v-bind:href="translation_url" name="translate_url">Translated File</a></li>
-                              <li><a v-bind:href="oov_url" name="oov_url">Out-of-vocabulary words</a></li>
-                              <li><a v-bind:href="pal_url" name="pal_url">Phrase alignments</a></li>
+                              <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                              <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                              <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                            </ul>
                         </div>
                         <div v-show="trace_url != undefined">
                            <h3>Error</h3>
                            {{translate_file_error}}
-                           <a v-bind:href="trace_url" name="trace_url">trace</a>
+                           <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
                         </div>
                      </fieldset>
                   </section>
