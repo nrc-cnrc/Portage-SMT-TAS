@@ -19,6 +19,10 @@ import os
 
 import cPickle as pickle
 import numpy as np
+
+# MKL_THREADING_LAYER=GNU is always required, so set it in here, before importing Theano
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
 from theano import shared, tensor as T
 
 from argparse import ArgumentParser
