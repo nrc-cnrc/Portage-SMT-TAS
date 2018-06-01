@@ -6,8 +6,7 @@
 # @author Samuel Larkin
 #
 # Traitement multilingue de textes / Multilingual Text Processing
-# Technologies de l'information et des communications /
-#   Information and Communications Technologies
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
@@ -173,10 +172,10 @@ my $footer = <<FOOTER;
   </td>
   <td valign="top" align="center">
   <font size=-1>
-Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-Technologies de l'information et des communications / Information and Communications Technologies<BR>
+Traitement multilingue de textes / Multilingual Text Processing<BR>
+Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2015, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2018, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>
