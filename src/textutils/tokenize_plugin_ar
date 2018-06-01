@@ -16,7 +16,6 @@ use 5.014_000;
 use strict;
 use warnings;
 use utf8;  # This script has a unicode code point \xB7
-use MADA::MADATools;
 use ULexiTools;
 use JSON;
 use Time::HiRes qw ( time );
@@ -107,6 +106,9 @@ GetOptions(
 my $SOURCE_LANGUAGE = shift or die "You must provide ar as the language code.";
 die "Wrong language, this script is for Arabic only." if (lc($SOURCE_LANGUAGE) ne "ar");
 
+
+# Defer loading MADATools so -h can work even if MADA is not installed.
+require MADA::MADATools;
 
 my $MADA_HOME = $ENV{MADA_HOME} || "/opt/PortageII/bin";
 print STDERR "MADA_HOME is $MADA_HOME\n";
