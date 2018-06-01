@@ -44,6 +44,7 @@ Options:
 ";
 
 if ($help || $h) {
+    $help = $h; # Quench a stupid warning about main::help and/or main::h being used only once.
     print $HELP;
     exit 0;
 }
@@ -53,6 +54,8 @@ $out = shift || "-";
 
 if (!open(IN, "<$in")) {die "Error: Can't open $in for writing";}
 if (!open(OUT, ">$out")) {die "Error: Can't open $out for reading";}
+
+if ($n) { } # -n means omitting re-coded markup - quenching stupid warning
 
 $p = HTML::TokeParser->new(\*IN);
 
@@ -89,13 +92,13 @@ while ($tok = $p->get_token) {
 	    if ($text =~ /^(\n?)\[$/o) {
 		$text = $1 . "[" . $p->get_phrase;
 	    }
-	    $text =~ s/^(\s*)\[(Translation|Fran.ais)\]\s*$/\1<srclang fr>\n/o;
-	    $text =~ s/^(\s*)\[(Traduction|English)\]\s*$/\1<srclang en>\n/o;
-	    $text =~ s/^D?\s*\(([0-9]{4})\s*\)\s*$/<time \1>\n/o;
+	    $text =~ s/^(\s*)\[(Translation|Fran.ais)\]\s*$/$1<srclang fr>\n/o;
+	    $text =~ s/^(\s*)\[(Traduction|English)\]\s*$/$1<srclang en>\n/o;
+	    $text =~ s/^D?\s*\(([0-9]{4})\s*\)\s*$/<time $1>\n/o;
 	    $text =~ s/^\s*(\*(\s|&nbsp;?)*){3}$/<sect>\n/o;
 	    
 	    if ($last_blank) {
-		$text =~ s/^ ([0-9]{4})\s*$/<time \1>\n/o;
+		$text =~ s/^ ([0-9]{4})\s*$/<time $1>\n/o;
 	    }
 
 	}
@@ -168,7 +171,7 @@ sub match_tag_seq {
     my @toks_read;
     foreach $tag (@tags_to_match) {
 	my $tok = $p->get_token;
-	@toks_read[++$#toks_read] = $tok;
+	$toks_read[++$#toks_read] = $tok;
 
 #	print STDERR "{$tag: $tok->[0] $tok->[1]}";
 

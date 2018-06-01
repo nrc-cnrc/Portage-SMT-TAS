@@ -40,6 +40,7 @@ aligned).
 ";
 
 if ($help || $h) {
+    $help = $h; # Quench a stupid warning about main::help and/or main::h being used only once.
     print $HELP;
     exit 0;
 }
@@ -57,14 +58,14 @@ while (<IN>) {
 	$lower = lc;
 
 	# l ' an -> l' an
-	$lower =~ s/ ([cdjlmnst]|\S*qu|\S*-[dlm]) \' / \1\' /go;
-	$lower =~ s/^([cdjlmnst]|\S*qu|\S*-[dlm]) \' /\1\' /go;
+	$lower =~ s/ ([cdjlmnst]|\S*qu|\S*-[dlm]) \' / $1\' /go;
+	$lower =~ s/^([cdjlmnst]|\S*qu|\S*-[dlm]) \' /$1\' /go;
 	$lower =~ s/aujourd \' hui/aujourd\'hui/go;
 
 	# a-t-il -> a il (only a good idea if translation from French)
 	#$lower =~ s/(\S+)-t-(\S+)/\1 \2/go;
 
-	$lower =~ s/(\S+)-(je|tu|on|ils?|elles?|nous|vous|moi|lui|leur|les?|y)/\1 \2/go;
+	$lower =~ s/(\S+)-(je|tu|on|ils?|elles?|nous|vous|moi|lui|leur|les?|y)/$1 $2/go;
 
 	print OUT $lower;
     } else {

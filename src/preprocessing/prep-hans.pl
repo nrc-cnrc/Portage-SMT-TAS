@@ -43,6 +43,7 @@ Options:
 ";
 
 if ($help || $h) {
+    $help = $h; # Quench a stupid warning about main::help and/or main::h being used only once.
     print $HELP;
     exit 0;
 }
@@ -52,6 +53,8 @@ $out = shift || "-";
  
 if (!open(IN, "<$in")) {die "Error: Can't open $in for writing";}
 if (!open(OUT, ">$out")) {die "Error: Can't open $out for reading";}
+
+if ($n) { } # -n means omitting re-coded markup - quenching stupid warning
 
 # regexp for .BLABLA things to filter out. Need a list, because sometimes these
 # codes are stuck to the following word. Don't forget to double escape (\\)
