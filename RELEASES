@@ -40,6 +40,7 @@ PortageII 4.0  2018-??-??
     Note: this is not incremental retraining of the global model, only
     incremental updates of small, document-specific models.
     Warning: requires php version 5.4 or more recent.
+    See doc/user-manual/IncrementalDocumentAdaptation.html for details.
 
  Minor changes:
   - The user manual is now generated using asciidoctor.

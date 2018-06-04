@@ -5,7 +5,7 @@ The REST API is a simpler API we first prepared for integration of PortageLive
 in MateCat, and now generalized to facilitate integration of incremental
 training in any client. The underlying implementation of the REST API is the
 same as the SOAP API, so here we only document how to call the REST methods.
-You should consult the SOAP API documentation for details of what these methods
+You should consult the SOAP API documentation in the WSDL for details of what these methods
 do.
 
 Here we assume the REST API for the PortageLive server is made available at

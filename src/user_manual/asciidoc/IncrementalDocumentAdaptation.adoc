@@ -12,6 +12,40 @@ Next: link:PortageIIProgrammerReference.html[For Programmers]
 Incremental Document Adaptation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+A significant innovation with PortageII 4.0 is the introduction of incremental document adaptation.
+In this mode, the PortageLive server will keep a specialized model adapted to each document being processed,
+to take advantage on the fly of intra-document repetition and immediately take into account
+corrections that the translator has made on the PortageLive output from previous sentences in the same document.
+
+In order to support incremental document adaptation, a system has to have been installed with PortageII 4.0.
+The easiest way to accomplish this is to retrain existing systems with PortageII 4.0,
+although older models can theoretically be made incremental-ready by manually adding their word-alignment models and 
+an `incremental.config` file to the installed PortageLive systems.
+
+To create an adapted model for a document, call `incrAddSentence()` in either
+the link:PortageLiveManual.html#truerest-api[REST] or the link:PortageLiveManual.html#truesoap-api[SOAP] API.
+This method will create the model if it does not exist, add the given sentence pair which is assumed to have
+just been edited by the translator, and trigger training (or retraining) of the document model.
+If training was already underway, the new sentence pair is simply buffered.
+Retraining will start again with all buffered sentence pairs once the current training run is over.
+
+To keep the system responsive for the user, training is done in the background, not while the user waits.
+Depending on the size of the document's incremental corpus, training can take several to many seconds.
+The system can still be used for translation while training on ongoing, but the previous version of the model will be used.
+
+The `incrAddSentence()` method only reports succesful addition of the sentence pair to the buffer, not the status of (re-)training.
+To find out training status, call `incrStatus()` on the same context/document_model_id pair.
+
+It is up to the client application to manage the document model IDs used.
+When calling PortageLive from a CAT tool, you could use the ID of the document or translation project from the CAT tool.
+If you want, you can use a different key to change what the model is adapted to:
+using the translator's ID or name would mean each translator could have one adapted model for him or herself;
+using the client ID or name would mean having one adapted model per client.
+In any case, only the 2000 most recent sentence pairs added for a given document_model_id are kept,
+in order to keep online retraining fast enough,
+so this is not intended to replace periodic offline retraining,
+but rather to provide immediate access to the most recent material you wish to have the model adapted to.
+
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII]
