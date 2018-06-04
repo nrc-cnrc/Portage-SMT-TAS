@@ -38,8 +38,9 @@ PortageII 4.0  2018-??-??
     document will benefit from the post-edited sentence pairs that were
     previously pushed.
     Note: this is not incremental retraining of the global model, only
-    incremental updates of a small document-specific model.
+    incremental updates of small, document-specific models.
     Warning: requires php version 5.4 or more recent.
+    See doc/user-manual/IncrementalDocumentAdaptation.html for details.
 
  Minor changes:
   - The user manual is now generated using asciidoctor.
@@ -315,7 +316,7 @@ PortageII 1.0 2012-09-04
    training data from one, handle Trados and MS Word style non-breaking and
    optional hyphens better: replace the non-breaking hyphen by a regular one,
    and remove the optional one.
- 
+
  Minor changes:
  - New -w switch to joint2multi_cpt.
  - New -sort switch to ibmcat.

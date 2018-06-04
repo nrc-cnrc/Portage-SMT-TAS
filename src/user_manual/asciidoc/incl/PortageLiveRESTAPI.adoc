@@ -5,7 +5,7 @@ The REST API is a simpler API we first prepared for integration of PortageLive
 in MateCat, and now generalized to facilitate integration of incremental
 training in any client. The underlying implementation of the REST API is the
 same as the SOAP API, so here we only document how to call the REST methods.
-You should consult the SOAP API documentation for details of what these methods
+You should consult the SOAP API documentation in the WSDL for details of what these methods
 do.
 
 Here we assume the REST API for the PortageLive server is made available at
@@ -110,9 +110,10 @@ Samples responses:
 When the result is true, this method has pushed the new sentence pair in the
 incremental corpus for that document and triggered (re)training of the
 incremental model for that document. Training happens in the background.
+The incremental document model is created if it doesn't already exist.
 Translate queries submitted while training is still in progress will continue
 to use the previous model until training is complete, many seconds later, a
-which point the model will be switched to the newly traning incremental model.
+which point the model will be switched to the newly trained incremental model.
 
 Arbitrarily many translate and incrAddSentence requests (up to server capacity)
 can be submitted simultaneously or in quick succession without problems:
