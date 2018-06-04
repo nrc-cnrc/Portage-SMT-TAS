@@ -3,25 +3,21 @@ include::incl/header.adoc[]
 PortageII Programmer Reference
 ------------------------------
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageLiveCustomizationPlugins.html[PortageLive
-Customization Plugins] Down:
-link:PortageIIWritingCode.html[Writing Code]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:IncrementalDocumentAdaptation.html[Incremental Document Adaptation]
+Down: link:PortageIIWritingCode.html[Writing Code]
 
 '''''
 
 * link:PortageIIWritingCode.html[Writing Code]
-* link:PortageIIMakeNotes.html[Using Make] (detailed
-notes)
-* link:PortageIIProgrammingGuidelines.html[Programming
-Guidelines]
+* link:PortageIIMakeNotes.html[Using Make] (detailed notes)
+* link:PortageIIProgrammingGuidelines.html[Programming Guidelines]
 
 '''''
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageLiveCustomizationPlugins.html[PortageLive
-Customization Plugins] Down:
-link:PortageIIWritingCode.html[Writing Code]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:IncrementalDocumentAdaptation.html[Incremental Document Adaptation]
+Down: link:PortageIIWritingCode.html[Writing Code]
 
 '''''
 

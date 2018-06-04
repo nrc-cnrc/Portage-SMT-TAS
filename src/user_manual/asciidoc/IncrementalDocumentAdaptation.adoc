@@ -1,0 +1,23 @@
+include::incl/header.adoc[]
+
+Incremental Document Adaptation
+-------------------------------
+
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
+Next: link:PortageIIProgrammerReference.html[For Programmers]
+
+'''''
+
+Incremental Document Adaptation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'''''
+
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
+Next: link:PortageIIProgrammerReference.html[For Programmers]
+
+'''''
+
+include::incl/footer.adoc[]

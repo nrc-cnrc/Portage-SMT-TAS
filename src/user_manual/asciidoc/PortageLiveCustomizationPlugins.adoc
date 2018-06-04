@@ -3,9 +3,9 @@ include::incl/header.adoc[]
 PortageLive Customization Plugins
 ---------------------------------
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageLiveManual.html[PortageLive] Next:
-link:PortageIIProgrammerReference.html[For Programmers]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageLiveManual.html[PortageLive]
+Next: link:IncrementalDocumentAdaptation.html[Incremental Document Adaptation]
 
 '''''
 
@@ -221,9 +221,9 @@ ce terme est inutile ||| <FT target="this is a pointless term">ce terme est inut
 
 '''''
 
-Up: link:PortageMachineTranslation.html[PortageII] Previous:
-link:PortageLiveManual.html[PortageLive] Next:
-link:PortageIIProgrammerReference.html[For Programmers]
+Up: link:PortageMachineTranslation.html[PortageII]
+Previous: link:PortageLiveManual.html[PortageLive]
+Next: link:IncrementalDocumentAdaptation.html[Incremental Document Adaptation]
 
 '''''
 
