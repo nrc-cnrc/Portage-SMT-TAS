@@ -23,7 +23,7 @@ html/PortageLiveManual.html: asciidoc/incl/PortageLiveRESTAPI.adoc
 html/PortageLiveREST.html: asciidoc/incl/PortageLiveRESTAPI.adoc
 
 html/%.html: asciidoc/%.adoc asciidoc/incl/header.adoc asciidoc/incl/footer.adoc
-	asciidoctor --doctype=book -a showtitle=true -a icons=font@ -a source-highlighter=highlight.js -a platform=opal -a platform-opal=true -a env=browser -a env-browser=true -a idprefix=true -a idseparator=- -a setanchors=true -a toc=macro -o $@ $<
+	asciidoctor --doctype=book -a nofooter -a showtitle=true -a icons=font@ -a source-highlighter=highlight.js -a platform=opal -a platform-opal=true -a env=browser -a env-browser=true -a idprefix=true -a idseparator=- -a setanchors=true -a toc=macro -o $@ $<
 #	asciidoc -a data-uri -a icons -a toc -a toclevels=3 -a max-width=55em -o $@ $<
 #	asciidoc --doctype=book -a icons -a toc -a toc.max.depth=4 -a generate.section.toc.level=4 -a max-width=55em -o $@ $<
 
