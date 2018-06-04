@@ -3,7 +3,7 @@ include::incl/header.adoc[]
 == PortageLive Manual
 
 Up: link:PortageMachineTranslation.html[PortageII]
-Previous: link:TheanoInstallation.html[Theano Installation]
+Previous: link:TheanoInstallation.html[Theano Installation for NNJMs]
 Next: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 
 '''''
@@ -386,9 +386,26 @@ your applications's language is provided in determine-version.php to
 automatically detect the version of PortageLive installed on a
 particular server.
 
+PortageII 4.0 introduces incremental document adaptation via SOAP calls.
+See methods incrAddSentence() and incrStatus() in the WSDL for details.
+To translate with a document model, use context + "/" + document_model_id
+as the context argument to the translate*() methods.
+
 include::incl/PortageLiveRESTAPI.adoc[leveloffset=+4]
 
+===== HTML page with Javascript (interactive web page)
+
+*New*
+
+As of PortageII 4.0, we provide a sample interactive page which calls the SOAP API via JavaScript.
+All the functional elements are in `plive.js` while only the presentation is in `plive.html`.
+To offer your own custom portal to your users, we recommend you take the elements of `plive.html` you want
+and create your own page, making sure all the functionality elements stay unchanged in `plive.js`.
+
 ===== CGI scripts (interactive web page)
+
+*This old option is not recommended, since it combines presentation and function in the same source file
+and changes every time we update PortageII.*
 
 An alternative solution uses CGI scripts to make the translation results
 available via a web page. A pair of CGI scripts is installed as part of
@@ -406,7 +423,7 @@ A third solution is to SSH to the translation server and call
 `translate.pl` (or a wrapper script) directly. The `translate.sh` script
 in the framework can be used to generate a wrapper script which calls
 `translate.pl` with appropriate options. See for example the
-`soap-translate.sh` script we create for use by the SOAP API. This
+`soap-translate.sh` script we create in each system for use by the SOAP API. This
 solution requires the use of DSS keys so you don't have to enter a
 password for every request. The software integration will likely be
 simpler this way if you are working in a Linux environment, but more
@@ -420,19 +437,10 @@ the same `translate.pl` script; it is just a matter of determining which
 way is easiest in your environment, which way satisfies your security
 requirements, etc.
 
-==== Extending the API
-
-If you need to extend the function call, you can do so through our API.
-You should modify `PortageLiveAPI.php` and `PortageLiveAPI.wsdl` to meet
-your needs. You must be familiar with the creation of web services to do
-this. Similarly, you can modify the actual call in the CGI script to
-suit your needs. In all cases, you can get started by looking for the
-call to `translate.pl` or `soap-translate.sh`.
-
 '''''
 
 Up: link:PortageMachineTranslation.html[PortageII]
-Previous: link:TheanoInstallation.html[Theano Installation]
+Previous: link:TheanoInstallation.html[Theano Installation for NNJMs]
 Next: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugins]
 
 '''''

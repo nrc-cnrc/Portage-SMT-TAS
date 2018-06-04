@@ -5,7 +5,7 @@ PortageII Magic Streams
 
 Up: link:PortageMachineTranslation.html[PortageII]
 Previous: link:PortageIIPerformanceConsiderations.html[Performance]
-Next: link:TheanoInstallation.html[Theano Installation]
+Next: link:TheanoInstallation.html[Theano Installation for NNJMs]
 
 '''''
 
@@ -68,7 +68,7 @@ yield mixed output on cout (stdout).
 
 Up: link:PortageMachineTranslation.html[PortageII]
 Previous: link:PortageIIPerformanceConsiderations.html[Performance]
-Next: link:TheanoInstallation.html[Theano Installation]
+Next: link:TheanoInstallation.html[Theano Installation for NNJMs]
 
 '''''
 

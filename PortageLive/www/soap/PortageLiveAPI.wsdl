@@ -250,6 +250,8 @@
          - srcString is the sentence to translate.
          - context is the name of the system to use to translate the document, and
            must match one of the context names returned by getAllContexts().
+           Incremental: to translate using incremental model for document mydoc, append
+           "/mydoc" to contex, i.e., set context = context + "/" + document_model_id.
          - newline indicates the interpretation that should be given to newline
            characters in srcString, and must be one of:
             - "w": newline characters are just whitespace and should be replaced by
@@ -295,6 +297,8 @@
          - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
          - TMXFilename is the name of the TMX file.
          - context must be a valid context identifier as returned by getAllContexts().
+           Incremental: to translate using incremental model for document mydoc, append
+           "/mydoc" to contex, i.e., set context = context + "/" + document_model_id.
          - useCE enables generating CE scores which in turn enables CETreshold.
          - If CETreshold is greater than 0, confidence estimation is used to
            filter out translations with confidence score below the threshold
@@ -338,6 +342,8 @@
          - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
          - TMXFilename is the name of the TMX file.
          - context must be a valid context identifier as returned by getAllContexts().
+           Incremental: to translate using incremental model for document mydoc, append
+           "/mydoc" to contex, i.e., set context = context + "/" + document_model_id.
          - useCE enables generating CE scores.
          - If xtags is true, tags in the source sentences are transfered to the
            target sentences.
@@ -488,6 +494,7 @@
       <documentation>
         Add a segment with its translation to an incremental system defined by
         its context and document_model_id.  Adding a sentence pair triggers
+        creating the document model if it doesn't already exist, then
         training of that incremental system if no training is already underway, or
         else buffers the sentence pair for re-training is soon as the current
         training operation is completed.
@@ -510,6 +517,12 @@
         pair to the incremental system's queue.
 
         Throws SoapFault in case of problems.
+
+        To translate using the incremental document model, specify context + "/" +
+        document_model_id to the translate() methods. E.g., for document "mydoc_1"
+        with context "mysystem-en2fr", use context = "mysystem-en2fr/mydoc_1".
+        This syntax was introduced to avoid breaking backwards compatibility of the
+        translate() methods with previously-compiled clients of the SOAP API.
       </documentation>
       <input message="tns:incrAddSentenceRequest"/>
       <output message="tns:incrAddSentenceResponse"/>
