@@ -263,9 +263,9 @@ Mandatory dependencies for all distributions:
    "perldoc XML::XPath" or "perldoc JSON".
 
    If you're using yum or another Linux package manager, installing
-   perl-XML-XPath, perl-XML-Twig, perl-JSON, perl-YAML, and perl-Time-HiRes,
-   including all dependencies, should do the trick.  This has to be done as
-   root.  This is by far the easiest way to go.
+   perl-XML-XPath, perl-XML-Twig, perl-JSON, perl-YAML, perl-SOAP-Lite, and
+   perl-Time-HiRes, including all dependencies, should do the trick.  This has
+   to be done as root.  This is by far the easiest way to go.
 
    Failing that, you can try using cpan.  Executed as root, or if you compiled
    Perl manually following the instructions above, this might work:
