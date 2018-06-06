@@ -24,6 +24,7 @@ PortageII may be linked with some or all of the following 3rd party libraries:
  - libunwind - binary distributions of PortageII might include libunwind
  - wsdl-viewer.xsl - legible rendering of wsdl files
  - word2vec - create word classes for some models
+ - jquery.xml2json.js - jQuery XML to JSON Plugin
 
 Here are their respective Copyright notices.
 
@@ -290,3 +291,16 @@ word2vec - create word classes for some models
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+
+
+-------------------------------------------------------------------------------
+jquery.xml2json.js - jQuery XML to JSON Plugin
+-------------------------------------------------------------------------------
+
+### jQuery XML to JSON Plugin v1.3 - 2013-02-18 ###
++ * http://www.fyneworks.com/ - diego@fyneworks.com
++ * Licensed under http://en.wikipedia.org/wiki/MIT_License
++ ###
++ Website: http://www.fyneworks.com/jquery/xml-to-json/
+
+
