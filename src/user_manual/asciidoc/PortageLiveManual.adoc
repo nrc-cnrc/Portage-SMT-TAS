@@ -347,6 +347,49 @@ likely be less limited than on virtual machines. Then for each context
 you want to make available, copy the model files to an appropriate
 location, as suggested in the section on multiple contexts above.
 
+===== Deleting old document models
+
+PortageLive offers incremental training for a group of documents identified by a `document_id`.
+In order to perform incremental training, a persistent workspace is created on the server.
+Those workspaces are not automatically deleted from the server and we do not provide a web api to remove them.
+Thus, consequently, these workspaces will eventually take some hard disk space.
+Here, we show how you can configure a simple crontab job to delete, at the first hour of every day, all workspaces that have not been used in `keep_time` days and that have not recieved new sentence pairs in `keep_time` days.
+
+`sudo crontab -e`
+
+Then add and save the following lines to your root crontab.
+
+------------------------
+SHELL=/bin/bash
+
+keep_time=7  # as in n*24 hours ago.
+context=/var/www/html/plive
+
+# This computes the intersection of directory names of unused workspaces with directory names of workspaces that did not recieved any new incremental sentence pairs.
+0 1 * * * find $contexts \( -name canoe.ini.cow -atime +$keep_time -or -name corpora -atime +$keep_time \) -exec dirname {} \; | sort | uniq --repeated | xargs rm -fr
+------------------------
+
+*NOTE* the crontab entry __must__ be on a single line.
+
+*NOTE* This example deletes unused workspaces older than 7 days.
+
+As a reminder, here are the meaning of each fields in a crontab.
+The time and date fields are:
+
+....
+field          allowed values
+-----          --------------
+minute         0-59
+hour           0-23
+day of month   1-31
+month          1-12 (or names, see below)
+day of week    0-7 (0 or 7 is Sun, or use names)
+
+A field may be an asterisk (*), which always stands for "first-last".
+....
+
+
+
 ==== Calling PortageLive from Your Application
 
 In our experiments and demos, we have used SOAP, REST, PHP and CGI
