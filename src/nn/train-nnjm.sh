@@ -60,6 +60,7 @@ Options:
   -workdir WD                 Put intermediate files in dir WD instead of a temporary one
   -train-nnjm-opts "OPTS"     Additional options for train-nnjm.py
   -nnjm-genex-opts "OPTS"     Additional options for nnjm-genex.py
+  -link-cls                   Make symlinks to CLS_* files instead of using them in place
   -n(otreally)                Don't do the work, just create the train.cmds file
   -h(elp)                     Print this help message
   -v(erbose)                  Increment the verbosity level by 1 (may be repeated)
@@ -70,6 +71,9 @@ Options:
    exit 1
 }
 
+NOTREALLY=
+LINK_CLS=
+DEBUG=
 VERBOSE=1
 TRAIN_NNJM_OPTS=
 NNJM_GENEX_OPTS=
@@ -88,6 +92,7 @@ while [[ $# -gt 0 ]]; do
    -out)              arg_check 1 $# $1; OUT=$2; shift;;
    -train-nnjm-opts)  arg_check 1 $# $1; TRAIN_NNJM_OPTS=$2; shift;;
    -nnjm-genex-opts)  arg_check 1 $# $1; NNJM_GENEX_OPTS=$2; shift;;
+   -link-cls)         LINK_CLS=1;;
    -n|-notreally)     NOTREALLY=1;;
    -v|-verbose)       VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)         DEBUG=1;;
@@ -308,6 +313,10 @@ if [[ $CLS_S =~ .mmcls$ ]]; then
    else
       MM_CLS_S=$RELATIVE_FROM_OUT$CLS_S
    fi
+   if [[ $LINK_CLS ]]; then
+      r_cmd "ln -s $MM_CLS_S $OUT/."
+      MM_CLS_S=`basename $MM_CLS_S`
+   fi
 else
    MM_CLS_S=`basename $CLS_S .classes`.mmcls
    r_cmd "wordClasses2MMmap $CLS_S $OUT/$MM_CLS_S >& $WD/log.$MM_CLS_S"
@@ -318,6 +327,10 @@ if [[ $CLS_T =~ .mmcls$ ]]; then
       MM_CLS_T=$CLS_T
    else
       MM_CLS_T=$RELATIVE_FROM_OUT$CLS_T
+   fi
+   if [[ $LINK_CLS ]]; then
+      r_cmd "ln -s $MM_CLS_T $OUT/."
+      MM_CLS_T=`basename $MM_CLS_T`
    fi
 else
    MM_CLS_T=`basename $CLS_T .classes`.mmcls
