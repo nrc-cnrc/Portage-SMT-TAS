@@ -41,3 +41,11 @@ find /opt/PortageII/models/*/plugins -type f 2> /dev/null | xargs -r chmod 755
 
 # 3.8 Disable SELinux because PortageLive doesn't work with the default policy.
 sed -i -e 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
+
+# 3.9 Disable php in /war/www/html/plive/ for security reasons
+echo '
+# Preventing the execution of PHP inside the plive folder.
+<Directory /var/www/html/plive/>
+php_admin_value engine Off
+</Directory>' >> /etc/httpd/conf.d/php.conf
+apachectl graceful

@@ -12,10 +12,18 @@ license agreement for details.
                          Runtime translation server
 
 This directory contains the files you need to install a trained PortageII
-system on a translation server.  We call this PortageLive.  Please read the
-"PortageLive Manual" section of the PortageII User Manual for instructions.
+system on a translation server.  We call this PortageLive.
 
-Contents:
+To fully setup a PortageLive server, you need
+ - software (see bin/)
+ - web service (see www/)
+ - a properly configured machine (see va/)
+ - models (built from framework, not from here)
+
+Please read the "PortageLive Manual" section of the PortageII User Manual for
+detailed instructions.
+
+Subdirectories:
    bin/         tools to build the PortageLive runtime software layout
    models/      tools to build the PortageLive models layout
    www/         web service software, and tools to install it

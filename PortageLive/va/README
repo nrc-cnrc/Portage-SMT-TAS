@@ -37,7 +37,7 @@ PortageII itself and its files:
 
 Post installation
  - Read through application-post-install-script and manually perform steps
-   3.1, 3.4, 3.5, 3.7, 3.8
+   3.1, 3.4, 3.5, 3.7, 3.8, 3.9
  - Read through first-boot-script and manually perform steps 4.1, 4.2, 4.3,
    4.4, makeing sure to "export LC_ALL=C" in your shell before doing so:
    although PortageII is generally compatible with any locale, this setup
