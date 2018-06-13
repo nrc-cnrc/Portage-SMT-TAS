@@ -19,6 +19,7 @@ class PortageLiveAPI extends PortageLiveLib {
 
 
 try {
+   #error_log("SOAP call: $HTTP_RAW_POST_DATA");
    $server = new SoapServer("PortageLiveAPI.wsdl");
    $server->setClass("PortageLiveAPI");
    $server->handle();
