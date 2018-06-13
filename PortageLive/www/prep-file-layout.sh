@@ -67,9 +67,6 @@ arg_check() {
 
 function install_plive_html {
    local dest=$1
-   wget \
-      -O $dest/jquery.soap.js \
-      'https://raw.githubusercontent.com/doedje/jquery.soap/master/jquery.soap.js'
    pushd html
    cp \
       jquery.xml2json.js \
