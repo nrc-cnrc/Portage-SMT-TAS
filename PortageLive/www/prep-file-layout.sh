@@ -197,6 +197,9 @@ for wsdl in `find $SOAP_DEST -name PortageLiveAPI.wsdl`; do
     soap/gen-xml.pl < $wsdl > $wsdl.xml
 done
 
+# Bar execution of php scripts in plive/, where user uploads go
+cp html/plive.htaccess $HTML_DIR/plive/.htaccess
+
 # Set proper permissions on the directory and file structure
 find $ROOT_DIR -type d | xargs chmod 755
 find $ROOT_DIR -type f | xargs chmod 644

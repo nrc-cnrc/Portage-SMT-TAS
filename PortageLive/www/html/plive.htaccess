@@ -1,0 +1,5 @@
+# Make sure PHP scripts are not executed in the plive/ directory, where
+# user-uploaded files are saved.
+<FilesMatch ".*\.php$">
+Deny from All
+</FilesMatch>
