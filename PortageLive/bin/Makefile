@@ -52,14 +52,15 @@ TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
 RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
-TOKENIZATION ?= udetokenize.pl utokenize.pl parse_tokan.pl
+TOKENIZATION ?= udetokenize.pl utokenize.pl parse_tokan.pl madamira.py
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 #Define EXTRAS in Makefile.params to include extra PortageII programs
-EXTRAS ?= madamira.py
+EXTRA_BINS ?=
+EXTRA_SCRIPTS ?=
 
 # Must contain programs from PortageII only.
-PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING} ${INCREMENTAL_SCRIPTS}
-PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRAS} ${INCREMENTAL_BIN}
+PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING} ${INCREMENTAL_SCRIPTS} ${EXTRA_SCRIPTS}
+PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRA_BINS} ${INCREMENTAL_BIN}
 CLUSTER_BINS ?= ${CLUSTER}
 BINARIES ?= ${PORTAGE_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${EXTERNAL_BIN}
 
