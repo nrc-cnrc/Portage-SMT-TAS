@@ -828,6 +828,7 @@ class PortageLiveLib
 
    public function incrStatus($context, $document_model_id = NULL)
    {
+      //error_log("incrStatus call: ($context , $document_model_id)");
       if (!isset($context) || empty($context)) {
          throw new SoapFault("PortageBadArgs",
                              "You must provide a valid context.");

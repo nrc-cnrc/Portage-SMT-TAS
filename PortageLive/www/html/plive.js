@@ -39,7 +39,7 @@ if (!String.prototype.format) {
 if (!String.prototype.format) {
    String.prototype.format = function() {
       const args = arguments[0];  // To extract the dictionary.
-      return this.replace(/{([a-zA-Z0-9]+)}/g, function(match, number) {
+      return this.replace(/{([a-zA-Z0-9_]+)}/g, function(match, number) {
          return typeof args[number] != 'undefined' ? args[number] : match ;
       });
    };
@@ -56,6 +56,20 @@ if (!String.format) {
    };
 }
 */
+
+
+
+// https://stackoverflow.com/a/7918944
+if (!String.prototype.encodeHTML) {
+   String.prototype.encodeHTML = function () {
+      return this.replace(/&/g, '&amp;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&apos;')
+         .replace(/\//g, '&#x2F;');
+   };
+}
 
 
 
@@ -103,14 +117,87 @@ var plive_app = new Vue({
 
    // On page loaded...
    mounted: function() {
-      this.createFilters();
+      this._createFilters();
       this.getAllContexts();
       this.getVersion();
-      const request = $.soap({timeout: 300000});  // Some of PORTAGELive calls can't take a long time.
+      //const request = $.soap({timeout: 300000});  // Some of PORTAGELive calls can't take a long time.
+      if (false) {
+         const wsdl = 'http://132.246.128.219/PortageLiveAPI.wsdl';
+         tinysoap.createClient(wsdl, function(err, client) {
+            client.getAllContexts(
+                  {
+                     'verbose':false,
+                     'json':true
+                  },
+                  function(err, result) {
+                     var c = JSON.parse(result['contexts']);
+                     console.log(c)
+                  });
+            client.getVersion(
+                  {},
+                  function(err, result) {
+                     var c = result['contexts'];
+                     console.log(c)
+                  });
+         });
+      }
    },
 
    methods: {
-      getContext: function() {
+      _body: function(method, args) {
+         return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
+            previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
+            return previous;
+         }, '') + '</' + method + '>';
+      },
+
+      _fetch: function(soapaction, args) {
+         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+         //
+         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
+         const app = this;
+         const envelope = '<?xml version="1.0" encoding="UTF-8"?> \
+                          <soap:Envelope \
+                             xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" \
+                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"> \
+                             <soap:Header> \
+                             </soap:Header> \
+                             <soap:Body> \
+                                {body} \
+                             </soap:Body> \
+                          </soap:Envelope>'.format({'body': app._body(soapaction, args)});
+
+         return fetch(app.service_url, {
+            method: 'POST',
+            headers: {
+               'SOAPAction': soapaction,
+               'Content-Type': 'text/xml; charset=utf-8',
+               },
+            body: envelope,
+            })
+            .then(function(response) {
+               /*
+               if (!response.ok) {
+                  throw Error(response.statusText);
+               }
+               */
+               return response.text();
+            })
+            .then(function(response) {
+               return $.xml2json(response);
+            })
+            .then(function(response) {
+               if (!!response.Body.Fault) {
+                  throw Error(response.Body.Fault.faultcode + ': ' + response.Body.Fault.faultstring);
+               }
+               return response;
+            });
+      },
+
+      _getContext: function() {
          const app = this;
          var context = app.context;
          if (app.document_id !== undefined && app.document_id !== '') {
@@ -119,7 +206,7 @@ var plive_app = new Vue({
          return context;
       },
 
-      createFilters: function() {
+      _createFilters: function() {
          this.filters = Array.apply(null, {length: 20})
                              .map(function(value, index) {
                                 return index * 5 / 100;
@@ -128,18 +215,9 @@ var plive_app = new Vue({
 
       getAllContexts: function() {
          const app = this;
-         const request = $.soap({
-            url: app.service_url,
-            method: 'getAllContexts',
-            appendMethodToURL: false,
 
-            data: {
-               verbose: true,
-               json: true
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
+         return app._fetch('getAllContexts', {'verbose': false, 'json': true})
+            .then(function(response) {
                // We've asked for a json replied which is embeded in the xml response.
                const jsonContexts = JSON.parse(response.Body.getAllContextsResponse.contexts);
                const contexts = jsonContexts.contexts.reduce(function(acc, cur, i) {
@@ -149,15 +227,13 @@ var plive_app = new Vue({
                   {});
                app.contexts = contexts;
                app.context = 'unselected';
-            },
-
-            error: function (soapResponse) {
-               alert("Error fetching available contexts/systems from the server. " + soapResponse.toJSON());
-            }
-         });
+            })
+            .catch(function(err) {
+               alert("Error fetching available contexts/systems from the server. " + err);
+            });
       },
 
-      getBase64: function(file) {
+      _getBase64: function(file) {
          return new Promise(function(resolve, reject) {
                const reader = new FileReader();
                reader.onload = function() { resolve(reader.result) };
@@ -185,7 +261,7 @@ var plive_app = new Vue({
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         app.getBase64(file)
+         app._getBase64(file)
             .then( function(data) {
                app.file = file;
                app.file.base64 = data;
@@ -216,7 +292,7 @@ var plive_app = new Vue({
          const data = {
             ContentsBase64: app.file.base64,
             Filename: app.file.name,
-            context: app.getContext(),
+            context: app._getContext(),
             useCE: false,
             xtags: app.text_xtags,
          };
@@ -231,46 +307,32 @@ var plive_app = new Vue({
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         const request = $.soap({
-            url: app.service_url,
-            method: app.file.translate_method,
-            appendMethodToURL: false,
+         app.is_translating_file = true;
 
-            data: data,
-
-            success: function (soapResponse) {
-               app.translateFileSuccess(soapResponse, app.file.translate_method + 'Response');
-            },
-
-            error: function (soapResponse) {
+         return app._fetch(app.file.translate_method, data)
+            .then(function(response) {
+               app.translateFileSuccess(response, app.file.translate_method + 'Response');
+            })
+            .catch(function(err) {
                app.is_translating_file = false;
                alert('Failed to translate your file!' + soapResponse.toJSON());
-            }
-         });
-
-         app.is_translating_file = true;
+            });
       },
 
       translateFileSuccess: function (soapResponse, method) {
          const app = this;
-         var response = soapResponse.toJSON().Body;
+         var response = soapResponse.Body;
          var token = response[method].token;
          // IMPORTANT we want to be able to stop the setInterval from
          // within the setInterval callback function thus we have to have
          // `watcher` in the callback's scope.
          const watcher = setInterval(
             function(monitor_token) {
-               const request = $.soap({
-                  url: app.service_url,
-                  method: 'translateFileStatus',
-                  appendMethodToURL: false,
-
-                  data: {
-                     token: String(monitor_token),
-                  },
-
-                  success: function (soapResponse) {
-                     var response = soapResponse.toJSON();
+               return app._fetch('translateFileStatus', { token: String(monitor_token) })
+                  .finally( function() {
+                     app.is_translating_file = false;
+                  })
+                  .then(function(response) {
                      var token = response.Body.translateFileStatusResponse.token;
                      if (token.startsWith('0 Done:')) {
                         window.clearInterval(watcher);
@@ -304,13 +366,10 @@ var plive_app = new Vue({
                      else {
                         window.clearInterval(watcher);
                      }
-                  },
-
-                  error: function (soapResponse) {
-                     alert('Failed to retrieve your translation status!' + soapResponse.toJSON());
-                  }
-               })
-               .always( function() { app.is_translating_file = false } );
+                  })
+                  .catch(function(err) {
+                     alert('Failed to retrieve your translation status!' + err);
+                  });
             },
             5000,
             token);
@@ -325,65 +384,47 @@ var plive_app = new Vue({
             return;
          }
 
-         const request = $.soap({
-            url: app.service_url,
-            method: 'translate',
-            appendMethodToURL: false,
+         app.is_translating_text = true;
 
-            data: {
+         return app._fetch('translate', {
                srcString: app.text_source,
-               context: app.getContext(),
+               context: app._getContext(),
                newline: app.newline,
                xtags: app.text_xtags,
                useCE: false,
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
+            })
+            .finally( function() {
+               app.is_translating_text = false;
+            })
+            .then(function(response) {
                app.translation = response.Body.translateResponse.Result;
-            },
-
-            error: function (soapResponse) {
-               alert('Failed to translate your sentences!' + soapResponse.toJSON());
-            }
-         })
-         .always( function() {
-            app.is_translating_text = false;
-         });
-
-         app.is_translating_text = true;
+            })
+            .catch(function(err) {
+               alert('Failed to translate your sentences!' + err);
+            });
       },
 
       incrAddSentence: function() {
          const app = this;
-         const request = $.soap({
-            url: app.service_url,
-            method: 'incrAddSentence',
-            appendMethodToURL: false,
 
-            data: {
+         return app._fetch('incrAddSentence', {
                context: app.context,
                document_model_id: app.document_id,
                source_sentence: app.incr_source_segment,
                target_sentence: app.incr_target_segment,
                extra_data: '',
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
+            })
+            .then(function(response) {
                const status = response.Body.incrAddSentenceResponse.status;
                app.incr_source_segment = '';
                app.incr_target_segment = '';
                // TODO: There is no feedback if the status is false.
-            },
-
-            error: function (soapResponse) {
-               const response = soapResponse.toJSON();
+            })
+            .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
                const faultcode = response.Body.Fault.faultcode;
                alert("Error adding sentence pair." + faultstring);
-            }
-         });
+            });
       },
 
       translate_using_REST_API: function () {
@@ -413,46 +454,37 @@ var plive_app = new Vue({
       },
 
       getVersion: function() {
+         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+         //
+         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
          const app = this;
 
-         const request = $.soap({
-            url: app.service_url,
-            method: 'getVersion',
-            appendMethodToURL: false,
-            data: {},
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
+         return app._fetch('getVersion', {})
+            .then(function(response) {
                app.version = String(response.Body.getVersionResponse.version);
-            },
-
-            error: function (soapResponse) {
+               console.log(app.version);
+            })
+            .catch(function(err) {
                app.version = "Failed to retrieve Portage's version";
-               alert("Failed to get Portage's version." + soapResponse.toJSON());
-            }
-         });
+               alert("Failed to get Portage's version." + err);
+            });
       },
 
       primeModel: function() {
          const app = this;
          // Let's capture the context in case the user changes context before
          // priming is done.
-         const request_data = {
-               'context': app.context,
-               'PrimeMode': app.prime_mode,
-            };
 
          // UI related.
          app.primeModel_status = 'priming';
 
-         const request = $.soap({
-            url: app.service_url,
-            method: 'primeModels',
-            appendMethodToURL: false,
-            data: request_data,
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
+         return app._fetch('primeModels', {
+               'context': app.context,
+               'PrimeMode': app.prime_mode,
+            })
+            .then(function(response) {
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   app.primeModel_status = 'successful';
@@ -460,38 +492,27 @@ var plive_app = new Vue({
                else {
                   app.primeModel_status = 'failed';
                }
-            },
-
-            error: function (soapResponse) {
+            })
+            .catch(function(err) {
                alert("Failed to prime context " + app.context + soapResponse.toJSON());
-            }
-         });
+            });
       },
 
       incrStatus: function() {
          const app = this;
-         app.incrStatus_status = undefined;
 
-         const request = $.soap({
-            url: app.service_url,
-            method: 'incrStatus',
-            appendMethodToURL: false,
-            data: {
-               "context": app.context,
-               "document_model_ID": app.document_id,
-            },
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
+         return app._fetch('incrStatus', {
+            'context': app.context,
+            'document_model_id': app.document_id,
+            })
+            .then(function(response) {
                const status = String(response.Body.incrStatusResponse.status_description);
                app.incrStatus_status = status;
                // TODO: Show the incremental status
-            },
-
-            error: function (soapResponse) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
-            }
-         });
+            })
+            .catch(function(err) {
+               alert("Failed to get incremental status " + app.context + '\n' + err);
+            });
       },
 
       clearForm: function() {

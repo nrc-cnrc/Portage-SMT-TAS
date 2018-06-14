@@ -150,7 +150,7 @@
 
   <message name="incrStatusRequest">
     <part name="context" type="xsd:string"/>
-    <part name="document_model_ID" type="xsd:string"/>
+    <part name="document_model_id" type="xsd:string"/>
   </message>
 
   <message name="incrStatusResponse">
@@ -502,7 +502,7 @@
         Incremental models are specific to the document_model_id and context used and
         are only available to translate requests using the same context /
         document_model_id pair. Document_model_id's should be unique: if you reuse
-        the same ID for two documents with the same context, they will share the same
+        the same id for two documents with the same context, they will share the same
         incremental model.
 
         Arguments:
