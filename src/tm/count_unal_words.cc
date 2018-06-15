@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
                           << join(ttoks) << " ||| " << jointFreq << " " << al << endl;
                }
          } else {
-            tpos.resize(ttoks.size(), false);
+            tpos.assign(ttoks.size(), false);
             // use of stoks.size() rather than sets.size() deliberate here: we
             // treat aligned-to-null as unaligned
             for (Uint i = 0; i < stoks.size(); ++i)
