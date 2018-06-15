@@ -310,10 +310,10 @@ Mandatory dependencies for all distributions:
    SETUP.bash/tcsh:
       PYTHON_HOME_OVERRIDE=/path/to/python2.7-or-miniconda2
 
-   Install required Python packages: numpy mock
+   Install required Python packages: numpy mock theano
       # make sure miniconda2/bin is on your path, e.g., by starting a fresh
       # shell, and then:
-      conda install numpy mock
+      conda install numpy mock theano
 
    Once you've created a PortageLive server, tell PortageLive where to find
    Python 2.7 by creating these two symlinks:
