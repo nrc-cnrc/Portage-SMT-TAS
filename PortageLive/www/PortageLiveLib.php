@@ -265,7 +265,7 @@ class PortageLiveLib
       }
 
       $work_dir = $this->getDocumentModelWorkDir($context, $document_model_id);
-      if (is_dir($work_dir) || @mkdir($work_dir, 0755, true))
+      if (is_dir($work_dir) || @mkdir($work_dir, 0700, true))
          return $work_dir;
       else if (is_dir($work_dir))   # handle potential race condition
          return $work_dir;
