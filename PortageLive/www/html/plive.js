@@ -187,6 +187,13 @@ var plive_app = new Vue({
          }, '') + '</' + method + '>';
       },
 
+      _createFilters: function() {
+         this.filters = Array.apply(null, {length: 20})
+                             .map(function(value, index) {
+                                return index * 5 / 100;
+                             });
+      },
+
       _fetch: function(soapaction, args) {
          // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
          // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
@@ -233,6 +240,21 @@ var plive_app = new Vue({
             });
       },
 
+      _getBase64: function(file) {
+         return new Promise(function(resolve, reject) {
+               const reader = new FileReader();
+               reader.onload = function() { resolve(reader.result) };
+               reader.onerror = function(error) { reject(error) };
+               reader.readAsDataURL(file);
+               })
+            //data:[<mime type>][;charset=<charset>][;base64],<encoded data>
+            //data:*/*;base64,
+            //data:;base64,
+            .then( function(data) {
+               return data.replace(/^data:(.*\/.*)?;base64,/g, '');
+            } );
+      },
+
       _getContext: function() {
          const app = this;
          var context = app.context;
@@ -242,11 +264,33 @@ var plive_app = new Vue({
          return context;
       },
 
-      _createFilters: function() {
-         this.filters = Array.apply(null, {length: 20})
-                             .map(function(value, index) {
-                                return index * 5 / 100;
-                             });
+
+      clearForm: function() {
+         const app = this;
+
+         app.context = 'unselected';
+         app.text_source = '';
+         app.text_xtags = false;
+         app.document_id = '';
+         app.enable_phrase_table_debug = false;
+         app.translation = '';
+         app.is_translating_text = false;
+         app.is_translating_file = false;
+         app.incr_source_segment = '';
+         app.incr_target_segment = '';
+         app.newline = 'p';
+         app.pretokenized = false;
+         app.file = undefined;
+         app.is_xml = false;
+         app.translation_url = undefined;
+         app.oov_url = undefined;
+         app.pal_url = undefined;
+         app.translation_progress = -1;
+         app.trace_url = undefined;
+         app.translate_file_error = '';
+         app.prime_mode = 'partial';
+         app.incrStatus_status = undefined;
+         app.primeModel_status = undefined;
       },
 
       getAllContexts: function() {
@@ -269,19 +313,66 @@ var plive_app = new Vue({
             });
       },
 
-      _getBase64: function(file) {
-         return new Promise(function(resolve, reject) {
-               const reader = new FileReader();
-               reader.onload = function() { resolve(reader.result) };
-               reader.onerror = function(error) { reject(error) };
-               reader.readAsDataURL(file);
-               })
-            //data:[<mime type>][;charset=<charset>][;base64],<encoded data>
-            //data:*/*;base64,
-            //data:;base64,
-            .then( function(data) {
-               return data.replace(/^data:(.*\/.*)?;base64,/g, '');
-            } );
+      getVersion: function() {
+         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+         //
+         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
+         const app = this;
+
+         return app._fetch('getVersion', {})
+            .then(function(response) {
+               app.version = String(response.Body.getVersionResponse.version);
+               console.log(app.version);
+            })
+            .catch(function(err) {
+               app.version = "Failed to retrieve Portage's version";
+               alert("Failed to get Portage's version." + err);
+            });
+      },
+
+      incrAddSentence: function() {
+         const app = this;
+
+         return app._fetch('incrAddSentence', {
+               context: app.context,
+               document_model_id: app.document_id,
+               source_sentence: app.incr_source_segment,
+               target_sentence: app.incr_target_segment,
+               extra_data: '',
+            })
+            .then(function(response) {
+               const status = response.Body.incrAddSentenceResponse.status;
+               app.incr_source_segment = '';
+               app.incr_target_segment = '';
+               // TODO: There is no feedback if the status is false.
+               let myToast = app.$toasted.global.success('Successfully added sentence pair!<i class="fa fa-send"></i>');
+            })
+            .catch(function(err) {
+               const faultstring = response.Body.Fault.faultstring;
+               const faultcode = response.Body.Fault.faultcode;
+               alert("Error adding sentence pair." + faultstring);
+            });
+      },
+
+      incrStatus: function() {
+         const app = this;
+
+         return app._fetch('incrStatus', {
+            'context': app.context,
+            'document_model_id': app.document_id,
+            })
+            .then(function(response) {
+               const status = app._getContext()
+                  + String(response.Body.incrStatusResponse.status_description);
+               app.incrStatus_status = status;
+               let myToast = app.$toasted.global.success(status + '<i class="fa fa-cogs"></i>');
+               // TODO: Show the incremental status
+            })
+            .catch(function(err) {
+               alert("Failed to get incremental status " + app.context + '\n' + err);
+            });
       },
 
       prepareFile: function(evt) {
@@ -321,6 +412,34 @@ var plive_app = new Vue({
             .catch( function(error) {
                alert("Error converting your file to base64!");
             } );
+      },
+
+      primeModel: function() {
+         const app = this;
+         // Let's capture the context in case the user changes context before
+         // priming is done.
+
+         // UI related.
+         app.primeModel_status = 'priming';
+
+         return app._fetch('primeModels', {
+               'context': app.context,
+               'PrimeMode': app.prime_mode,
+            })
+            .then(function(response) {
+               const status = String(response.Body.primeModelsResponse.status);
+               if (status === 'true') {
+                  app.primeModel_status = 'successful';
+                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!<i class="fa fa-tachometer"></i>');
+               }
+               else {
+                  app.primeModel_status = 'failed';
+                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!<i class="fa fa-tachometer"></i>');
+               }
+            })
+            .catch(function(err) {
+               alert("Failed to prime context " + app.context + soapResponse.toJSON());
+            });
       },
 
       translateFile: function(evt) {
@@ -443,30 +562,6 @@ var plive_app = new Vue({
             });
       },
 
-      incrAddSentence: function() {
-         const app = this;
-
-         return app._fetch('incrAddSentence', {
-               context: app.context,
-               document_model_id: app.document_id,
-               source_sentence: app.incr_source_segment,
-               target_sentence: app.incr_target_segment,
-               extra_data: '',
-            })
-            .then(function(response) {
-               const status = response.Body.incrAddSentenceResponse.status;
-               app.incr_source_segment = '';
-               app.incr_target_segment = '';
-               // TODO: There is no feedback if the status is false.
-               let myToast = app.$toasted.global.success('Successfully added sentence pair!<i class="fa fa-send"></i>');
-            })
-            .catch(function(err) {
-               const faultstring = response.Body.Fault.faultstring;
-               const faultcode = response.Body.Fault.faultcode;
-               alert("Error adding sentence pair." + faultstring);
-            });
-      },
-
       translate_using_REST_API: function () {
          // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
          // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
@@ -491,100 +586,6 @@ var plive_app = new Vue({
             this.translation_segments = translations;
             console.log(translations);})
          .catch(function(err) { console.error(err) } )
-      },
-
-      getVersion: function() {
-         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
-         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
-         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
-         //
-         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
-         const app = this;
-
-         return app._fetch('getVersion', {})
-            .then(function(response) {
-               app.version = String(response.Body.getVersionResponse.version);
-               console.log(app.version);
-            })
-            .catch(function(err) {
-               app.version = "Failed to retrieve Portage's version";
-               alert("Failed to get Portage's version." + err);
-            });
-      },
-
-      primeModel: function() {
-         const app = this;
-         // Let's capture the context in case the user changes context before
-         // priming is done.
-
-         // UI related.
-         app.primeModel_status = 'priming';
-
-         return app._fetch('primeModels', {
-               'context': app.context,
-               'PrimeMode': app.prime_mode,
-            })
-            .then(function(response) {
-               const status = String(response.Body.primeModelsResponse.status);
-               if (status === 'true') {
-                  app.primeModel_status = 'successful';
-                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!<i class="fa fa-tachometer"></i>');
-               }
-               else {
-                  app.primeModel_status = 'failed';
-                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!<i class="fa fa-tachometer"></i>');
-               }
-            })
-            .catch(function(err) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
-            });
-      },
-
-      incrStatus: function() {
-         const app = this;
-
-         return app._fetch('incrStatus', {
-            'context': app.context,
-            'document_model_id': app.document_id,
-            })
-            .then(function(response) {
-               const status = app._getContext()
-                  + String(response.Body.incrStatusResponse.status_description);
-               app.incrStatus_status = status;
-               let myToast = app.$toasted.global.success(status + '<i class="fa fa-cogs"></i>');
-               // TODO: Show the incremental status
-            })
-            .catch(function(err) {
-               alert("Failed to get incremental status " + app.context + '\n' + err);
-            });
-      },
-
-      clearForm: function() {
-         const app = this;
-
-         app.context = 'unselected';
-         app.text_source = '';
-         app.text_xtags = false;
-         app.document_id = '';
-         app.enable_phrase_table_debug = false;
-         app.translation = '';
-         app.is_translating_text = false;
-         app.is_translating_file = false;
-         app.incr_source_segment = '';
-         app.incr_target_segment = '';
-         app.newline = 'p';
-         app.pretokenized = false;
-         app.file = undefined;
-         app.is_xml = false;
-         app.translation_url = undefined;
-         app.oov_url = undefined;
-         app.pal_url = undefined;
-         app.translation_progress = -1;
-         app.trace_url = undefined;
-         app.translate_file_error = '';
-         app.prime_mode = 'partial';
-         app.incrStatus_status = undefined;
-         app.primeModel_status = undefined;
       },
    }  // methods
 });
