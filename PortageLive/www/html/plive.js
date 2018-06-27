@@ -82,6 +82,38 @@ Vue.component('translating',
 });
 
 
+
+//Vue.use(Toasted);
+Vue.use(Toasted, {
+   iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
+});
+
+
+
+Vue.toasted.register('error', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'error',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'error',
+});
+
+
+
+Vue.toasted.register('success', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'done_outline',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'success',
+});
+
+
+
 var plive_app = new Vue({
    el: '#plive_app',
 
@@ -117,28 +149,32 @@ var plive_app = new Vue({
 
    // On page loaded...
    mounted: function() {
+      let app = this;
       this._createFilters();
       this.getAllContexts();
       this.getVersion();
       //const request = $.soap({timeout: 300000});  // Some of PORTAGELive calls can't take a long time.
+      let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
+      let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
+
       if (false) {
          const wsdl = 'http://132.246.128.219/PortageLiveAPI.wsdl';
          tinysoap.createClient(wsdl, function(err, client) {
             client.getAllContexts(
-                  {
-                     'verbose':false,
-                     'json':true
-                  },
-                  function(err, result) {
-                     var c = JSON.parse(result['contexts']);
-                     console.log(c)
-                  });
+               {
+                  'verbose':false,
+                  'json':true
+               },
+               function(err, result) {
+                  var c = JSON.parse(result['contexts']);
+                  console.log(c)
+               });
             client.getVersion(
-                  {},
-                  function(err, result) {
-                     var c = result['contexts'];
-                     console.log(c)
-                  });
+               {},
+               function(err, result) {
+                  var c = result['contexts'];
+                  console.log(c)
+               });
          });
       }
    },
@@ -340,6 +376,7 @@ var plive_app = new Vue({
                         app.translation_url = token.replace(/^0 Done: /, '/');
                         app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
+                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!<i class="fa fa-file-text"></i>');
                      }
                      else if (token.startsWith('1')) {
                         // TODO: indicate progress.
@@ -398,9 +435,11 @@ var plive_app = new Vue({
             })
             .then(function(response) {
                app.translation = response.Body.translateResponse.Result;
+               let myToast = app.$toasted.global.success('Successfully translated your text!<i class="fa fa-keyboard-o"></i>');
             })
             .catch(function(err) {
                alert('Failed to translate your sentences!' + err);
+               let myToast = app.$toasted.global.error('Failed to translate your text!<i class="fa fa-keyboard-o"></i>');
             });
       },
 
@@ -419,6 +458,7 @@ var plive_app = new Vue({
                app.incr_source_segment = '';
                app.incr_target_segment = '';
                // TODO: There is no feedback if the status is false.
+               let myToast = app.$toasted.global.success('Successfully added sentence pair!<i class="fa fa-send"></i>');
             })
             .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
@@ -488,9 +528,11 @@ var plive_app = new Vue({
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   app.primeModel_status = 'successful';
+                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!<i class="fa fa-tachometer"></i>');
                }
                else {
                   app.primeModel_status = 'failed';
+                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!<i class="fa fa-tachometer"></i>');
                }
             })
             .catch(function(err) {
@@ -506,8 +548,10 @@ var plive_app = new Vue({
             'document_model_id': app.document_id,
             })
             .then(function(response) {
-               const status = String(response.Body.incrStatusResponse.status_description);
+               const status = app._getContext()
+                  + String(response.Body.incrStatusResponse.status_description);
                app.incrStatus_status = status;
+               let myToast = app.$toasted.global.success(status + '<i class="fa fa-cogs"></i>');
                // TODO: Show the incremental status
             })
             .catch(function(err) {
