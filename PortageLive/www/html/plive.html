@@ -302,10 +302,15 @@
                                  Translate File
                               </button>
                            </div>
-                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
                         </div>
                         <div v-show="translation_progress >= 0">
                            <progress v-bind:value="translation_progress" max="100"></progress>
+                        </div>
+                        <div>
+                           <!--
+                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
+                           -->
+                           <translating :is_translating="is_translating_file" />
                         </div>
                         <div id="translate_file_urls" v-show="translation_url != undefined">
                            <ul>
