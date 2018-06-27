@@ -6,6 +6,11 @@ if ( ! $?THEANO_FLAGS && ! -r ~/.theanorc ) then
       setenv THEANO_FLAGS "device=cpu,floatX=float32,mode=FAST_RUN"
 endif
 
+if ( ! $?MKL_THREADING_LAYER ) then
+   # This definition is always required
+   setenv MKL_THREADING_LAYER GNU
+endif
+
 
 # Manual overrides. Uncommenting either of these lines will override any values
 # set in your ~/.theanorc file and erase any previously defined THEANO_FLAGS

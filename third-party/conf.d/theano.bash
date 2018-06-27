@@ -8,6 +8,11 @@ if [[ ! $THEANO_FLAGS && ! -r ~/.theanorc ]]; then
    fi
 fi
 
+if [[ ! $MKL_THREADING_LAYER ]]; then
+   # This definition is always required
+   export MKL_THREADING_LAYER=GNU
+fi
+
 
 # Manual overrides. Uncommenting either of these lines will override any values
 # set in your ~/.theanorc file and erase any previously defined THEANO_FLAGS

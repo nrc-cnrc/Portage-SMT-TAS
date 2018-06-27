@@ -55,11 +55,11 @@ locate libcudnn
 ----
 
 
-Recommended: Install Theano 1.0 with Conda
-------------------------------------------
+Recommended: Installing Theano 1.0 using Conda
+----------------------------------------------
 
-Install Theano
-~~~~~~~~~~~~~~
+Installing Theano
+~~~~~~~~~~~~~~~~~
 
 The rest of the installation of Theano and its dependencies is trivial if you use Conda,
 as we now require in INSTALL for installing Python 2.7.
@@ -76,8 +76,8 @@ This command should install a number of packages, include libgpuarray, pygpu, nu
 bunch more packages and, of course, Theano itself. The version of Theano installed at the
 time of writing these instructions was 1.0.1.
 
-Test Theano
-~~~~~~~~~~~
+Testing Theano
+~~~~~~~~~~~~~~
 
 If Theano itself was installed correctly, the following command should output Theano's
 current version, 1.0.1 at the time of writing this:
@@ -93,6 +93,17 @@ version and some information about your GPU:
 MKL_THREADING_LAYER=GNU THEANO_FLAGS="mode=FAST_RUN,device=cuda,floatX=float32" python -c 'import theano; print theano.__version__'
 ----
 
+Configuring Theano
+~~~~~~~~~~~~~~~~~~
+
+Theano uses the THEANO_FLAGS environment variable to determine whether it should work on GPU or CPU.
+By default, PortageII's `SETUP.bash` file will source `third-party/conf.d/theano.bash`, which tries to guess whether you have a GPU or not. 
+In a session where you have sourced `SETUP.bash`, try just
+[source,bash]
+----
+python -c 'import theano; print theano.__version__'
+----
+like above, but without the variable definitions, to confirm that your environment is setup correctly to run Theano, with or without GPU as you require.
 
 Alternative: Install Theano 0.9 manually (not recommended)
 ----------------------------------------------------------
@@ -246,6 +257,18 @@ will eventually output information about your GPU and the Theano version:
 MKL_THREADING_LAYER=GNU THEANO_FLAGS="mode=FAST_RUN,device=gpu,floatX=float32" python -c 'import theano; print theano.__version__'
 ----
 
+Configuring Theano
+^^^^^^^^^^^^^^^^^^
+
+Theano uses the THEANO_FLAGS environment variable to determine whether it should work on GPU or CPU.
+If you chose this manual installation route, you will have to edit
+`third-party/conf.d/theano.bash` to set THEANO_FLAGS as needed to tell Theano if you have a GPU.
+In a session where you have sourced `SETUP.bash`, try just
+[source,bash]
+----
+python -c 'import theano; print theano.__version__'
+----
+like above, but without the variable definitions, to confirm that your environment is setup correctly to run Theano, with or without GPU as you require.
 
 '''''
 
