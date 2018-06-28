@@ -157,8 +157,13 @@ var plive_app = new Vue({
       let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
 
       if (false) {
-         const wsdl = 'http://132.246.128.219/PortageLiveAPI.wsdl';
+         /*
+         <script src="https://cdn.jsdelivr.net/npm/tinysoap@1.0.2/tinysoap-browser-min.js"></script>
+         <script type="text/javascript" src="tinysoap-browser.js"></script>
+         */
+         const wsdl = '/PortageLiveAPI.wsdl';
          tinysoap.createClient(wsdl, function(err, client) {
+            // First function call test.
             client.getAllContexts(
                {
                   'verbose':false,
@@ -168,6 +173,7 @@ var plive_app = new Vue({
                   var c = JSON.parse(result['contexts']);
                   console.log(c)
                });
+            // Second function call test.
             client.getVersion(
                {},
                function(err, result) {
