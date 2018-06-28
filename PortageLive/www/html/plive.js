@@ -153,7 +153,6 @@ var plive_app = new Vue({
       this._createFilters();
       this.getAllContexts();
       this.getVersion();
-      //const request = $.soap({timeout: 300000});  // Some of PORTAGELive calls can't take a long time.
       let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
       let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
 
