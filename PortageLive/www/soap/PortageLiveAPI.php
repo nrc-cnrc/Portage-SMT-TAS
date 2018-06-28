@@ -12,6 +12,9 @@
 # Copyright 2009 - 2016, Her Majesty in Right of Canada
 
 
+// Disable the cache so you don't get an old WSDL.
+ini_set("soap.wsdl_cache_enabled", "0");
+
 require 'PortageLiveLib.php';
 
 class PortageLiveAPI extends PortageLiveLib {

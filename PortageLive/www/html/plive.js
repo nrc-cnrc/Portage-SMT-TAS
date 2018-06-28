@@ -10,6 +10,8 @@
  * Copyright 2018, Her Majesty in Right of Canada
  */
 
+
+
 // https://coderwall.com/p/flonoa/simple-string-format-in-javascript
 /*
 if (!String.prototype.format) {
@@ -39,7 +41,7 @@ if (!String.prototype.format) {
 if (!String.prototype.format) {
    String.prototype.format = function() {
       const args = arguments[0];  // To extract the dictionary.
-      return this.replace(/{([a-zA-Z0-9]+)}/g, function(match, number) {
+      return this.replace(/{([a-zA-Z0-9_]+)}/g, function(match, number) {
          return typeof args[number] != 'undefined' ? args[number] : match ;
       });
    };
@@ -59,6 +61,20 @@ if (!String.format) {
 
 
 
+// https://stackoverflow.com/a/7918944
+if (!String.prototype.encodeHTML) {
+   String.prototype.encodeHTML = function () {
+      return this.replace(/&/g, '&amp;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&apos;')
+         .replace(/\//g, '&#x2F;');
+   };
+}
+
+
+
 // https://css-tricks.com/intro-to-vue-2-components-props-slots/
 // https://alligator.io/vuejs/component-communication/
 Vue.component('translating',
@@ -66,6 +82,56 @@ Vue.component('translating',
       props: ['is_translating'],
       template: '#translating_template'
 });
+
+
+
+//Vue.use(Toasted);
+Vue.use(Toasted, {
+   iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
+});
+
+
+
+Vue.toasted.register('error', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'error',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'error',
+});
+
+
+
+Vue.toasted.register('success', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'done_outline',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'success',
+});
+
+
+
+Vue.toasted.register('info', message => message, {
+   action : {
+      text : 'Dismiss',
+      onClick : (e, toastObject) => {
+         toastObject.goAway(250);
+      }
+   },
+   duration : 300000,
+   fullWidth : true,
+   icon : 'info-circle',
+   iconPack: 'fontawesome',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'info',
+});
+
 
 
 var plive_app = new Vue({
@@ -99,65 +165,121 @@ var plive_app = new Vue({
       prime_mode: 'partial',
       incrStatus_status: undefined,
       primeModel_status: undefined,
+      translating_animation: '<div class="translating-text"> <span class="translating-text-words">T</span> <span class="translating-text-words">r</span> <span class="translating-text-words">a</span> <span class="translating-text-words">n</span> <span class="translating-text-words">s</span> <span class="translating-text-words">l</span> <span class="translating-text-words">a</span> <span class="translating-text-words">t</span> <span class="translating-text-words">i</span> <span class="translating-text-words">n</span> <span class="translating-text-words">g</span> </div>',
    },
 
    // On page loaded...
    mounted: function() {
-      this.createFilters();
+      let app = this;
+      this._createFilters();
       this.getAllContexts();
       this.getVersion();
-      const request = $.soap({timeout: 300000});  // Some of PORTAGELive calls can't take a long time.
+
+      if (false) {
+         // This is useful for debugging vue-toasted.
+         let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
+         let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
+         let myToastInfo = app.$toasted.info(app.translating_animation, {
+            duration: 100000,
+            action : {
+               text : 'Dismiss',
+               onClick : (e, toastObject) => {
+                  toastObject.goAway(0);
+               }
+            },
+         });
+      }
+
+      if (false) {
+         /*
+         <script src="https://cdn.jsdelivr.net/npm/tinysoap@1.0.2/tinysoap-browser-min.js"></script>
+         <script type="text/javascript" src="tinysoap-browser.js"></script>
+         */
+         const wsdl = '/PortageLiveAPI.wsdl';
+         tinysoap.createClient(wsdl, function(err, client) {
+            // First function call test.
+            client.getAllContexts(
+               {
+                  'verbose':false,
+                  'json':true
+               },
+               function(err, result) {
+                  var c = JSON.parse(result['contexts']);
+                  console.log(c)
+               });
+            // Second function call test.
+            client.getVersion(
+               {},
+               function(err, result) {
+                  var c = result['contexts'];
+                  console.log(c)
+               });
+         });
+      }
    },
 
    methods: {
-      getContext: function() {
-         const app = this;
-         var context = app.context;
-         if (app.document_id !== undefined && app.document_id !== '') {
-            context = context + '/' + app.document_id;
-         }
-         return context;
+      _body: function(method, args) {
+         return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
+            previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
+            return previous;
+         }, '') + '</' + method + '>';
       },
 
-      createFilters: function() {
+      _createFilters: function() {
          this.filters = Array.apply(null, {length: 20})
                              .map(function(value, index) {
                                 return index * 5 / 100;
                              });
       },
 
-      getAllContexts: function() {
+      _fetch: function(soapaction, args) {
+         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+         //
+         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
          const app = this;
-         const request = $.soap({
-            url: app.service_url,
-            method: 'getAllContexts',
-            appendMethodToURL: false,
+         const envelope = '<?xml version="1.0" encoding="UTF-8"?> \
+                          <soap:Envelope \
+                             xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" \
+                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"> \
+                             <soap:Header> \
+                             </soap:Header> \
+                             <soap:Body> \
+                                {body} \
+                             </soap:Body> \
+                          </soap:Envelope>'.format({'body': app._body(soapaction, args)});
 
-            data: {
-               verbose: true,
-               json: true
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
-               // We've asked for a json replied which is embeded in the xml response.
-               const jsonContexts = JSON.parse(response.Body.getAllContextsResponse.contexts);
-               const contexts = jsonContexts.contexts.reduce(function(acc, cur, i) {
-                     acc[cur.name] = cur;
-                     return acc;
-                  },
-                  {});
-               app.contexts = contexts;
-               app.context = 'unselected';
-            },
-
-            error: function (soapResponse) {
-               alert("Error fetching available contexts/systems from the server. " + soapResponse.toJSON());
-            }
-         });
+         return fetch(app.service_url, {
+            method: 'POST',
+            headers: {
+               'SOAPAction': soapaction,
+               'Content-Type': 'text/xml; charset=utf-8',
+               },
+            body: envelope,
+            })
+            .then(function(response) {
+               /*
+               if (!response.ok) {
+                  throw Error(response.statusText);
+               }
+               */
+               return response.text();
+            })
+            .then(function(response) {
+               return $.xml2json(response);
+            })
+            .then(function(response) {
+               if (!!response.Body.Fault) {
+                  throw Error(response.Body.Fault.faultcode + ': ' + response.Body.Fault.faultstring);
+               }
+               return response;
+            });
       },
 
-      getBase64: function(file) {
+      _getBase64: function(file) {
          return new Promise(function(resolve, reject) {
                const reader = new FileReader();
                reader.onload = function() { resolve(reader.result) };
@@ -172,105 +294,30 @@ var plive_app = new Vue({
             } );
       },
 
-      prepareFile: function(evt) {
-         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
-         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
-         const app   = this;
-         const files = evt.target.files;
-         const file  = files[0];
-
-         // UI related.
-         app.translation_progress = 0;
-         app.translation_url      = undefined;
-         app.trace_url            = undefined;
-         app.translate_file_error = '';
-
-         app.getBase64(file)
-            .then( function(data) {
-               app.file = file;
-               app.file.base64 = data;
-               if (/\.(sdlxliff|xliff)$/i.test(file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateSDLXLIFF';
-               }
-               else if (/\.tmx$/i.test(file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateTMX';
-               }
-               else if (/\.txt$/i.test(file.name)) {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-               else {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-            })
-            .catch( function(error) {
-               alert("Error converting your file to base64!");
-            } );
-      },
-
-      translateFile: function(evt) {
+      _getContext: function() {
          const app = this;
-         const data = {
-            ContentsBase64: app.file.base64,
-            Filename: app.file.name,
-            context: app.getContext(),
-            useCE: false,
-            xtags: app.text_xtags,
-         };
-
-         if (app.is_xml) {
-            data.CETreshold = 0;
+         var context = app.context;
+         if (app.document_id !== undefined && app.document_id !== '') {
+            context = context + '/' + app.document_id;
          }
-
-         // UI related.
-         app.translation_progress = 0;
-         app.translation_url      = undefined;
-         app.trace_url            = undefined;
-         app.translate_file_error = '';
-
-         const request = $.soap({
-            url: app.service_url,
-            method: app.file.translate_method,
-            appendMethodToURL: false,
-
-            data: data,
-
-            success: function (soapResponse) {
-               app.translateFileSuccess(soapResponse, app.file.translate_method + 'Response');
-            },
-
-            error: function (soapResponse) {
-               app.is_translating_file = false;
-               alert('Failed to translate your file!' + soapResponse.toJSON());
-            }
-         });
-
-         app.is_translating_file = true;
+         return context;
       },
 
-      translateFileSuccess: function (soapResponse, method) {
+      _translateFileSuccess: function (soapResponse, method, myToastInfo) {
          const app = this;
-         var response = soapResponse.toJSON().Body;
+         const icon = '<i class="fa fa-file-text"></i>';
+         var response = soapResponse.Body;
          var token = response[method].token;
          // IMPORTANT we want to be able to stop the setInterval from
          // within the setInterval callback function thus we have to have
          // `watcher` in the callback's scope.
          const watcher = setInterval(
             function(monitor_token) {
-               const request = $.soap({
-                  url: app.service_url,
-                  method: 'translateFileStatus',
-                  appendMethodToURL: false,
-
-                  data: {
-                     token: String(monitor_token),
-                  },
-
-                  success: function (soapResponse) {
-                     var response = soapResponse.toJSON();
+               return app._fetch('translateFileStatus', { token: String(monitor_token) })
+                  .finally( function() {
+                     app.is_translating_file = false;
+                  })
+                  .then(function(response) {
                      var token = response.Body.translateFileStatusResponse.token;
                      if (token.startsWith('0 Done:')) {
                         window.clearInterval(watcher);
@@ -278,6 +325,8 @@ var plive_app = new Vue({
                         app.translation_url = token.replace(/^0 Done: /, '/');
                         app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
+                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
+                        myToastInfo.goAway(250);
                      }
                      else if (token.startsWith('1')) {
                         // TODO: indicate progress.
@@ -289,6 +338,7 @@ var plive_app = new Vue({
                         app.is_translating_file = true;  // We are actually still translating
                      }
                      else if (token.startsWith('2 Failed')) {
+                        myToastInfo.goAway(250);
                         window.clearInterval(watcher);
                         // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
                         const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
@@ -299,200 +349,23 @@ var plive_app = new Vue({
                         }
                      }
                      else if (token.startsWith('3')) {
+                        myToastInfo.goAway(250);
                         window.clearInterval(watcher);
                      }
                      else {
+                        myToastInfo.goAway(250);
                         window.clearInterval(watcher);
                      }
-                  },
-
-                  error: function (soapResponse) {
-                     alert('Failed to retrieve your translation status!' + soapResponse.toJSON());
-                  }
-               })
-               .always( function() { app.is_translating_file = false } );
+                  })
+                  .catch(function(err) {
+                     myToastInfo.goAway(250);
+                     alert('Failed to retrieve your translation status!' + err);
+                  });
             },
             5000,
             token);
       },
 
-      translate: function() {
-         const app = this;
-         app.translation = '';
-         const is_incremental = app.contexts[app.context].is_incremental;
-         if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
-            alert(app.context + " does not support incremental.  Please select another system.");
-            return;
-         }
-
-         const request = $.soap({
-            url: app.service_url,
-            method: 'translate',
-            appendMethodToURL: false,
-
-            data: {
-               srcString: app.text_source,
-               context: app.getContext(),
-               newline: app.newline,
-               xtags: app.text_xtags,
-               useCE: false,
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
-               app.translation = response.Body.translateResponse.Result;
-            },
-
-            error: function (soapResponse) {
-               alert('Failed to translate your sentences!' + soapResponse.toJSON());
-            }
-         })
-         .always( function() {
-            app.is_translating_text = false;
-         });
-
-         app.is_translating_text = true;
-      },
-
-      incrAddSentence: function() {
-         const app = this;
-         const request = $.soap({
-            url: app.service_url,
-            method: 'incrAddSentence',
-            appendMethodToURL: false,
-
-            data: {
-               context: app.context,
-               document_model_id: app.document_id,
-               source_sentence: app.incr_source_segment,
-               target_sentence: app.incr_target_segment,
-               extra_data: '',
-            },
-
-            success: function (soapResponse) {
-               const response = soapResponse.toJSON();
-               const status = response.Body.incrAddSentenceResponse.status;
-               app.incr_source_segment = '';
-               app.incr_target_segment = '';
-               // TODO: There is no feedback if the status is false.
-            },
-
-            error: function (soapResponse) {
-               const response = soapResponse.toJSON();
-               const faultstring = response.Body.Fault.faultstring;
-               const faultcode = response.Body.Fault.faultcode;
-               alert("Error adding sentence pair." + faultstring);
-            }
-         });
-      },
-
-      translate_using_REST_API: function () {
-         // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
-         // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-         this.translation_segments = null;
-         const request = {
-            'options': {
-               'sent_split': new Boolean(true),
-            },
-            'segments': [
-               this.source_segment
-            ]};
-         fetch('/translate', {
-            method: 'POST',
-            headers: {
-               'Accept': 'application/json',
-               'Content-Type': 'application/json',
-               },
-            body: JSON.stringify(request),
-            })
-         .then(function(response) { response.json() } )
-         .then(function(translations) {
-            this.translation_segments = translations;
-            console.log(translations);})
-         .catch(function(err) { console.error(err) } )
-      },
-
-      getVersion: function() {
-         const app = this;
-
-         const request = $.soap({
-            url: app.service_url,
-            method: 'getVersion',
-            appendMethodToURL: false,
-            data: {},
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
-               app.version = String(response.Body.getVersionResponse.version);
-            },
-
-            error: function (soapResponse) {
-               app.version = "Failed to retrieve Portage's version";
-               alert("Failed to get Portage's version." + soapResponse.toJSON());
-            }
-         });
-      },
-
-      primeModel: function() {
-         const app = this;
-         // Let's capture the context in case the user changes context before
-         // priming is done.
-         const request_data = {
-               'context': app.context,
-               'PrimeMode': app.prime_mode,
-            };
-
-         // UI related.
-         app.primeModel_status = 'priming';
-
-         const request = $.soap({
-            url: app.service_url,
-            method: 'primeModels',
-            appendMethodToURL: false,
-            data: request_data,
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
-               const status = String(response.Body.primeModelsResponse.status);
-               if (status === 'true') {
-                  app.primeModel_status = 'successful';
-               }
-               else {
-                  app.primeModel_status = 'failed';
-               }
-            },
-
-            error: function (soapResponse) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
-            }
-         });
-      },
-
-      incrStatus: function() {
-         const app = this;
-         app.incrStatus_status = undefined;
-
-         const request = $.soap({
-            url: app.service_url,
-            method: 'incrStatus',
-            appendMethodToURL: false,
-            data: {
-               "context": app.context,
-               "document_model_ID": app.document_id,
-            },
-
-            success: function(soapResponse) {
-               const response = soapResponse.toJSON();
-               const status = String(response.Body.incrStatusResponse.status_description);
-               app.incrStatus_status = status;
-               // TODO: Show the incremental status
-            },
-
-            error: function (soapResponse) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
-            }
-         });
-      },
 
       clearForm: function() {
          const app = this;
@@ -520,6 +393,261 @@ var plive_app = new Vue({
          app.prime_mode = 'partial';
          app.incrStatus_status = undefined;
          app.primeModel_status = undefined;
+      },
+
+      getAllContexts: function() {
+         const app = this;
+
+         return app._fetch('getAllContexts', {'verbose': false, 'json': true})
+            .then(function(response) {
+               // We've asked for a json replied which is embeded in the xml response.
+               const jsonContexts = JSON.parse(response.Body.getAllContextsResponse.contexts);
+               const contexts = jsonContexts.contexts.reduce(function(acc, cur, i) {
+                     acc[cur.name] = cur;
+                     return acc;
+                  },
+                  {});
+               app.contexts = contexts;
+               app.context = 'unselected';
+            })
+            .catch(function(err) {
+               alert("Error fetching available contexts/systems from the server. " + err);
+            });
+      },
+
+      getVersion: function() {
+         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+         //
+         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
+         const app = this;
+
+         return app._fetch('getVersion', {})
+            .then(function(response) {
+               app.version = String(response.Body.getVersionResponse.version);
+               console.log(app.version);
+            })
+            .catch(function(err) {
+               app.version = "Failed to retrieve Portage's version";
+               alert("Failed to get Portage's version." + err);
+            });
+      },
+
+      incrAddSentence: function() {
+         const app = this;
+         const icon = '<i class="fa fa-send"></i>';
+
+         return app._fetch('incrAddSentence', {
+               context: app.context,
+               document_model_id: app.document_id,
+               source_sentence: app.incr_source_segment,
+               target_sentence: app.incr_target_segment,
+               extra_data: '',
+            })
+            .then(function(response) {
+               const status = response.Body.incrAddSentenceResponse.status;
+               app.incr_source_segment = '';
+               app.incr_target_segment = '';
+               // TODO: There is no feedback if the status is false.
+               let myToast = app.$toasted.global.success('Successfully added sentence pair!' + icon);
+            })
+            .catch(function(err) {
+               const faultstring = response.Body.Fault.faultstring;
+               const faultcode = response.Body.Fault.faultcode;
+               alert("Error adding sentence pair." + faultstring);
+            });
+      },
+
+      incrStatus: function() {
+         const app = this;
+         const icon = '<i class="fa fa-cogs"></i>';
+
+         return app._fetch('incrStatus', {
+            'context': app.context,
+            'document_model_id': app.document_id,
+            })
+            .then(function(response) {
+               const status = app._getContext()
+                  + ' : '
+                  + String(response.Body.incrStatusResponse.status_description);
+               app.incrStatus_status = status;
+               let myToast = app.$toasted.global.success(status + icon);
+               // TODO: Show the incremental status
+            })
+            .catch(function(err) {
+               let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
+               alert("Failed to get incremental status " + app.context + '\n' + err);
+            });
+      },
+
+      prepareFile: function(evt) {
+         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
+         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
+         const app   = this;
+         const files = evt.target.files;
+         const file  = files[0];
+
+         // UI related.
+         app.translation_progress = 0;
+         app.translation_url      = undefined;
+         app.trace_url            = undefined;
+         app.translate_file_error = '';
+
+         app._getBase64(file)
+            .then( function(data) {
+               app.file = file;
+               app.file.base64 = data;
+               if (/\.(sdlxliff|xliff)$/i.test(file.name)) {
+                  app.is_xml = true;
+                  app.file.translate_method = 'translateSDLXLIFF';
+               }
+               else if (/\.tmx$/i.test(file.name)) {
+                  app.is_xml = true;
+                  app.file.translate_method = 'translateTMX';
+               }
+               else if (/\.txt$/i.test(file.name)) {
+                  app.is_xml = false;
+                  app.file.translate_method = 'translatePlainText';
+               }
+               else {
+                  app.is_xml = false;
+                  app.file.translate_method = 'translatePlainText';
+               }
+            })
+            .catch( function(error) {
+               alert("Error converting your file to base64!");
+            } );
+      },
+
+      primeModel: function() {
+         const app = this;
+         const icon = '<i class="fa fa-tachometer"></i>';
+         // Let's capture the context in case the user changes context before
+         // priming is done.
+
+         // UI related.
+         app.primeModel_status = 'priming';
+
+         let myToastInfo = app.$toasted.global.info('priming ' + app._getContext() + icon);
+
+         return app._fetch('primeModels', {
+               'context': app.context,
+               'PrimeMode': app.prime_mode,
+            })
+            .finally(function() {
+               myToastInfo.goAway(250);
+            })
+            .then(function(response) {
+               const status = String(response.Body.primeModelsResponse.status);
+               if (status === 'true') {
+                  app.primeModel_status = 'successful';
+                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!' + icon);
+               }
+               else {
+                  app.primeModel_status = 'failed';
+                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!' + icon);
+               }
+            })
+            .catch(function(err) {
+               alert("Failed to prime context " + app.context + soapResponse.toJSON());
+            });
+      },
+
+      translateFile: function(evt) {
+         const app = this;
+         const data = {
+            ContentsBase64: app.file.base64,
+            Filename: app.file.name,
+            context: app._getContext(),
+            useCE: false,
+            xtags: app.text_xtags,
+         };
+
+         if (app.is_xml) {
+            data.CETreshold = 0;
+         }
+
+         // UI related.
+         app.translation_progress = 0;
+         app.translation_url      = undefined;
+         app.trace_url            = undefined;
+         app.translate_file_error = '';
+
+         app.is_translating_file = true;
+
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + '<i class="fa fa-file-text"> ' + app.file.name + '</i>');
+
+         return app._fetch(app.file.translate_method, data)
+            .then(function(response) {
+               app._translateFileSuccess(response, app.file.translate_method + 'Response', myToastInfo);
+            })
+            .catch(function(err) {
+               app.is_translating_file = false;
+               myToastInfo.goAway(250);
+               alert('Failed to translate your file!' + soapResponse.toJSON());
+            });
+      },
+
+      translate: function() {
+         const app = this;
+         const icon = '<i class="fa fa-keyboard-o"></i>';
+         app.translation = '';
+         const is_incremental = app.contexts[app.context].is_incremental;
+         if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
+            alert(app.context + " does not support incremental.  Please select another system.");
+            return;
+         }
+
+         app.is_translating_text = true;
+
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + icon);
+
+         return app._fetch('translate', {
+               srcString: app.text_source,
+               context: app._getContext(),
+               newline: app.newline,
+               xtags: app.text_xtags,
+               useCE: false,
+            })
+            .finally( function() {
+               myToastInfo.goAway(250);
+               app.is_translating_text = false;
+            })
+            .then(function(response) {
+               app.translation = response.Body.translateResponse.Result;
+               let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
+            })
+            .catch(function(err) {
+               alert('Failed to translate your sentences!' + err);
+               let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
+            });
+      },
+
+      translate_using_REST_API: function () {
+         // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
+         // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+         this.translation_segments = null;
+         const request = {
+            'options': {
+               'sent_split': new Boolean(true),
+            },
+            'segments': [
+               this.source_segment
+            ]};
+         fetch('/translate', {
+            method: 'POST',
+            headers: {
+               'Accept': 'application/json',
+               'Content-Type': 'application/json',
+               },
+            body: JSON.stringify(request),
+            })
+         .then(function(response) { response.json() } )
+         .then(function(translations) {
+            this.translation_segments = translations;
+            console.log(translations);})
+         .catch(function(err) { console.error(err) } )
       },
    }  // methods
 });

@@ -27,22 +27,23 @@
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
       <!--
-            jquery.soap.js - https://github.com/doedje/jquery.soap
-            Documentation about THIS version is found here:
-            https://github.com/doedje/jquery.soap/blob/1.7.2/README.md
-            https://raw.githubusercontent.com/doedje/jquery.soap/master/jquery.soap.js
-            -->
-      <script type="text/javascript" src="jquery.soap.js"></script>
-
-      <!--
             Website: http://www.fyneworks.com/jquery/xml-to-json/
-            This is a dependency for jquery.soap.js to be able to use soapResponse.toJSON().
+            This is a dependency that allows _fetch to `$.xml2json(response)`.
             http://www.fyneworks.com/ - diego@fyneworks.com
             Licensed under http://en.wikipedia.org/wiki/MIT_License
             -->
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
       <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+      <!--
+      <script src="https://cdn.jsdelivr.net/npm/tinysoap@1.0.2/tinysoap-browser-min.js"></script>
+      <script type="text/javascript" src="tinysoap-browser.js"></script>
+      -->
 
       <link rel="stylesheet" href="nrc.gc.ca.css">
       <link rel="stylesheet" href="plive.css">
@@ -297,10 +298,15 @@
                                  Translate File
                               </button>
                            </div>
-                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
                         </div>
                         <div v-show="translation_progress >= 0">
                            <progress v-bind:value="translation_progress" max="100"></progress>
+                        </div>
+                        <div>
+                           <!--
+                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
+                           -->
+                           <translating :is_translating="is_translating_file" />
                         </div>
                         <div id="translate_file_urls" v-show="translation_url != undefined">
                            <ul>
@@ -432,21 +438,21 @@
       </div>
 
       <script type="text/x-template" id="translating_template">
-      <div v-show="is_translating" class="translating">
-                  <div class="translating-text">
-                     <span class="translating-text-words">T</span>
-                     <span class="translating-text-words">r</span>
-                     <span class="translating-text-words">a</span>
-                     <span class="translating-text-words">n</span>
-                     <span class="translating-text-words">s</span>
-                     <span class="translating-text-words">l</span>
-                     <span class="translating-text-words">a</span>
-                     <span class="translating-text-words">t</span>
-                     <span class="translating-text-words">i</span>
-                     <span class="translating-text-words">n</span>
-                     <span class="translating-text-words">g</span>
-                  </div>
-               </div>
+         <div v-show="is_translating" class="translating">
+            <div class="translating-text">
+               <span class="translating-text-words">T</span>
+               <span class="translating-text-words">r</span>
+               <span class="translating-text-words">a</span>
+               <span class="translating-text-words">n</span>
+               <span class="translating-text-words">s</span>
+               <span class="translating-text-words">l</span>
+               <span class="translating-text-words">a</span>
+               <span class="translating-text-words">t</span>
+               <span class="translating-text-words">i</span>
+               <span class="translating-text-words">n</span>
+               <span class="translating-text-words">g</span>
+            </div>
+         </div>
       </script>
 
       <script type="text/javascript" src="plive.js"> </script>
