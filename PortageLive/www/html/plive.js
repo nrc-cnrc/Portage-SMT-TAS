@@ -462,22 +462,22 @@ var plive_app = new Vue({
       incrStatus: function() {
          const app = this;
          const icon = '<i class="fa fa-cogs"></i>';
+         const full_context = app._getContext();
 
          return app._fetch('incrStatus', {
             'context': app.context,
             'document_model_id': app.document_id,
             })
             .then(function(response) {
-               const status = app._getContext()
+               const status = full_context
                   + ' : '
                   + String(response.Body.incrStatusResponse.status_description);
                app.incrStatus_status = status;
                let myToast = app.$toasted.global.success(status + icon);
-               // TODO: Show the incremental status
             })
             .catch(function(err) {
                let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
-               alert("Failed to get incremental status " + app.context + '\n' + err);
+               alert("Failed to get incremental status " + full_context + '\n' + err);
             });
       },
 
@@ -523,16 +523,19 @@ var plive_app = new Vue({
       primeModel: function() {
          const app = this;
          const icon = '<i class="fa fa-tachometer"></i>';
+         // context shouldn't be allowed to changed in-between invocations.
+         // It should stay constant within this context.
          // Let's capture the context in case the user changes context before
          // priming is done.
+         const context = app.context;
 
          // UI related.
          app.primeModel_status = 'priming';
 
-         let myToastInfo = app.$toasted.global.info('priming ' + app._getContext() + icon);
+         let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
 
          return app._fetch('primeModels', {
-               'context': app.context,
+               'context': context,
                'PrimeMode': app.prime_mode,
             })
             .finally(function() {
@@ -542,20 +545,22 @@ var plive_app = new Vue({
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   app.primeModel_status = 'successful';
-                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!' + icon);
+                  let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
                }
                else {
                   app.primeModel_status = 'failed';
-                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!' + icon);
+                  let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
                }
             })
             .catch(function(err) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
+               alert("Failed to prime context " + context + soapResponse.toJSON());
             });
       },
 
       translateFile: function(evt) {
          const app = this;
+         const icon = '<i class="fa fa-file-text"></i>';
+         const translate_method = app.file.translate_method;
          const data = {
             ContentsBase64: app.file.base64,
             Filename: app.file.name,
@@ -576,11 +581,11 @@ var plive_app = new Vue({
 
          app.is_translating_file = true;
 
-         let myToastInfo = app.$toasted.global.info(app.translating_animation + '<i class="fa fa-file-text"> ' + app.file.name + '</i>');
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + data.Filename + ' ' + icon);
 
-         return app._fetch(app.file.translate_method, data)
+         return app._fetch(translate_method, data)
             .then(function(response) {
-               app._translateFileSuccess(response, app.file.translate_method + 'Response', myToastInfo);
+               app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
             })
             .catch(function(err) {
                app.is_translating_file = false;
