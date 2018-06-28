@@ -116,6 +116,24 @@ Vue.toasted.register('success', message => message, {
 
 
 
+Vue.toasted.register('info', message => message, {
+   action : {
+      text : 'Dismiss',
+      onClick : (e, toastObject) => {
+         toastObject.goAway(250);
+      }
+   },
+   duration : 300000,
+   fullWidth : true,
+   icon : 'info-circle',
+   iconPack: 'fontawesome',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'info',
+});
+
+
+
 var plive_app = new Vue({
    el: '#plive_app',
 
@@ -147,6 +165,7 @@ var plive_app = new Vue({
       prime_mode: 'partial',
       incrStatus_status: undefined,
       primeModel_status: undefined,
+      translating_animation: '<div class="translating-text"> <span class="translating-text-words">T</span> <span class="translating-text-words">r</span> <span class="translating-text-words">a</span> <span class="translating-text-words">n</span> <span class="translating-text-words">s</span> <span class="translating-text-words">l</span> <span class="translating-text-words">a</span> <span class="translating-text-words">t</span> <span class="translating-text-words">i</span> <span class="translating-text-words">n</span> <span class="translating-text-words">g</span> </div>',
    },
 
    // On page loaded...
@@ -155,8 +174,21 @@ var plive_app = new Vue({
       this._createFilters();
       this.getAllContexts();
       this.getVersion();
-      let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
-      let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
+
+      if (false) {
+         // This is useful for debugging vue-toasted.
+         let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
+         let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
+         let myToastInfo = app.$toasted.info(app.translating_animation, {
+            duration: 100000,
+            action : {
+               text : 'Dismiss',
+               onClick : (e, toastObject) => {
+                  toastObject.goAway(0);
+               }
+            },
+         });
+      }
 
       if (false) {
          /*
@@ -271,6 +303,69 @@ var plive_app = new Vue({
          return context;
       },
 
+      _translateFileSuccess: function (soapResponse, method, myToastInfo) {
+         const app = this;
+         const icon = '<i class="fa fa-file-text"></i>';
+         var response = soapResponse.Body;
+         var token = response[method].token;
+         // IMPORTANT we want to be able to stop the setInterval from
+         // within the setInterval callback function thus we have to have
+         // `watcher` in the callback's scope.
+         const watcher = setInterval(
+            function(monitor_token) {
+               return app._fetch('translateFileStatus', { token: String(monitor_token) })
+                  .finally( function() {
+                     app.is_translating_file = false;
+                  })
+                  .then(function(response) {
+                     var token = response.Body.translateFileStatusResponse.token;
+                     if (token.startsWith('0 Done:')) {
+                        window.clearInterval(watcher);
+                        app.translation_progress = 100;
+                        app.translation_url = token.replace(/^0 Done: /, '/');
+                        app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
+                        app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
+                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
+                        myToastInfo.goAway(250);
+                     }
+                     else if (token.startsWith('1')) {
+                        // TODO: indicate progress.
+                        // "1 In progress (0% done)"
+                        const per = token.match(/1 In progress \((\d+)% done\)/);
+                        if (per) {
+                           app.translation_progress = per[1];
+                        }
+                        app.is_translating_file = true;  // We are actually still translating
+                     }
+                     else if (token.startsWith('2 Failed')) {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                        // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
+                        const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
+                        // TODO: we should be checking the length of messages.
+                        if (messages) {
+                           app.translate_file_error = messages[1];
+                           app.trace_url = '/' + messages[2];
+                        }
+                     }
+                     else if (token.startsWith('3')) {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                     }
+                     else {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                     }
+                  })
+                  .catch(function(err) {
+                     myToastInfo.goAway(250);
+                     alert('Failed to retrieve your translation status!' + err);
+                  });
+            },
+            5000,
+            token);
+      },
+
 
       clearForm: function() {
          const app = this;
@@ -341,6 +436,7 @@ var plive_app = new Vue({
 
       incrAddSentence: function() {
          const app = this;
+         const icon = '<i class="fa fa-send"></i>';
 
          return app._fetch('incrAddSentence', {
                context: app.context,
@@ -354,7 +450,7 @@ var plive_app = new Vue({
                app.incr_source_segment = '';
                app.incr_target_segment = '';
                // TODO: There is no feedback if the status is false.
-               let myToast = app.$toasted.global.success('Successfully added sentence pair!<i class="fa fa-send"></i>');
+               let myToast = app.$toasted.global.success('Successfully added sentence pair!' + icon);
             })
             .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
@@ -365,6 +461,7 @@ var plive_app = new Vue({
 
       incrStatus: function() {
          const app = this;
+         const icon = '<i class="fa fa-cogs"></i>';
 
          return app._fetch('incrStatus', {
             'context': app.context,
@@ -372,12 +469,14 @@ var plive_app = new Vue({
             })
             .then(function(response) {
                const status = app._getContext()
+                  + ' : '
                   + String(response.Body.incrStatusResponse.status_description);
                app.incrStatus_status = status;
-               let myToast = app.$toasted.global.success(status + '<i class="fa fa-cogs"></i>');
+               let myToast = app.$toasted.global.success(status + icon);
                // TODO: Show the incremental status
             })
             .catch(function(err) {
+               let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
                alert("Failed to get incremental status " + app.context + '\n' + err);
             });
       },
@@ -423,25 +522,31 @@ var plive_app = new Vue({
 
       primeModel: function() {
          const app = this;
+         const icon = '<i class="fa fa-tachometer"></i>';
          // Let's capture the context in case the user changes context before
          // priming is done.
 
          // UI related.
          app.primeModel_status = 'priming';
 
+         let myToastInfo = app.$toasted.global.info('priming ' + app._getContext() + icon);
+
          return app._fetch('primeModels', {
                'context': app.context,
                'PrimeMode': app.prime_mode,
+            })
+            .finally(function() {
+               myToastInfo.goAway(250);
             })
             .then(function(response) {
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   app.primeModel_status = 'successful';
-                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!<i class="fa fa-tachometer"></i>');
+                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!' + icon);
                }
                else {
                   app.primeModel_status = 'failed';
-                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!<i class="fa fa-tachometer"></i>');
+                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!' + icon);
                }
             })
             .catch(function(err) {
@@ -471,75 +576,22 @@ var plive_app = new Vue({
 
          app.is_translating_file = true;
 
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + '<i class="fa fa-file-text"> ' + app.file.name + '</i>');
+
          return app._fetch(app.file.translate_method, data)
             .then(function(response) {
-               app.translateFileSuccess(response, app.file.translate_method + 'Response');
+               app._translateFileSuccess(response, app.file.translate_method + 'Response', myToastInfo);
             })
             .catch(function(err) {
                app.is_translating_file = false;
+               myToastInfo.goAway(250);
                alert('Failed to translate your file!' + soapResponse.toJSON());
             });
       },
 
-      translateFileSuccess: function (soapResponse, method) {
-         const app = this;
-         var response = soapResponse.Body;
-         var token = response[method].token;
-         // IMPORTANT we want to be able to stop the setInterval from
-         // within the setInterval callback function thus we have to have
-         // `watcher` in the callback's scope.
-         const watcher = setInterval(
-            function(monitor_token) {
-               return app._fetch('translateFileStatus', { token: String(monitor_token) })
-                  .finally( function() {
-                     app.is_translating_file = false;
-                  })
-                  .then(function(response) {
-                     var token = response.Body.translateFileStatusResponse.token;
-                     if (token.startsWith('0 Done:')) {
-                        window.clearInterval(watcher);
-                        app.translation_progress = 100;
-                        app.translation_url = token.replace(/^0 Done: /, '/');
-                        app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
-                        app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
-                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!<i class="fa fa-file-text"></i>');
-                     }
-                     else if (token.startsWith('1')) {
-                        // TODO: indicate progress.
-                        // "1 In progress (0% done)"
-                        const per = token.match(/1 In progress \((\d+)% done\)/);
-                        if (per) {
-                           app.translation_progress = per[1];
-                        }
-                        app.is_translating_file = true;  // We are actually still translating
-                     }
-                     else if (token.startsWith('2 Failed')) {
-                        window.clearInterval(watcher);
-                        // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
-                        const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
-                        // TODO: we should be checking the length of messages.
-                        if (messages) {
-                           app.translate_file_error = messages[1];
-                           app.trace_url = '/' + messages[2];
-                        }
-                     }
-                     else if (token.startsWith('3')) {
-                        window.clearInterval(watcher);
-                     }
-                     else {
-                        window.clearInterval(watcher);
-                     }
-                  })
-                  .catch(function(err) {
-                     alert('Failed to retrieve your translation status!' + err);
-                  });
-            },
-            5000,
-            token);
-      },
-
       translate: function() {
          const app = this;
+         const icon = '<i class="fa fa-keyboard-o"></i>';
          app.translation = '';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
@@ -549,6 +601,8 @@ var plive_app = new Vue({
 
          app.is_translating_text = true;
 
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + icon);
+
          return app._fetch('translate', {
                srcString: app.text_source,
                context: app._getContext(),
@@ -557,15 +611,16 @@ var plive_app = new Vue({
                useCE: false,
             })
             .finally( function() {
+               myToastInfo.goAway(250);
                app.is_translating_text = false;
             })
             .then(function(response) {
                app.translation = response.Body.translateResponse.Result;
-               let myToast = app.$toasted.global.success('Successfully translated your text!<i class="fa fa-keyboard-o"></i>');
+               let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
             })
             .catch(function(err) {
                alert('Failed to translate your sentences!' + err);
-               let myToast = app.$toasted.global.error('Failed to translate your text!<i class="fa fa-keyboard-o"></i>');
+               let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
             });
       },
 
