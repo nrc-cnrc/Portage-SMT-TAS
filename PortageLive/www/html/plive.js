@@ -10,6 +10,8 @@
  * Copyright 2018, Her Majesty in Right of Canada
  */
 
+
+
 // https://coderwall.com/p/flonoa/simple-string-format-in-javascript
 /*
 if (!String.prototype.format) {
