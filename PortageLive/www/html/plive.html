@@ -34,7 +34,7 @@
             -->
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
-      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.5/vue.min.js" type="text/javascript"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -371,22 +371,8 @@
                      </fieldset>
                   </section>
 
-                  <section name="incrStatus">
-                     <fieldset class="round_corners">
-                        Select a context, provide a document id then click to get the incremental status.
-                        <button
-                           name="incrStatus"
-                           title="Select a context, provide a document id then click to get the incremental status"
-                           v-on:click="incrStatus"
-                           :disabled="!is_incrStatus_possible()"
-                           accesskey="s">
-                           Incremental Document Status
-                        </button>
-                        <div>
-                           {{incrStatus_status}}
-                        </div>
-                     </fieldset>
-                  </section>
+                  <incrstatustag :context="context" :contexts="contexts" :document_id="document_id"></incrstatustag>
+
                </section>
             </section>
 
@@ -467,6 +453,25 @@
             <span class="translating-text-words">n</span>
             <span class="translating-text-words">g</span>
          </div>
+      </script>
+
+      <script type="text/x-template" id="incrStatus_template">
+         <section name="incrStatus">
+            <fieldset class="round_corners">
+               Select a context, provide a document id then click to get the incremental status.
+               <button
+                  name="incrStatus"
+                  title="Select a context, provide a document id then click to get the incremental status"
+                  @click="incrStatus"
+                  :disabled="!is_incrStatus_possible()"
+                  accesskey="s">
+                  Incremental Document Status
+               </button>
+               <div>
+                  {{incrStatus_status}}
+               </div>
+            </fieldset>
+         </section>
       </script>
 
       <script type="text/javascript" src="plive.js"> </script>

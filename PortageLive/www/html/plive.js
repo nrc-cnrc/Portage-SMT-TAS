@@ -85,6 +85,53 @@ Vue.component('translating',
 
 
 
+Vue.component('incrstatustag', {
+   template: '#incrStatus_template',
+   props: ['context', 'contexts', 'document_id'],
+   data: function() {
+      return {
+         incrStatus_status: undefined,
+      };
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.incrStatus_status = undefined;
+      },
+
+      incrStatus: function() {
+         const app = this;
+         const icon = '<i class="fa fa-cogs"></i>';
+         const full_context = app.$parent._getContext();
+
+         return app.$parent._fetch('incrStatus', {
+            'context': app.context,
+            'document_model_id': app.document_id,
+            })
+            .then(function(response) {
+               const status = full_context
+                  + ' : '
+                  + String(response.Body.incrStatusResponse.status_description);
+               app.incrStatus_status = status;
+               let myToast = app.$toasted.global.success(status + icon);
+            })
+            .catch(function(err) {
+               let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
+               alert("Failed to get incremental status " + full_context + '\n' + err);
+            });
+      },
+
+      is_incrStatus_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.document_id !== undefined
+            && app.document_id !== '';
+      },
+   },
+});
+
+
+
 //Vue.use(Toasted);
 Vue.use(Toasted, {
    iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
@@ -143,9 +190,9 @@ var plive_app = new Vue({
       filters: [],
       version: '',
       context: 'unselected',
+      document_id: '',
       text_source: '',
       text_xtags: false,
-      document_id: '',
       enable_phrase_table_debug: false,
       translation: '',
       is_translating_text: false,
@@ -166,7 +213,6 @@ var plive_app = new Vue({
       trace_url: undefined,
       translate_file_error: '',
       prime_mode: 'partial',
-      incrStatus_status: undefined,
       // Load up the template from the UI.
       translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
@@ -402,7 +448,8 @@ var plive_app = new Vue({
          app.trace_url = undefined;
          app.translate_file_error = '';
          app.prime_mode = 'partial';
-         app.incrStatus_status = undefined;
+
+         // TODO: apply clear() on all children.
       },
 
 
@@ -473,29 +520,6 @@ var plive_app = new Vue({
       },
 
 
-      incrStatus: function() {
-         const app = this;
-         const icon = '<i class="fa fa-cogs"></i>';
-         const full_context = app._getContext();
-
-         return app._fetch('incrStatus', {
-            'context': app.context,
-            'document_model_id': app.document_id,
-            })
-            .then(function(response) {
-               const status = full_context
-                  + ' : '
-                  + String(response.Body.incrStatusResponse.status_description);
-               app.incrStatus_status = status;
-               let myToast = app.$toasted.global.success(status + icon);
-            })
-            .catch(function(err) {
-               let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
-               alert("Failed to get incremental status " + full_context + '\n' + err);
-            });
-      },
-
-
       is_ce_possible: function() {
          const app = this;
          return app.is_xml
@@ -510,14 +534,6 @@ var plive_app = new Vue({
          return app.context !== 'unselected'
             && app.incr_source_segment !== ''
             && app.incr_target_segment !== ''
-            && app.document_id !== '';
-      },
-
-
-      is_incrStatus_possible: function() {
-         const app = this;
-         return app.context !== 'unselected'
-            && app.document_id !== undefined
             && app.document_id !== '';
       },
 
