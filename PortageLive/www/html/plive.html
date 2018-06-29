@@ -118,33 +118,7 @@
                </fieldset>
             </section>
 
-            <section name="priming">
-               <fieldset class="round_corners">
-                  <legend>Prime Context</legend>
-                  For speedier translation, it is useful to prime the models in memory
-                  on the server.  Note that you cannot prime all models due to memory
-                  limitation on the server.  Priming too often is also not recommended.
-                  <label class="lineup" title="Refreshes most important models in memory">
-                     <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
-                     partial
-                  </label>
-                  <label class="lineup" title="Refreshes all models in memory for speedier translation">
-                     <input v-model="prime_mode" type="radio" name="full" value="full" />
-                     full
-                  </label class="lineup">
-                  <div>
-                     <div style="float: left">
-                        <button
-                           title="Select a context, select a mode then prime your models"
-                           v-on:click="primeModel"
-                           :disabled="!is_priming_possible()"
-                           accesskey="p">
-                           Prime Context
-                        </button>
-                     </div>
-                  </div>
-               </fieldset>
-            </section>
+            <primetag :context="context" :contexts="contexts"></primetag>
 
             <section class="row">
                <section name="translate_text">
@@ -469,6 +443,36 @@
                </button>
                <div>
                   {{incrStatus_status}}
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+      <script type="text/x-template" id="prime_template">
+         <section name="priming">
+            <fieldset class="round_corners">
+               <legend>Prime Context</legend>
+               For speedier translation, it is useful to prime the models in memory
+               on the server.  Note that you cannot prime all models due to memory
+               limitation on the server.  Priming too often is also not recommended.
+               <label class="lineup" title="Refreshes most important models in memory">
+                  <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
+                  partial
+               </label>
+               <label class="lineup" title="Refreshes all models in memory for speedier translation">
+                  <input v-model="prime_mode" type="radio" name="full" value="full" />
+                  full
+               </label class="lineup">
+               <div>
+                  <div style="float: left">
+                     <button
+                        title="Select a context, select a mode then prime your models"
+                        @click="primeModel"
+                        :disabled="!is_priming_possible()"
+                        accesskey="p">
+                        Prime Context
+                     </button>
+                  </div>
                </div>
             </fieldset>
          </section>

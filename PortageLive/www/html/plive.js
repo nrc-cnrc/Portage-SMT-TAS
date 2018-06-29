@@ -131,6 +131,60 @@ Vue.component('incrstatustag', {
 });
 
 
+Vue.component('primetag', {
+   template: '#prime_template',
+   props: ['context', 'contexts'],
+   data: function() {
+      return {
+         prime_mode: 'partial',
+      };
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.prime_mode = 'partial';
+      },
+
+      is_priming_possible: function() {
+         const app = this;
+         return app.context !== 'unselected';
+      },
+
+      primeModel: function() {
+         const app = this;
+         const icon = '<i class="fa fa-tachometer"></i>';
+         // context shouldn't be allowed to changed in-between invocations.
+         // It should stay constant within this context.
+         // Let's capture the context in case the user changes context before
+         // priming is done.
+         const context = app.context;
+
+         let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
+
+         return app.$parent._fetch('primeModels', {
+               'context': context,
+               'PrimeMode': app.prime_mode,
+            })
+            .finally(function() {
+               myToastInfo.goAway(250);
+            })
+            .then(function(response) {
+               const status = String(response.Body.primeModelsResponse.status);
+               if (status === 'true') {
+                  let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
+               }
+               else {
+                  let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
+               }
+            })
+            .catch(function(err) {
+               alert("Failed to prime context " + context + soapResponse.toJSON());
+            });
+      },
+   },
+});
+
+
 
 //Vue.use(Toasted);
 Vue.use(Toasted, {
@@ -212,7 +266,6 @@ var plive_app = new Vue({
       translation_progress: 0,
       trace_url: undefined,
       translate_file_error: '',
-      prime_mode: 'partial',
       // Load up the template from the UI.
       translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
@@ -447,9 +500,11 @@ var plive_app = new Vue({
          app.translation_progress = -1;
          app.trace_url = undefined;
          app.translate_file_error = '';
-         app.prime_mode = 'partial';
 
          // TODO: apply clear() on all children.
+         app.$children.forEach(function(e) {
+            e._clear();
+         });
       },
 
 
@@ -538,12 +593,6 @@ var plive_app = new Vue({
       },
 
 
-      is_priming_possible: function() {
-         const app = this;
-         return app.context !== 'unselected';
-      },
-
-
       is_translating_a_file_possible: function() {
          const app = this;
          return app.context !== 'unselected'
@@ -596,39 +645,6 @@ var plive_app = new Vue({
             .catch( function(error) {
                alert("Error converting your file to base64!");
             } );
-      },
-
-
-      primeModel: function() {
-         const app = this;
-         const icon = '<i class="fa fa-tachometer"></i>';
-         // context shouldn't be allowed to changed in-between invocations.
-         // It should stay constant within this context.
-         // Let's capture the context in case the user changes context before
-         // priming is done.
-         const context = app.context;
-
-         let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
-
-         return app._fetch('primeModels', {
-               'context': context,
-               'PrimeMode': app.prime_mode,
-            })
-            .finally(function() {
-               myToastInfo.goAway(250);
-            })
-            .then(function(response) {
-               const status = String(response.Body.primeModelsResponse.status);
-               if (status === 'true') {
-                  let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
-               }
-               else {
-                  let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
-               }
-            })
-            .catch(function(err) {
-               alert("Failed to prime context " + context + soapResponse.toJSON());
-            });
       },
 
 
