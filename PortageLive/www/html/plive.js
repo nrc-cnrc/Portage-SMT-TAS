@@ -166,7 +166,6 @@ var plive_app = new Vue({
       translate_file_error: '',
       prime_mode: 'partial',
       incrStatus_status: undefined,
-      primeModel_status: undefined,
       translating_animation: '<div class="translating-text"> <span class="translating-text-words">T</span> <span class="translating-text-words">r</span> <span class="translating-text-words">a</span> <span class="translating-text-words">n</span> <span class="translating-text-words">s</span> <span class="translating-text-words">l</span> <span class="translating-text-words">a</span> <span class="translating-text-words">t</span> <span class="translating-text-words">i</span> <span class="translating-text-words">n</span> <span class="translating-text-words">g</span> </div>',
    },
 
@@ -394,7 +393,6 @@ var plive_app = new Vue({
          app.translate_file_error = '';
          app.prime_mode = 'partial';
          app.incrStatus_status = undefined;
-         app.primeModel_status = undefined;
       },
 
       getAllContexts: function() {
@@ -536,9 +534,6 @@ var plive_app = new Vue({
          // priming is done.
          const context = app.context;
 
-         // UI related.
-         app.primeModel_status = 'priming';
-
          let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
 
          return app._fetch('primeModels', {
@@ -551,11 +546,9 @@ var plive_app = new Vue({
             .then(function(response) {
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
-                  app.primeModel_status = 'successful';
                   let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
                }
                else {
-                  app.primeModel_status = 'failed';
                   let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
                }
             })
