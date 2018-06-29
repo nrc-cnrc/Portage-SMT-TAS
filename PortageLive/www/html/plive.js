@@ -80,7 +80,7 @@ if (!String.prototype.encodeHTML) {
 Vue.component('translating',
    {
       props: ['is_translating'],
-      template: '#translating_template'
+      template: '#vue_translating_template'
 });
 
 
@@ -166,7 +166,8 @@ var plive_app = new Vue({
       translate_file_error: '',
       prime_mode: 'partial',
       incrStatus_status: undefined,
-      translating_animation: '<div class="translating-text"> <span class="translating-text-words">T</span> <span class="translating-text-words">r</span> <span class="translating-text-words">a</span> <span class="translating-text-words">n</span> <span class="translating-text-words">s</span> <span class="translating-text-words">l</span> <span class="translating-text-words">a</span> <span class="translating-text-words">t</span> <span class="translating-text-words">i</span> <span class="translating-text-words">n</span> <span class="translating-text-words">g</span> </div>',
+      // Load up the template from the UI.
+      translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
 
    // On page loaded...
