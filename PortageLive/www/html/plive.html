@@ -171,7 +171,7 @@
                      </div>
                      <div>
                         <label for="text_xtags" class="lineup">
-                           <input id="text_xtags" v-model="text_xtags" type="checkbox" name="text_xtags" value="on" />
+                           <input v-model="text_xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
                            <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
                         </label>
                      </div>
@@ -254,7 +254,7 @@
                         </div>
                         <div>
                            <label class="lineup">
-                              <input type="checkbox" name="file_xtags" value="on" />
+                              <input v-model="file_xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
                               <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
                            </label>
                         </div>

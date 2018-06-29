@@ -156,6 +156,7 @@ var plive_app = new Vue({
       pretokenized: false,
       file: undefined,
       is_xml: false,
+      file_xtags: false,
       useConfidenceEstimation: false,
       CETreshold: 0,
       translation_url: undefined,
@@ -624,7 +625,7 @@ var plive_app = new Vue({
             Filename: app.file.name,
             context: app._getContext(),
             useCE: app.useConfidenceEstimation,
-            xtags: app.text_xtags,
+            xtags: app.file_xtags,
          };
 
          if (app.is_xml) {
