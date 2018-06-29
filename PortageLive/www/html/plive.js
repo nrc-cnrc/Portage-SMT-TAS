@@ -219,6 +219,7 @@ var plive_app = new Vue({
       }
    },
 
+
    methods: {
       _body: function(method, args) {
          return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
@@ -227,12 +228,14 @@ var plive_app = new Vue({
          }, '') + '</' + method + '>';
       },
 
+
       _createFilters: function() {
          this.filters = Array.apply(null, {length: 20})
                              .map(function(value, index) {
                                 return index * 5 / 100;
                              });
       },
+
 
       _fetch: function(soapaction, args) {
          // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
@@ -280,6 +283,7 @@ var plive_app = new Vue({
             });
       },
 
+
       _getBase64: function(file) {
          return new Promise(function(resolve, reject) {
                const reader = new FileReader();
@@ -295,6 +299,7 @@ var plive_app = new Vue({
             } );
       },
 
+
       _getContext: function() {
          const app = this;
          var context = app.context;
@@ -303,6 +308,7 @@ var plive_app = new Vue({
          }
          return context;
       },
+
 
       _translateFileSuccess: function (soapResponse, method, myToastInfo) {
          const app = this;
@@ -368,6 +374,7 @@ var plive_app = new Vue({
       },
 
 
+
       clearForm: function() {
          const app = this;
 
@@ -395,6 +402,7 @@ var plive_app = new Vue({
          app.incrStatus_status = undefined;
       },
 
+
       getAllContexts: function() {
          const app = this;
 
@@ -415,6 +423,7 @@ var plive_app = new Vue({
             });
       },
 
+
       getVersion: function() {
          // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
          // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
@@ -433,6 +442,7 @@ var plive_app = new Vue({
                alert("Failed to get Portage's version." + err);
             });
       },
+
 
       incrAddSentence: function() {
          const app = this;
@@ -458,6 +468,7 @@ var plive_app = new Vue({
                alert("Error adding sentence pair." + faultstring);
             });
       },
+
 
       incrStatus: function() {
          const app = this;
@@ -525,6 +536,7 @@ var plive_app = new Vue({
             } );
       },
 
+
       primeModel: function() {
          const app = this;
          const icon = '<i class="fa fa-tachometer"></i>';
@@ -556,6 +568,7 @@ var plive_app = new Vue({
                alert("Failed to prime context " + context + soapResponse.toJSON());
             });
       },
+
 
       translateFile: function(evt) {
          const app = this;
@@ -594,6 +607,7 @@ var plive_app = new Vue({
             });
       },
 
+
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
@@ -628,6 +642,7 @@ var plive_app = new Vue({
                let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
             });
       },
+
 
       translate_using_REST_API: function () {
          // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
