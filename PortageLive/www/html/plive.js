@@ -245,6 +245,210 @@ Vue.component('prime', {
 
 
 
+Vue.component('translatefile', {
+   template: '#translatefile_template',
+   props: ['context', 'contexts', 'document_id'],
+   data: function() {
+      return {
+         filters: [],
+         file: undefined,
+         is_xml: false,
+         xtags: false,
+         useConfidenceEstimation: false,
+         CETreshold: 0,
+         translation_url: undefined,
+         oov_url: undefined,
+         pal_url: undefined,
+         trace_url: undefined,
+         translation_progress: 0,
+         translate_file_error: '',
+      };
+   },
+   // On page loaded...
+   mounted: function() {
+      const app = this;
+      app._createFilters();
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.file = undefined;
+         app.is_xml = false;
+         app.xtags = false;
+         app.useConfidenceEstimation = false;
+         app.CETreshold = 0;
+         app.translation_url = undefined;
+         app.oov_url = undefined;
+         app.pal_url = undefined;
+         app.trace_url = undefined;
+         app.translation_progress = 0;
+         app.translate_file_error = '';
+      },
+
+
+      _createFilters: function() {
+         const app = this;
+         app.filters = Array.apply(null, {length: 20})
+                             .map(function(value, index) {
+                                return index * 5 / 100;
+                             });
+      },
+
+
+      _translateFileSuccess: function (soapResponse, method, myToastInfo) {
+         const app = this;
+         const icon = '<i class="fa fa-file-text"></i>';
+         var response = soapResponse.Body;
+         var token = response[method].token;
+         // IMPORTANT we want to be able to stop the setInterval from
+         // within the setInterval callback function thus we have to have
+         // `watcher` in the callback's scope.
+         const watcher = setInterval(
+            function(monitor_token) {
+               return app.$parent._fetch('translateFileStatus', { token: String(monitor_token) })
+                  .then(function(response) {
+                     var token = response.Body.translateFileStatusResponse.token;
+                     if (token.startsWith('0 Done:')) {
+                        window.clearInterval(watcher);
+                        app.translation_progress = 100;
+                        app.translation_url = token.replace(/^0 Done: /, '/');
+                        app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
+                        app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
+                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
+                        myToastInfo.goAway(250);
+                     }
+                     else if (token.startsWith('1')) {
+                        // TODO: indicate progress.
+                        // "1 In progress (0% done)"
+                        const per = token.match(/1 In progress \((\d+)% done\)/);
+                        if (per) {
+                           app.translation_progress = per[1];
+                        }
+                     }
+                     else if (token.startsWith('2 Failed')) {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                        // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
+                        const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
+                        // TODO: we should be checking the length of messages.
+                        if (messages) {
+                           app.translate_file_error = messages[1];
+                           app.trace_url = '/' + messages[2];
+                        }
+                     }
+                     else if (token.startsWith('3')) {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                     }
+                     else {
+                        myToastInfo.goAway(250);
+                        window.clearInterval(watcher);
+                     }
+                  })
+                  .catch(function(err) {
+                     myToastInfo.goAway(250);
+                     alert('Failed to retrieve your translation status!' + err);
+                  });
+            },
+            5000,
+            token);
+      },
+
+
+      is_ce_possible: function() {
+         const app = this;
+         return app.is_xml
+            && app.contexts !== undefined
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].as_ce;
+      },
+
+
+      is_translating_a_file_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.file !== undefined;
+      },
+
+
+      prepareFile: function(evt) {
+         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
+         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
+         const app   = this;
+         const files = evt.target.files;
+         const file  = files[0];
+
+         // UI related.
+         app.translation_progress = 0;
+         app.translation_url      = undefined;
+         app.trace_url            = undefined;
+         app.translate_file_error = '';
+
+         app.$parent._getBase64(file)
+            .then( function(data) {
+               app.file = file;
+               app.file.base64 = data;
+               if (/\.(sdlxliff|xliff)$/i.test(file.name)) {
+                  app.is_xml = true;
+                  app.file.translate_method = 'translateSDLXLIFF';
+               }
+               else if (/\.tmx$/i.test(file.name)) {
+                  app.is_xml = true;
+                  app.file.translate_method = 'translateTMX';
+               }
+               else if (/\.txt$/i.test(file.name)) {
+                  app.is_xml = false;
+                  app.file.translate_method = 'translatePlainText';
+               }
+               else {
+                  app.is_xml = false;
+                  app.file.translate_method = 'translatePlainText';
+               }
+            })
+            .catch( function(error) {
+               alert("Error converting your file to base64!");
+            } );
+      },
+
+
+      translateFile: function(evt) {
+         const app = this;
+         const icon = '<i class="fa fa-file-text"></i>';
+         const translate_method = app.file.translate_method;
+         const data = {
+            ContentsBase64: app.file.base64,
+            Filename: app.file.name,
+            context: app.$parent._getContext(),
+            useCE: app.useConfidenceEstimation,
+            xtags: app.xtags,
+         };
+
+         if (app.is_xml) {
+            data.CETreshold = app.CETreshold;
+         }
+
+         // UI related.
+         app.translation_progress = 0;
+         app.translation_url      = undefined;
+         app.trace_url            = undefined;
+         app.translate_file_error = '';
+
+         let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + data.Filename + ' ' + icon);
+
+         return app.$parent._fetch(translate_method, data)
+            .then(function(response) {
+               app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
+            })
+            .catch(function(err) {
+               myToastInfo.goAway(250);
+               alert('Failed to translate your file!' + soapResponse.toJSON());
+            });
+      },
+   },
+});
+
+
+
 //Vue.use(Toasted);
 Vue.use(Toasted, {
    iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
@@ -300,37 +504,23 @@ var plive_app = new Vue({
    data: {
       service_url: '/PortageLiveAPI.php',
       contexts: [],
-      filters: [],
       version: '',
       context: 'unselected',
       document_id: '',
       text_source: '',
       text_xtags: false,
+      pretokenized: false,
       enable_phrase_table_debug: false,
       translation: '',
       is_translating_text: false,
-      is_translating_file: false,
       newline: 'p',
-      pretokenized: false,
-      file: undefined,
-      is_xml: false,
-      file_xtags: false,
-      useConfidenceEstimation: false,
-      CETreshold: 0,
-      translation_url: undefined,
-      oov_url: undefined,
-      pal_url: undefined,
-      translation_progress: 0,
-      trace_url: undefined,
-      translate_file_error: '',
       // Load up the template from the UI.
       translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
 
    // On page loaded...
    mounted: function() {
-      let app = this;
-      app._createFilters();
+      const app = this;
       app.getAllContexts();
       app.getVersion();
 
@@ -384,15 +574,6 @@ var plive_app = new Vue({
             previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
             return previous;
          }, '') + '</' + method + '>';
-      },
-
-
-      _createFilters: function() {
-         const app = this;
-         app.filters = Array.apply(null, {length: 20})
-                             .map(function(value, index) {
-                                return index * 5 / 100;
-                             });
       },
 
 
@@ -469,71 +650,6 @@ var plive_app = new Vue({
       },
 
 
-      _translateFileSuccess: function (soapResponse, method, myToastInfo) {
-         const app = this;
-         const icon = '<i class="fa fa-file-text"></i>';
-         var response = soapResponse.Body;
-         var token = response[method].token;
-         // IMPORTANT we want to be able to stop the setInterval from
-         // within the setInterval callback function thus we have to have
-         // `watcher` in the callback's scope.
-         const watcher = setInterval(
-            function(monitor_token) {
-               return app._fetch('translateFileStatus', { token: String(monitor_token) })
-                  .finally( function() {
-                     app.is_translating_file = false;
-                  })
-                  .then(function(response) {
-                     var token = response.Body.translateFileStatusResponse.token;
-                     if (token.startsWith('0 Done:')) {
-                        window.clearInterval(watcher);
-                        app.translation_progress = 100;
-                        app.translation_url = token.replace(/^0 Done: /, '/');
-                        app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
-                        app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
-                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
-                        myToastInfo.goAway(250);
-                     }
-                     else if (token.startsWith('1')) {
-                        // TODO: indicate progress.
-                        // "1 In progress (0% done)"
-                        const per = token.match(/1 In progress \((\d+)% done\)/);
-                        if (per) {
-                           app.translation_progress = per[1];
-                        }
-                        app.is_translating_file = true;  // We are actually still translating
-                     }
-                     else if (token.startsWith('2 Failed')) {
-                        myToastInfo.goAway(250);
-                        window.clearInterval(watcher);
-                        // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
-                        const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
-                        // TODO: we should be checking the length of messages.
-                        if (messages) {
-                           app.translate_file_error = messages[1];
-                           app.trace_url = '/' + messages[2];
-                        }
-                     }
-                     else if (token.startsWith('3')) {
-                        myToastInfo.goAway(250);
-                        window.clearInterval(watcher);
-                     }
-                     else {
-                        myToastInfo.goAway(250);
-                        window.clearInterval(watcher);
-                     }
-                  })
-                  .catch(function(err) {
-                     myToastInfo.goAway(250);
-                     alert('Failed to retrieve your translation status!' + err);
-                  });
-            },
-            5000,
-            token);
-      },
-
-
-
       clearForm: function() {
          const app = this;
 
@@ -544,17 +660,8 @@ var plive_app = new Vue({
          app.enable_phrase_table_debug = false;
          app.translation = '';
          app.is_translating_text = false;
-         app.is_translating_file = false;
          app.newline = 'p';
          app.pretokenized = false;
-         app.file = undefined;
-         app.is_xml = false;
-         app.translation_url = undefined;
-         app.oov_url = undefined;
-         app.pal_url = undefined;
-         app.translation_progress = -1;
-         app.trace_url = undefined;
-         app.translate_file_error = '';
 
          // TODO: apply clear() on all children.
          app.$children.forEach(function(e) {
@@ -604,105 +711,11 @@ var plive_app = new Vue({
       },
 
 
-      is_ce_possible: function() {
-         const app = this;
-         return app.is_xml
-            && app.contexts !== undefined
-            && app.contexts.hasOwnProperty(app.context)
-            && app.contexts[app.context].as_ce;
-      },
-
-
-      is_translating_a_file_possible: function() {
-         const app = this;
-         return app.context !== 'unselected'
-            && app.file !== undefined;
-      },
-
-
       is_translating_possible: function() {
          const app = this;
          return app.context !== 'unselected'
             && app.text_source !== undefined
             && app.text_source !== '';
-      },
-
-
-      prepareFile: function(evt) {
-         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
-         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
-         const app   = this;
-         const files = evt.target.files;
-         const file  = files[0];
-
-         // UI related.
-         app.translation_progress = 0;
-         app.translation_url      = undefined;
-         app.trace_url            = undefined;
-         app.translate_file_error = '';
-
-         app._getBase64(file)
-            .then( function(data) {
-               app.file = file;
-               app.file.base64 = data;
-               if (/\.(sdlxliff|xliff)$/i.test(file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateSDLXLIFF';
-               }
-               else if (/\.tmx$/i.test(file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateTMX';
-               }
-               else if (/\.txt$/i.test(file.name)) {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-               else {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-            })
-            .catch( function(error) {
-               alert("Error converting your file to base64!");
-            } );
-      },
-
-
-      translateFile: function(evt) {
-         const app = this;
-         const icon = '<i class="fa fa-file-text"></i>';
-         const translate_method = app.file.translate_method;
-         const data = {
-            ContentsBase64: app.file.base64,
-            Filename: app.file.name,
-            context: app._getContext(),
-            useCE: app.useConfidenceEstimation,
-            xtags: app.file_xtags,
-         };
-
-         if (app.is_xml) {
-            data.CETreshold = app.CETreshold;
-         }
-
-         // UI related.
-         app.translation_progress = 0;
-         app.translation_url      = undefined;
-         app.trace_url            = undefined;
-         app.translate_file_error = '';
-
-         app.is_translating_file = true;
-
-         let myToastInfo = app.$toasted.global.info(app.translating_animation + data.Filename + ' ' + icon);
-
-         return app._fetch(translate_method, data)
-            .then(function(response) {
-               app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
-            })
-            .catch(function(err) {
-               app.is_translating_file = false;
-               myToastInfo.goAway(250);
-               alert('Failed to translate your file!' + soapResponse.toJSON());
-            });
       },
 
 

@@ -197,103 +197,8 @@
                </section>
 
                <section class="group_translate_file_and_incremental">
-                  <section name="translate_file">
-                     <fieldset class="round_corners">
-                        <legend>Translate a file</legend>
 
-                        <div v-if="context == 'unselected'">
-                           Please, also select a context
-                        </div>
-                        <div v-else>
-                           Using context <em>{{context}}</em> to add sentence pair to.
-                        </div>
-
-                        <div>
-                           <label>
-                              <strong>Select a file:</strong>
-                              <input
-                              name="filename"
-                              title="Select a file to translate"
-                              type="file"
-                              v-on:change="prepareFile"
-                              size="60"
-                              accept=".txt,.tmx,.sdlxliff,.xliff" />
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input v-model="is_xml" type="checkbox" name="is_xml" value="on" />
-                              <strong>TMX/SDLXLIFF</strong> &ndash; Check this box if input file is TMX or SDLXLIFF.
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input v-model="file_xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
-                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input
-                                 v-model="useConfidenceEstimation"
-                                 type="checkbox"
-                                 name="useConfidenceEstimation"
-                                 value="on"
-                                 :disabled="!is_ce_possible()" />
-                              <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
-                           </label>
-                        </div>
-                        <div>
-                           <label for="filters" style="display: block; margin-left: 105px">
-                              <select
-                                 v-model="CETreshold"
-                                 id="filters"
-                                 name="filter"
-                                 title="Select a confidence level"
-                                 :disabled="!is_ce_possible()"
-                                 style="margin-left: -105px"
-                                 size="1">
-                                 <option :selected="true" value="no filtering">no filtering</option>
-                                 <option v-for = "filter in filters" :value="filter" >{{filter | doubleDigits}}</option>
-                              </select>
-                              <strong>Filter</strong> &ndash; Set the filtering threshold on confidence (TMX/SDLXLIFF files only).
-                           </label>
-                        </div>
-                        <div>
-                           <div style="float: left">
-                              <button
-                                 name="translate_file"
-                                 title="Select a context, select a file then translate"
-                                 v-on:click="translateFile"
-                                 :disabled="!is_translating_a_file_possible()"
-                                 accesskey="f">
-                                 Translate File
-                              </button>
-                           </div>
-                        </div>
-                        <div v-show="translation_progress >= 0">
-                           <progress v-bind:value="translation_progress" max="100"></progress>
-                        </div>
-                        <div>
-                           <!--
-                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
-                           <translating :is_translating="is_translating_file" />
-                           -->
-                        </div>
-                        <div id="translate_file_urls" v-show="translation_url != undefined">
-                           <ul>
-                              <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                              <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                              <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
-                           </ul>
-                        </div>
-                        <div v-show="trace_url != undefined">
-                           <h3>Error</h3>
-                           {{translate_file_error}}
-                           <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
-                        </div>
-                     </fieldset>
-                  </section>
+                  <translatefile :context="context" :contexts="contexts" :document_id="document_id"></translatefile>
 
                   <incraddsentence :context="context" :contexts="contexts" :document_id="document_id"></incraddsentence>
 
@@ -477,6 +382,100 @@
                         Prime Context
                      </button>
                   </div>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+      <script type="text/x-template" id="translatefile_template">
+         <section name="translate_file">
+            <fieldset class="round_corners">
+               <legend>Translate a file</legend>
+
+               <div v-if="context == 'unselected'">
+                  Please, also select a context
+               </div>
+               <div v-else>
+                  Using context <em>{{context}}</em> to add sentence pair to.
+               </div>
+
+               <div>
+                  <label>
+                     <strong>Select a file:</strong>
+                     <input
+                     name="filename"
+                     title="Select a file to translate"
+                     type="file"
+                     v-on:change="prepareFile"
+                     size="60"
+                     accept=".txt,.tmx,.sdlxliff,.xliff" />
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input v-model="is_xml" type="checkbox" name="is_xml" value="on" />
+                     <strong>TMX/SDLXLIFF</strong> &ndash; Check this box if input file is TMX or SDLXLIFF.
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input v-model="xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
+                     <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input
+                        v-model="useConfidenceEstimation"
+                        type="checkbox"
+                        name="useConfidenceEstimation"
+                        value="on"
+                        :disabled="!is_ce_possible()" />
+                     <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
+                  </label>
+               </div>
+               <div>
+                  <label for="filters" style="display: block; margin-left: 105px">
+                     <select
+                        v-model="CETreshold"
+                        id="filters"
+                        name="filter"
+                        title="Select a confidence level"
+                        :disabled="!is_ce_possible()"
+                        style="margin-left: -105px"
+                        size="1">
+                        <option :selected="true" value="no filtering">no filtering</option>
+                        <option v-for = "filter in filters" :value="filter" >{{filter | doubleDigits}}</option>
+                     </select>
+                     <strong>Filter</strong> &ndash; Set the filtering threshold on confidence (TMX/SDLXLIFF files only).
+                  </label>
+               </div>
+               <div>
+                  <div style="float: left">
+                     <button
+                        name="translate_file"
+                        title="Select a context, select a file then translate"
+                        v-on:click="translateFile"
+                        :disabled="!is_translating_a_file_possible()"
+                        accesskey="f">
+                        Translate File
+                     </button>
+                  </div>
+               </div>
+               <div v-show="translation_progress >= 0">
+                  <progress v-bind:value="translation_progress" max="100"></progress>
+               </div>
+               <div id="translate_file_urls" v-show="translation_url != undefined">
+                  <ul>
+                     <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                  </ul>
+               </div>
+               <div v-show="trace_url != undefined">
+                  <h3>Error</h3>
+                  {{translate_file_error}}
+                  <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
                </div>
             </fieldset>
          </section>
