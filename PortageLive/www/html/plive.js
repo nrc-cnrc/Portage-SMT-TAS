@@ -600,11 +600,11 @@ var plive_app = new Vue({
    data: {
       service_url: '/PortageLiveAPI.php',
       version: '',
+      // Load up the template from the UI.
+      translating_animation: document.getElementById('translating_template').text || 'translating...',
       contexts: [],
       context: 'unselected',
       document_id: '',
-      // Load up the template from the UI.
-      translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
 
    // On page loaded...
