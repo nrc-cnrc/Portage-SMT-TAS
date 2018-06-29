@@ -156,6 +156,8 @@ var plive_app = new Vue({
       pretokenized: false,
       file: undefined,
       is_xml: false,
+      useConfidenceEstimation: false,
+      CETreshold: 0,
       translation_url: undefined,
       oov_url: undefined,
       pal_url: undefined,
@@ -481,6 +483,11 @@ var plive_app = new Vue({
             });
       },
 
+      is_ce_possible: function() {
+         const app = this;
+         return app.is_xml && app.contexts !== undefined && app.contexts.hasOwnProperty(app.context) && app.contexts[app.context].as_ce;
+      },
+
       prepareFile: function(evt) {
          // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
          // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
@@ -565,12 +572,12 @@ var plive_app = new Vue({
             ContentsBase64: app.file.base64,
             Filename: app.file.name,
             context: app._getContext(),
-            useCE: false,
+            useCE: app.useConfidenceEstimation,
             xtags: app.text_xtags,
          };
 
          if (app.is_xml) {
-            data.CETreshold = 0;
+            data.CETreshold = app.CETreshold;
          }
 
          // UI related.

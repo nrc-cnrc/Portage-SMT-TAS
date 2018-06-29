@@ -323,6 +323,7 @@ class PortageLiveLib
                   'source' => $info['source'],
                   'target' => $info['target'],
                   'is_incremental' => $info['is_incremental'],
+                  'as_ce' => !empty($info['ce_model']),
                );
             else if ($verbose)
                $contexts[] = $info['label'];

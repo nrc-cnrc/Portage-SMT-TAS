@@ -268,21 +268,28 @@
                         <div>
                            <label class="lineup">
                               <input type="checkbox" name="file_xtags" value="on" />
-                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process & transfer them.
+                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
                            </label>
                         </div>
                         <div>
                            <label class="lineup">
-                              <input type="checkbox" name="useConfidenceEstimation" value="on" />
+                              <input
+                                 v-model="useConfidenceEstimation"
+                                 type="checkbox"
+                                 name="useConfidenceEstimation"
+                                 value="on"
+                                 :disabled="!is_ce_possible()" />
                               <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
                            </label>
                         </div>
                         <div>
                            <label for="filters" style="display: block; margin-left: 105px">
                               <select
+                                 v-model="CETreshold"
                                  id="filters"
                                  name="filter"
                                  title="Select a confidence level"
+                                 :disabled="!is_ce_possible()"
                                  style="margin-left: -105px"
                                  size="1">
                                  <option :selected="true" value="no filtering">no filtering</option>
