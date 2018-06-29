@@ -80,7 +80,7 @@ if (!String.prototype.encodeHTML) {
 Vue.component('translating',
    {
       props: ['is_translating'],
-      template: '#translating_template'
+      template: '#vue_translating_template'
 });
 
 
@@ -156,6 +156,9 @@ var plive_app = new Vue({
       pretokenized: false,
       file: undefined,
       is_xml: false,
+      file_xtags: false,
+      useConfidenceEstimation: false,
+      CETreshold: 0,
       translation_url: undefined,
       oov_url: undefined,
       pal_url: undefined,
@@ -164,16 +167,16 @@ var plive_app = new Vue({
       translate_file_error: '',
       prime_mode: 'partial',
       incrStatus_status: undefined,
-      primeModel_status: undefined,
-      translating_animation: '<div class="translating-text"> <span class="translating-text-words">T</span> <span class="translating-text-words">r</span> <span class="translating-text-words">a</span> <span class="translating-text-words">n</span> <span class="translating-text-words">s</span> <span class="translating-text-words">l</span> <span class="translating-text-words">a</span> <span class="translating-text-words">t</span> <span class="translating-text-words">i</span> <span class="translating-text-words">n</span> <span class="translating-text-words">g</span> </div>',
+      // Load up the template from the UI.
+      translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
 
    // On page loaded...
    mounted: function() {
       let app = this;
-      this._createFilters();
-      this.getAllContexts();
-      this.getVersion();
+      app._createFilters();
+      app.getAllContexts();
+      app.getVersion();
 
       if (false) {
          // This is useful for debugging vue-toasted.
@@ -218,6 +221,7 @@ var plive_app = new Vue({
       }
    },
 
+
    methods: {
       _body: function(method, args) {
          return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
@@ -226,12 +230,15 @@ var plive_app = new Vue({
          }, '') + '</' + method + '>';
       },
 
+
       _createFilters: function() {
-         this.filters = Array.apply(null, {length: 20})
+         const app = this;
+         app.filters = Array.apply(null, {length: 20})
                              .map(function(value, index) {
                                 return index * 5 / 100;
                              });
       },
+
 
       _fetch: function(soapaction, args) {
          // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
@@ -279,6 +286,7 @@ var plive_app = new Vue({
             });
       },
 
+
       _getBase64: function(file) {
          return new Promise(function(resolve, reject) {
                const reader = new FileReader();
@@ -294,6 +302,7 @@ var plive_app = new Vue({
             } );
       },
 
+
       _getContext: function() {
          const app = this;
          var context = app.context;
@@ -302,6 +311,7 @@ var plive_app = new Vue({
          }
          return context;
       },
+
 
       _translateFileSuccess: function (soapResponse, method, myToastInfo) {
          const app = this;
@@ -367,6 +377,7 @@ var plive_app = new Vue({
       },
 
 
+
       clearForm: function() {
          const app = this;
 
@@ -392,8 +403,8 @@ var plive_app = new Vue({
          app.translate_file_error = '';
          app.prime_mode = 'partial';
          app.incrStatus_status = undefined;
-         app.primeModel_status = undefined;
       },
+
 
       getAllContexts: function() {
          const app = this;
@@ -415,6 +426,7 @@ var plive_app = new Vue({
             });
       },
 
+
       getVersion: function() {
          // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
          // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
@@ -433,6 +445,7 @@ var plive_app = new Vue({
                alert("Failed to get Portage's version." + err);
             });
       },
+
 
       incrAddSentence: function() {
          const app = this;
@@ -459,27 +472,76 @@ var plive_app = new Vue({
             });
       },
 
+
       incrStatus: function() {
          const app = this;
          const icon = '<i class="fa fa-cogs"></i>';
+         const full_context = app._getContext();
 
          return app._fetch('incrStatus', {
             'context': app.context,
             'document_model_id': app.document_id,
             })
             .then(function(response) {
-               const status = app._getContext()
+               const status = full_context
                   + ' : '
                   + String(response.Body.incrStatusResponse.status_description);
                app.incrStatus_status = status;
                let myToast = app.$toasted.global.success(status + icon);
-               // TODO: Show the incremental status
             })
             .catch(function(err) {
                let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
-               alert("Failed to get incremental status " + app.context + '\n' + err);
+               alert("Failed to get incremental status " + full_context + '\n' + err);
             });
       },
+
+
+      is_ce_possible: function() {
+         const app = this;
+         return app.is_xml
+            && app.contexts !== undefined
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].as_ce;
+      },
+
+
+      is_incrAddSentence_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.incr_source_segment !== ''
+            && app.incr_target_segment !== ''
+            && app.document_id !== '';
+      },
+
+
+      is_incrStatus_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.document_id !== undefined
+            && app.document_id !== '';
+      },
+
+
+      is_priming_possible: function() {
+         const app = this;
+         return app.context !== 'unselected';
+      },
+
+
+      is_translating_a_file_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.file !== undefined;
+      },
+
+
+      is_translating_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.text_source !== undefined
+            && app.text_source !== '';
+      },
+
 
       prepareFile: function(evt) {
          // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
@@ -520,19 +582,20 @@ var plive_app = new Vue({
             } );
       },
 
+
       primeModel: function() {
          const app = this;
          const icon = '<i class="fa fa-tachometer"></i>';
+         // context shouldn't be allowed to changed in-between invocations.
+         // It should stay constant within this context.
          // Let's capture the context in case the user changes context before
          // priming is done.
+         const context = app.context;
 
-         // UI related.
-         app.primeModel_status = 'priming';
-
-         let myToastInfo = app.$toasted.global.info('priming ' + app._getContext() + icon);
+         let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
 
          return app._fetch('primeModels', {
-               'context': app.context,
+               'context': context,
                'PrimeMode': app.prime_mode,
             })
             .finally(function() {
@@ -541,31 +604,32 @@ var plive_app = new Vue({
             .then(function(response) {
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
-                  app.primeModel_status = 'successful';
-                  let myToast = app.$toasted.global.success('Successfully primed ' + app.context + '!' + icon);
+                  let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
                }
                else {
-                  app.primeModel_status = 'failed';
-                  let myToast = app.$toasted.global.error('Failed to prime ' + app.context + '!' + icon);
+                  let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
                }
             })
             .catch(function(err) {
-               alert("Failed to prime context " + app.context + soapResponse.toJSON());
+               alert("Failed to prime context " + context + soapResponse.toJSON());
             });
       },
 
+
       translateFile: function(evt) {
          const app = this;
+         const icon = '<i class="fa fa-file-text"></i>';
+         const translate_method = app.file.translate_method;
          const data = {
             ContentsBase64: app.file.base64,
             Filename: app.file.name,
             context: app._getContext(),
-            useCE: false,
-            xtags: app.text_xtags,
+            useCE: app.useConfidenceEstimation,
+            xtags: app.file_xtags,
          };
 
          if (app.is_xml) {
-            data.CETreshold = 0;
+            data.CETreshold = app.CETreshold;
          }
 
          // UI related.
@@ -576,11 +640,11 @@ var plive_app = new Vue({
 
          app.is_translating_file = true;
 
-         let myToastInfo = app.$toasted.global.info(app.translating_animation + '<i class="fa fa-file-text"> ' + app.file.name + '</i>');
+         let myToastInfo = app.$toasted.global.info(app.translating_animation + data.Filename + ' ' + icon);
 
-         return app._fetch(app.file.translate_method, data)
+         return app._fetch(translate_method, data)
             .then(function(response) {
-               app._translateFileSuccess(response, app.file.translate_method + 'Response', myToastInfo);
+               app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
             })
             .catch(function(err) {
                app.is_translating_file = false;
@@ -588,6 +652,7 @@ var plive_app = new Vue({
                alert('Failed to translate your file!' + soapResponse.toJSON());
             });
       },
+
 
       translate: function() {
          const app = this;
@@ -624,16 +689,18 @@ var plive_app = new Vue({
             });
       },
 
+
       translate_using_REST_API: function () {
+         const app = this;
          // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
          // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-         this.translation_segments = null;
+         app.translation_segments = null;
          const request = {
             'options': {
                'sent_split': new Boolean(true),
             },
             'segments': [
-               this.source_segment
+               app.source_segment
             ]};
          fetch('/translate', {
             method: 'POST',
@@ -645,7 +712,7 @@ var plive_app = new Vue({
             })
          .then(function(response) { response.json() } )
          .then(function(translations) {
-            this.translation_segments = translations;
+            app.translation_segments = translations;
             console.log(translations);})
          .catch(function(err) { console.error(err) } )
       },

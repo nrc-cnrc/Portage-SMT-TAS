@@ -137,21 +137,10 @@
                         <button
                            title="Select a context, select a mode then prime your models"
                            v-on:click="primeModel"
-                           :disabled="context === 'unselected'"
+                           :disabled="!is_priming_possible()"
                            accesskey="p">
                            Prime Context
                         </button>
-                     </div>
-                  </div>
-                  <div>
-                     <div v-show="primeModel_status === 'priming'" class="primeModel_status_priming">
-                        {{prime_mode}} priming of {{context}} ...
-                     </div>
-                     <div v-show="primeModel_status === 'successful'" class="primeModel_status_successful">
-                        {{prime_mode}} priming of {{context}} was succesful
-                     </div>
-                     <div v-show="primeModel_status === 'failed'" class="primeModel_status_failed">
-                        {{prime_mode}} priming of {{context}} failed!
                      </div>
                   </div>
                </fieldset>
@@ -182,7 +171,7 @@
                      </div>
                      <div>
                         <label for="text_xtags" class="lineup">
-                           <input id="text_xtags" v-model="text_xtags" type="checkbox" name="text_xtags" value="on" />
+                           <input v-model="text_xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
                            <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
                         </label>
                      </div>
@@ -221,12 +210,14 @@
                            <button
                               title="Select a context, type your sentence then translate."
                               v-on:click="translate"
-                              :disabled="context === 'unselected' || text_source === ''"
+                              :disabled="!is_translating_possible()"
                               accesskey="t">
                               Translate Text
                            </button>
                         </div>
+                        <!--
                         <translating :is_translating="is_translating_text" style="float: left; padding-left: 1em" />
+                        -->
                      </div>
                   </fieldset>
                </section>
@@ -263,22 +254,29 @@
                         </div>
                         <div>
                            <label class="lineup">
-                              <input type="checkbox" name="file_xtags" value="on" />
-                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process & transfer them.
+                              <input v-model="file_xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
+                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
                            </label>
                         </div>
                         <div>
                            <label class="lineup">
-                              <input type="checkbox" name="useConfidenceEstimation" value="on" />
+                              <input
+                                 v-model="useConfidenceEstimation"
+                                 type="checkbox"
+                                 name="useConfidenceEstimation"
+                                 value="on"
+                                 :disabled="!is_ce_possible()" />
                               <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
                            </label>
                         </div>
                         <div>
                            <label for="filters" style="display: block; margin-left: 105px">
                               <select
+                                 v-model="CETreshold"
                                  id="filters"
                                  name="filter"
                                  title="Select a confidence level"
+                                 :disabled="!is_ce_possible()"
                                  style="margin-left: -105px"
                                  size="1">
                                  <option :selected="true" value="no filtering">no filtering</option>
@@ -293,7 +291,7 @@
                                  name="translate_file"
                                  title="Select a context, select a file then translate"
                                  v-on:click="translateFile"
-                                 :disabled="context === 'unselected' || file === undefined"
+                                 :disabled="!is_translating_a_file_possible()"
                                  accesskey="f">
                                  Translate File
                               </button>
@@ -305,8 +303,8 @@
                         <div>
                            <!--
                            <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
-                           -->
                            <translating :is_translating="is_translating_file" />
+                           -->
                         </div>
                         <div id="translate_file_urls" v-show="translation_url != undefined">
                            <ul>
@@ -365,7 +363,7 @@
                               name="incr_add_sentence"
                               title="Given a context, add a sentence pair to a document id."
                               v-on:click="incrAddSentence"
-                              :disabled="context === 'unselected' || incr_source_segment === '' || incr_target_segment === '' || document_id === ''"
+                              :disabled="!is_incrAddSentence_possible()"
                               accesskey="a">
                               Add Sentence Pair
                            </button>
@@ -380,7 +378,7 @@
                            name="incrStatus"
                            title="Select a context, provide a document id then click to get the incremental status"
                            v-on:click="incrStatus"
-                           :disabled="context === 'unselected' || document_id === '' || document_id === undefined"
+                           :disabled="!is_incrStatus_possible()"
                            accesskey="s">
                            Incremental Document Status
                         </button>
@@ -437,7 +435,7 @@
 
       </div>
 
-      <script type="text/x-template" id="translating_template">
+      <script type="text/x-template" id="vue_translating_template">
          <div v-show="is_translating" class="translating">
             <div class="translating-text">
                <span class="translating-text-words">T</span>
@@ -452,6 +450,22 @@
                <span class="translating-text-words">n</span>
                <span class="translating-text-words">g</span>
             </div>
+         </div>
+      </script>
+
+      <script type="text/x-template" id="translating_template">
+         <div class="translating-text">
+            <span class="translating-text-words">T</span>
+            <span class="translating-text-words">r</span>
+            <span class="translating-text-words">a</span>
+            <span class="translating-text-words">n</span>
+            <span class="translating-text-words">s</span>
+            <span class="translating-text-words">l</span>
+            <span class="translating-text-words">a</span>
+            <span class="translating-text-words">t</span>
+            <span class="translating-text-words">i</span>
+            <span class="translating-text-words">n</span>
+            <span class="translating-text-words">g</span>
          </div>
       </script>
 
