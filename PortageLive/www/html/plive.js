@@ -85,6 +85,60 @@ Vue.component('translating',
 
 
 
+Vue.component('incraddsentence', {
+   template: '#incraddsentence_template',
+   props: ['context', 'contexts', 'document_id'],
+   data: function() {
+      return {
+         incr_source_segment: '',
+         incr_target_segment: '',
+      };
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.incr_source_segment = '';
+         app.incr_target_segment = '';
+      },
+
+
+      incrAddSentence: function() {
+         const app = this;
+         const icon = '<i class="fa fa-send"></i>';
+
+         return app.$parent._fetch('incrAddSentence', {
+               context: app.context,
+               document_model_id: app.document_id,
+               source_sentence: app.incr_source_segment,
+               target_sentence: app.incr_target_segment,
+               extra_data: '',
+            })
+            .then(function(response) {
+               const status = response.Body.incrAddSentenceResponse.status;
+               app._clear();
+               // TODO: There is no feedback if the status is false.
+               let myToast = app.$toasted.global.success('Successfully added sentence pair!' + icon);
+            })
+            .catch(function(err) {
+               const faultstring = response.Body.Fault.faultstring;
+               const faultcode = response.Body.Fault.faultcode;
+               alert("Error adding sentence pair." + faultstring);
+            });
+      },
+
+
+      is_incrAddSentence_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.incr_source_segment !== ''
+            && app.incr_target_segment !== ''
+            && app.document_id !== '';
+      },
+   },
+});
+
+
+
 Vue.component('incrstatus', {
    template: '#incrStatus_template',
    props: ['context', 'contexts', 'document_id'],
@@ -98,6 +152,7 @@ Vue.component('incrstatus', {
          const app = this;
          app.incrStatus_status = undefined;
       },
+
 
       incrStatus: function() {
          const app = this;
@@ -120,6 +175,7 @@ Vue.component('incrstatus', {
                alert("Failed to get incremental status " + full_context + '\n' + err);
             });
       },
+
 
       is_incrStatus_possible: function() {
          const app = this;
@@ -146,10 +202,12 @@ Vue.component('prime', {
          app.prime_mode = 'partial';
       },
 
+
       is_priming_possible: function() {
          const app = this;
          return app.context !== 'unselected';
       },
+
 
       primeModel: function() {
          const app = this;
@@ -252,8 +310,6 @@ var plive_app = new Vue({
       translation: '',
       is_translating_text: false,
       is_translating_file: false,
-      incr_source_segment: '',
-      incr_target_segment: '',
       newline: 'p',
       pretokenized: false,
       file: undefined,
@@ -489,8 +545,6 @@ var plive_app = new Vue({
          app.translation = '';
          app.is_translating_text = false;
          app.is_translating_file = false;
-         app.incr_source_segment = '';
-         app.incr_target_segment = '';
          app.newline = 'p';
          app.pretokenized = false;
          app.file = undefined;
@@ -550,47 +604,12 @@ var plive_app = new Vue({
       },
 
 
-      incrAddSentence: function() {
-         const app = this;
-         const icon = '<i class="fa fa-send"></i>';
-
-         return app._fetch('incrAddSentence', {
-               context: app.context,
-               document_model_id: app.document_id,
-               source_sentence: app.incr_source_segment,
-               target_sentence: app.incr_target_segment,
-               extra_data: '',
-            })
-            .then(function(response) {
-               const status = response.Body.incrAddSentenceResponse.status;
-               app.incr_source_segment = '';
-               app.incr_target_segment = '';
-               // TODO: There is no feedback if the status is false.
-               let myToast = app.$toasted.global.success('Successfully added sentence pair!' + icon);
-            })
-            .catch(function(err) {
-               const faultstring = response.Body.Fault.faultstring;
-               const faultcode = response.Body.Fault.faultcode;
-               alert("Error adding sentence pair." + faultstring);
-            });
-      },
-
-
       is_ce_possible: function() {
          const app = this;
          return app.is_xml
             && app.contexts !== undefined
             && app.contexts.hasOwnProperty(app.context)
             && app.contexts[app.context].as_ce;
-      },
-
-
-      is_incrAddSentence_possible: function() {
-         const app = this;
-         return app.context !== 'unselected'
-            && app.incr_source_segment !== ''
-            && app.incr_target_segment !== ''
-            && app.document_id !== '';
       },
 
 

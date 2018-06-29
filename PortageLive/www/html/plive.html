@@ -295,55 +295,7 @@
                      </fieldset>
                   </section>
 
-                  <section name="incremental">
-                     <fieldset class="round_corners">
-                        <legend>Add a sentence pair for a document id</legend>
-
-                        <div v-if="context == 'unselected'">
-                           Please, also select a context
-                        </div>
-                        <div v-else>
-                           Using context <em>{{context}}</em> to add sentence pair to.
-                        </div>
-
-                        <div>
-                           <label for="incr_source_segment">
-                              Source segment:
-                              <input
-                              id="incr_source_segment"
-                              name="incr_source_segment"
-                              title="Source segment to add to your incremental document"
-                              type="text"
-                              class="segment"
-                              v-model="incr_source_segment"
-                              maxlength="200" />
-                           </label>
-                        </div>
-                        <div>
-                           <label for="incr_target_segment">
-                              Target segment:
-                              <input
-                              id="incr_target_segment"
-                              name="incr_target_segment"
-                              title="Target segment to add to your incremental document"
-                              type="text"
-                              class="segment"
-                              v-model="incr_target_segment"
-                              maxlength="200" />
-                           </label>
-                        </div>
-                        <div>
-                           <button
-                              name="incr_add_sentence"
-                              title="Given a context, add a sentence pair to a document id."
-                              v-on:click="incrAddSentence"
-                              :disabled="!is_incrAddSentence_possible()"
-                              accesskey="a">
-                              Add Sentence Pair
-                           </button>
-                        </div>
-                     </fieldset>
-                  </section>
+                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id"></incraddsentence>
 
                   <incrstatus :context="context" :contexts="contexts" :document_id="document_id"></incrstatus>
 
@@ -427,6 +379,58 @@
             <span class="translating-text-words">n</span>
             <span class="translating-text-words">g</span>
          </div>
+      </script>
+
+      <script type="text/x-template" id="incraddsentence_template">
+         <section name="incrAddSentence">
+            <fieldset class="round_corners">
+               <legend>Add a sentence pair for a document id</legend>
+
+               <div v-if="context == 'unselected'">
+                  Please, also select a context
+               </div>
+               <div v-else>
+                  Using context <em>{{context}}</em> to add sentence pair to.
+               </div>
+
+               <div>
+                  <label for="incr_source_segment">
+                     Source segment:
+                     <input
+                     id="incr_source_segment"
+                     name="incr_source_segment"
+                     title="Source segment to add to your incremental document"
+                     type="text"
+                     class="segment"
+                     v-model="incr_source_segment"
+                     maxlength="200" />
+                  </label>
+               </div>
+               <div>
+                  <label for="incr_target_segment">
+                     Target segment:
+                     <input
+                     id="incr_target_segment"
+                     name="incr_target_segment"
+                     title="Target segment to add to your incremental document"
+                     type="text"
+                     class="segment"
+                     v-model="incr_target_segment"
+                     maxlength="200" />
+                  </label>
+               </div>
+               <div>
+                  <button
+                     name="incr_add_sentence"
+                     title="Given a context, add a sentence pair to a document id."
+                     v-on:click="incrAddSentence"
+                     :disabled="!is_incrAddSentence_possible()"
+                     accesskey="a">
+                     Add Sentence Pair
+                  </button>
+               </div>
+            </fieldset>
+         </section>
       </script>
 
       <script type="text/x-template" id="incrStatus_template">
