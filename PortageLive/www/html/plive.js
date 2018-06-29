@@ -85,7 +85,7 @@ Vue.component('translating',
 
 
 
-Vue.component('incrstatustag', {
+Vue.component('incrstatus', {
    template: '#incrStatus_template',
    props: ['context', 'contexts', 'document_id'],
    data: function() {
@@ -131,7 +131,8 @@ Vue.component('incrstatustag', {
 });
 
 
-Vue.component('primetag', {
+
+Vue.component('prime', {
    template: '#prime_template',
    props: ['context', 'contexts'],
    data: function() {
