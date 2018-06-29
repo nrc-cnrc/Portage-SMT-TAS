@@ -143,6 +143,7 @@
                         </button>
                      </div>
                   </div>
+                  <!--
                   <div>
                      <div v-show="primeModel_status === 'priming'" class="primeModel_status_priming">
                         {{prime_mode}} priming of {{context}} ...
@@ -154,6 +155,7 @@
                         {{prime_mode}} priming of {{context}} failed!
                      </div>
                   </div>
+                  -->
                </fieldset>
             </section>
 
@@ -226,7 +228,9 @@
                               Translate Text
                            </button>
                         </div>
+                        <!--
                         <translating :is_translating="is_translating_text" style="float: left; padding-left: 1em" />
+                        -->
                      </div>
                   </fieldset>
                </section>
@@ -305,8 +309,8 @@
                         <div>
                            <!--
                            <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
-                           -->
                            <translating :is_translating="is_translating_file" />
+                           -->
                         </div>
                         <div id="translate_file_urls" v-show="translation_url != undefined">
                            <ul>
