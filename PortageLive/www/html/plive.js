@@ -172,9 +172,9 @@ var plive_app = new Vue({
    // On page loaded...
    mounted: function() {
       let app = this;
-      this._createFilters();
-      this.getAllContexts();
-      this.getVersion();
+      app._createFilters();
+      app.getAllContexts();
+      app.getVersion();
 
       if (false) {
          // This is useful for debugging vue-toasted.
@@ -230,7 +230,8 @@ var plive_app = new Vue({
 
 
       _createFilters: function() {
-         this.filters = Array.apply(null, {length: 20})
+         const app = this;
+         app.filters = Array.apply(null, {length: 20})
                              .map(function(value, index) {
                                 return index * 5 / 100;
                              });
@@ -688,15 +689,16 @@ var plive_app = new Vue({
 
 
       translate_using_REST_API: function () {
+         const app = this;
          // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
          // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-         this.translation_segments = null;
+         app.translation_segments = null;
          const request = {
             'options': {
                'sent_split': new Boolean(true),
             },
             'segments': [
-               this.source_segment
+               app.source_segment
             ]};
          fetch('/translate', {
             method: 'POST',
@@ -708,7 +710,7 @@ var plive_app = new Vue({
             })
          .then(function(response) { response.json() } )
          .then(function(translations) {
-            this.translation_segments = translations;
+            app.translation_segments = translations;
             console.log(translations);})
          .catch(function(err) { console.error(err) } )
       },
