@@ -34,7 +34,7 @@
             -->
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
-      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.5/vue.min.js" type="text/javascript"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -118,275 +118,19 @@
                </fieldset>
             </section>
 
-            <section name="priming">
-               <fieldset class="round_corners">
-                  <legend>Prime Context</legend>
-                  For speedier translation, it is useful to prime the models in memory
-                  on the server.  Note that you cannot prime all models due to memory
-                  limitation on the server.  Priming too often is also not recommended.
-                  <label class="lineup" title="Refreshes most important models in memory">
-                     <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
-                     partial
-                  </label>
-                  <label class="lineup" title="Refreshes all models in memory for speedier translation">
-                     <input v-model="prime_mode" type="radio" name="full" value="full" />
-                     full
-                  </label class="lineup">
-                  <div>
-                     <div style="float: left">
-                        <button
-                           title="Select a context, select a mode then prime your models"
-                           v-on:click="primeModel"
-                           :disabled="!is_priming_possible()"
-                           accesskey="p">
-                           Prime Context
-                        </button>
-                     </div>
-                  </div>
-               </fieldset>
-            </section>
+            <prime :context="context" :contexts="contexts"></prime>
 
             <section class="row">
-               <section name="translate_text">
-                  <fieldset class="round_corners">
-                     <legend>Translate Text</legend>
-                     <div>
-                        <strong>Type in source-language text:</strong>
-                     </div>
-                     <div>
-                        <textarea
-                           name="text_source"
-                           title="The text you want to translate"
-                           v-model="text_source"
-                           rows="5">
-                        </textarea>
-                        <textarea
-                           name="translation"
-                           title="You will see your translations in this box"
-                           v-model="translation"
-                           rows="5"
-                           readonly="true"
-                           placeholder="Your translations.">
-                        </textarea>
-                     </div>
-                     <div>
-                        <label for="text_xtags" class="lineup">
-                           <input v-model="text_xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
-                           <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
-                        </label>
-                     </div>
-                     <!-- Portage's WSDL doesn't offer phrase table.
-                           <div>
-                              <label for="enable_phrase_table_debug">
-                                 <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
-                                 <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
-                              </label>
-                           </div>
-                           -->
-                     <fieldset id="text_advanced_options" class="round_corners">
-                        <legend>Advanced Options: newline</legend>
-                        <label class="lineup" title="Check this box if input text has one sentence per line">
-                           <input v-model="newline" type="radio" name="newline" value="s" />
-                           one sentence per line
-                        </label>
-                        <label class="lineup" title="Check this box if input text has one paragraph per line">
-                           <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
-                           one paragraph per line
-                        </label class="lineup">
-                        <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
-                           <input v-model="newline" type="radio" name="newline" value="w" />
-                           blank lines mark paragraphs
-                        </label>
-                        <!-- Portage's WSDL doesn't offer pretokenized option.
-                              <br />
-                              <label>
-                                 <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
-                                 <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
-                              </label>
-                              -->
-                     </fieldset>
-                     <div>
-                        <div style="float: left">
-                           <button
-                              title="Select a context, type your sentence then translate."
-                              v-on:click="translate"
-                              :disabled="!is_translating_possible()"
-                              accesskey="t">
-                              Translate Text
-                           </button>
-                        </div>
-                        <!--
-                        <translating :is_translating="is_translating_text" style="float: left; padding-left: 1em" />
-                        -->
-                     </div>
-                  </fieldset>
-               </section>
+               <translatetext :context="context" :contexts="contexts" :document_id="document_id"></translatetext>
 
                <section class="group_translate_file_and_incremental">
-                  <section name="translate_file">
-                     <fieldset class="round_corners">
-                        <legend>Translate a file</legend>
 
-                        <div v-if="context == 'unselected'">
-                           Please, also select a context
-                        </div>
-                        <div v-else>
-                           Using context <em>{{context}}</em> to add sentence pair to.
-                        </div>
+                  <translatefile :context="context" :contexts="contexts" :document_id="document_id"></translatefile>
 
-                        <div>
-                           <label>
-                              <strong>Select a file:</strong>
-                              <input
-                              name="filename"
-                              title="Select a file to translate"
-                              type="file"
-                              v-on:change="prepareFile"
-                              size="60"
-                              accept=".txt,.tmx,.sdlxliff,.xliff" />
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input v-model="is_xml" type="checkbox" name="is_xml" value="on" />
-                              <strong>TMX/SDLXLIFF</strong> &ndash; Check this box if input file is TMX or SDLXLIFF.
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input v-model="file_xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
-                              <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
-                           </label>
-                        </div>
-                        <div>
-                           <label class="lineup">
-                              <input
-                                 v-model="useConfidenceEstimation"
-                                 type="checkbox"
-                                 name="useConfidenceEstimation"
-                                 value="on"
-                                 :disabled="!is_ce_possible()" />
-                              <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
-                           </label>
-                        </div>
-                        <div>
-                           <label for="filters" style="display: block; margin-left: 105px">
-                              <select
-                                 v-model="CETreshold"
-                                 id="filters"
-                                 name="filter"
-                                 title="Select a confidence level"
-                                 :disabled="!is_ce_possible()"
-                                 style="margin-left: -105px"
-                                 size="1">
-                                 <option :selected="true" value="no filtering">no filtering</option>
-                                 <option v-for = "filter in filters" :value="filter" >{{filter | doubleDigits}}</option>
-                              </select>
-                              <strong>Filter</strong> &ndash; Set the filtering threshold on confidence (TMX/SDLXLIFF files only).
-                           </label>
-                        </div>
-                        <div>
-                           <div style="float: left">
-                              <button
-                                 name="translate_file"
-                                 title="Select a context, select a file then translate"
-                                 v-on:click="translateFile"
-                                 :disabled="!is_translating_a_file_possible()"
-                                 accesskey="f">
-                                 Translate File
-                              </button>
-                           </div>
-                        </div>
-                        <div v-show="translation_progress >= 0">
-                           <progress v-bind:value="translation_progress" max="100"></progress>
-                        </div>
-                        <div>
-                           <!--
-                           <translating :is_translating="is_translating_file" style="float: left; padding-left: 1em" />
-                           <translating :is_translating="is_translating_file" />
-                           -->
-                        </div>
-                        <div id="translate_file_urls" v-show="translation_url != undefined">
-                           <ul>
-                              <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                              <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                              <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
-                           </ul>
-                        </div>
-                        <div v-show="trace_url != undefined">
-                           <h3>Error</h3>
-                           {{translate_file_error}}
-                           <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
-                        </div>
-                     </fieldset>
-                  </section>
+                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id"></incraddsentence>
 
-                  <section name="incremental">
-                     <fieldset class="round_corners">
-                        <legend>Add a sentence pair for a document id</legend>
+                  <incrstatus :context="context" :contexts="contexts" :document_id="document_id"></incrstatus>
 
-                        <div v-if="context == 'unselected'">
-                           Please, also select a context
-                        </div>
-                        <div v-else>
-                           Using context <em>{{context}}</em> to add sentence pair to.
-                        </div>
-
-                        <div>
-                           <label for="incr_source_segment">
-                              Source segment:
-                              <input
-                              id="incr_source_segment"
-                              name="incr_source_segment"
-                              title="Source segment to add to your incremental document"
-                              type="text"
-                              class="segment"
-                              v-model="incr_source_segment"
-                              maxlength="200" />
-                           </label>
-                        </div>
-                        <div>
-                           <label for="incr_target_segment">
-                              Target segment:
-                              <input
-                              id="incr_target_segment"
-                              name="incr_target_segment"
-                              title="Target segment to add to your incremental document"
-                              type="text"
-                              class="segment"
-                              v-model="incr_target_segment"
-                              maxlength="200" />
-                           </label>
-                        </div>
-                        <div>
-                           <button
-                              name="incr_add_sentence"
-                              title="Given a context, add a sentence pair to a document id."
-                              v-on:click="incrAddSentence"
-                              :disabled="!is_incrAddSentence_possible()"
-                              accesskey="a">
-                              Add Sentence Pair
-                           </button>
-                        </div>
-                     </fieldset>
-                  </section>
-
-                  <section name="incrStatus">
-                     <fieldset class="round_corners">
-                        Select a context, provide a document id then click to get the incremental status.
-                        <button
-                           name="incrStatus"
-                           title="Select a context, provide a document id then click to get the incremental status"
-                           v-on:click="incrStatus"
-                           :disabled="!is_incrStatus_possible()"
-                           accesskey="s">
-                           Incremental Document Status
-                        </button>
-                        <div>
-                           {{incrStatus_status}}
-                        </div>
-                     </fieldset>
-                  </section>
                </section>
             </section>
 
@@ -435,6 +179,8 @@
 
       </div>
 
+
+
       <script type="text/x-template" id="vue_translating_template">
          <div v-show="is_translating" class="translating">
             <div class="translating-text">
@@ -453,6 +199,8 @@
          </div>
       </script>
 
+
+
       <script type="text/x-template" id="translating_template">
          <div class="translating-text">
             <span class="translating-text-words">T</span>
@@ -468,6 +216,287 @@
             <span class="translating-text-words">g</span>
          </div>
       </script>
+
+
+
+      <script type="text/x-template" id="incraddsentence_template">
+         <section name="incrAddSentence">
+            <fieldset class="round_corners">
+               <legend>Add a sentence pair for a document id</legend>
+
+               <div v-if="context == 'unselected'">
+                  Please, also select a context
+               </div>
+               <div v-else>
+                  Using context <em>{{context}}</em> to add sentence pair to.
+               </div>
+
+               <div>
+                  <label for="incr_source_segment">
+                     Source segment:
+                     <input
+                     id="incr_source_segment"
+                     name="incr_source_segment"
+                     title="Source segment to add to your incremental document"
+                     type="text"
+                     class="segment"
+                     v-model="incr_source_segment"
+                     maxlength="200" />
+                  </label>
+               </div>
+               <div>
+                  <label for="incr_target_segment">
+                     Target segment:
+                     <input
+                     id="incr_target_segment"
+                     name="incr_target_segment"
+                     title="Target segment to add to your incremental document"
+                     type="text"
+                     class="segment"
+                     v-model="incr_target_segment"
+                     maxlength="200" />
+                  </label>
+               </div>
+               <div>
+                  <button
+                     name="incr_add_sentence"
+                     title="Given a context, add a sentence pair to a document id."
+                     v-on:click="incrAddSentence"
+                     :disabled="!is_incrAddSentence_possible()"
+                     accesskey="a">
+                     Add Sentence Pair
+                  </button>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
+
+      <script type="text/x-template" id="incrStatus_template">
+         <section name="incrStatus">
+            <fieldset class="round_corners">
+               Select a context, provide a document id then click to get the incremental status.
+               <button
+                  name="incrStatus"
+                  title="Select a context, provide a document id then click to get the incremental status"
+                  @click="incrStatus"
+                  :disabled="!is_incrStatus_possible()"
+                  accesskey="s">
+                  Incremental Document Status
+               </button>
+               <div>
+                  {{incrStatus_status}}
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
+
+      <script type="text/x-template" id="prime_template">
+         <section name="priming">
+            <fieldset class="round_corners">
+               <legend>Prime Context</legend>
+               For speedier translation, it is useful to prime the models in memory
+               on the server.  Note that you cannot prime all models due to memory
+               limitation on the server.  Priming too often is also not recommended.
+               <label class="lineup" title="Refreshes most important models in memory">
+                  <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
+                  partial
+               </label>
+               <label class="lineup" title="Refreshes all models in memory for speedier translation">
+                  <input v-model="prime_mode" type="radio" name="full" value="full" />
+                  full
+               </label class="lineup">
+               <div>
+                  <div style="float: left">
+                     <button
+                        title="Select a context, select a mode then prime your models"
+                        @click="primeModel"
+                        :disabled="!is_priming_possible()"
+                        accesskey="p">
+                        Prime Context
+                     </button>
+                  </div>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
+
+      <script type="text/x-template" id="translatefile_template">
+         <section name="translate_file">
+            <fieldset class="round_corners">
+               <legend>Translate a file</legend>
+
+               <div v-if="context == 'unselected'">
+                  Please, also select a context
+               </div>
+               <div v-else>
+                  Using context <em>{{context}}</em> to add sentence pair to.
+               </div>
+
+               <div>
+                  <label>
+                     <strong>Select a file:</strong>
+                     <input
+                     name="filename"
+                     title="Select a file to translate"
+                     type="file"
+                     v-on:change="prepareFile"
+                     size="60"
+                     accept=".txt,.tmx,.sdlxliff,.xliff" />
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input v-model="is_xml" type="checkbox" name="is_xml" value="on" />
+                     <strong>TMX/SDLXLIFF</strong> &ndash; Check this box if input file is TMX or SDLXLIFF.
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input v-model="xtags" id="file_xtags" name="file_xtags" type="checkbox" value="on" />
+                     <strong>xtags</strong> &ndash; Check this box if input file contains tags and you want to process &amp; transfer them.
+                  </label>
+               </div>
+               <div>
+                  <label class="lineup">
+                     <input
+                        v-model="useConfidenceEstimation"
+                        type="checkbox"
+                        name="useConfidenceEstimation"
+                        value="on"
+                        :disabled="!is_ce_possible()" />
+                     <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
+                  </label>
+               </div>
+               <div>
+                  <label for="filters" style="display: block; margin-left: 105px">
+                     <select
+                        v-model="CETreshold"
+                        id="filters"
+                        name="filter"
+                        title="Select a confidence level"
+                        :disabled="!is_ce_possible()"
+                        style="margin-left: -105px"
+                        size="1">
+                        <option :selected="true" value="no filtering">no filtering</option>
+                        <option v-for = "filter in filters" :value="filter" >{{filter | doubleDigits}}</option>
+                     </select>
+                     <strong>Filter</strong> &ndash; Set the filtering threshold on confidence (TMX/SDLXLIFF files only).
+                  </label>
+               </div>
+               <div>
+                  <div style="float: left">
+                     <button
+                        name="translate_file"
+                        title="Select a context, select a file then translate"
+                        v-on:click="translateFile"
+                        :disabled="!is_translating_a_file_possible()"
+                        accesskey="f">
+                        Translate File
+                     </button>
+                  </div>
+               </div>
+               <div v-show="translation_progress >= 0">
+                  <progress v-bind:value="translation_progress" max="100"></progress>
+               </div>
+               <div id="translate_file_urls" v-show="translation_url != undefined">
+                  <ul>
+                     <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                  </ul>
+               </div>
+               <div v-show="trace_url != undefined">
+                  <h3>Error</h3>
+                  {{translate_file_error}}
+                  <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
+
+      <script type="text/x-template" id="translatetext_template">
+         <section name="translate_text">
+            <fieldset class="round_corners">
+               <legend>Translate Text</legend>
+               <div>
+                  <strong>Type in source-language text:</strong>
+               </div>
+               <div>
+                  <textarea
+                     name="text_source"
+                     title="The text you want to translate"
+                     v-model="source"
+                     rows="5">
+                  </textarea>
+                  <textarea
+                     name="translation"
+                     title="You will see your translations in this box"
+                     v-model="translation"
+                     rows="5"
+                     readonly="true"
+                     placeholder="Your translations.">
+                  </textarea>
+               </div>
+               <div>
+                  <label for="text_xtags" class="lineup">
+                     <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
+                     <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
+                  </label>
+               </div>
+               <!-- Portage's WSDL doesn't offer phrase table.
+                     <div>
+                        <label for="enable_phrase_table_debug">
+                           <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
+                           <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
+                        </label>
+                     </div>
+                     -->
+               <fieldset id="text_advanced_options" class="round_corners">
+                  <legend>Advanced Options: newline</legend>
+                  <label class="lineup" title="Check this box if input text has one sentence per line">
+                     <input v-model="newline" type="radio" name="newline" value="s" />
+                     one sentence per line
+                  </label>
+                  <label class="lineup" title="Check this box if input text has one paragraph per line">
+                     <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
+                     one paragraph per line
+                  </label class="lineup">
+                  <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
+                     <input v-model="newline" type="radio" name="newline" value="w" />
+                     blank lines mark paragraphs
+                  </label>
+                  <!-- Portage's WSDL doesn't offer pretokenized option.
+                        <br />
+                        <label>
+                           <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
+                           <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
+                        </label>
+                        -->
+               </fieldset>
+               <div>
+                  <div style="float: left">
+                     <button
+                        title="Select a context, type your sentence then translate."
+                        v-on:click="translate"
+                        :disabled="!is_translating_possible()"
+                        accesskey="t">
+                        Translate Text
+                     </button>
+                  </div>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
 
       <script type="text/javascript" src="plive.js"> </script>
 
