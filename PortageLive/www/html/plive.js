@@ -449,6 +449,102 @@ Vue.component('translatefile', {
 
 
 
+Vue.component('translatetext', {
+   template: '#translatetext_template',
+   props: ['context', 'contexts', 'document_id'],
+   data: function() {
+      return {
+         source: '',
+         xtags: false,
+         pretokenized: false,
+         enable_phrase_table_debug: false,
+         translation: '',
+         newline: 'p',
+      };
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.source = '';
+         app.xtags = false;
+         app.pretokenized = false;
+         app.enable_phrase_table_debug = false;
+         app.translation = '';
+         app.newline = 'p';
+      },
+
+      is_translating_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.source !== undefined
+            && app.source !== '';
+      },
+
+
+      translate: function() {
+         const app = this;
+         const icon = '<i class="fa fa-keyboard-o"></i>';
+         app.translation = '';
+         const is_incremental = app.contexts[app.context].is_incremental;
+         if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
+            alert(app.context + " does not support incremental.  Please select another system.");
+            return;
+         }
+
+         let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + icon);
+
+         return app.$parent._fetch('translate', {
+               srcString: app.source,
+               context: app.$parent._getContext(),
+               newline: app.newline,
+               xtags: app.xtags,
+               useCE: false,
+            })
+            .finally( function() {
+               myToastInfo.goAway(250);
+            })
+            .then(function(response) {
+               app.translation = response.Body.translateResponse.Result;
+               let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
+            })
+            .catch(function(err) {
+               alert('Failed to translate your sentences!' + err);
+               let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
+            });
+      },
+
+
+      translate_using_REST_API: function () {
+         const app = this;
+         // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
+         // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+         app.translation_segments = null;
+         const request = {
+            'options': {
+               'sent_split': new Boolean(true),
+            },
+            'segments': [
+               app.source_segment
+            ]};
+         fetch('/translate', {
+            method: 'POST',
+            headers: {
+               'Accept': 'application/json',
+               'Content-Type': 'application/json',
+               },
+            body: JSON.stringify(request),
+            })
+         .then(function(response) { response.json() } )
+         .then(function(translations) {
+            app.translation_segments = translations;
+            console.log(translations);})
+         .catch(function(err) { console.error(err) } )
+      },
+   },
+});
+
+
+
 //Vue.use(Toasted);
 Vue.use(Toasted, {
    iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
@@ -503,17 +599,10 @@ var plive_app = new Vue({
 
    data: {
       service_url: '/PortageLiveAPI.php',
-      contexts: [],
       version: '',
+      contexts: [],
       context: 'unselected',
       document_id: '',
-      text_source: '',
-      text_xtags: false,
-      pretokenized: false,
-      enable_phrase_table_debug: false,
-      translation: '',
-      is_translating_text: false,
-      newline: 'p',
       // Load up the template from the UI.
       translating_animation: document.getElementById('translating_template').text || 'translating...',
    },
@@ -654,14 +743,7 @@ var plive_app = new Vue({
          const app = this;
 
          app.context = 'unselected';
-         app.text_source = '';
-         app.text_xtags = false;
          app.document_id = '';
-         app.enable_phrase_table_debug = false;
-         app.translation = '';
-         app.is_translating_text = false;
-         app.newline = 'p';
-         app.pretokenized = false;
 
          // TODO: apply clear() on all children.
          app.$children.forEach(function(e) {
@@ -708,78 +790,6 @@ var plive_app = new Vue({
                app.version = "Failed to retrieve Portage's version";
                alert("Failed to get Portage's version." + err);
             });
-      },
-
-
-      is_translating_possible: function() {
-         const app = this;
-         return app.context !== 'unselected'
-            && app.text_source !== undefined
-            && app.text_source !== '';
-      },
-
-
-      translate: function() {
-         const app = this;
-         const icon = '<i class="fa fa-keyboard-o"></i>';
-         app.translation = '';
-         const is_incremental = app.contexts[app.context].is_incremental;
-         if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
-            alert(app.context + " does not support incremental.  Please select another system.");
-            return;
-         }
-
-         app.is_translating_text = true;
-
-         let myToastInfo = app.$toasted.global.info(app.translating_animation + icon);
-
-         return app._fetch('translate', {
-               srcString: app.text_source,
-               context: app._getContext(),
-               newline: app.newline,
-               xtags: app.text_xtags,
-               useCE: false,
-            })
-            .finally( function() {
-               myToastInfo.goAway(250);
-               app.is_translating_text = false;
-            })
-            .then(function(response) {
-               app.translation = response.Body.translateResponse.Result;
-               let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
-            })
-            .catch(function(err) {
-               alert('Failed to translate your sentences!' + err);
-               let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
-            });
-      },
-
-
-      translate_using_REST_API: function () {
-         const app = this;
-         // https://developers.google.com/web/updates/2015/03/introduction-to-fetch
-         // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-         app.translation_segments = null;
-         const request = {
-            'options': {
-               'sent_split': new Boolean(true),
-            },
-            'segments': [
-               app.source_segment
-            ]};
-         fetch('/translate', {
-            method: 'POST',
-            headers: {
-               'Accept': 'application/json',
-               'Content-Type': 'application/json',
-               },
-            body: JSON.stringify(request),
-            })
-         .then(function(response) { response.json() } )
-         .then(function(translations) {
-            app.translation_segments = translations;
-            console.log(translations);})
-         .catch(function(err) { console.error(err) } )
       },
    }  // methods
 });

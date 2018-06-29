@@ -121,80 +121,7 @@
             <prime :context="context" :contexts="contexts"></prime>
 
             <section class="row">
-               <section name="translate_text">
-                  <fieldset class="round_corners">
-                     <legend>Translate Text</legend>
-                     <div>
-                        <strong>Type in source-language text:</strong>
-                     </div>
-                     <div>
-                        <textarea
-                           name="text_source"
-                           title="The text you want to translate"
-                           v-model="text_source"
-                           rows="5">
-                        </textarea>
-                        <textarea
-                           name="translation"
-                           title="You will see your translations in this box"
-                           v-model="translation"
-                           rows="5"
-                           readonly="true"
-                           placeholder="Your translations.">
-                        </textarea>
-                     </div>
-                     <div>
-                        <label for="text_xtags" class="lineup">
-                           <input v-model="text_xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
-                           <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
-                        </label>
-                     </div>
-                     <!-- Portage's WSDL doesn't offer phrase table.
-                           <div>
-                              <label for="enable_phrase_table_debug">
-                                 <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
-                                 <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
-                              </label>
-                           </div>
-                           -->
-                     <fieldset id="text_advanced_options" class="round_corners">
-                        <legend>Advanced Options: newline</legend>
-                        <label class="lineup" title="Check this box if input text has one sentence per line">
-                           <input v-model="newline" type="radio" name="newline" value="s" />
-                           one sentence per line
-                        </label>
-                        <label class="lineup" title="Check this box if input text has one paragraph per line">
-                           <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
-                           one paragraph per line
-                        </label class="lineup">
-                        <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
-                           <input v-model="newline" type="radio" name="newline" value="w" />
-                           blank lines mark paragraphs
-                        </label>
-                        <!-- Portage's WSDL doesn't offer pretokenized option.
-                              <br />
-                              <label>
-                                 <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
-                                 <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
-                              </label>
-                              -->
-                     </fieldset>
-                     <div>
-                        <div style="float: left">
-                           <button
-                              title="Select a context, type your sentence then translate."
-                              v-on:click="translate"
-                              :disabled="!is_translating_possible()"
-                              accesskey="t">
-                              Translate Text
-                           </button>
-                        </div>
-                        <!--
-                        <translating :is_translating="is_translating_text" style="float: left; padding-left: 1em" />
-                        -->
-                     </div>
-                  </fieldset>
-               </section>
+               <translatetext :context="context" :contexts="contexts" :document_id="document_id"></translatetext>
 
                <section class="group_translate_file_and_incremental">
 
@@ -252,6 +179,8 @@
 
       </div>
 
+
+
       <script type="text/x-template" id="vue_translating_template">
          <div v-show="is_translating" class="translating">
             <div class="translating-text">
@@ -270,6 +199,8 @@
          </div>
       </script>
 
+
+
       <script type="text/x-template" id="translating_template">
          <div class="translating-text">
             <span class="translating-text-words">T</span>
@@ -285,6 +216,8 @@
             <span class="translating-text-words">g</span>
          </div>
       </script>
+
+
 
       <script type="text/x-template" id="incraddsentence_template">
          <section name="incrAddSentence">
@@ -338,6 +271,8 @@
          </section>
       </script>
 
+
+
       <script type="text/x-template" id="incrStatus_template">
          <section name="incrStatus">
             <fieldset class="round_corners">
@@ -356,6 +291,8 @@
             </fieldset>
          </section>
       </script>
+
+
 
       <script type="text/x-template" id="prime_template">
          <section name="priming">
@@ -386,6 +323,8 @@
             </fieldset>
          </section>
       </script>
+
+
 
       <script type="text/x-template" id="translatefile_template">
          <section name="translate_file">
@@ -480,6 +419,84 @@
             </fieldset>
          </section>
       </script>
+
+
+
+      <script type="text/x-template" id="translatetext_template">
+         <section name="translate_text">
+            <fieldset class="round_corners">
+               <legend>Translate Text</legend>
+               <div>
+                  <strong>Type in source-language text:</strong>
+               </div>
+               <div>
+                  <textarea
+                     name="text_source"
+                     title="The text you want to translate"
+                     v-model="source"
+                     rows="5">
+                  </textarea>
+                  <textarea
+                     name="translation"
+                     title="You will see your translations in this box"
+                     v-model="translation"
+                     rows="5"
+                     readonly="true"
+                     placeholder="Your translations.">
+                  </textarea>
+               </div>
+               <div>
+                  <label for="text_xtags" class="lineup">
+                     <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
+                     <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
+                  </label>
+               </div>
+               <!-- Portage's WSDL doesn't offer phrase table.
+                     <div>
+                        <label for="enable_phrase_table_debug">
+                           <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
+                           <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
+                        </label>
+                     </div>
+                     -->
+               <fieldset id="text_advanced_options" class="round_corners">
+                  <legend>Advanced Options: newline</legend>
+                  <label class="lineup" title="Check this box if input text has one sentence per line">
+                     <input v-model="newline" type="radio" name="newline" value="s" />
+                     one sentence per line
+                  </label>
+                  <label class="lineup" title="Check this box if input text has one paragraph per line">
+                     <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
+                     one paragraph per line
+                  </label class="lineup">
+                  <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
+                     <input v-model="newline" type="radio" name="newline" value="w" />
+                     blank lines mark paragraphs
+                  </label>
+                  <!-- Portage's WSDL doesn't offer pretokenized option.
+                        <br />
+                        <label>
+                           <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
+                           <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
+                        </label>
+                        -->
+               </fieldset>
+               <div>
+                  <div style="float: left">
+                     <button
+                        title="Select a context, type your sentence then translate."
+                        v-on:click="translate"
+                        :disabled="!is_translating_possible()"
+                        accesskey="t">
+                        Translate Text
+                     </button>
+                  </div>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
 
       <script type="text/javascript" src="plive.js"> </script>
 
