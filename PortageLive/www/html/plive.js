@@ -492,10 +492,53 @@ var plive_app = new Vue({
             });
       },
 
+
       is_ce_possible: function() {
          const app = this;
-         return app.is_xml && app.contexts !== undefined && app.contexts.hasOwnProperty(app.context) && app.contexts[app.context].as_ce;
+         return app.is_xml
+            && app.contexts !== undefined
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].as_ce;
       },
+
+
+      is_incrAddSentence_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.incr_source_segment !== ''
+            && app.incr_target_segment !== ''
+            && app.document_id !== '';
+      },
+
+
+      is_incrStatus_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.document_id !== undefined
+            && app.document_id !== '';
+      },
+
+
+      is_priming_possible: function() {
+         const app = this;
+         return app.context !== 'unselected';
+      },
+
+
+      is_translating_a_file_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.file !== undefined;
+      },
+
+
+      is_translating_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.text_source !== undefined
+            && app.text_source !== '';
+      },
+
 
       prepareFile: function(evt) {
          // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript

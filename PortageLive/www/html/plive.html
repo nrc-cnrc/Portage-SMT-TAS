@@ -137,7 +137,7 @@
                         <button
                            title="Select a context, select a mode then prime your models"
                            v-on:click="primeModel"
-                           :disabled="context === 'unselected'"
+                           :disabled="!is_priming_possible()"
                            accesskey="p">
                            Prime Context
                         </button>
@@ -210,7 +210,7 @@
                            <button
                               title="Select a context, type your sentence then translate."
                               v-on:click="translate"
-                              :disabled="context === 'unselected' || text_source === ''"
+                              :disabled="!is_translating_possible()"
                               accesskey="t">
                               Translate Text
                            </button>
@@ -291,7 +291,7 @@
                                  name="translate_file"
                                  title="Select a context, select a file then translate"
                                  v-on:click="translateFile"
-                                 :disabled="context === 'unselected' || file === undefined"
+                                 :disabled="!is_translating_a_file_possible()"
                                  accesskey="f">
                                  Translate File
                               </button>
@@ -363,7 +363,7 @@
                               name="incr_add_sentence"
                               title="Given a context, add a sentence pair to a document id."
                               v-on:click="incrAddSentence"
-                              :disabled="context === 'unselected' || incr_source_segment === '' || incr_target_segment === '' || document_id === ''"
+                              :disabled="!is_incrAddSentence_possible()"
                               accesskey="a">
                               Add Sentence Pair
                            </button>
@@ -378,7 +378,7 @@
                            name="incrStatus"
                            title="Select a context, provide a document id then click to get the incremental status"
                            v-on:click="incrStatus"
-                           :disabled="context === 'unselected' || document_id === '' || document_id === undefined"
+                           :disabled="!is_incrStatus_possible()"
                            accesskey="s">
                            Incremental Document Status
                         </button>
