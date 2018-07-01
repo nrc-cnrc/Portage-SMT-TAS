@@ -75,6 +75,143 @@ if (!String.prototype.encodeHTML) {
 
 
 
+//Vue.use(Toasted);
+Vue.use(Toasted, {
+   iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
+});
+
+
+
+Vue.toasted.register('error', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'error',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'error',
+});
+
+
+
+Vue.toasted.register('success', message => message, {
+   duration : 3000,
+   fullWidth : true,
+   icon : 'done_outline',
+   iconPack: 'material',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'success',
+});
+
+
+
+Vue.toasted.register('info', message => message, {
+   action : {
+      text : 'Dismiss',
+      onClick : (e, toastObject) => {
+         toastObject.goAway(250);
+      }
+   },
+   duration : 300000,
+   fullWidth : true,
+   icon : 'info-circle',
+   iconPack: 'fontawesome',
+   position: 'bottom-center',
+   theme: 'bubble',
+   type: 'info',
+});
+
+
+
+Vue.prototype.$body = function(method, args) {
+   return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
+      previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
+      return previous;
+   }, '') + '</' + method + '>';
+}
+
+
+
+Vue.prototype.$getBase64 = function(file) {
+   return new Promise(function(resolve, reject) {
+         const reader = new FileReader();
+         reader.onload = function() { resolve(reader.result) };
+         reader.onerror = function(error) { reject(error) };
+         reader.readAsDataURL(file);
+         })
+      //data:[<mime type>][;charset=<charset>][;base64],<encoded data>
+      //data:*/*;base64,
+      //data:;base64,
+      .then( function(data) {
+         return data.replace(/^data:(.*\/.*)?;base64,/g, '');
+      } );
+}
+
+
+
+Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.php') {
+   // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
+   // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
+   // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
+   //
+   // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
+   const app = this;
+   const envelope = '<?xml version="1.0" encoding="UTF-8"?> \
+     <soap:Envelope \
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" \
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"> \
+        <soap:Header> \
+        </soap:Header> \
+        <soap:Body> \
+           {body} \
+         </soap:Body> \
+      </soap:Envelope>'.format({'body': app.$body(soapaction, args)});
+
+   return fetch(service_url, {
+      method: 'POST',
+      headers: {
+         'SOAPAction': soapaction,
+         'Content-Type': 'text/xml; charset=utf-8',
+      },
+      body: envelope,
+   })
+   .then(function(response) {
+      /*
+         if (!response.ok) {
+         throw Error(response.statusText);
+         }
+         */
+      return response.text();
+   })
+   .then(function(response) {
+      return $.xml2json(response);
+   })
+   .then(function(response) {
+      if (!!response.Body.Fault) {
+         throw Error(response.Body.Fault.faultcode + ': ' + response.Body.Fault.faultstring);
+      }
+      return response;
+   });
+}
+
+
+
+Vue.filter('doubleDigits', function (value) {
+    if (typeof value !== "number") {
+        return value;
+    }
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: "decimal",
+        //maximumSignificantDigits: 2,
+        minimumFractionDigits: 2
+    });
+    return formatter.format(value);
+});
+
+
+
 // https://css-tricks.com/intro-to-vue-2-components-props-slots/
 // https://alligator.io/vuejs/component-communication/
 Vue.component('translating',
@@ -106,7 +243,7 @@ Vue.component('incraddsentence', {
          const app = this;
          const icon = '<i class="fa fa-send"></i>';
 
-         return app.$parent._fetch('incrAddSentence', {
+         return app.$soap('incrAddSentence', {
                context: app.context,
                document_model_id: app.document_id,
                source_sentence: app.incr_source_segment,
@@ -159,7 +296,7 @@ Vue.component('incrstatus', {
          const icon = '<i class="fa fa-cogs"></i>';
          const full_context = app.$parent._getContext();
 
-         return app.$parent._fetch('incrStatus', {
+         return app.$soap('incrStatus', {
             'context': app.context,
             'document_model_id': app.document_id,
             })
@@ -220,7 +357,7 @@ Vue.component('prime', {
 
          let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
 
-         return app.$parent._fetch('primeModels', {
+         return app.$soap('primeModels', {
                'context': context,
                'PrimeMode': app.prime_mode,
             })
@@ -237,7 +374,7 @@ Vue.component('prime', {
                }
             })
             .catch(function(err) {
-               alert("Failed to prime context " + context + soapResponse.toJSON());
+               alert("Failed to prime context " + context + err);
             });
       },
    },
@@ -305,7 +442,7 @@ Vue.component('translatefile', {
          // `watcher` in the callback's scope.
          const watcher = setInterval(
             function(monitor_token) {
-               return app.$parent._fetch('translateFileStatus', { token: String(monitor_token) })
+               return app.$soap('translateFileStatus', { token: String(monitor_token) })
                   .then(function(response) {
                      var token = response.Body.translateFileStatusResponse.token;
                      if (token.startsWith('0 Done:')) {
@@ -384,7 +521,7 @@ Vue.component('translatefile', {
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         app.$parent._getBase64(file)
+         app.$getBase64(file)
             .then( function(data) {
                app.file = file;
                app.file.base64 = data;
@@ -435,7 +572,7 @@ Vue.component('translatefile', {
 
          let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + data.Filename + ' ' + icon);
 
-         return app.$parent._fetch(translate_method, data)
+         return app.$soap(translate_method, data)
             .then(function(response) {
                app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
             })
@@ -493,7 +630,7 @@ Vue.component('translatetext', {
 
          let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + icon);
 
-         return app.$parent._fetch('translate', {
+         return app.$soap('translate', {
                srcString: app.source,
                context: app.$parent._getContext(),
                newline: app.newline,
@@ -545,66 +682,16 @@ Vue.component('translatetext', {
 
 
 
-//Vue.use(Toasted);
-Vue.use(Toasted, {
-   iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
-});
-
-
-
-Vue.toasted.register('error', message => message, {
-   duration : 3000,
-   fullWidth : true,
-   icon : 'error',
-   iconPack: 'material',
-   position: 'bottom-center',
-   theme: 'bubble',
-   type: 'error',
-});
-
-
-
-Vue.toasted.register('success', message => message, {
-   duration : 3000,
-   fullWidth : true,
-   icon : 'done_outline',
-   iconPack: 'material',
-   position: 'bottom-center',
-   theme: 'bubble',
-   type: 'success',
-});
-
-
-
-Vue.toasted.register('info', message => message, {
-   action : {
-      text : 'Dismiss',
-      onClick : (e, toastObject) => {
-         toastObject.goAway(250);
-      }
-   },
-   duration : 300000,
-   fullWidth : true,
-   icon : 'info-circle',
-   iconPack: 'fontawesome',
-   position: 'bottom-center',
-   theme: 'bubble',
-   type: 'info',
-});
-
-
-
 var plive_app = new Vue({
    el: '#plive_app',
 
    data: {
-      service_url: '/PortageLiveAPI.php',
-      version: '',
       // Load up the template from the UI.
       translating_animation: document.getElementById('translating_template').text || 'translating...',
       contexts: [],
       context: 'unselected',
       document_id: '',
+      version: '',
    },
 
    // On page loaded...
@@ -658,77 +745,6 @@ var plive_app = new Vue({
 
 
    methods: {
-      _body: function(method, args) {
-         return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
-            previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
-            return previous;
-         }, '') + '</' + method + '>';
-      },
-
-
-      _fetch: function(soapaction, args) {
-         // https://stackoverflow.com/questions/37693982/how-to-fetch-xml-with-fetch-api
-         // https://stackoverflow.com/questions/44401177/xml-request-and-response-with-fetch
-         // Response.text() returns a Promise, chain .then() to get the Promise value of .text() call.
-         //
-         // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
-         const app = this;
-         const envelope = '<?xml version="1.0" encoding="UTF-8"?> \
-                          <soap:Envelope \
-                             xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" \
-                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
-                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"> \
-                             <soap:Header> \
-                             </soap:Header> \
-                             <soap:Body> \
-                                {body} \
-                             </soap:Body> \
-                          </soap:Envelope>'.format({'body': app._body(soapaction, args)});
-
-         return fetch(app.service_url, {
-            method: 'POST',
-            headers: {
-               'SOAPAction': soapaction,
-               'Content-Type': 'text/xml; charset=utf-8',
-               },
-            body: envelope,
-            })
-            .then(function(response) {
-               /*
-               if (!response.ok) {
-                  throw Error(response.statusText);
-               }
-               */
-               return response.text();
-            })
-            .then(function(response) {
-               return $.xml2json(response);
-            })
-            .then(function(response) {
-               if (!!response.Body.Fault) {
-                  throw Error(response.Body.Fault.faultcode + ': ' + response.Body.Fault.faultstring);
-               }
-               return response;
-            });
-      },
-
-
-      _getBase64: function(file) {
-         return new Promise(function(resolve, reject) {
-               const reader = new FileReader();
-               reader.onload = function() { resolve(reader.result) };
-               reader.onerror = function(error) { reject(error) };
-               reader.readAsDataURL(file);
-               })
-            //data:[<mime type>][;charset=<charset>][;base64],<encoded data>
-            //data:*/*;base64,
-            //data:;base64,
-            .then( function(data) {
-               return data.replace(/^data:(.*\/.*)?;base64,/g, '');
-            } );
-      },
-
-
       _getContext: function() {
          const app = this;
          var context = app.context;
@@ -755,7 +771,7 @@ var plive_app = new Vue({
       getAllContexts: function() {
          const app = this;
 
-         return app._fetch('getAllContexts', {'verbose': false, 'json': true})
+         return app.$soap('getAllContexts', {'verbose': false, 'json': true})
             .then(function(response) {
                // We've asked for a json replied which is embeded in the xml response.
                const jsonContexts = JSON.parse(response.Body.getAllContextsResponse.contexts);
@@ -781,7 +797,7 @@ var plive_app = new Vue({
          // If you are expecting a Promise to be returned from getPostagePrice function, return fetch() call from getPostagePrice() call.
          const app = this;
 
-         return app._fetch('getVersion', {})
+         return app.$soap('getVersion', {})
             .then(function(response) {
                app.version = String(response.Body.getVersionResponse.version);
                console.log(app.version);
@@ -792,18 +808,4 @@ var plive_app = new Vue({
             });
       },
    }  // methods
-});
-
-
-
-Vue.filter('doubleDigits', function (value) {
-    if (typeof value !== "number") {
-        return value;
-    }
-    const formatter = new Intl.NumberFormat('en-US', {
-        style: "decimal",
-        //maximumSignificantDigits: 2,
-        minimumFractionDigits: 2
-    });
-    return formatter.format(value);
 });
