@@ -360,10 +360,8 @@ Vue.component('prime', {
                'context': context,
                'PrimeMode': app.prime_mode,
             })
-            .finally(function() {
-               myToastInfo.goAway(250);
-            })
             .then(function(response) {
+               myToastInfo.goAway(250);
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
@@ -373,6 +371,7 @@ Vue.component('prime', {
                }
             })
             .catch(function(err) {
+               myToastInfo.goAway(250);
                alert("Failed to prime context " + context + err);
             });
       },
@@ -665,14 +664,13 @@ Vue.component('translatetext', {
                xtags: app.xtags,
                useCE: false,
             })
-            .finally( function() {
-               myToastInfo.goAway(250);
-            })
             .then(function(response) {
+               myToastInfo.goAway(250);
                app.translation = response.Body.translateResponse.Result;
                let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
             })
             .catch(function(err) {
+               myToastInfo.goAway(250);
                alert('Failed to translate your sentences!' + err);
                let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
             });
