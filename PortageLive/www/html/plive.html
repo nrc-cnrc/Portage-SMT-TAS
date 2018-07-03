@@ -118,19 +118,19 @@
                </fieldset>
             </section>
 
-            <prime :context="context" :contexts="contexts"></prime>
-
             <section class="row">
-               <translatetext :context="context" :contexts="contexts" :document_id="document_id"></translatetext>
+               <section>
+                  <translatetext :context="context" :contexts="contexts" :document_id="document_id"></translatetext>
+
+                  <prime :context="context" :contexts="contexts"></prime>
+               </section>
 
                <section class="group_translate_file_and_incremental">
-
                   <translatefile :context="context" :contexts="contexts" :document_id="document_id"></translatefile>
 
                   <incraddsentence :context="context" :contexts="contexts" :document_id="document_id"></incraddsentence>
 
                   <incrstatus :context="context" :contexts="contexts" :document_id="document_id"></incrstatus>
-
                </section>
             </section>
 
@@ -301,6 +301,7 @@
                For speedier translation, it is useful to prime the models in memory
                on the server.  Note that you cannot prime all models due to memory
                limitation on the server.  Priming too often is also not recommended.
+               <div style="float: left">
                <label class="lineup" title="Refreshes most important models in memory">
                   <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
                   partial
@@ -309,16 +310,15 @@
                   <input v-model="prime_mode" type="radio" name="full" value="full" />
                   full
                </label class="lineup">
-               <div>
-                  <div style="float: left">
-                     <button
-                        title="Select a context, select a mode then prime your models"
-                        @click="primeModel"
-                        :disabled="!is_priming_possible()"
-                        accesskey="p">
-                        Prime Context
-                     </button>
-                  </div>
+               </div>
+               <div style="float: left">
+                  <button
+                     title="Select a context, select a mode then prime your models"
+                     @click="primeModel"
+                     :disabled="!is_priming_possible()"
+                     accesskey="p">
+                     Prime Context
+                  </button>
                </div>
             </fieldset>
          </section>
@@ -363,23 +363,22 @@
                   </label>
                </div>
                <div>
-                  <label class="lineup">
+                  <label class="lineup" for="useConfidenceEstimation" title="Enable confidence level for either tmx or xilff">
                      <input
                         v-model="useConfidenceEstimation"
                         type="checkbox"
                         name="useConfidenceEstimation"
                         value="on"
                         :disabled="!is_ce_possible()" />
-                     <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation.
+                     <strong>Confidence Estimation</strong> &ndash; Check this box if you want to use Confidence Estimation when a context provides Confidence Estimation (TMX/SDLXLIFF files only).
                   </label>
                </div>
                <div>
-                  <label for="filters" style="display: block; margin-left: 105px">
+                  <label for="filters" style="display: block; margin-left: 105px" title="Select a confidence level for either tmx or xilff">
                      <select
                         v-model="CETreshold"
                         id="filters"
                         name="filter"
-                        title="Select a confidence level"
                         :disabled="!is_ce_possible()"
                         style="margin-left: -105px"
                         size="1">
