@@ -196,3 +196,39 @@ footer:after {
    color: red;
 }
 
+
+/*
+ * CSS for the last three file translation requests.
+ */
+.last_translations
+{
+   padding-left: 2em;
+}
+
+.last_translation
+{
+   //margin-left: 0;
+   //padding-left: 0;
+   white-space: nowrap;
+}
+
+.last_translation li
+{
+   display: inline;
+   list-style-type: none;
+   padding-right: 1em;
+}
+
+
+
+/*
+ * UX animation to indicate new translation of a file.
+ */
+.list-enter-active, .list-leave-active {
+   transition: all 1.2s;
+}
+
+.list-enter, .list-leave-to {
+  opacity: 0;
+  transform: translateX(130px);
+}

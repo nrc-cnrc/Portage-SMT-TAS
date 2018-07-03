@@ -214,8 +214,7 @@ Vue.filter('doubleDigits', function (value) {
 
 // https://css-tricks.com/intro-to-vue-2-components-props-slots/
 // https://alligator.io/vuejs/component-communication/
-Vue.component('translating',
-   {
+Vue.component('translating', {
       props: ['is_translating'],
       template: '#vue_translating_template'
 });
@@ -399,12 +398,16 @@ Vue.component('translatefile', {
          trace_url: undefined,
          translation_progress: 0,
          translate_file_error: '',
+         last_translations: [],   // Create a Queue(maxSize=3)
       };
    },
    // On page loaded...
    mounted: function() {
       const app = this;
       app._createFilters();
+      if (localStorage.last_translations) {
+         app.last_translations = JSON.parse(localStorage.last_translations);
+      }
    },
    methods: {
       _clear: function () {
@@ -432,6 +435,16 @@ Vue.component('translatefile', {
       },
 
 
+      _enqueue: function(translation) {
+         const app = this;
+
+         app.last_translations.unshift(translation);
+         if (app.last_translations.length > 3) {
+            app.last_translations.pop();
+         }
+      },
+
+
       _translateFileSuccess: function (soapResponse, method, myToastInfo) {
          const app = this;
          const icon = '<i class="fa fa-file-text"></i>';
@@ -453,6 +466,13 @@ Vue.component('translatefile', {
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
                         let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
                         myToastInfo.goAway(250);
+                        app._enqueue({
+                           'id': Math.floor((1 + Math.random()) * 0x10000),  // Some sort of unique id for three elements require for properly transitioning.
+                           'name': app.file.name,
+                           'translation_url': app.translation_url,
+                           'pal_url': app.pal_url,
+                           'oov_url': app.oov_url,
+                        });
                      }
                      else if (token.startsWith('1')) {
                         // TODO: indicate progress.
@@ -580,6 +600,14 @@ Vue.component('translatefile', {
                myToastInfo.goAway(250);
                alert('Failed to translate your file!' + soapResponse.toJSON());
             });
+      },
+   },  // methods
+   watch: {
+      last_translations: {
+         handler: function(val, oldVal) {
+            localStorage.last_translations = JSON.stringify(val);
+         },
+         deep: true,
       },
    },
 });
