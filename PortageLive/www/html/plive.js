@@ -700,6 +700,10 @@ var plive_app = new Vue({
       app.getAllContexts();
       app.getVersion();
 
+      if (localStorage.document_id) {
+         app.document_id = localStorage.document_id;
+      }
+
       if (false) {
          // This is useful for debugging vue-toasted.
          let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
@@ -781,7 +785,10 @@ var plive_app = new Vue({
                   },
                   {});
                app.contexts = contexts;
-               app.context = 'unselected';
+               app.context  = 'unselected';
+               if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
+                  app.context = localStorage.context;
+               }
             })
             .catch(function(err) {
                alert("Error fetching available contexts/systems from the server. " + err);
@@ -807,5 +814,17 @@ var plive_app = new Vue({
                alert("Failed to get Portage's version." + err);
             });
       },
-   }  // methods
+   },  // methods
+
+
+   watch: {
+      'context': function (val, oldVal) {
+         console.log('Changing context from ' + oldVal, ' to ' + val);
+         localStorage.setItem('context', val);
+      },
+      'document_id': function (val, oldVal) {
+         console.log('Changing document_id from ' + oldVal, ' to ' + val);
+         localStorage.setItem('document_id', val);
+      },
+   },
 });
