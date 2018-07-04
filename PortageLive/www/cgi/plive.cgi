@@ -578,7 +578,8 @@ sub processText {
 
     my $tr_output = catdir($work_dir, param('is_xml') ? "QP.xml" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
-    param('trace', "$work_dir/trace");
+    #MARC param('trace', "$work_dir/trace");
+    param('trace', "$work_dir");
 
     # Launch translation
     if (param('translate_file') and param('filename')) {
@@ -642,7 +643,7 @@ sub translationTextOutput {
 
     print start_html(-title=>"PORTAGELive");
 
-    $source = HTML::Entities::encode_entities($source, '<>&');
+    $source = HTML::Entities::encode_entities($source, '\&/\"\'<>');
     $source =~ s/\n/<br \/>/g;
     print
         NRCBanner(),
@@ -655,7 +656,7 @@ sub translationTextOutput {
         "\n",
         div({-id=>'translation'},
            h2("Translation:"),
-           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target))),
+           p(join("<br />", map { HTML::Entities::encode_entities($_, '\&/\"\'<>') } @target))),
         "\n";
     my $href = "plive.cgi?context=".param('context');
     $href .= '&document_id=' . param('document_id') if (defined(param('document_id')));
@@ -665,6 +666,7 @@ sub translationTextOutput {
     my @debuggingTools = (
        a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
        a({-id=>'pal', -href=>"$workDir/pal.html"}, "Phrase alignments"),
+       #Marc a({-id=>'pal', -href=>"$workDir/trace"}, "Trace file"));
        a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
     push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
 
@@ -815,6 +817,8 @@ sub normalizeName {
 # Produce an HTML page describing a problem and exit
 sub problem {
     my ($message, @args) = @_;
+	$message = HTML::Entities::encode_entities($message,  '\&/\"\'<>');
+
 
     print header(-type=>'text/html',
                  -charset=>'utf-8');

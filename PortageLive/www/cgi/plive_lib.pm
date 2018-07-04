@@ -146,13 +146,19 @@ sub NRCFooter {
 # @param trace_file the absolute path to the trace file.
 sub getTrace {
    my ($trace_file) = @_;
+	if ( $trace_file !~ m/trace$/ ) {
+		 $trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
+		 return p()
+       .h2("Not a valid trace file given")
+       .h3($trace_file);
+	}
+
    if (-r $trace_file) {
       open(TRACE, "$trace_file")
          || return h1("Can't open trace file $trace_file.");
       my $trace = do { local $/; <TRACE>; };
       close(TRACE);
-
-      $trace = HTML::Entities::encode_entities($trace, '<>&');  # MUST be done before we add our spans.
+      $trace = HTML::Entities::encode_entities($trace, '\&/\"\'<>');  # MUST be done before we add our spans.
       $trace =~ s#^(ERROR: .+)$#<span class="error">$1</span>#mg;
       $trace =~ s#^(.*fatal error: .+)$#<span class="error">$1</span>#mg;
       $trace =~ s#^(.+command not found.*)$#<span class="error">$1</span>#mg;
@@ -164,6 +170,7 @@ sub getTrace {
          .pre($trace);
    }
    else {
+	$trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
       return p()
          .h2("No readable trace file")
          .h3($trace_file);
