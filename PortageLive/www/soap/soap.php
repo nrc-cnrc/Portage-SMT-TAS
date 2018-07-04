@@ -16,7 +16,7 @@
 $WSDL="PortageLiveAPI.wsdl";
 # In the general case, uncomment and modify this statement to point to where
 # your PortageLive server actually exists:
-#$WSDL="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl";
+$WSDL="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl";
 
 $context = "";
 $button = "";
@@ -345,10 +345,11 @@ function monitorJobTestCase($WSDL, $button, $monitor_token) {
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->translateFileStatus($monitor_token);
+      $reply = htmlentities($reply);
       print "<hr/><b>Job status: </b> $reply";
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
          print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
-      print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
+      print "<br/><a href=\"$reply\">Switch to interactive job monitoring</a>";
    }
    catch (SoapFault $exception) {
       displayFault($exception);
@@ -468,6 +469,10 @@ function incrAddSentenceTestCase($WSDL) {
    $doc_id = $_POST['incrAddSentence_document_id'];
    $source_sent = $_POST['incrAddSentence_source_sent'];
    $target_sent = $_POST['incrAddSentence_target_sent'];
+	$context = htmlentities($context);
+	$doc_id = htmlentities($doc_id);
+	$source_sent = htmlentities($source_sent);
+	$target_sent = htmlentities($target_sent);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    print "<b>Source sentence: </b> $source_sent<br>\n";
@@ -475,6 +480,7 @@ function incrAddSentenceTestCase($WSDL) {
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
+		$reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
@@ -488,11 +494,14 @@ function incrStatusTestCase($WSDL) {
    print "<header>Incremental Training Status</header>\n";
    global $context;
    $doc_id = $_POST['incrStatus_document_id'];
+	$context = htmlentities($context);
+   $doc_id = htmlentities($doc_id);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrStatus($context, $doc_id);
+		$reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
