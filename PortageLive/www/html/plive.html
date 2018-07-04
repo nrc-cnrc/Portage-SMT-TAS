@@ -298,27 +298,38 @@
          <section name="priming">
             <fieldset class="round_corners">
                <legend>Prime Context</legend>
-               For speedier translation, it is useful to prime the models in memory
-               on the server.  Note that you cannot prime all models due to memory
-               limitation on the server.  Priming too often is also not recommended.
-               <div style="float: left">
-               <label class="lineup" title="Refreshes most important models in memory">
-                  <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
-                  partial
-               </label>
-               <label class="lineup" title="Refreshes all models in memory for speedier translation">
-                  <input v-model="prime_mode" type="radio" name="full" value="full" />
-                  full
-               </label class="lineup">
+               <div>
+                  For speedier translation, it is useful to prime the models in memory
+                  on the server.  Note that you cannot prime all models due to memory
+                  limitation on the server.  Priming too often is also not recommended.
                </div>
-               <div style="float: left">
-                  <button
-                     title="Select a context, select a mode then prime your models"
-                     @click="primeModel"
-                     :disabled="!is_priming_possible()"
-                     accesskey="p">
-                     Prime Context
-                  </button>
+               <div style="display: table-cell; vertical-align: middle;">
+                  <!--
+                      Wow I don't understand centering two divs inside a div.
+                      This does not work as I would expect it to work.  It is
+                      safer to play with the following example code.
+                      http://jsfiddle.net/5vpA3/1120/
+                      http://jsfiddle.net/5vpA3/1117/
+                  -->
+                  <div style="display: inline-block; vertical-align: middle;">
+                     <label class="lineup" title="Refreshes most important models in memory">
+                        <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
+                        partial
+                     </label>
+                     <label class="lineup" title="Refreshes all models in memory for speedier translation">
+                        <input v-model="prime_mode" type="radio" name="full" value="full" />
+                        full
+                     </label class="lineup">
+                  </div>
+                  <div style="display: inline-block; vertical-align: middle; margin-left: 2em;">
+                     <button
+                        title="Select a context, select a mode then prime your models"
+                        @click="primeModel"
+                        :disabled="!is_priming_possible()"
+                        accesskey="p">
+                        Prime Context
+                     </button>
+                  </div>
                </div>
             </fieldset>
          </section>
@@ -342,12 +353,12 @@
                   <label>
                      <strong>Select a file:</strong>
                      <input
-                     name="filename"
-                     title="Select a file to translate"
-                     type="file"
-                     v-on:change="prepareFile"
-                     size="60"
-                     accept=".txt,.tmx,.sdlxliff,.xliff" />
+                        name="filename"
+                        title="Select a file to translate"
+                        type="file"
+                        v-on:change="prepareFile"
+                        size="60"
+                        accept=".txt,.tmx,.sdlxliff,.xliff" />
                   </label>
                </div>
                <div>
@@ -417,7 +428,7 @@
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
-                     <li v-for="t in last_translations" :key="t.id">
+                     <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
                            <li>{{ t.name }}</li>
                            <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
