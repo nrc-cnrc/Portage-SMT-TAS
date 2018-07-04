@@ -532,6 +532,10 @@ Vue.component('translatefile', {
          // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
          const app   = this;
          const files = evt.target.files;
+         if (files.length === 0) {
+            app.file = undefined;
+            return;
+         }
          const file  = files[0];
 
          // UI related.
