@@ -557,7 +557,11 @@ class PortageLiveLib
          } else {
             $linestodo = `cat $dir/q.tok 2> /dev/null | wc --lines 2> /dev/null`;
             $linesdone = 0;
-            $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-*  $dir/p.raw";
+            $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-* ";
+            if ($info['ce'])
+               $outputs .= "$dir/p.raw";
+            else
+               $outputs .= "$dir/p.dec";
 
             $linesdone = `cat $outputs 2> /dev/null | wc --lines 2> /dev/null`;
 
@@ -601,6 +605,7 @@ class PortageLiveLib
       #error_log(func_get_args(), 3, "$error_output_dir/PortageLiveAPI.debug.log");
       $encoding = strtolower($encoding);
       if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
+			$encoding = htmlentities($encoding);
          throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding): "
                              . "use either UTF-8 or CP-1252.");
       }
