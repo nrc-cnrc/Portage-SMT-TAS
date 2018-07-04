@@ -266,3 +266,6 @@ run_cmd "(cd $WD; textpt2tppt.sh $INCREMENTAL_TM)" ||
    # sleep 5 # insert this to test whether the locking is really working
    verbose 1 "Releasing update lock"
 ) 202<$incr_canoe_ini
+
+# Everything worked fine, clean up
+rm -rf $WD
