@@ -466,11 +466,11 @@ Vue.component('translatefile', {
                         let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
                         myToastInfo.goAway(250);
                         app._enqueue({
-                           'id': Math.floor((1 + Math.random()) * 0x10000),  // Some sort of unique id for three elements require for properly transitioning.
-                           'name': app.file.name,
-                           'translation_url': app.translation_url,
-                           'pal_url': app.pal_url,
-                           'oov_url': app.oov_url,
+                           name: app.file.name,
+                           oov_url: app.oov_url,
+                           pal_url: app.pal_url,
+                           time: new Date().toISOString(),
+                           translation_url: app.translation_url,
                         });
                      }
                      else if (token.startsWith('1')) {

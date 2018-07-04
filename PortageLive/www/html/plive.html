@@ -417,7 +417,7 @@
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
-                     <li v-for="t in last_translations" :key="t.id">
+                     <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
                            <li>{{ t.name }}</li>
                            <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
