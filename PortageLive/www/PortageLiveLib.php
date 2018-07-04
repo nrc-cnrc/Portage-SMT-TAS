@@ -557,11 +557,7 @@ class PortageLiveLib
          } else {
             $linestodo = `cat $dir/q.tok 2> /dev/null | wc --lines 2> /dev/null`;
             $linesdone = 0;
-            $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-* ";
-            if ($info['ce'])
-               $outputs .= "$dir/p.raw";
-            else
-               $outputs .= "$dir/p.dec";
+            $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-*  $dir/p.raw";
 
             $linesdone = `cat $outputs 2> /dev/null | wc --lines 2> /dev/null`;
 
