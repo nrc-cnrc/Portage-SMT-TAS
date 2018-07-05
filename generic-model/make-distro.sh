@@ -15,7 +15,7 @@
 # ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
 # ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2012, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2012, 2018, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 
