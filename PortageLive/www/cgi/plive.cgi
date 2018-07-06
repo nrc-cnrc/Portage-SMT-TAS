@@ -88,7 +88,6 @@ Michel Simard & Samuel Larkin
 use strict;
 use warnings;
 
-use HTML::Entities;
 use plive_lib;
 
 ## --------------------- USER CONFIGURATION ------------------------------
@@ -578,8 +577,8 @@ sub processText {
 
     my $tr_output = catdir($work_dir, param('is_xml') ? "QP.xml" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
-    #MARC param('trace', "$work_dir/trace");
-    param('trace', "$work_dir");
+    # Set the path to the trace file in param('trace') so problem() can display it.
+    param('trace', "$work_dir/trace");
 
     # Launch translation
     if (param('translate_file') and param('filename')) {
@@ -643,8 +642,8 @@ sub translationTextOutput {
 
     print start_html(-title=>"PORTAGELive");
 
-    $source = HTML::Entities::encode_entities($source, '\&/\"\'<>');
-    $source =~ s/\n/<br \/>/g;
+    my $display_source = encodeEntities($source);
+    $display_source =~ s/\n/<br \/>/g;
     print
         NRCBanner(),
         "\n",
@@ -652,11 +651,11 @@ sub translationTextOutput {
         "\n",
         div({-id=>'source'},
            h2("Source text:"),
-           p($source)),
+           p($display_source)),
         "\n",
         div({-id=>'translation'},
            h2("Translation:"),
-           p(join("<br />", map { HTML::Entities::encode_entities($_, '\&/\"\'<>') } @target))),
+           p(join("<br />", map { encodeEntities($_) } @target))),
         "\n";
     my $href = "plive.cgi?context=".param('context');
     $href .= '&document_id=' . param('document_id') if (defined(param('document_id')));
@@ -770,6 +769,9 @@ sub getContexts {
 sub getContextInfo {
     my ($name) = @_;
 
+    # Reject contexts with unsafe names
+    return undef unless ($name eq encodeEntities($name));
+
     my %info = ( name=>$name );
 
     my $D = "${PORTAGE_MODEL_DIR}/${name}";
@@ -817,8 +819,6 @@ sub normalizeName {
 # Produce an HTML page describing a problem and exit
 sub problem {
     my ($message, @args) = @_;
-	$message = HTML::Entities::encode_entities($message,  '\&/\"\'<>');
-
 
     print header(-type=>'text/html',
                  -charset=>'utf-8');
@@ -829,7 +829,7 @@ sub problem {
         "\n",
         div({-id=>'problemDescription'},
            h1("PORTAGELive PROBLEM"),
-           p(sprintf($message, @args))),
+           p(encodeEntities(sprintf($message, @args)))),
         "\n";
 
     if (param('trace') and -r param('trace')) {

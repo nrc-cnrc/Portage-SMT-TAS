@@ -53,6 +53,15 @@ Using plugin: lines will be marked with the '.plugin' class;
 
 =back
 
+=item encodeEntities
+
+Encode the HTML special characters as entities, to make web pages safe.
+
+=item encodeEntitiesURL
+
+Encode the HTML special characters as entities, to make web pages safe.
+But do not encode the slash (/) since that breaks URLs.
+
 =item NRCBanner
 
 Returns a html element containing NRC's logo.
@@ -98,11 +107,28 @@ our (@ISA, @EXPORT, @EXPORT_OK);
 
 @ISA = qw(Exporter);
 @EXPORT = (
+      "encodeEntities",
+      "encodeEntitiesURL",
       "getTrace",
       "NRCBanner",
       "NRCFooter"
       );
 @EXPORT_OK = qw( getTrace NRCBanner NRCFooter );
+
+
+# Encode the HTML special characters as entities, to make web pages safe.
+sub encodeEntities($) {
+   my $s = shift;
+   return HTML::Entities::encode_entities($s, '\&/\"\'<>');
+}
+
+
+# Encode the HTML special characters as entities, to make web pages safe.
+# But do not encode the slash (/) since that breaks URLs.
+sub encodeEntitiesURL($) {
+   my $s = shift;
+   return HTML::Entities::encode_entities($s, '\&\"\'<>');
+}
 
 
 sub NRCBanner {
@@ -146,19 +172,18 @@ sub NRCFooter {
 # @param trace_file the absolute path to the trace file.
 sub getTrace {
    my ($trace_file) = @_;
-	if ( $trace_file !~ m/trace$/ ) {
-		 $trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
-		 return p()
-       .h2("Not a valid trace file given")
-       .h3($trace_file);
-	}
+   if ($trace_file !~ m/trace$/) {
+      return p()
+         .h2("Not a valid trace file given")
+         .h3(encodeEntities($trace_file));
+   }
 
    if (-r $trace_file) {
       open(TRACE, "$trace_file")
-         || return h1("Can't open trace file $trace_file.");
+         || return h1("Can't open trace file " . encodeEntities($trace_file) . ".");
       my $trace = do { local $/; <TRACE>; };
       close(TRACE);
-      $trace = HTML::Entities::encode_entities($trace, '\&/\"\'<>');  # MUST be done before we add our spans.
+      $trace = encodeEntities($trace);  # MUST be done before we add our spans.
       $trace =~ s#^(ERROR: .+)$#<span class="error">$1</span>#mg;
       $trace =~ s#^(.*fatal error: .+)$#<span class="error">$1</span>#mg;
       $trace =~ s#^(.+command not found.*)$#<span class="error">$1</span>#mg;
@@ -170,10 +195,9 @@ sub getTrace {
          .pre($trace);
    }
    else {
-	$trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
       return p()
          .h2("No readable trace file")
-         .h3($trace_file);
+         .h3(encodeEntities($trace_file));
    }
 }
 

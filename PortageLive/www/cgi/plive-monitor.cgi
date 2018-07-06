@@ -53,7 +53,6 @@ use strict 'refs';
 use warnings;
 use utf8;
 use plive_lib;
-use HTML::Entities;
 
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
@@ -106,21 +105,18 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     and my $start_time = param('time')  # The start time
     and my $context = param('context')) {  # What context (model)
 
-	$filename = HTML::Entities::encode_entities($filename, '\&/\"\'<>');
-	$work_dir = HTML::Entities::encode_entities($work_dir, '\&/\"\'<>');
-	$context = HTML::Entities::encode_entities($context, '\&/\"\'<>');
-	
+   my $display_context = encodeEntities($context);
 
    my $ce = int(param('ce'));  # Are we estimating confidence?
 
    my $filepath = catdir($WEB_PATH, $work_dir, $filename);
-   my $url = catdir("", $work_dir, $filename);
+   my $url = encodeEntitiesURL(catdir("", $work_dir, $filename));
    my $elapsed_time = time() - $start_time;
 
    my $full_work_dir = catdir($WEB_PATH, $work_dir);
    if ( ! -d $full_work_dir ) {
       print pageHead(0);
-      print p("Can't find working directory $work_dir.");
+      print p(encodeEntities("Can't find working directory $work_dir."));
    }
    else {
       my $input = catdir($WEB_PATH, $work_dir, "Q.in");
@@ -133,15 +129,13 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
       my $job_done = catdir($WEB_PATH, $work_dir, "done");
       my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
-	  $trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
       my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
 
-      my $trace_url = catdir("", $work_dir, "trace");
-      my $oov_url = catdir("", $work_dir, "oov.html");
-      my $pal_url = catdir("", $work_dir, "pal.html");
-      my $P_triangArray_txt = catdir("", $work_dir, "P.triangArray.txt");
-
-
+      my $trace_url = encodeEntitiesURL(catdir("", $work_dir, "trace"));
+      my $oov_url = encodeEntitiesURL(catdir("", $work_dir, "oov.html"));
+      my $pal_url = encodeEntitiesURL(catdir("", $work_dir, "pal.html"));
+      my $P_triangArray_file = catdir($WEB_PATH, $work_dir, "P.triangArray.txt");
+      my $P_triangArray_url = encodeEntitiesURL(catdir("", $work_dir, "P.triangArray.txt"));
 
       if (-e $job_done) {
          print pageHead($filename, $context); # Background process is done
@@ -201,7 +195,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       }
 
       my @debuggingTools = (
-            a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$trace_file"}, "Trace file")
+            a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$trace_url"}, "Trace file")
             );
 
       if (not -e $job_done) {
@@ -221,12 +215,12 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             print
                div({-id => 'translationLink'},
                p("Output file is ready.  Right-click this link to save the file:",
-                  a({-href=>$url, -id=>"translations_file"}, $filename)));
+                  a({-href=>$url, -id=>"translations_file"}, encodeEntities($filename))));
          }
          else { # The output file doesn't exist, so something went wrong
             print p("Translation job terminated with no output.");
          }
-         print p(a({-href=>"plive.cgi?context=$context"}, "Translate more text"));
+         print p(a({-href=>"plive.cgi?context=$display_context"}, "Translate more text"));
          if (open MONITOR, ">$monitor_log") {
             my $wc_output = `wc --lines < $canoe_out 2> /dev/null`;
             my $out_count = $wc_output ? (int($wc_output)+0) : 0;
@@ -234,7 +228,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             close MONITOR;
          }
 
-         unshift(@debuggingTools, a({-id=>'triangArray', -href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "$WEB_PATH/$P_triangArray_txt");
+         unshift(@debuggingTools, a({-id=>'triangArray', -href=>"$P_triangArray_url"}, "Phrase tables")) if (-r $P_triangArray_file);
          unshift(@debuggingTools, a({-id=>'pal', -href=>"$pal_url"}, "Phrase alignments"));
          unshift(@debuggingTools, a({-id=>'oov', -href=>"$oov_url"}, "Out-of-vocabulary words"));
       }
@@ -280,7 +274,7 @@ sub pageHead {
            NRCBanner(),
            h1("PORTAGELive"),
            $filename
-           ? p("Processing file $filename with system $context")
+           ? p("Processing file " . encodeEntities($filename) . " with system " . encodeEntities($context))
            : p("No job to monitor.  " , a({-href=>"plive.cgi"}, "Submit a job")));
 }
 
