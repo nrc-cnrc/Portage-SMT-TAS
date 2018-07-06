@@ -16,7 +16,7 @@
 $WSDL="PortageLiveAPI.wsdl";
 # In the general case, uncomment and modify this statement to point to where
 # your PortageLive server actually exists:
-$WSDL="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl";
+#$WSDL="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl";
 
 $context = "";
 $button = "";
@@ -66,16 +66,17 @@ function displayFault($exception, $title = "SOAP Fault:") {
    print "<div class='displayFault'>\n";
    print "<header class='ERROR'>$title</header>\n";
    echo "<pre>";
-   echo "Fault code: " . $exception->faultcode . "\n";
-   echo "Fault string: " . $exception->faultstring . "\n";
-   echo "Fault message: " . $exception->getMessage() . "\n";
-   echo "Fault trace: " . var_dump($exception->getTrace()) . "\n";
-   echo "Fault line: " . $exception->getLine() . "\n";
+   echo "Fault code: " . htmlspecialchars($exception->faultcode) . "\n";
+   echo "Fault string: " . htmlspecialchars($exception->faultstring) . "\n";
+   echo "Fault message: " . htmlspecialchars($exception->getMessage()) . "\n";
+   echo "Fault trace: " . htmlspecialchars(print_r($exception->getTrace(), 1)) . "\n";
+   echo "Fault line: " . htmlspecialchars($exception->getLine()) . "\n";
    echo "</pre>";
    print "</div>\n";
 }
 
 function listContext($WSDL, $context) {
+   global $context;
    try {
       $client = new SoapClient($WSDL);
       $call = $client->getAllContexts(false);
@@ -83,11 +84,12 @@ function listContext($WSDL, $context) {
 
       print "<SELECT NAME = \"context\">\n";
       foreach ($tokens as $token) {
+         $display_token = htmlspecialchars($token);
          if ($context == $token) {
-            print "<OPTION SELECTED=\"selected\" VALUE=\"$token\">$token</OPTION>\n";
+            print "<OPTION SELECTED=\"selected\" VALUE=\"$display_token\">$display_token</OPTION>\n";
          }
          else {
-            print "<OPTION VALUE=\"$token\">$token</OPTION>\n";
+            print "<OPTION VALUE=\"$display_token\">$display_token</OPTION>\n";
          }
       }
       print "<OPTION VALUE=\"InvalidContext\">Invalid context for debugging</OPTION>\n";
@@ -134,10 +136,10 @@ function processFile($type, $file) {
 
    print "<section id='file_translation'>\n";
    print "<header>$type</header>\n";
-   print "<b>Translating using $type and file: </b> $filename <br/>";
-   print "<b>Context: </b> $context <br/>";
+   print "<b>Translating using $type and file: </b> " . htmlspecialchars($filename) . "<br/>";
+   print "<b>Context: </b> " . htmlspecialchars($context) . "<br/>";
    print "<b>CE: </b> $use_Confidence_Estimation <b>CE thr: " . (0 + $ce_threshold) . " <b>xtags: </b> $file_xtags <br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
+   print "<b>Processed on: </b> " . htmlspecialchars(`date`) . "<br/>";
 
    if ( is_uploaded_file($file["tmp_name"]) ) {
       $tmp_file = $file["tmp_name"];
@@ -158,11 +160,12 @@ function processFile($type, $file) {
             $reply = $client->$type($tmp_contents_base64, $filename, $context, $use_Confidence_Estimation, $ce_threshold, $file_xtags);
          }
 
-         print "<b>Portage replied: </b>$reply";
-         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
+         $displayreply = htmlspecialchars($reply);
+         print "<b>Portage replied: </b>$displayreply";
+         print "<br/><a href=\"$displayreply\">Monitor job interactively</a>";
          global $monitor_token;
          $monitor_token = $reply;
-         //print "<br/><b>Trace: </b>"; var_dump($client);
+         //print "<br/><b>Trace: </b>"; htmlspecialchars(print_r($client,1));
       }
       catch (SoapFault $exception) {
          displayFault($exception);
@@ -170,7 +173,7 @@ function processFile($type, $file) {
 
    }
    else {
-      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      print "<br/><b>$type Upload error.  Trace: </b> " . htmlspecialchars(print_r($file, true));
       $file_error_codes = array(
             0=>"There is no error, the file uploaded with success",
             1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
@@ -195,7 +198,7 @@ function primeTestCase($WSDL, $context, $PrimeMode) {
       $PrimeMode = $_POST['PrimeMode'];
       $client = new SoapClient($WSDL);
       $rc = $client->primeModels($context, $PrimeMode);
-      print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
+      print htmlspecialchars("Prime Models ($context, $PrimeMode) rc = $rc")."<br />";  // DEBUGGING
       # For backwards-compatibility, test the old ("OK") and new (true) return value
       if ($rc === true || $rc == "OK")
          print "<div class=\"PRIME SUCCESS\">Primed successfully!</div>";
@@ -220,8 +223,8 @@ function updateFixedTermsTestCase($WSDL) {
    $filename = $file["name"];
    print "<section id='updateFixedTermesResponse'>\n";
    print "<header>Update Fixed Terms</header>\n";
-   print "<b>Updating fixed terms using file: </b> $filename <br/>";
-   print "<b>Context: </b> $context <br/>";
+   print "<b>Updating fixed terms using file: </b> " . htmlspecialchars($filename) . "<br/>";
+   print "<b>Context: </b> " . htmlspecialchars($context) . "<br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
 
    $sourceColumnIndex = -1;
@@ -282,7 +285,7 @@ function updateFixedTermsTestCase($WSDL) {
       }
    }
    else {
-      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      print "<br/><b>$type Upload error.  Trace: </b> " . htmlspecialchars(print_r($file, true));
       $file_error_codes = array(
             0=>"There is no error, the file uploaded with success",
             1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
@@ -310,7 +313,7 @@ function getFixedTermsTestCase($WSDL, $context) {
 
       if ($reply) {
          print "<div class=\"SUCCESS\">Get Fixed terms successfully!</div>";
-         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
+         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">" . htmlspecialchars($reply) . "</textarea>\n";
       }
       else
          print "<div class=\"ERROR\">Error getting fixed terms.</div>";
@@ -345,11 +348,10 @@ function monitorJobTestCase($WSDL, $button, $monitor_token) {
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->translateFileStatus($monitor_token);
-      $reply = htmlentities($reply);
-      print "<hr/><b>Job status: </b> $reply";
+      print "<hr/><b>Job status: </b> " . htmlspecialchars($reply);
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
-         print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
-      print "<br/><a href=\"$reply\">Switch to interactive job monitoring</a>";
+         print "<br/>Right click and save: <a href=\"".htmlspecialchars($matches[1])."\">Translated content</a>";
+      print "<br/><a href=\"".htmlspecialchars($monitor_token)."\">Switch to interactive job monitoring</a>";
    }
    catch (SoapFault $exception) {
       displayFault($exception);
@@ -368,10 +370,10 @@ function translateTestCase($WSDL, $context) {
    print "<header>Source text</header>\n";
    print "<b>Translating: </b>";
    print "<div><code>" . nl2br(htmlspecialchars($to_translate)) . "</code></div>";
-   print "<b>Context:</b> $context <br/>";
+   print "<b>Context:</b> " . htmlspecialchars($context) . "<br/>";
    print "<b>newline:</b> $newline <br/>";
    echo "<b>xtags?:</b> ", ($to_translate_xtags ? "TRUE" : "FALSE"), "<br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
+   print "<b>Processed on: </b> " . htmlspecialchars(`date`) . "<br/>";
    print "</section>\n";
 
    $client = "";
@@ -392,14 +394,14 @@ function translateTestCase($WSDL, $context) {
       print "<div><code>\n";
       print "$reply\n";
       print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
+      //print "<br/><b>Trace: </b>"; htmlspecialchars(print_r($client,1));
    }
    catch (SoapFault $exception) {
       displayFault($exception);
    }
    $end_time = microtime(true);
    printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "<b>Finished at: </b>" . htmlspecialchars(`date`) . "<br/>";
    print "</section>\n";
 
 
@@ -412,14 +414,14 @@ function translateTestCase($WSDL, $context) {
       print "<div><code>\n";
       print "$reply\n";
       print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
+      //print "<br/><b>Trace: </b>"; htmlspecialchars(print_r($client,1));
    }
    catch (SoapFault $exception) {
       displayFault($exception);
    }
    $end_time = microtime(true);
    printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "<b>Finished at: </b>" . htmlspecialchars(`date`) . "<br/>";
    print "</section>\n";
 
 
@@ -432,34 +434,15 @@ function translateTestCase($WSDL, $context) {
       print "<div><code>\n";
       print "$reply\n";
       print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
+      //print "<br/><b>Trace: </b>"; htmlspecialchars(print_r($client,1));
    }
    catch (SoapFault $exception) {
       displayFault($exception);
    }
    $end_time = microtime(true);
    printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "<b>Finished at: </b>" . htmlspecialchars(`date`) . "<br/>";
    print "</section>\n";
-
-
-
-   /*
-      try {
-      }
-      catch (SoapFault $exception) {
-      if ($exception->faultcode == "PortageContext") {
-      print "<HR/><b>PortageContext error: </b>{$exception->faultstring}<br/>";
-      }
-      else {
-      print "<HR/><b>Unknown SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
-      print "<br/><b>exception: </b>";
-      var_dump($exception);
-      print "<br/><b>client: </b>";
-      var_dump($client);
-      }
-      }
-    */
 }
 
 function incrAddSentenceTestCase($WSDL) {
@@ -469,19 +452,14 @@ function incrAddSentenceTestCase($WSDL) {
    $doc_id = $_POST['incrAddSentence_document_id'];
    $source_sent = $_POST['incrAddSentence_source_sent'];
    $target_sent = $_POST['incrAddSentence_target_sent'];
-	$context = htmlentities($context);
-	$doc_id = htmlentities($doc_id);
-	$source_sent = htmlentities($source_sent);
-	$target_sent = htmlentities($target_sent);
-   print "<b>Context: </b> $context<br>\n";
-   print "<b>Document ID: </b> $doc_id<br>\n";
-   print "<b>Source sentence: </b> $source_sent<br>\n";
-   print "<b>Target sentence: </b> $target_sent<br>\n";
+   print "<b>Context: </b> " . htmlspecialchars($context) . "<br>\n";
+   print "<b>Document ID: </b> " . htmlspecialchars($doc_id) . "<br>\n";
+   print "<b>Source sentence: </b> " . htmlspecialchars($source_sent) . "<br>\n";
+   print "<b>Target sentence: </b> " . htmlspecialchars($target_sent) . "<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
-		$reply = htmlentities($reply);
-      print "<b>Reply: </b> $reply";
+      print "<b>Reply: </b2> " . htmlspecialchars($reply);
    }
    catch (SoapFault $exception) {
       displayFault($exception);
@@ -494,15 +472,12 @@ function incrStatusTestCase($WSDL) {
    print "<header>Incremental Training Status</header>\n";
    global $context;
    $doc_id = $_POST['incrStatus_document_id'];
-	$context = htmlentities($context);
-   $doc_id = htmlentities($doc_id);
-   print "<b>Context: </b> $context<br>\n";
-   print "<b>Document ID: </b> $doc_id<br>\n";
+   print "<b>Context: </b> " . htmlspecialchars($context) . "<br>\n";
+   print "<b>Document ID: </b> " . htmlspecialchars($doc_id) . "<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrStatus($context, $doc_id);
-		$reply = htmlentities($reply);
-      print "<b>Reply: </b> $reply";
+      print "<b>Reply: </b> " . htmlspecialchars($reply);
    }
    catch (SoapFault $exception) {
       displayFault($exception);
@@ -676,7 +651,7 @@ Prime:
 
 <section id="plain_text">
 <header>Translate</header>
-<!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?php echo $context;?>" / -->
+<!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?php echo htmlspecialchars($context);?>" / -->
  Enter text here:
 <table width="60%" border="0">
 <tr>
@@ -793,7 +768,7 @@ Document ID: <INPUT TYPE = "TEXT" Name = "translate_document_id" SIZE = 30 />
 </tr>
 <tr>
 <td>
-<INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?php echo $ce_threshold;?>" SIZE="4" />
+<INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?php echo htmlspecialchars($ce_threshold);?>" SIZE="4" />
 </td>
 <td>
 CE threshold for filtering (between 0 and 1; 0.0 = no filter)
@@ -823,14 +798,14 @@ Document ID: <INPUT TYPE = "TEXT" Name = "incrStatus_document_id" SIZE = 30 />
 
 <section id='getAllContexts'>
 <header>getAllContexts()</header>
-<b>Contexts: </b> <?php print getAllContexts(false) ?> <br/>
+<b>Contexts: </b> <?php print htmlspecialchars(getAllContexts(false)) ?> <br/>
 <br/>
-<b>Verbose contexts: </b> <?php print getAllContexts(true) ?> <br/>
+<b>Verbose contexts: </b> <?php print htmlspecialchars(getAllContexts(true)) ?> <br/>
 </section>
 
 <section id='getVersion'>
 <header>getVersion()</header>
-<b>Version: </b> <?php print getVersion() ?> <br/>
+<b>Version: </b> <?php print htmlspecialchars(getVersion()) ?> <br/>
 </section>
 
 <?php testSuite($WSDL); ?>
@@ -839,7 +814,7 @@ Document ID: <INPUT TYPE = "TEXT" Name = "incrStatus_document_id" SIZE = 30 />
 <header>Monitor a job</header>
 <FORM action="" method="post" name="formulaire2" target="_self">
 Job Token:
-<INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?php echo $monitor_token;?>" />
+<INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?php echo htmlspecialchars($monitor_token);?>" />
 <INPUT TYPE = "Submit" Name = "MonitorJob"    VALUE = "Monitor Job via SOAP"/>
 </FORM>
 </section>
