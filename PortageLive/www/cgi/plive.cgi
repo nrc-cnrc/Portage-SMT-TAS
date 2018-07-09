@@ -817,7 +817,7 @@ sub normalizeName {
 # Produce an HTML page describing a problem and exit
 sub problem {
     my ($message, @args) = @_;
-	$message = HTML::Entities::encode_entities($message,  '\&/\"\'<>');
+    $message = HTML::Entities::encode_entities($message,  '\&/\"\'<>');
 
 
     print header(-type=>'text/html',

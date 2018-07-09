@@ -601,7 +601,7 @@ class PortageLiveLib
       #error_log(func_get_args(), 3, "$error_output_dir/PortageLiveAPI.debug.log");
       $encoding = strtolower($encoding);
       if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
-			$encoding = htmlentities($encoding);
+         $encoding = htmlentities($encoding);
          throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding): "
                              . "use either UTF-8 or CP-1252.");
       }

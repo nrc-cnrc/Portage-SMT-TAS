@@ -469,10 +469,10 @@ function incrAddSentenceTestCase($WSDL) {
    $doc_id = $_POST['incrAddSentence_document_id'];
    $source_sent = $_POST['incrAddSentence_source_sent'];
    $target_sent = $_POST['incrAddSentence_target_sent'];
-	$context = htmlentities($context);
-	$doc_id = htmlentities($doc_id);
-	$source_sent = htmlentities($source_sent);
-	$target_sent = htmlentities($target_sent);
+   $context = htmlentities($context);
+   $doc_id = htmlentities($doc_id);
+   $source_sent = htmlentities($source_sent);
+   $target_sent = htmlentities($target_sent);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    print "<b>Source sentence: </b> $source_sent<br>\n";
@@ -480,7 +480,7 @@ function incrAddSentenceTestCase($WSDL) {
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
-		$reply = htmlentities($reply);
+      $reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
@@ -494,14 +494,14 @@ function incrStatusTestCase($WSDL) {
    print "<header>Incremental Training Status</header>\n";
    global $context;
    $doc_id = $_POST['incrStatus_document_id'];
-	$context = htmlentities($context);
+   $context = htmlentities($context);
    $doc_id = htmlentities($doc_id);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrStatus($context, $doc_id);
-		$reply = htmlentities($reply);
+      $reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
@@ -850,25 +850,25 @@ Job Token:
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="center">
-	 <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
+         <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
       </td>
       <td width="60%" align="center" valign="bottom">
-	 <img width="286" alt="National Research Council Canada" src="images/mainf1.gif" height="44" />
+         <img width="286" alt="National Research Council Canada" src="images/mainf1.gif" height="44" />
       </td>
       <td width="20%" align="left" valign="center">
-	 <img width="93" alt="Government of Canada" src="images/mainWordmark.gif" height="44" />
+         <img width="93" alt="Government of Canada" src="images/mainWordmark.gif" height="44" />
       </td>
    </tr>
    <tr>
       <td>
       </td>
       <td align="center" valign="top">
-	 <small>Traitement multilingue de textes / Multilingual Text Processing <br />
+         <small>Traitement multilingue de textes / Multilingual Text Processing <br />
             Technologies de l'information et des communications / Information and Communications Technologies <br />
             Conseil national de recherches Canada / National Research Council Canada <br />
             Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br />
             <a href="/portage_notices.php">Third party Copyright notices</a>
-	 </small>
+         </small>
       </td>
    </tr>
 </table>
