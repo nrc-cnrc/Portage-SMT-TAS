@@ -359,22 +359,22 @@ Run
 [source,bash]
 sudo crontab -e
 
-Then add and save the following lines to your root crontab.
+then add and save the following lines to your root crontab:
 
 .crontab
 [source,bash]
 ------------------------
 SHELL=/bin/bash
 
-# Discard workspaces that have not been used for translation in the last `translation_discard_time` days.
+# Discard workspaces that have not been used for translation in the last translation_discard_time days.
 translation_discard_time=7
-# Discard workspaces that have not had any new sentence pairs added to them in the last `incremental_discard_time` days.
+# Discard workspaces that have not had any new sentence pairs added to them in the last incremental_discard_time days.
 incremental_discard_time=7
 # Location of the workspaces
-context=/var/www/html/plive
+incremental_context_root=/var/www/html/plive
 
-# Compute and delete the intersection of workspaces that haven't been used for translation in the last `translation_discard_time` days AND workspaces that did not receive any new incremental sentence pairs in the last `incremental_discard_time` days.
-0 1 * * * find $contexts \( -name canoe.ini.cow -atime +$translation_discard_time -or -name corpora -atime +$incremental_discard_time \) -exec dirname {} \; | sort | uniq --repeated | xargs rm -fr
+# Compute and delete the intersection of workspaces that haven't been used for translation in the last translation_discard_time days AND workspaces that did not receive any new incremental sentence pairs in the last incremental_discard_time days.
+0 1 * * * find $incremental_context_root \( -name canoe.ini.cow -atime +$translation_discard_time -or -name corpora -atime +$incremental_discard_time \) -exec dirname {} \; | sort | uniq --repeated | xargs rm -fr
 ------------------------
 
 CAUTION: Each entry in the crontab __must__ be on a single line,
