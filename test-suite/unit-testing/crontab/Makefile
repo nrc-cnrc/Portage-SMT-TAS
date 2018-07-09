@@ -10,7 +10,8 @@ canoe_time_old = 10
 canoe_time_new = 2
 corpora_time_old = 10
 corpora_time_new = 2
-keep_time = 6
+translation_discard_time = 5
+incremental_discard_time = 7
 
 TEMP_DIRS=${contexts}
 include ../Makefile.incl
@@ -51,7 +52,7 @@ all:  testsuite
 testsuite:  testcase1
 testcase1:  testcase_delete_unused_contexts
 testcase_delete_unused_contexts:  %:  %.setup
-	find ${contexts}/$@ -name canoe.ini.cow -atime +${keep_time} -exec dirname {} \; \
+	find ${contexts}/$@ -name canoe.ini.cow -atime +${translation_discard_time} -exec dirname {} \; \
 	| sort \
 	| diff - ref/$@
 
@@ -59,7 +60,7 @@ testcase_delete_unused_contexts:  %:  %.setup
 testsuite:  testcase2
 testcase2:  testcase_delete_contexts_that_didnt_get_new_sentence_pair
 testcase_delete_contexts_that_didnt_get_new_sentence_pair:  %:  %.setup
-	find ${contexts}/$@ -name corpora -atime +${keep_time} -exec dirname {} \; \
+	find ${contexts}/$@ -name corpora -atime +${incremental_discard_time} -exec dirname {} \; \
 	| sort \
 	| diff - ref/$@
 
@@ -67,11 +68,11 @@ testcase_delete_contexts_that_didnt_get_new_sentence_pair:  %:  %.setup
 testsuite:  testcase3
 testcase3:  testcase_delete_contexts_that_didnt_get_new_sentence_pair_and_hasnt_been_used_for_translation
 testcase_delete_contexts_that_didnt_get_new_sentence_pair_and_hasnt_been_used_for_translation:  %:  %.setup
-	find ${contexts}/$@ -name canoe.ini.cow -atime +${keep_time} -exec dirname {} \; \
-	| grep --line-regexp --fixed-strings --file=<(find ${contexts}/$@ -name corpora -atime +${keep_time} -exec dirname {} \;) \
+	find ${contexts}/$@ -name canoe.ini.cow -atime +${translation_discard_time} -exec dirname {} \; \
+	| grep --line-regexp --fixed-strings --file=<(find ${contexts}/$@ -name corpora -atime +${incremental_discard_time} -exec dirname {} \;) \
 	| sort \
 	| diff - ref/$@
-	find ${contexts}/$@ \( -name canoe.ini.cow -atime +${keep_time} -or -name corpora -atime +${keep_time} \) -exec dirname {} \; \
+	find ${contexts}/$@ \( -name canoe.ini.cow -atime +${translation_discard_time} -or -name corpora -atime +${incremental_discard_time} \) -exec dirname {} \; \
 	| sort \
 	| uniq --repeated \
 	| sort \
