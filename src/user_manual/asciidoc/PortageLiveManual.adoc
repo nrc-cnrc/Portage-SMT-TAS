@@ -353,12 +353,15 @@ PortageLive offers incremental training for a group of documents identified by a
 In order to perform incremental training, a persistent workspace is created on the server.
 Those workspaces are not automatically deleted from the server and we do not provide a web api to remove them.
 Thus, consequently, these workspaces will eventually take some hard disk space.
-Here, we show how you can configure a simple crontab job to delete, at the first hour of every day, all workspaces that have not been used in `keep_time` days and that have not recieved new sentence pairs in `keep_time` days.
+Here, we show how you can configure a simple crontab job to delete, at the first hour of every day, all workspaces that have not been used in `translation_discard_time` days and that have not recieved new sentence pairs in `incremental_discard_time` days.
 
-`sudo crontab -e`
+[source,bash]
+sudo crontab -e
 
 Then add and save the following lines to your root crontab.
 
+.crontab
+[source,bash]
 ------------------------
 SHELL=/bin/bash
 
@@ -373,13 +376,14 @@ context=/var/www/html/plive
 0 1 * * * find $contexts \( -name canoe.ini.cow -atime +$translation_discard_time -or -name corpora -atime +$incremental_discard_time \) -exec dirname {} \; | sort | uniq --repeated | xargs rm -fr
 ------------------------
 
-*NOTE* the crontab entry __must__ be on a single line.
+CAUTION: the crontab entry __must__ be on a single line.
 
-*NOTE* This example deletes unused workspaces older than 7 days.
+NOTE: This example deletes unused workspaces older than 7 days.
 
 As a reminder, here are the meaning of each fields in a crontab.
 The time and date fields are:
 
+.man 5 crontab
 ....
 field          allowed values
 -----          --------------
