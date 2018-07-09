@@ -351,10 +351,11 @@ location, as suggested in the section on multiple contexts above.
 
 PortageLive offers incremental training for a group of documents identified by a `document_id`.
 In order to perform incremental training, a persistent workspace is created on the server.
-Those workspaces are not automatically deleted from the server and we do not provide a web api to remove them.
-Thus, consequently, these workspaces will eventually take some hard disk space.
-Here, we show how you can configure a simple crontab job to delete, at the first hour of every day, all workspaces that have not been used in `translation_discard_time` days and that have not recieved new sentence pairs in `incremental_discard_time` days.
+These workspaces are not automatically deleted from the server and we do not provide a web api to remove them.
+Consequently, they will eventually take too much disk space.
+Here, we show how you can configure a simple crontab job to delete, at the first hour of every day, all workspaces that have not been used in `translation_discard_time` days and that have not received new sentence pairs in `incremental_discard_time` days.
 
+Run
 [source,bash]
 sudo crontab -e
 
@@ -366,21 +367,22 @@ Then add and save the following lines to your root crontab.
 SHELL=/bin/bash
 
 # Discard workspaces that have not been used for translation in the last `translation_discard_time` days.
-translation_discard_time=7  # as in n*24 hours ago.
+translation_discard_time=7
 # Discard workspaces that have not had any new sentence pairs added to them in the last `incremental_discard_time` days.
-incremental_discard_time=7  # as in n*24 hours ago.
-# Where are the workspaces located.
+incremental_discard_time=7
+# Location of the workspaces
 context=/var/www/html/plive
 
-# This computes the intersection of workspaces that haven't been used for translation in the last `translation_discard_time` days AND workspaces that did not recieved any new incremental sentence pairs in the last `incremental_discard_time` days.
+# Compute and delete the intersection of workspaces that haven't been used for translation in the last `translation_discard_time` days AND workspaces that did not receive any new incremental sentence pairs in the last `incremental_discard_time` days.
 0 1 * * * find $contexts \( -name canoe.ini.cow -atime +$translation_discard_time -or -name corpora -atime +$incremental_discard_time \) -exec dirname {} \; | sort | uniq --repeated | xargs rm -fr
 ------------------------
 
-CAUTION: the crontab entry __must__ be on a single line.
+CAUTION: Each entry in the crontab __must__ be on a single line,
+in this case the whole `find ... rm -fr` command.
 
-NOTE: This example deletes unused workspaces older than 7 days.
+NOTE: This example deletes unused workspaces after 7 days.
 
-As a reminder, here are the meaning of each fields in a crontab.
+As a reminder, here is the meaning of each field in a crontab.
 The time and date fields are:
 
 .man 5 crontab
@@ -390,7 +392,7 @@ field          allowed values
 minute         0-59
 hour           0-23
 day of month   1-31
-month          1-12 (or names, see below)
+month          1-12 (or names)
 day of week    0-7 (0 or 7 is Sun, or use names)
 
 A field may be an asterisk (*), which always stands for "first-last".
