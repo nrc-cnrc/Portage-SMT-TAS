@@ -469,10 +469,10 @@ function incrAddSentenceTestCase($WSDL) {
    $doc_id = $_POST['incrAddSentence_document_id'];
    $source_sent = $_POST['incrAddSentence_source_sent'];
    $target_sent = $_POST['incrAddSentence_target_sent'];
-   $context = htmlentities($context);
-   $doc_id = htmlentities($doc_id);
-   $source_sent = htmlentities($source_sent);
-   $target_sent = htmlentities($target_sent);
+	$context = htmlentities($context);
+	$doc_id = htmlentities($doc_id);
+	$source_sent = htmlentities($source_sent);
+	$target_sent = htmlentities($target_sent);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    print "<b>Source sentence: </b> $source_sent<br>\n";
@@ -480,7 +480,7 @@ function incrAddSentenceTestCase($WSDL) {
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrAddSentence($context, $doc_id, $source_sent, $target_sent, "");
-      $reply = htmlentities($reply);
+		$reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {
@@ -494,14 +494,14 @@ function incrStatusTestCase($WSDL) {
    print "<header>Incremental Training Status</header>\n";
    global $context;
    $doc_id = $_POST['incrStatus_document_id'];
-   $context = htmlentities($context);
+	$context = htmlentities($context);
    $doc_id = htmlentities($doc_id);
    print "<b>Context: </b> $context<br>\n";
    print "<b>Document ID: </b> $doc_id<br>\n";
    try {
       $client = new SoapClient($WSDL);
       $reply = $client->incrStatus($context, $doc_id);
-      $reply = htmlentities($reply);
+		$reply = htmlentities($reply);
       print "<b>Reply: </b> $reply";
    }
    catch (SoapFault $exception) {

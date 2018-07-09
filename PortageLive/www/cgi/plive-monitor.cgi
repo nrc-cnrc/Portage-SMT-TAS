@@ -106,10 +106,10 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     and my $start_time = param('time')  # The start time
     and my $context = param('context')) {  # What context (model)
 
-   $filename = HTML::Entities::encode_entities($filename, '\&/\"\'<>');
-   $work_dir = HTML::Entities::encode_entities($work_dir, '\&/\"\'<>');
-   $context = HTML::Entities::encode_entities($context, '\&/\"\'<>');
-
+	$filename = HTML::Entities::encode_entities($filename, '\&/\"\'<>');
+	$work_dir = HTML::Entities::encode_entities($work_dir, '\&/\"\'<>');
+	$context = HTML::Entities::encode_entities($context, '\&/\"\'<>');
+	
 
    my $ce = int(param('ce'));  # Are we estimating confidence?
 
@@ -133,7 +133,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
       my $job_done = catdir($WEB_PATH, $work_dir, "done");
       my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
-      $trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
+	  $trace_file = HTML::Entities::encode_entities($trace_file, '\&/\"\'<>');
       my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
 
       my $trace_url = catdir("", $work_dir, "trace");
