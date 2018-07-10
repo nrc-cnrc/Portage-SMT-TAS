@@ -14,7 +14,7 @@ if [[ ! -s $PHPUNIT ]]; then
    exit 1
 fi
 
-mkdir -p plive
+mkdir --parents plive
 
 # Command line Unittest where no server is required.
 export PATH=$PWD:$PATH  # we MUST use $PWD and not '.'

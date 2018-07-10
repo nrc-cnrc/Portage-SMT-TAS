@@ -67,12 +67,11 @@ if [ $DEBUG ]; then
 fi
 
 # Systematicaly create the plugins directory.
-mkdir -p $DESTINATION/plugins
+mkdir --parents --mode=775 $DESTINATION/plugins
 [[ `find $DESTINATION/plugins -type f` ]] && chmod 755 $DESTINATION/plugins/*
 
 # Create a world writable fixedTerms directory to allow web user to update fixed terms.
-mkdir -p $DESTINATION/plugins/fixedTerms
-chmod 777 $DESTINATION/plugins/fixedTerms
+mkdir --parents --mode=775 $DESTINATION/plugins/fixedTerms
 
 # Make sure there is a language model that is world readable.
 if [[ ! -s $DESTINATION/plugins/fixedTerms/lm ]]; then
@@ -80,8 +79,11 @@ if [[ ! -s $DESTINATION/plugins/fixedTerms/lm ]]; then
 fi
 chmod 644 $DESTINATION/plugins/fixedTerms/lm
 
-# Make sure that if there is a translation model that it is world writable.
-[[ -e $DESTINATION/plugins/fixedTerms/tm ]] && chmod 777 $DESTINATION/plugins/fixedTerms/tm
+# Make sure that if there is a translation model that it is writable.
+[[ -e $DESTINATION/plugins/fixedTerms/tm ]] && chmod 774 $DESTINATION/plugins/fixedTerms/tm
 
+
+echo "WARNING: fixedTerms are disabled by default." >&2
+echo "To enable fixedterms, use `chmod a+w plugins/fixedTerms/ plugins/fixedTerms/tm`" >&2
 
 exit 0
