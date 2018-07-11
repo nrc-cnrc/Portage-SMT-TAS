@@ -4,18 +4,18 @@
 # 
 # PROGRAMMER: Darlene Stewart based on Eric Joanis' PORTAGEshared/make-distro.sh
 # 
-# Technologies langagieres interactives / Interactive Language Technologies
-# Tech. de l'information et des communications / Information and Communications Tech.
+# Traitement multilingue de textes / Multilingual Text Processing
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2016, Her Majesty in Right of Canada
+# Copyright 2012, 2016, 2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2012, 2016, 2018, Her Majesty in Right of Canada
 
 # Creating the PortageGenericModel-2.0 DVD: on 221, in /home/joanise/sandboxes/PORTAGEshared/generic-model, Eric ran:
 # ./make-distro.sh -dir v2.0 -models /home/portage/models/generic-model/v2.0/dvd_v2.0 -r master >& log.v2.0 
 # ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
 # ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2016, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2012-2018, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 

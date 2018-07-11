@@ -10,7 +10,7 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                         Portage Generic Model 2.0
+                         Portage Generic Model 2.1
 
 If you have licensed the Portage Generic Models, you should install these
 models in the generic-model directory (see section Installing... below).
@@ -81,72 +81,66 @@ Usage recommendation
 
                    Contents of the generic-model directory
 
-Note: Portage Generic Model 2.0 takes 7GB, so you might have it on one
+Note: Portage Generic Model 2.1 takes 7GB, so you might have it on one
 double-layer DVD or on two regular DVDs: in that case, disk1 has all the files
 required for using Portage Generic Model 2.0 as background models, while disk2
 provides the same models in different formats, for reference and alternative
 uses.
 
-   generic-2.0/
+   generic-2.1/
       lm/      English and French Language Models
-         generic-2.0_en.tplm/ (disk 1)
-         generic-2.0_fr.tplm/ (disk 1)
+         generic-2.1_en.tplm/ (disk 1)
+         generic-2.1_fr.tplm/ (disk 1)
                English and French LMs in TPLM format, used both for training
                systems and for translating into English and into French,
-               respectively.
-
-         generic-2.0_en.binlm.gz (disk 2)
-         generic-2.0_fr.binlm.gz (disk 2)
-               English and French LMs in binlm format (now for reference only;
-               required for training with PortageII 2.2 or older)
+               respectively. (Same as generic-2.0)
 
       nnjm/    English->French and French->English Neural Network Joint Models
-         nnjm.generic-2.0.en2fr.mm/ (disk 1)
-         nnjm.generic-2.0.fr2en.mm/ (disk 1)
+         nnjm.generic-2.1.en2fr/ (disk 1)
+         nnjm.generic-2.1.fr2en/ (disk 1)
                Pre-trained NNJMs for use with English->French and
-               French->English systems, respectively.
+               French->English systems, respectively. (Updated)
 
-   generic-1.0/
       tm/      English->French and French->English Translation Models
-         cpt.generic-1.0.en2fr.gz (disk 1)
-         cpt.generic-1.0.fr2en.gz (disk 1)
+         cpt.generic-2.0.en2fr.gz (disk 1)
+         cpt.generic-2.0.fr2en.gz (disk 1)
                TMs for training English->French and French->English translation
-               systems, respectively.
+               systems, respectively. (Updated)
 
-         cpt.generic-1.0.en2fr.tppt/ (disk 2)
-         cpt.generic-1.0.fr2en.tppt/ (disk 2)
+         cpt.generic-2.0.en2fr.tppt/ (disk 2)
+         cpt.generic-2.0.fr2en.tppt/ (disk 2)
                The same models, in tightly-packed format (TPPT), used for our
                pre-tuned generic model.
 
    README   this file
+   LICENCE
 
 
-                    Installing Portage Generic Model 2.0
+                    Installing Portage Generic Model 2.1
 
 If you have licensed the Portage Generic Model DVD, you can install it in the
 generic-model directory.
 
 Copy the full contents of first DVD (disk 1) or the double-layer DVD to the
 generic-model directory within PortageII: $PORTAGE/generic-model.
-   cp -prd /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
+   cp -prd /DVD1location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
 or
-   rsync -av /DVD1location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
-Either command above should create $PORTAGE/generic-model/generic-2.0 and
-$PORTAGE/generic-model/generic-1.0, the former containing the new generic LM and
-and NNJM, the latter the copy of the old generic TM.
+   rsync -av /DVD1location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
+Either command above should create $PORTAGE/generic-model/generic-2.1 containing
+the new generic LM, NNJM, and TM.
 
 You also need to make a copy of disk 1 or the double-layer DVD on every
 PortageLive server you use, under /opt/PortageII/models/pretrained:
-   cp -prd /DVD1location/PortageGenericModel-2.0/* /opt/PortageII/models/pretrained/
+   cp -prd /DVD1location/PortageGenericModel-2.1/* /opt/PortageII/models/pretrained/
 or
-   rsync -av /DVD1location/PortageGenericModel-2.0/* hostname:/opt/PortageII/models/pretrained/
+   rsync -av /DVD1location/PortageGenericModel-2.1/* hostname:/opt/PortageII/models/pretrained/
 
 You can optionally copy the second DVD (disk 2) into the same directory. Either
 of the following commands will merge the second DVD contents into the structure
 where you copied the first:
-   cp -prd /DVD2location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
+   cp -prd /DVD2location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
 or
-   rsync -av /DVD2location/PortageGenericModel-2.0/* $PORTAGE/generic-model/
+   rsync -av /DVD2location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
 
 
                      The PORTAGE_GENERIC_MODEL variable
@@ -172,14 +166,14 @@ your in-domain LMs, add the file path of the TPLM format target language
 generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
 for an English->French system, this would be:
 
-LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
+LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
 
 To train a PortageII system using the generic LM in linear combination with your
 in-domain LMs in a MixLM, add the file path of the TPLM format target language
 generic model LM to the MIXLM_PRETRAINED_TGT_LMS variable definition. For
 example, for an English->French system, this would be:
 
-MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
+MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
 
 You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
@@ -192,7 +186,7 @@ English->French system) or fr2en generic model CPT (for a French->English
 system) to the TM_PRETRAINED_TMS variable definition. For example, for an
 English->French system, this would be:
 
-TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
+TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
 
 To train a PortageII system using the generic TM in linear combination with your
 in-domain TMs in a MixTM, add the file path of the en2fr generic model CPT (for
@@ -200,7 +194,7 @@ an English->French system) or fr2en generic model CPT (for a French->English
 system) to the MIXTM_PRETRAINED_TMS variable definition. For example, for an
 English->French system, this would be:
 
-MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
+MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
 
 The framework will automatically create symbolic links to the necessary generic
 model files within the framework structure, including the LM in TPLM format for
