@@ -15,7 +15,7 @@
 # ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
 # ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2012, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2016, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 
@@ -187,7 +187,7 @@ make_iso_and_tar() {
               DVD-root '&>' iso.log
       run_cmd mv DVD-root/$VOLID .
       run_cmd rmdir DVD-root
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageGenericModel-2.0 '>&' tar.log
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz $VOLID '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }
