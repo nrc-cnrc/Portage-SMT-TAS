@@ -17,6 +17,8 @@ STRIPE := stripe.py
 
 -include Makefile.params
 
+$(info Using stripe: $(shell which ${STRIPE}))
+
 
 SHELL = bash
 
@@ -38,6 +40,7 @@ testsuite: unittest6
 testsuite: unittest7
 testsuite: unittest8
 testsuite: unittest9
+testsuite: unittest10
 
 
 
@@ -132,6 +135,41 @@ unittest8:
 .PHONY: unittest9
 unittest9:
 	${STRIPE} -i 0:2 -m 3 <(seq 0 10) | diff - <(sort -g <(seq 0 3 10) <(seq 1 3 10)) -q
+
+
+# invalid.utf8 contains some invalid utf-8 on the first line.  Python will crap
+# out on the first line stating that there is an invalid utf8 regardless of -i.
+# Thus, it is sufficient to run stripe.py with any value of -i for this test.
+# Note that using stdin/stdout is clearly a different testcase than using filenames.
+.PHONY: unittest10
+.PHONY: unittest10_stdin_py2  unittest10_files_py2  unittest10_rebuild_py2
+.PHONY: unittest10_stdin_py3  unittest10_files_py3  unittest10_rebuild_py3
+unittest10:  unittest10_stdin_py2
+unittest10:  unittest10_files_py2
+unittest10:  unittest10_rebuild_py2
+unittest10:  unittest10_stdin_py3
+unittest10:  unittest10_files_py3
+unittest10:  unittest10_rebuild_py3
+unittest10:
+	@true
+
+PYTHON2 := python2
+PYTHON3 := python3
+%_py2:  MY_PYTHON = ${PYTHON2}
+%_py3:  MY_PYTHON = ${PYTHON3}
+
+unittest10_stdin_py2  unittest10_stdin_py3:  src/invalid.utf8
+	${MY_PYTHON} `which ${STRIPE}` -i 0 -m 3 < $< \
+	| diff - ref/invalid.utf8 --brief
+
+unittest10_files_py2  unittest10_files_py3:  src/invalid.utf8
+	${MY_PYTHON} `which ${STRIPE}` -i 0 -m 3 $< $@
+	diff $@ ref/invalid.utf8 --brief
+
+unittest10_rebuild_py2  unittest10_rebuild_py3:  src/invalid.utf8
+	${MY_PYTHON} `which ${STRIPE}` -r $< $< $< \
+	| diff - ref/invalid.utf8.rebuild --brief
+
 
 
 
