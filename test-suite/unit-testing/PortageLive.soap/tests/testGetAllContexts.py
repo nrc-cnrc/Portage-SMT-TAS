@@ -100,6 +100,7 @@ class TestGetAllContexts(unittest.TestCase):
 
       expected = {u'contexts':[{
          u'source': u'',
+         u'as_ce': False,
          u'is_incremental': False,
          u'description': u'unittest.rev.en-fr ( --> )',
          u'name': u'unittest.rev.en-fr',
@@ -156,6 +157,7 @@ class TestGetAllContexts(unittest.TestCase):
          'unittest.rev.en-fr ( --> )',
          {u'contexts':
          [{u'description': u'unittest.rev.en-fr ( --> )',
+           u'as_ce': False,
            u'is_incremental': False,
            u'name':     u'unittest.rev.en-fr',
            u'source':   u'',
@@ -170,11 +172,11 @@ class TestGetAllContexts(unittest.TestCase):
          'toy-regress-ch2en;toy-regress-en2fr;toy-regress-en2fr.nnjm;toy-regress-fr2en;unittest.rev.en-fr',
          'toy-regress-ch2en (CH-CA --> EN-CA) [Incr];toy-regress-en2fr (EN-CA --> FR-CA) with CE [Incr];toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE [Incr];toy-regress-fr2en (FR-CA --> EN-CA) with CE [Incr];unittest.rev.en-fr ( --> )',
          {u'contexts':
-            [{u'source': u'CH-CA', u'is_incremental': True, u'description': u'toy-regress-ch2en (CH-CA --> EN-CA) [Incr]', u'name': u'toy-regress-ch2en', u'target': u'EN-CA'},
-               {u'source': u'EN-CA', u'is_incremental': True, u'description': u'toy-regress-en2fr (EN-CA --> FR-CA) with CE [Incr]', u'name': u'toy-regress-en2fr', u'target': u'FR-CA'},
-               {u'source': u'EN-CA', u'is_incremental': True, u'description': u'toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE [Incr]', u'name': u'toy-regress-en2fr.nnjm', u'target': u'FR-CA'},
-               {u'source': u'FR-CA', u'is_incremental': True, u'description': u'toy-regress-fr2en (FR-CA --> EN-CA) with CE [Incr]', u'name': u'toy-regress-fr2en', u'target': u'EN-CA'},
-               {u'source': u'', u'is_incremental': False, u'description': u'unittest.rev.en-fr ( --> )', u'name': u'unittest.rev.en-fr', u'target': u''}]})
+            [{u'source': u'CH-CA', u'as_ce': False, u'is_incremental': True, u'description': u'toy-regress-ch2en (CH-CA --> EN-CA) [Incr]', u'name': u'toy-regress-ch2en', u'target': u'EN-CA'},
+             {u'source': u'EN-CA', u'as_ce': True, u'is_incremental': True, u'description': u'toy-regress-en2fr (EN-CA --> FR-CA) with CE [Incr]', u'name': u'toy-regress-en2fr', u'target': u'FR-CA'},
+             {u'source': u'EN-CA', u'as_ce': True, u'is_incremental': True, u'description': u'toy-regress-en2fr.nnjm (EN-CA --> FR-CA) with CE [Incr]', u'name': u'toy-regress-en2fr.nnjm', u'target': u'FR-CA'},
+             {u'source': u'FR-CA', u'as_ce': True, u'is_incremental': True, u'description': u'toy-regress-fr2en (FR-CA --> EN-CA) with CE [Incr]', u'name': u'toy-regress-fr2en', u'target': u'EN-CA'},
+             {u'source': u'', u'as_ce': False, u'is_incremental': False, u'description': u'unittest.rev.en-fr ( --> )', u'name': u'unittest.rev.en-fr', u'target': u''}]})
 
    #TODO
    # - no contexts, one context, more than one context
