@@ -31,6 +31,10 @@ body {
    min-width: 800px;
 }
 
+#copyright {
+   font-size: smaller;
+}
+
 .segment {
    padding: 0.2em;
    box-sizing: border-box;
