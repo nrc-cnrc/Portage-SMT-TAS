@@ -13,7 +13,7 @@ technology.
 
 Version 4.0 adds NNJM training software and incremental document models to the system.
 
-With Neural Network Joint Models (NNJM), version 3.0 brings deep
+With Neural Network Joint Models (NNJM), version 3.0 brought deep
 learning to the set of tools used to improve machine translation
 quality, as well as NRC's improved reordering model based on sparse
 features, coarse LMs, and other improvements. The NRC has put

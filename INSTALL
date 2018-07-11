@@ -511,7 +511,7 @@ Optional dependencies for all distributions:
 
  - Theano - training NNJMs on your own data using your own GPU-enabled machine
    requires CUDA, cuDNN and Theano. See the Theano Installation page in the
-   user manual: doc/user-manual.html / Theano Installation.
+   user manual: doc/user-manual.html / Theano Installation for NNJMs.
 
 Mandatory dependencies for source code distributions:
 
