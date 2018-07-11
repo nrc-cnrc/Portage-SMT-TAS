@@ -18,7 +18,7 @@ if (!String.prototype.format) {
    String.prototype.format = function() {
       a = this;
       for (k in arguments) {
-         a = a.replace("{" + k + "}", arguments[k])
+         a = a.replace(`{${k}}`, arguments[k])
       }
       return a
    }
@@ -125,10 +125,11 @@ Vue.toasted.register('info', message => message, {
 
 
 Vue.prototype.$body = function(method, args) {
-   return '<' + method + '>' + Object.keys(args).reduce(function(previous, current) {
-      previous += '<' + current + '>' + String(args[current]).encodeHTML() + '</' + current + '>';
+   const method_args = Object.keys(args).reduce(function(previous, current) {
+      previous += `<${current}>${String(args[current]).encodeHTML()}</${current}>`;
       return previous;
-   }, '') + '</' + method + '>';
+   }, '');
+   return `<${method}>${method_args}</${method}>`;
 }
 
 
@@ -190,7 +191,7 @@ Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.
    })
    .then(function(response) {
       if (!!response.Body.Fault) {
-         throw Error(response.Body.Fault.faultcode + ': ' + response.Body.Fault.faultstring);
+         throw Error(`${response.Body.Fault.faultcode}: ${response.Body.Fault.faultstring}`);
       }
       return response;
    });
@@ -253,12 +254,12 @@ Vue.component('incraddsentence', {
                const status = response.Body.incrAddSentenceResponse.status;
                app._clear();
                // TODO: There is no feedback if the status is false.
-               let myToast = app.$toasted.global.success('Successfully added sentence pair!' + icon);
+               let myToast = app.$toasted.global.success(`Successfully added sentence pair!${icon}`);
             })
             .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
                const faultcode = response.Body.Fault.faultcode;
-               alert("Error adding sentence pair." + faultstring);
+               alert(`Error adding sentence pair. ${faultstring}`);
             });
       },
 
@@ -300,15 +301,13 @@ Vue.component('incrstatus', {
             'document_model_id': app.document_id,
             })
             .then(function(response) {
-               const status = full_context
-                  + ' : '
-                  + String(response.Body.incrStatusResponse.status_description);
+               const status = `full_context : ${String(response.Body.incrStatusResponse.status_description)}`;
                app.incrStatus_status = status;
-               let myToast = app.$toasted.global.success(status + icon);
+               let myToast = app.$toasted.global.success(`${status} ${icon}`);
             })
             .catch(function(err) {
-               let myToast = app.$toasted.global.failed('Failed to get incremental status ' + icon);
-               alert("Failed to get incremental status " + full_context + '\n' + err);
+               let myToast = app.$toasted.global.failed(`Failed to get incremental status ${icon}`);
+               alert(`Failed to get incremental status ${full_context}\n ${err}`);
             });
       },
 
@@ -354,7 +353,7 @@ Vue.component('prime', {
          // priming is done.
          const context = app.context;
 
-         let myToastInfo = app.$toasted.global.info('priming ' + context + icon);
+         let myToastInfo = app.$toasted.global.info(`priming ${context} ${icon}`);
 
          return app.$soap('primeModels', {
                'context': context,
@@ -364,15 +363,15 @@ Vue.component('prime', {
                myToastInfo.goAway(250);
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
-                  let myToast = app.$toasted.global.success('Successfully primed ' + context + '!' + icon);
+                  let myToast = app.$toasted.global.success(`Successfully primed ${context}! ${icon}`);
                }
                else {
-                  let myToast = app.$toasted.global.error('Failed to prime ' + context + '!' + icon);
+                  let myToast = app.$toasted.global.error(`Failed to prime ${context}! ${icon}`);
                }
             })
             .catch(function(err) {
                myToastInfo.goAway(250);
-               alert("Failed to prime context " + context + err);
+               alert(`Failed to prime context ${context} ${err}`);
             });
       },
    },
@@ -463,7 +462,7 @@ Vue.component('translatefile', {
                         app.translation_url = token.replace(/^0 Done: /, '/');
                         app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
-                        let myToast = app.$toasted.global.success('Successfully translate your file ' + app.file.name + '!' + icon);
+                        let myToast = app.$toasted.global.success(`Successfully translate your file ${app.file.name}! ${icon}`);
                         myToastInfo.goAway(250);
                         app._enqueue({
                            name: app.file.name,
@@ -489,7 +488,7 @@ Vue.component('translatefile', {
                         // TODO: we should be checking the length of messages.
                         if (messages) {
                            app.translate_file_error = messages[1];
-                           app.trace_url = '/' + messages[2];
+                           app.trace_url = `/${messages[2]}`;
                         }
                      }
                      else if (token.startsWith('3')) {
@@ -503,7 +502,7 @@ Vue.component('translatefile', {
                   })
                   .catch(function(err) {
                      myToastInfo.goAway(250);
-                     alert('Failed to retrieve your translation status!' + err);
+                     alert(`Failed to retrieve your translation status! ${err}`);
                   });
             },
             5000,
@@ -593,15 +592,15 @@ Vue.component('translatefile', {
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + data.Filename + ' ' + icon);
+         let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation} ${data.Filename} ${icon}`);
 
          return app.$soap(translate_method, data)
             .then(function(response) {
-               app._translateFileSuccess(response, translate_method + 'Response', myToastInfo);
+               app._translateFileSuccess(response, `${translate_method}Response`, myToastInfo);
             })
             .catch(function(err) {
                myToastInfo.goAway(250);
-               alert('Failed to translate your file!' + soapResponse.toJSON());
+               alert(`Failed to translate your file! ${soapResponse.toJSON()}`);
             });
       },
    },  // methods
@@ -655,11 +654,11 @@ Vue.component('translatetext', {
          app.translation = '';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
-            alert(app.context + " does not support incremental.  Please select another system.");
+            alert(`${app.context} does not support incremental.  Please select another system.`);
             return;
          }
 
-         let myToastInfo = app.$toasted.global.info(app.$parent.translating_animation + icon);
+         let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
 
          return app.$soap('translate', {
                srcString: app.source,
@@ -671,12 +670,12 @@ Vue.component('translatetext', {
             .then(function(response) {
                myToastInfo.goAway(250);
                app.translation = response.Body.translateResponse.Result;
-               let myToast = app.$toasted.global.success('Successfully translated your text!' + icon);
+               let myToast = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {
                myToastInfo.goAway(250);
-               alert('Failed to translate your sentences!' + err);
-               let myToast = app.$toasted.global.error('Failed to translate your text!' + icon);
+               alert(`Failed to translate your sentences! ${err}`);
+               let myToast = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
             });
       },
 
@@ -783,7 +782,7 @@ var plive_app = new Vue({
          const app = this;
          var context = app.context;
          if (app.document_id !== undefined && app.document_id !== '') {
-            context = context + '/' + app.document_id;
+            context = `${context}/${app.document_id}`;
          }
          return context;
       },
@@ -821,7 +820,7 @@ var plive_app = new Vue({
                }
             })
             .catch(function(err) {
-               alert("Error fetching available contexts/systems from the server. " + err);
+               alert(`Error fetching available contexts/systems from the server. ${err}`);
             });
       },
 
@@ -841,7 +840,7 @@ var plive_app = new Vue({
             })
             .catch(function(err) {
                app.version = "Failed to retrieve Portage's version";
-               alert("Failed to get Portage's version." + err);
+               alert(`Failed to get Portage's version. ${err}`);
             });
       },
    },  // methods
@@ -849,11 +848,11 @@ var plive_app = new Vue({
 
    watch: {
       'context': function (val, oldVal) {
-         console.log('Changing context from ' + oldVal, ' to ' + val);
+         console.log(`Changing context from ${oldVal} to ${val}`);
          localStorage.setItem('context', val);
       },
       'document_id': function (val, oldVal) {
-         console.log('Changing document_id from ' + oldVal, ' to ' + val);
+         console.log(`Changing document_id from ${oldVal} to ${val}`);
          localStorage.setItem('document_id', val);
       },
    },
