@@ -18,7 +18,7 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 4.0  2018-??-??
+PortageII 4.0  2018-07-19
  This release adds two significant new modules to PortageII:
   - Training of Neural Network Joint Models (NNJMs) on your own data
   - Incremental document adaptation
@@ -50,6 +50,10 @@ PortageII 4.0  2018-??-??
  Minor changes:
   - New demo page is much nicer, in JavaScript with communication to the server
     via the SOAP API.
+  - A new REST API is available, which you can use instead of the SOAP API if
+    you prefer, especially for incremental documentation adaptation. However,
+    it is not feature complete: it supports translating sentences and
+    paragraphs, but not whole documents at once.
   - The user manual is now generated using asciidoctor.
 
  Major bug fixes:
