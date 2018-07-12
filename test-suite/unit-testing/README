@@ -41,6 +41,7 @@ Test suites:
  - canoe.compress.output/ Make sure different ways of creating n-best produce
                           the same results.
  - canoe-daemon/          Test the canoe daemon feature and per-sentence load b.
+ - canoe-misc/            Tests to fix misc problems with canoe
  - canoe_newSrcSentInfo2JSON/ Test that canoe can output its NSSI to JSON
  - canoe_TriangularArray/ Test that canoe can write a triangular array per sent
  - cat.sh/                Test parallel IBM model training
@@ -52,10 +53,13 @@ Test suites:
  - coarse-tm/             Test coarse TMs
  - compile_truecase_map/  Test suite for compile_truecase_map.
  - configtool/            Test suite for configtool.
+ - count_unal_words/      Test suite for count_unal_words
+ - crontab/               Test the recommended incremental cleanup crontab
  - dist-limit/            Test various distortion limit implementations
  - distortion-limit/      Check that canoe's -dist-limit-{ext,swap,simple} work
  - diversity/             Test canoe's -diversity, -diversity-stack-increment,
                           -cov-limit options work
+ - dynamic-pt/            Test suite for combining phrase tables
  - dynmap.number/         Test DynMap LMs
  - fast_align_normalize_ttable.py/ Test fast_align_normalize_ttable.py
  - filter-distortion-model/ Test suite for filter-distortion-model.
@@ -77,6 +81,9 @@ Test suites:
  - ibmcat/                Test the multi-reader of all IBM files
  - ibm-och-aligner/       Test align-words's IBMOchAligner algorithm
  - IdentityAligner/       Test align-words's IdentityAligner algorithm
+ - incr-add-sentence/     Test suite for incr-add-sentence.sh
+ - incr-init-model/       Test suite for incr-init-model.py
+ - incr-update/           Test suite for incr-update.sh
  - joint2cond/            Test suite for joint2cond_phrase_tables, including its
                           -reduce-mem and -prune1 options.
  - joint2multi_cpt/
@@ -87,6 +94,7 @@ Test suites:
  - lm-order-error/        Test using arpalm2binlm | binlm2arpalm to patch bad
                           ARPALM files
  - lm.train_mixture/      Test suite for train_lm_mixture.
+ - madamira.py/           Test suite for our MADAMIRA wrapper (skipped if MADAMIRA not found)
  - markup_canoe_output/   Test suite for the tools of tags transfer from source
                           to target text.
  - merge_counts/          Test suite for merge_counts and its uses for parallel
@@ -95,10 +103,15 @@ Test suites:
  - merge_sigprune_counts.py/ Test the C++ implementation of merge_sigprune_counts
  - nbest2rescore.pl/      Test suite for all outputs from nbest2rescore.pl
  - nnjm/                  Test using NNJMs in canoe
+ - nnjm-genex.py/         Test suite for nnjm-genex.py
+ - nnjm.reader/           Test suite to validate a NNJM model format
  - parallelize.pl/        Test suite for parallelize.pl and its funky uses
  - parse_tokan.pl/        Test parsing MADA+TOKAN output
  - perl_interpreter/      Test the syntax to get the user Perl, not system one
  - PortageLiveAPI/        Test the PortageLive SOAP API (not run automatically)
+ - PortageLiveLib/        Test suite for PortageLiveLib
+ - PortageLive.rest/      Test suite for the PortageLive REST API
+ - PortageLive.soap/      Test suite for the PortageLive SOAP API
  - portage_utils.pm/      Test suite for Perl magic streams
  - portage_utils.py/      Test Python magic streams and other Python utils
  - predecode_plugin/      Test the components of the predecode plugin
@@ -121,6 +134,7 @@ Test suites:
  - time-mem/              Test time-mem
  - tm-count/              Test handling counts in phrase tables
  - tmx2lfl.pl/            Test extracting text from TMX files
+ - tmx-prepro/            Test suite for the basic functionality of tmx-prepro
  - tokenize.pl/           Test suite for recent enhancements to our tokenizer.
  - tokenize_plugin/       Test tokenizing Arabic (requires MADA)
  - tokenize_plugin_ar/    Also test tokenizing Arabic (requires MADA)
@@ -139,6 +153,7 @@ Test suites:
  - unal/                  Test suite for decoder features counting unaligned words
  - walls-zones/           Test canoe's Walls and Zones features
  - wc_stats/              Test suite for our enhanced word counter
+ - word2class/            Test suite for word2class
  - word_align_tool/       Test suite for word_align_tool.
  - zensprune/             Test Zens pruning (based on compositionality scores)
 
