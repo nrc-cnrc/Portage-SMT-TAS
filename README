@@ -32,12 +32,15 @@ source sentence to the machine translation output, as well as handling of the
 increasingly common xliff file format.  2.1 was a maintenance release while 2.2
 brought in the fixed-terms module.
 
-PortageII 3.0 is another important step in the core SMT technology, bringing
+PortageII 3.0 marked another important step in the core SMT technology, bringing
 in deep learning (with Neural Network Joint Models, or NNJMs), an improved
 reordering model based on sparse features, coarse LMs and other improvement.
-The NRC has put significant efforts in optimizing the default training
+The NRC put significant efforts in optimizing the default training
 parameters to improve the quality of the translations produced by PortageII 3.0
 out of the box, and we expect users to see and appreciate the difference.
+
+PortageII 4.0 brought in incremental document adaptation and training NNJMs on
+your own data, with fully updated generic models.
 
 PortageII_cur includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
@@ -75,7 +78,7 @@ phrase-based statistical machine translation, including:
    a web-ready demo;
  - PortageLive -- tools to setup a runtime SMT server using Portage, accessible
    via a SOAP API, via CGI scripts or a command line interface;
- - incremental document model creation and updating;
+ - incremental document model adaptation;
  - code to handle translation projects in the TMX and XLIFF format, with
    optional transfer of formatting tags from the source text to the output.
  - an experimental framework -- a collection of tools to automate running all

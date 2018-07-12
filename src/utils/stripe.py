@@ -11,6 +11,8 @@
 # Copyright 2011, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2011, Her Majesty in Right of Canada
 
+from __future__ import print_function
+
 import sys
 import gzip
 import glob
@@ -66,31 +68,31 @@ jndex = index + 1
 if len(all_indices) == 2:
    jndex = int(all_indices[1])
 elif len(all_indices) > 2:
-   print >> sys.stderr, "Indices format is -i i:j where [i,j) where 0 <= i < j <= m."
+   print("Indices format is -i i:j where [i,j) where 0 <= i < j <= m.", file=sys.stderr)
    sys.exit(1)
 # validate the index range.
 if not (0 <= index < jndex <= opts.modulo):
-   print >> sys.stderr, "Indices format is -i i:j where [i,j) where 0 <= i < j <= m."
+   print("Indices format is -i i:j where [i,j) where 0 <= i < j <= m.", file=sys.stderr)
    sys.exit(1)
 
 if opts.debug:
-   print >> sys.stderr, "index %d, jndex %d" % (index, jndex)
+   print("index %d, jndex %d" % (index, jndex), file=sys.stderr)
 
 if opts.verbose:
-   print "options are:", opts
-   print "positional args are:", args
+   print("options are:", opts)
+   print("positional args are:", args)
 
 
 def myopen(filename, mode='r'):
    "This function will try to open transparently compress files or not."
-   if opts.debug: print >> sys.stderr, "myopen: ", filename, " in ", mode, " mode"
+   if opts.debug: print("myopen: ", filename, " in ", mode, " mode", file=sys.stderr)
    if filename == "-":
       if mode == 'r':
          theFile = sys.stdin
       elif mode == 'w':
          theFile = sys.stdout
       else:
-         print >> sys.stderr, "Unsupported mode."
+         print("Unsupported mode.", file=sys.stderr)
          sys.exit(1)
    elif filename[-3:] == ".gz":
       theFile = gzip.open(filename, mode+'b')
@@ -103,8 +105,8 @@ def rebuild():
    "This function will unstripe the output of a previous usage of stripe.py."
    def myOpenRead(filename):
       "Trying out a function closure."
-      if opts.debug: print >> sys.stderr, "myOpenRead: ", filename
-      return myopen(filename, "r")
+      if opts.debug: print("myOpenRead: ", filename, file=sys.stderr)
+      return myopen(filename, 'rb')
 
    # Open files from a pattern.
    inputfilenames = args
@@ -118,46 +120,55 @@ def rebuild():
          inputfilenames = args
 
    if len(inputfilenames) <= 0:
-      print >> sys.stderr, "Cannot find any file with ", inputfilenames
+      print("Cannot find any file with ", inputfilenames, file=sys.stderr)
       sys.exit(1)
 
-   if opts.verbose: print >> sys.stderr, "Rebuilding output from ", repr(inputfilenames)
+   if opts.verbose: print("Rebuilding output from ", repr(inputfilenames), file=sys.stderr)
 
    # What if the user provided use we more files than the os allows us to have opened at once?
    try:
-      inputfiles = map(myOpenRead, inputfilenames)
+      inputfiles = list(map(myOpenRead, inputfilenames))
    except IOError:
-      print >> sys.stderr, "You provided %d files to merge but the os doesn't allow that many file to be opened at once." % len(inputfilenames)
+      print("You provided %d files to merge but the os doesn't allow that many file to be opened at once." % len(inputfilenames), file=sys.stderr)
       sys.exit(1)
 
-   if opts.debug: print >> sys.stderr, inputfiles
+   if opts.debug: print(inputfiles, file=sys.stderr)
+
+   if sys.version_info >= (3, 0):
+      outfile = sys.stdout.buffer
+   else:
+      outfile = sys.stdout
 
    cpt = 0
    M = len(inputfiles)
    while True:
       if M == 0: break
       index = cpt % M
-      if opts.debug: print >> sys.stderr, "\t", repr(index)
-      file = inputfiles[index]
-      line = file.readline()
-      if line == "":
+      if opts.debug: print("\t", repr(index), file=sys.stderr)
+      inputfile = inputfiles[index]
+      line = inputfile.readline()
+      if line == b'':
          inputfiles.pop(index)
          M -= 1
       else:
-         print >> sys.stdout, line,
+         outfile.write(line)
       cpt += 1
 
 
 if opts.rebuild:
    if index + 1 != jndex:
-      print >> sys.stderr, "Not implemented yet!  You can only merge if you used -i without a range."
+      print("Not implemented yet!  You can only merge if you used -i without a range.", file=sys.stderr)
       sys.exit(1)
    rebuild()
 else:
    # Performing a split
    # NOTE: look at import fileinput for line in fileinput.input(filenames): process(line)  to process all lines from a list of filenames.
-   infile  = myopen(args[0], 'r') if len(args) >= 1 else sys.stdin
-   outfile = myopen(args[1], 'w') if len(args) == 2 else sys.stdout
+   if sys.version_info >= (3, 0):
+      infile  = myopen(args[0], 'rb') if len(args) >= 1 else sys.stdin.buffer
+      outfile = myopen(args[1], 'wb') if len(args) == 2 else sys.stdout.buffer
+   else:
+      infile  = myopen(args[0], 'rb') if len(args) >= 1 else sys.stdin
+      outfile = myopen(args[1], 'wb') if len(args) == 2 else sys.stdout
 
    cpt = 0
    for line in infile:
@@ -165,8 +176,9 @@ else:
       # NOTE this is XOR
       if (opts.complement) ^ (index <= step < jndex):
          if (opts.numbered):
-            print >> outfile, repr(cpt), "\t",
-         print >> outfile, line,
+            outfile.write(repr(cpt))
+            outfile.write('\t')
+         outfile.write(line)
       cpt += 1
 
 

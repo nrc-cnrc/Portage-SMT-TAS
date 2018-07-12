@@ -28,6 +28,7 @@ all:  testSuite
 testSuite: testIncrAddSentence
 testSuite: testIncrStatus
 testSuite: testTranslateFile
+testSuite: testFixedTerms
 
 .PHONY:  testIncrAddSentence
 testIncrAddSentence:
@@ -41,3 +42,6 @@ testIncrStatus:
 testTranslateFile:
 	./unittest.sh tests/testTranslateFile.php
 
+.PHONY:  testFixedTerms
+testFixedTerms:
+	./unittest.sh tests/testFixedTerms.php

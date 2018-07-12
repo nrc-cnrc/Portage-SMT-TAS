@@ -306,6 +306,12 @@ h3 {
     }
 }
 
+@media screen and (min-device-width:1024px) {
+    #wb-narrow-head {
+        visibility: hidden;
+    }
+}
+
 @media screen and (max-width:959px),
 screen and (max-device-width:1023px) {
     #gcwu-title a {
@@ -328,6 +334,9 @@ screen and (max-device-width:1023px) {
         content: ".";
         height: 0;
         visibility: hidden;
+    }
+    #wb-narrow-head {
+        visibility: visible;
     }
     #gcwu-sig,
     #wb-foot {
@@ -407,14 +416,6 @@ screen and (max-device-width:1023px) {
     }
     #gcwu-bnr {
         background: #225c96;
-    }
-}
-
-@media screen and (max-width:767px),
-@media screen and (max-width:290px),
-screen and (max-device-width:290px) {
-    #gcwu-gcnb {
-        padding-top: 40px;
     }
 }
 

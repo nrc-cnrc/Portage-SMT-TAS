@@ -12,12 +12,27 @@
 
 body {
    font-family: "sans-serif";
+   height: 100vh;
+   display: flex;
+   flex-direction: column;
+}
+
+#wb-body {
+   flex: 1 0 auto;
+}
+
+#wb-foot {
+   flex-shrink: 0;
 }
 
 #plive_app {
    margin: auto;
    width: 90%;
    min-width: 800px;
+}
+
+#copyright {
+   font-size: smaller;
 }
 
 .segment {

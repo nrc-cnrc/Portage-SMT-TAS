@@ -587,6 +587,25 @@ class PortageLiveLib
       }
    }
 
+
+   protected function fixedTermsEnabled($contextInfo) {
+      $context        = $contextInfo['context'];
+      $fixedTerms_dir = $contextInfo["context_dir"] . "/plugins/fixedTerms";
+      $tm             = $fixedTerms_dir . "/tm";
+      if (!file_exists($fixedTerms_dir)) {
+         throw new SoapFault("PortageContext",
+                             "This context ($context) doesn't support fixed terms.");
+      }
+
+      if (!is_writable($fixedTerms_dir) or !is_writable($tm)) {
+         throw new SoapFault("PortageContext",
+                             "This context ($context) has its fixedTerms disabled.  Ask your administrator to enabled fixedTerms.");
+      }
+
+      return true;
+   }
+
+
    # param  ContentsBase64 is the contents of the fixed term file in base64 encoding.
    # param  Filename is the fixed term file name.
    # param  encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
@@ -625,17 +644,15 @@ class PortageLiveLib
                              . "must be one of " . $this->validLanguagesToString());
       }
 
+      if ($content === '') {
+         throw new SoapFault("PortageBadArgs", "There is no file content ($filename).");
+      }
+
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
 
-      if (!file_exists($contextInfo["context_dir"] . "/plugins/fixedTerms")) {
-         throw new SoapFault("PortageContext",
-                             "This context ($context) doesn't support fixed terms.");
-      }
+      $this->fixedTermsEnabled($contextInfo);
 
-      if ($content == '') {
-         throw new SoapFault("PortageBadArgs", "There is no file content ($filename).");
-      }
       $work_dir = $this->makeWorkDir("fixedTermUpdate_{$context}_$filename");
       $localFilename = "$work_dir/fixedTerms.in";
       $local_file = fopen($localFilename, "w");
@@ -657,8 +674,9 @@ class PortageLiveLib
          $localFilename = $localFilename . ".utf8";
       }
 
-      $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
-      $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
+      $fixedTerms_dir = $contextInfo["context_dir"] . "/plugins/fixedTerms";
+      $tm             = $fixedTerms_dir . "/tm";
+      $fixedTerms     = $fixedTerms_dir . "/fixedTerms";
       $command = "flock $tm.lock --command \"set -o pipefail;";
       $command .= " cp $localFilename $fixedTerms";
       $command .= " && fixed_term2tm.pl -source_column=$sourceColumnIndex "
@@ -697,7 +715,7 @@ class PortageLiveLib
                              "PortageLiveAPI");
 
       $content = file_get_contents($fixedTerms);
-      if ( $content === FALSE)
+      if ($content === FALSE)
          throw new SoapFault("PortageServer",
                              "incomplete read of fixed terms local file ($fixedTerms).",
                              "PortageLiveAPI");
@@ -711,7 +729,12 @@ class PortageLiveLib
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
 
-      $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
+      $this->fixedTermsEnabled($contextInfo);
+
+      $fixedTerms_dir = $contextInfo["context_dir"] . "/plugins/fixedTerms";
+      $tm             = $fixedTerms_dir . "/tm";
+      $fixedTerms     = $fixedTerms_dir . "/fixedTerms";
+
       if (is_file($fixedTerms)) {
          if (!unlink($fixedTerms)) {
             throw new SoapFault("PortageServer",
@@ -719,11 +742,10 @@ class PortageLiveLib
          }
       }
 
-      $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
       if (is_file($tm)) {
          if (!unlink($tm)) {
-            throw new SoapFault("PortageServer", "Unable to delete fixed terms' "
-                                . "translation model ($fixedTerms).");
+            throw new SoapFault("PortageServer",
+               "Unable to delete fixed terms' translation model ($fixedTerms).");
          }
       }
 

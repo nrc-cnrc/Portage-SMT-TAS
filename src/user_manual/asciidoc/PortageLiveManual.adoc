@@ -11,7 +11,7 @@ Next: link:PortageLiveCustomizationPlugins.html[PortageLive Customization Plugin
 === PortageLive User/Trainer Manual
 
 :toc-title: Contents of this page
-:toclevels: 4
+:toclevels: 5
 toc::[]
 
 ==== Overview
@@ -184,6 +184,26 @@ or simply, if the files are on the same machine:
 -------------------------------------------------
 prep-file-layout.sh /path/to/trained/framework
 -------------------------------------------------
+
+
+
+====== Enabling FixedTerms on a context
+
+FixedTerms needs to have write access to the following directory `/opt/Portage/models/context/plugins/fixedTerms/` if you want to use `updateFixedTerms` and/or `removeFixedTerms` using PortageLiveAPI.wsdl.
+As a security precaution, a context's FixedTerms functionality is disabled by default when you deploy a it.
+To enable updating and removing fixed terms, you will have to do the following:
+
+.[#EnablingFixedTermsCommands]#Enabling FixedTerms#
+[source,bash]
+------------------------
+sudo chmod a+w /opt/Portage/models/<context>/plugins/fixedTerms/
+sudo chmod a+w /opt/Portage/models/<context>/plugins/fixedTerms/tm
+------------------------
+where `<context>` is the name of the context you want fixedterms enabled.
+
+Repeat the <<EnablingFixedTermsCommands,previous commands>> for each context you want to enable fixedTerms.
+
+
 
 ===== Web service software layout
 
