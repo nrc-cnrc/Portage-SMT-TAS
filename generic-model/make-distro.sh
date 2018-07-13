@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# make-distro.sh - Make a DVD or a copyable distro of Generic Model.
+# make-distro.sh - Make a DVD or a copyable distro of Portage Generic Model.
 # 
 # PROGRAMMER: Darlene Stewart based on Eric Joanis' PORTAGEshared/make-distro.sh
 # 
