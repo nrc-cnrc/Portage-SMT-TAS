@@ -154,11 +154,10 @@ do_checkout() {
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd git clone -n $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
       run_cmd pushd PORTAGEshared
-         run_cmd git checkout $VERSION_TAG -- generic-model
-         run_cmd mv generic-model ..
+         run_cmd git checkout $VERSION_TAG -- generic-model/models
+         run_cmd mv generic-model/models ../generic-model
       run_cmd popd
       run_cmd rm -rf PORTAGEshared
-      run_cmd rm -f generic-model/make-distro.sh
    run_cmd popd
 }
 
