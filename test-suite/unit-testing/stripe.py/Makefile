@@ -22,6 +22,9 @@ $(info Using stripe: $(shell which ${STRIPE}))
 
 SHELL = bash
 
+PYTHON2 := python2
+PYTHON3 := python3
+
 .PHONY: all
 all: testsuite
 
@@ -147,14 +150,16 @@ unittest9:
 unittest10:  unittest10_stdin_py2
 unittest10:  unittest10_files_py2
 unittest10:  unittest10_rebuild_py2
+ifneq ($(strip $(shell which ${PYTHON3} 2> /dev/null)),)
 unittest10:  unittest10_stdin_py3
 unittest10:  unittest10_files_py3
 unittest10:  unittest10_rebuild_py3
+else
+$(info Skipping python3 testcases.)
+endif
 unittest10:
 	@true
 
-PYTHON2 := python2
-PYTHON3 := python3
 %_py2:  MY_PYTHON = ${PYTHON2}
 %_py3:  MY_PYTHON = ${PYTHON3}
 
