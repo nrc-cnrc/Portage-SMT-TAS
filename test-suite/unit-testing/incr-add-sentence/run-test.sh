@@ -11,6 +11,8 @@
 # Copyright 2016, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2016, Her Majesty in Right of Canada
 
+make gitignore
+
 readonly BoldRed='\e[01;31m'
 readonly Red='\e[0;31m'
 readonly Bold='\e[1m'
