@@ -203,7 +203,7 @@ class RestTranlator extends PortageLiveLib {
 
 
 try {
-   header('Content-Type: application/json');
+   header('content-type: application/json');
    $translator = new RestTranlator();
    print $translator->translate();
 }

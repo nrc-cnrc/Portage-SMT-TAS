@@ -171,7 +171,7 @@ class IncrementalTrainor extends PortageLiveLib {
 # if this wasn't loaded as a library by phpunit, execute a main function.
 # This is the equivalent of Python's if __name__ == '__main__':
 if (!count(debug_backtrace())) {
-   header('Content-Type: application/json');
+   header('content-type: application/json');
    try {
       $incrementalTrainor = new IncrementalTrainor();
       print json_encode($incrementalTrainor->addSentencePair());

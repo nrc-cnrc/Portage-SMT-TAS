@@ -17,7 +17,7 @@
 require 'PortageLiveLib.php';
 
 try {
-   header('Content-Type: application/json');
+   header('content-type: application/json');
    $portageLiveLib = new PortageLiveLib();
    $response = $portageLiveLib->getAllContexts(True, True);
    print $response;

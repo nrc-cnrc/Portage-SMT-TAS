@@ -116,7 +116,7 @@ function packageResponse($response) {
 }
 
 try {
-   header('Content-Type: application/json');
+   header('content-type: application/json');
 
    # GET and POST both populate $_REQUEST.
    $request = parseRequest(@$_REQUEST);
