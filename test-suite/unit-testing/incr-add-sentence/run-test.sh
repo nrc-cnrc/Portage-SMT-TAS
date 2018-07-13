@@ -232,7 +232,7 @@ function multiple_add_and_multiple_trigger() {
    || ! error_message "We should have got $(($MAX_CONCURRENT_CALLS + 1)) sentence pairs in the corpus."
 
    # Let's make sure the sentence pairs have the format that we expect.
-   [[ `grep --count --perl-regexp '^[0-9: -]+\t\d{1,}-S-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{1,}-T-\d{1,5} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
+   [[ `grep --count --perl-regexp '^[0-9: -]+\t\d{1,}-S-\d{1,7} \d{2}:\d{2}:\d{2}:\d{1,9}\t\d{1,}-T-\d{1,7} \d{2}:\d{2}:\d{2}:\d{1,9}' $CORPORA` -eq $MAX_CONCURRENT_CALLS ]] \
    || ! error_message "Some sentence pairs are corrupted."
 
    [[ `wc -l < $QUEUE` -eq 0 ]] \
