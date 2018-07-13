@@ -91,6 +91,10 @@ function python_unittests() {
    python -m unittest tests
 }
 
+function clean_up() {
+   rm -r /tmp/suds
+}
+
 
 which canoe &> /dev/null || { ! echo "You need to do portage_setbuild first!"; exit 1; }
 
@@ -103,3 +107,4 @@ check_dependencies
 prepare_scenarios
 start_php_server
 python_unittests
+clean_up

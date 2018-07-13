@@ -15,7 +15,7 @@
 
 -include Makefile.params
 
-TEMP_DIRS = plive
+TEMP_DIRS = plive tests/models/fixedTerms/plugins
 include ../Makefile.incl
 
 
