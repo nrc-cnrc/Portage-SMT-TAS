@@ -20,6 +20,12 @@ class PortageLiveLib_FixedTerms_Test extends PHPUnit_Framework_TestCase
       if (!file_exists('tests/models/fixedTerms/plugins')) {
          mkdir('tests/models/fixedTerms/plugins', 0770, TRUE);
       }
+      if (!file_exists('tests/models/fixedTerms/canoe.ini.cow')) {
+         symlink('../unittest.rev.en-fr/canoe.ini.cow', 'tests/models/fixedTerms/canoe.ini.cow');
+      }
+      if (!file_exists('tests/models/fixedTerms/soap-translate.sh')) {
+         symlink('../unittest.rev.en-fr/soap-translate.sh', 'tests/models/fixedTerms/soap-translate.sh');
+      }
       if (!file_exists($this->fixedTerms_dir)) {
          mkdir($this->fixedTerms_dir);
       }
