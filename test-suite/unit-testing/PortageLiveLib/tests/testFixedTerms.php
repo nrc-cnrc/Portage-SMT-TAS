@@ -17,6 +17,9 @@ class PortageLiveLib_FixedTerms_Test extends PHPUnit_Framework_TestCase
 
    protected function setUp()
    {
+      if (!file_exists('tests/models/fixedTerms/plugins')) {
+         mkdir('tests/models/fixedTerms/plugins', 0770, TRUE);
+      }
       if (!file_exists($this->fixedTerms_dir)) {
          mkdir($this->fixedTerms_dir);
       }
