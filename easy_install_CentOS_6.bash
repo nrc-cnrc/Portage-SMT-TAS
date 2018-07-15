@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-# PortageII 3.0 easy install (CentOS 7.x)
-# Run all the commands in this file, in order, to install PortageII 3.0 and all
+# PortageII_cur easy install (CentOS 7.x)
+# Run all the commands in this file, in order, to install PortageII_cur and all
 # its dependencies on a CentOS 7.x machine (recommended) or execute this file.
 # You will need internet access for the downloads.
 #
@@ -14,34 +14,34 @@
 # Copyright 2016, Her Majesty in Right of Canada
 
 
-#Before you can start, you will need to Copy and/or Extract  PortageII-3.0  into your $HOME.
-[ ! -f "$HOME/PortageII-3.0/SETUP.bash" ] &&  echo "Error: $HOME/PortageII-3.0/SETUP.bash does not exists. Copy or Extract PortageII-3.0 into $HOME" && exit
+#Before you can start, you will need to Copy and/or Extract  PortageII_cur  into your $HOME.
+[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] &&  echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
 
-#Edit SETUP.bash and uncomment line 30 to enable PYTHON_HOME_OVERRIDE. 
+#Edit SETUP.bash and uncomment line 30 to enable PYTHON_HOME_OVERRIDE.
 	
-	sed -i -e 's/^#PYTHON_HOME_OVERRIDE/PYTHON_HOME_OVERRIDE/' $HOME/PortageII-3.0/SETUP.bash
+	sed -i -e 's/^#PYTHON_HOME_OVERRIDE/PYTHON_HOME_OVERRIDE/' $HOME/PortageII_cur/SETUP.bash
 
 	
-# Below will define the variables required to run PortageII-3.0 when you login automaticaly. 
-##Add  "source $HOME/PortageII-3.0/SETUP.bash" somewhere in your $HOME/.bashrc. 
+# Below will define the variables required to run PortageII_cur when you login automaticaly.
+##Add  "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
 	
-	echo "source $HOME/PortageII-3.0/SETUP.bash" >> $HOME/.bashrc
+	echo "source $HOME/PortageII_cur/SETUP.bash" >> $HOME/.bashrc
 
 
-#login / logout or  source $HOME/PortageII-3.0/SETUP.bash for this session.
+#login / logout or  source $HOME/PortageII_cur/SETUP.bash for this session.
 #If you get the error below, it is expected till everything is installed properly.
-##PortageII 3.0, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
+##PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
 ##Error: PortageII requires Java version 1.6 or more recent
 ##Error: PortageII requires Python version 2.7
 	
-	source $HOME/PortageII-3.0/SETUP.bash
+	source $HOME/PortageII_cur/SETUP.bash
 
 
-#Below will install the basic dependencies required to run PortageII-3.0 and the third-party build tools.
+#Below will install the basic dependencies required to run PortageII_cur and the third-party build tools.
 ##sudo access will be required for the next few steps if you are not root!
 ###epel-release is needed for libsvm
 	
-	sudo yum -y install epel-release 
+	sudo yum -y install epel-release
 	sudo yum -y groupinstall 'Development Tools'
 
 	sudo yum -y install  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel  \
@@ -49,7 +49,7 @@ readline-devel tk-devel libicu-devel vim-common dl time libffi wget bc java-1.6.
 perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 
 
-#Build all third-party tools inside $PORTAGE/build_third-party. 
+#Build all third-party tools inside $PORTAGE/build_third-party.
 #This folder can be deleted once everything is completed succesfully.
 
 	mkdir $PORTAGE/build_third-party
@@ -67,7 +67,7 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 	tar xfz Python-2.7.9.tgz
 	cd Python-2.7.9
 	./configure --with-threads --enable-shared --prefix=$PORTAGE/third-party/python-2.7
-	make -j 4 
+	make -j 4
 	make install
 
 
@@ -88,7 +88,7 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 	git clone https://github.com/moses-smt/mgiza.git
 	cd mgiza/mgizapp
 	export BOOST_ROOT=$PORTAGE/third-party/boost
-	cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party -DBoost_NO_BOOST_CMAKE=ON 
+	cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party -DBoost_NO_BOOST_CMAKE=ON
 	make -j 4
 	make install
 
@@ -112,9 +112,9 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 	cp bin/word2vec $PORTAGE/third-party/bin/
 
 
-#Quick PortageII-3.0 installation check 
+#Quick PortageII_cur installation check
 
-	source $HOME/PortageII-3.0/SETUP.bash
+	source $HOME/PortageII_cur/SETUP.bash
 	make -C $PORTAGE/test-suite/unit-testing/check-installation
 
 	echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
@@ -122,10 +122,10 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 
 
 
-##OPTIONAL SRILM ( install manually ) 
+##OPTIONAL SRILM ( install manually )
 #Needed for running the full test suite or to be used as a replacement for MITLM
 #
-#Get SRILM 1.71 http://www.speech.sri.com/projects/srilm/download.html 
+#Get SRILM 1.71 http://www.speech.sri.com/projects/srilm/download.html
 #Filling  out the form will activate the download
 #For Noncommercial use only! See link on page for commercial licensing if you fall under that category.
 #
@@ -141,12 +141,12 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 #	cp bin/i686-m64/* $PORTAGE/third-party/bin/
 #	cp lib/i686-m64/* $PORTAGE/third-party/lib/
 #
-#login/logout or re-source your PortageII-3.0 setup.
+#login/logout or re-source your PortageII_cur setup.
 #
 #
 #
 #
-#If you wish, you can run the PortageII-3.0 unit test suite.
+#If you wish, you can run the PortageII_cur unit test suite.
 #You should get the massage once completed: PASSED all test suites
 #
 #	cd $PORTAGE/test-suite/unit-testing/
