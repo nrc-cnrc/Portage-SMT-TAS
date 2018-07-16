@@ -15,21 +15,30 @@ license agreement for details.
 If you have licensed the Portage Generic System 2.1, you may install these
 contexts on your PortageLive server.
 
-The Portage Generic System 2.1 DVDs/tarballs contain complete PortageLive models
+The Portage Generic System 2.1 DVD/tar-ball contains complete PortageLive models
 for Portage Generic System 2.1 English-to-French and French-to-English contexts,
 ready for deployment and use on your PortageLive servers.
 
-The DVDs/tarballs contain the following contexts:
-	generic2.1.en2fr  English-to-French context
-	generic2.1.fr2en  French-to-English context
+The DVDs/tar-ball contains the following contexts:
+   generic2.1.en2fr  English-to-French context
+   generic2.1.fr2en  French-to-English context
 
-Copy the Portage Generic System 2.1 contexts to wherever your PortageLive server
-looks for models, for example, in $PORTAGE, typically /opt/PortageII.
-	cd $PORTAGE/models/
-	tar xvzf /path-to-tarballs/PortageGenericSystem-2.1.en2fr.tar.gz
-	tar xvzf /path-to-tarballs/PortageGenericSystem-2.1.fr2en.tar.gz
+Expand the tar ball on the DVD to a location of your choice:
+   tar xvzf /path/to/PortageGenericSystem-2.1.tar.gz
 
-Optimize the contexts to use the pretrained Portage Generic Model 2.1 models.
-	plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.en2fr
-	plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.fr2en
+Symlink, copy or move the Portage Generic System 2.1 contexts to wherever your
+PortageLive server looks for models, for example, in $PORTAGE, typically
+/opt/PortageII:
+   cd $PORTAGE/models/
+   ln -s /path/to/PortageGenericSystem-2.1/generic2.1.* .
+or
+   cp -prd /path/to/PortageGenericSystem-2.1/generic2.1.* $PORTAGE/models/
+or
+   rsync -av /path/to/PortageGenericSystem-2.1/generic2.1.* $PORTAGE/models/
+or
+   mv /path/to/PortageGenericSystem-2.1/generic2.1.* $PORTAGE/models/
+
+Optimize the contexts to use the pretrained Portage Generic Model 2.1 models:
+   plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.en2fr
+   plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.fr2en
 	
