@@ -182,6 +182,7 @@ make_iso_and_tar() {
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd mkdir DVD-root
       run_cmd mv generic-model DVD-root/$VOLID
+      run_cmd chmod -R u=rwX,g+rX,g-w,o+rX,o-w DVD-root/$VOLID
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               DVD-root '&>' iso.log
       run_cmd mv DVD-root/$VOLID .

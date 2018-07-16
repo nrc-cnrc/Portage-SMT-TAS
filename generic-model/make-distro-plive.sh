@@ -176,6 +176,7 @@ make_tar() {
    fi
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd mv generic-model $VOLID
+      run_cmd chmod -R u=rwX,g+rX,g-w,o+rX,o-w $VOLID
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz $VOLID '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
