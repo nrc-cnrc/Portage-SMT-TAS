@@ -57,6 +57,7 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 ## The order is important for the first 3 steps.
 
 #Step 1 Install MiniConda to get Python
+	cd $PORTAGE/build_third-party
 	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
 	conda install numpy mock theano
