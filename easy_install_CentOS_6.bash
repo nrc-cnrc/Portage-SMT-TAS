@@ -61,6 +61,8 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
 	conda install numpy mock theano
 
+	pip install suds
+
 
 #Step 2 Install boost 1.57 with Python installed above ( This step might take a while... )
 
