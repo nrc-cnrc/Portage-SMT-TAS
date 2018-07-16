@@ -12,7 +12,12 @@
 
 MAP_TYPE ?= prefixNumber
 
-all: dynmap_visual_test dynmap_cmp
+all:  ngram_count.dep
+all:  dynmap_visual_test
+all:  dynmap_cmp
+
+ngram_count.dep:
+	[[ `which ngram-count 2> /dev/null` ]] || { ! echo "Error: we need ngram-count from SRILM for this unittest!" >&2; exit; }
 
 toy.pdf: toy.tex
 	pdflatex -interaction=batchmode toy.tex
@@ -27,7 +32,7 @@ PORTAGE ?= /home/portage
 SOURCE_DIR ?= ../toy
 vpath hans%.txt ${SOURCE_DIR}
 
-TEMP_FILES=*.al *.lc *.tok lines.en lm_eval.test.txt \
+TEMP_FILES=*.al *.lc *.tok lines.en \
            train_en.lm train_en.lm.* \
            out.dynmap out.manual lm_eval.test.mapped
 include ../Makefile.incl
@@ -52,7 +57,7 @@ align: $(txtfiles:%.txt=%.al)
 lowercase: $(txtfiles:%.txt=%.lc)
 
 %.lc: %.al
-	lc-latin.pl $< $@
+	utf8_casemap -c l $< $@
 
 split: train_en.al train_fr.al
 
@@ -75,27 +80,21 @@ else
 endif
 
 lm: train_en.lm
-train_en.lm: train_en.al
+train_en.lm: train_en.al  ngram_count.dep
 	ngram-count -interpolate -kndiscount -order 3 -text $< -lm $@
 
 number: train_en.lm.number
-train_en.lm.${MAP_TYPE}: train_en.al
+train_en.lm.${MAP_TYPE}: train_en.al  ngram_count.dep
 	cat $< | map_number -map ${MAP_TYPE} | ngram-count -interpolate -kndiscount -order 3 -text - -lm $@
 
-lm_eval.test.txt:
-	echo 1111 > $@
-	echo 37 >> $@
-	echo 123.978 >> $@
-	echo 16 >> $@
-	echo bid >> $@
-	echo 2nd bid >> $@
+vpath lm_eval.test.txt  src
 
 dynmap_visual_test: lm_eval.test.txt train_en.lm train_en.lm.${MAP_TYPE}
-	lm_eval -v train_en.lm lm_eval.test.txt
-	lm_eval -v 'DynMap;${MAP_TYPE};train_en.lm.${MAP_TYPE}' lm_eval.test.txt
+	lm_eval -v train_en.lm $<
+	lm_eval -v 'DynMap;${MAP_TYPE};train_en.lm.${MAP_TYPE}' $<
 
 dynmap_cmp: lm_eval.test.txt train_en.lm train_en.lm.${MAP_TYPE}
-	lm_eval -v 'DynMap;${MAP_TYPE};train_en.lm.${MAP_TYPE}' lm_eval.test.txt | sed 's/.*=//' > out.dynmap
-	map_number -map ${MAP_TYPE} < lm_eval.test.txt > lm_eval.test.mapped
+	lm_eval -v 'DynMap;${MAP_TYPE};train_en.lm.${MAP_TYPE}' $< | sed 's/.*=//' > out.dynmap
+	map_number -map ${MAP_TYPE} < $< > lm_eval.test.mapped
 	lm_eval -v train_en.lm.${MAP_TYPE} lm_eval.test.mapped | sed 's/.*=//' > out.manual
 	diff out.dynmap out.manual -q --ignore-matching-lines="Found k-grams"
