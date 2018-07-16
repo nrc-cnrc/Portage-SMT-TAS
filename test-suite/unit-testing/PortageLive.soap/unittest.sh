@@ -14,10 +14,15 @@
 readonly server_ip=127.0.0.1
 
 function check_dependencies() {
+   if [[ "$(php --version | grep -o 'PHP [0-9]\.[0-9]\+\.[0-9]\+')" < "PHP 5.4" ]]; then
+      echo 'Warning: We need php >= 5.4'
+      exit 0
+   fi
+
    if ! python -c 'import suds'; then
-      echo 'ERROR: cannot find Python module "suds". Please install it using pip:'
-      echo "   pip install suds"
-      exit 1
+      echo 'Warning: cannot find Python module "suds". Please install it using pip:'
+      echo '   pip install suds'
+      exit 0
    fi
 }
 

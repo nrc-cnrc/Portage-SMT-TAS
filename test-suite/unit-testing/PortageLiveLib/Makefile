@@ -25,10 +25,17 @@ SHELL = bash
 all:  testSuite
 
 .PHONY:  testSuite
+php_version := $(shell php --version | grep -o 'PHP [0-9]\.[0-9]\+\.[0-9]\+')
+$(info php version: ${php_version})
+ifeq ("$(shell [[ "${php_version}" > "PHP 5.4" ]] && echo 0)","0")
 testSuite: testIncrAddSentence
 testSuite: testIncrStatus
 testSuite: testTranslateFile
 testSuite: testFixedTerms
+else
+$(warning Warning: This unittest requires php >=5.4, php>=5.4 could not be found, skipping unittest.)
+$(warning Warning: Please install php >=5.4)
+endif
 
 .PHONY:  testIncrAddSentence
 testIncrAddSentence:
