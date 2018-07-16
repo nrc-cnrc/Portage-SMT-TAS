@@ -39,6 +39,7 @@ out.wcl_en.bad:
 wcl_en.lm: out.wcl_en
 text_en.lm: in_en
 wcl_en.lm text_en.lm: %.lm:
+	[[ `which ngram-count 2> /dev/null` ]] || { ! echo "Error: we need ngram-count from SRILM for this unittest!" >&2; exit; }
 	ngram-count -gt1min 1 -gt2min 1 -gt3min 2 -order 3 -text $< -lm $@
 
 dynmap_visual_test: test_en.txt text_en.lm wcl_en.lm
