@@ -64,6 +64,11 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 
 	pip install suds
 
+	cd $PORTAGE/build_third-party
+	git clone https://github.com/chitamoor/Rester
+	cd Rester
+	python install -e .
+
 
 #Step 2 Install boost 1.57 with Python installed above ( This step might take a while... )
 
