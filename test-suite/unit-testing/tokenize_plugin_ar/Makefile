@@ -129,5 +129,5 @@ nowa.tok:  check_perl_version
 ########################################
 # HELPERS
 check_perl_version:
-	perl -e 'BEGIN{use 5.14.0; }' || ! echo "We need perl-5.14 or greater since there is a missing combining marks aka \u065G."
+	perl -e 'BEGIN{use 5.14.0; }' || ! echo "Warning Skipping:  We need perl-5.14 or greater since there is a missing combining marks aka \u065G."
 
