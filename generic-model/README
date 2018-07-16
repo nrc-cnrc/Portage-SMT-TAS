@@ -47,68 +47,98 @@ However, if the occasional insertion of terminology that is not from the
 in-domain corpus is not acceptable, leave out the generic TM and use only the
 generic LM.
 
+The generic NNJM will help construct better sentences by considering a window
+of source words and the more recent target words. Whether it helps your system
+is a matter of experimentation, try it and see. Like the generic LM, it will
+not introduce external terminology, so its use is safe even if you want to
+preserve pure terminology.
+
 We thank Library and Archives Canada for providing the data on which the models
 for Portage Generic Model 1.0 and 2.0 were trained.
 
 
-             Changes between Portage Generic Model 1.0 and 2.0
+                History of changes for Portage Generic Model
 
-NNJM: Neural Network Joint Model
+Portage Generic Model 2.1 (July 2018)
+   Updated TM trained on the whole 43.7 million sentence pairs and well
+   optimized for quality and size.
 
-   PortageII 3.0 introduces the Neural Network Joint Model (NNJM), trained
-   using Deep Learning technology. While the training software for NNJMs is not
-   released yet, Portage Generic Model 2.0 includes a pre-trained NNJM for
-   English->French and one for French->English.
+   Updated NNJM better optimized for quality and for fine-tuning, which is now
+   possible at client sites with PortageII 4.0.
 
-Size of the training data
+   The LM remains the same as with 2.0, but we renamed it to 2.1 to keep the
+   naming convention in this model consistent throughout.
 
-   We improved our sentence-pair extraction tools, so that 42.5 million
-   sentence pairs from the the gc.ca corpus were used to create version 2.0 of
-   the generic models, while 31 million were available for version 1.0.
+   Fully tuned, ready-to-deploy generic systems accompany the generic models.
 
-   This larger training corpus was used to update the LM and to create the new
-   NNJM.
+Portage Generic Model 2.0 (July 2016)
 
-   The updated TM is not available yet, so Portage Generic Model 2.0 includes a
-   copy of the generic TM from 1.0. An updated version of the TM should be
-   available in a future release.
+   NNJM: Neural Network Joint Model
 
-Usage recommendation
+      PortageII 3.0 introduces the Neural Network Joint Model (NNJM), trained
+      using Deep Learning technology. While the training software for NNJMs is
+      not released yet, Portage Generic Model 2.0 includes a pre-trained NNJM
+      for English->French and one for French->English.
 
-   We now recommend always using the generic LM for systems into English or
-   French.
+   Size of the training data
+
+      We improved our sentence-pair extraction tools, so that 42.5 million
+      sentence pairs from the the gc.ca corpus were used to create version 2.0
+      of the generic models, while 31 million were available for version 1.0.
+
+      This larger training corpus was used to update the LM and to create the
+      new NNJM.
+
+      The updated TM is not available yet, so Portage Generic Model 2.0
+      includes a copy of the generic TM from 1.0. An updated version of the TM
+      should be available in a future release.
+
+   Usage recommendation
+
+      We now recommend always using the generic LM for systems into English or
+      French.
+
+Portage Generic Model 1.1 (April 2016)
+
+   Optimization of the generic 1.0 systems for translation speed (made them
+   about ten times faster).
+
+Portage Generic Model 1.0 (September 2012)
+
+   Initial release of the generic LM and TM for French<->English.
+   Initial release of the French<->English fully trained, ready-to-deploy
+   systems.
 
 
                    Contents of the generic-model directory
 
-Note: Portage Generic Model 2.1 takes 7GB, so you might have it on one
-double-layer DVD or on two regular DVDs: in that case, disk1 has all the files
-required for using Portage Generic Model 2.0 as background models, while disk2
-provides the same models in different formats, for reference and alternative
-uses.
+Note: Portage Generic Model 2.1 takes 7GB, distributed as a tar ball on a
+double-layer DVD, including all the files required for using Portage Generic
+Model 2.1 as background models, and addition formats for reference and
+alternative uses.
 
    generic-2.1/
       lm/      English and French Language Models
-         generic-2.1_en.tplm/ (disk 1)
-         generic-2.1_fr.tplm/ (disk 1)
+         generic-2.1_en.tplm/
+         generic-2.1_fr.tplm/
                English and French LMs in TPLM format, used both for training
                systems and for translating into English and into French,
                respectively. (Same as generic-2.0)
 
       nnjm/    English->French and French->English Neural Network Joint Models
-         nnjm.generic-2.1.en2fr/ (disk 1)
-         nnjm.generic-2.1.fr2en/ (disk 1)
+         nnjm.generic-2.1.en2fr/
+         nnjm.generic-2.1.fr2en/
                Pre-trained NNJMs for use with English->French and
                French->English systems, respectively. (Updated)
 
       tm/      English->French and French->English Translation Models
-         cpt.generic-2.0.en2fr.gz (disk 1)
-         cpt.generic-2.0.fr2en.gz (disk 1)
+         cpt.generic-2.1.en2fr.gz
+         cpt.generic-2.1.fr2en.gz
                TMs for training English->French and French->English translation
                systems, respectively. (Updated)
 
-         cpt.generic-2.0.en2fr.tppt/ (disk 2)
-         cpt.generic-2.0.fr2en.tppt/ (disk 2)
+         cpt.generic-2.1.en2fr.tppt/
+         cpt.generic-2.1.fr2en.tppt/
                The same models, in tightly-packed format (TPPT), used for our
                pre-tuned generic model.
 
@@ -118,29 +148,33 @@ uses.
 
                     Installing Portage Generic Model 2.1
 
-If you have licensed the Portage Generic Model DVD, you can install it in the
+If you have licensed the Portage Generic Model DVD, install it in the
 generic-model directory.
 
-Copy the full contents of first DVD (disk 1) or the double-layer DVD to the
-generic-model directory within PortageII: $PORTAGE/generic-model.
-   cp -prd /DVD1location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
+Expand the tar ball on the DVD to a location of your choice:
+   tar -xvzf /path/to/PortageGenericModel-2.1.tar.gz
+then symlink, copy or move its subdirectory generic-2.1 to the generic-model
+directory within PortageII: $PORTAGE/generic-model:
+   cd $PORTAGE/generic-model/
+   ln -s /path/to/PortageGenericModel-2.1/generic-2.1
 or
-   rsync -av /DVD1location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
-Either command above should create $PORTAGE/generic-model/generic-2.1 containing
-the new generic LM, NNJM, and TM.
+   cp -prd PortageGenericModel-2.1/generic-2.1 $PORTAGE/generic-model/
+or
+   rsync -av PortageGenericModel-2.1/* $PORTAGE/generic-model/
+or
+   mv PortageGenericModel-2.1/generic-2.1 $PORTAGE/generic-model/
 
-You also need to make a copy of disk 1 or the double-layer DVD on every
+All commands above should create $PORTAGE/generic-model/generic-2.1 containing
+or pointing to the new generic LM, NNJM, and TM.
+
+You also need to make a copy of the generic-2.1 directory on every
 PortageLive server you use, under /opt/PortageII/models/pretrained:
-   cp -prd /DVD1location/PortageGenericModel-2.1/* /opt/PortageII/models/pretrained/
+   cd /opt/PortageII/models/pretrained/
+   ln -s /path/to/PortageGenericModel-2.1/generic-2.1
 or
-   rsync -av /DVD1location/PortageGenericModel-2.1/* hostname:/opt/PortageII/models/pretrained/
-
-You can optionally copy the second DVD (disk 2) into the same directory. Either
-of the following commands will merge the second DVD contents into the structure
-where you copied the first:
-   cp -prd /DVD2location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
+   cp -prd $PORTAGE/generic-model/generic-2.1 /opt/PortageII/models/pretrained/
 or
-   rsync -av /DVD2location/PortageGenericModel-2.1/* $PORTAGE/generic-model/
+   rsync -av $PORTAGE/generic-model/generic-2.1 hostname:/opt/PortageII/models/pretrained/
 
 
                      The PORTAGE_GENERIC_MODEL variable
@@ -151,6 +185,9 @@ installed the models elsewhere, modify SETUP.bash to define
 PORTAGE_GENERIC_MODEL accordingly.
 
 
+### WORKING IN PROGRESS WARNING - Eric is edditing this file and only got this
+far but is committing anyway so it's on the next distro draft I'm about to
+create. ###
                                Getting Started
 
 Once installed, the models of the Portage Generic Model can be used in
@@ -237,7 +274,7 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXLM_PRETRAINED_TGT_LMS:
 
-      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.0/lm/generic-2.0_fr.tplm
+      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
 
    d. TRAIN_TC now needs to be explicitly defined, because its default is to
       copy TRAIN_LM, which is no longer defined.  Uncomment and edit the line
