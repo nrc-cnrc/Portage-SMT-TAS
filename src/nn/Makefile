@@ -21,9 +21,7 @@ PYTHON_LIBS = \
 	nnjm_utils.pyc \
 	repickle.pyc
 
-TESTPROGS = test_portage_nnjm
-
-PROGRAMS = $(TESTPROGS)
+PROGRAMS = test_portage_nnjm  # Special case since we want test_portage_nnjm to be part of the distro in order to perform a unittest.
 
 BINSCRIPTS = \
 	train-nnjm.sh \

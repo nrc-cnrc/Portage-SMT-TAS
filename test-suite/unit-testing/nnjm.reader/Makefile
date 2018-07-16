@@ -19,7 +19,7 @@ include ../Makefile.incl
 
 -include Makefile.params
 SHELL := bash
-TEST_PORTAGE_NNJM := ../../../src/nn/test_portage_nnjm
+TEST_PORTAGE_NNJM := test_portage_nnjm
 
 .DEFAULT_GOAL := all
 .PHONY: all
