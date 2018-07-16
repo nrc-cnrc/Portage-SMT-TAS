@@ -111,6 +111,11 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	cp bin/word2vec $PORTAGE/third-party/bin/
 
 
+#Step 6 Install PHAR
+	mkdir $PORTAGE/third-party/phpunit
+	wget -O $PORTAGE/third-party/phpunit/phpunit-4.8.phar 'https://phar.phpunit.de/phpunit-4.phar'
+
+
 #Quick PortageII_cur installation check
 
 	source $HOME/PortageII_cur/SETUP.bash
