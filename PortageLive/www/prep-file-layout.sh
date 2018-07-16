@@ -160,14 +160,14 @@ install_plive_html $HTML_DIR
 mkdir -p $HTML_DIR/rest
 cp PortageLiveLib.php rest/*.php rest/.htaccess $HTML_DIR/rest
 if [[ -d ../../src/user_manual ]]; then
-   USER_MANUAL_SRC=../../src/user_manual/html
+   USER_MANUAL_PATH=../../src/user_manual/html
 else
-   USER_MANUAL_SRC=../../doc/user-manual/pages
+   USER_MANUAL_PATH=../../doc/user-manual
 fi
-if [[ -f $USER_MANUAL_SRC/PortageLiveREST.html ]]; then
-   cp $USER_MANUAL_SRC/PortageLiveREST.html $HTML_DIR/rest/index.html
+if [[ -f $USER_MANUAL_PATH/PortageLiveREST.html ]]; then
+   cp $USER_MANUAL_PATH/PortageLiveREST.html $HTML_DIR/rest/index.html
    mkdir $HTML_DIR/rest/uploads
-   cp -ar $USER_MANUAL_SRC/uploads/{NRC_banner_e.jpg,iit_sidenav_graphictop_e.gif,sidenav_graphicbottom_e.gif,mainf1.gif,mainWordmark.gif} $HTML_DIR/rest/uploads
+   cp -ar $USER_MANUAL_PATH/uploads/{NRC_banner_e.jpg,iit_sidenav_graphictop_e.gif,sidenav_graphicbottom_e.gif,mainf1.gif,mainWordmark.gif} $HTML_DIR/rest/uploads
 else
    echo Error: cannot find PortageLiveREST.html documentation document
    false
