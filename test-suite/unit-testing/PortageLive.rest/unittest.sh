@@ -17,10 +17,14 @@ readonly document_model_id=PORTAGE_UNITTEST_4da35
 
 function check_dependencies() {
    if [[ ! $PHPUNIT_HOME ]]; then
-      echo "Error: cannot find phpunit. Please download the right version of phpunit for your version of php at https://phpunit.de/ and set PHPUNIT_HOME to the directory where you saved it." >&2
-      exit 1
+      if [[ -d $PORTAGE/third-party/phpunit ]]; then
+         export PHPUNIT_HOME=$PORTAGE/third-party/phpunit
+      else
+         echo "Error: cannot find phpunit. Please download the right version of phpunit for your version of php at https://phpunit.de/ and set PHPUNIT_HOME to the directory where you saved it." >&2
+         exit 1
+      fi
    fi
-   PHPUNIT=`\ls -1 $PHPUNIT_HOME/phpunit*.phar 2> /dev/null | head -1`
+   PHPUNIT=`\ls -1 {$PHPUNIT_HOME,$PORTAGE/third-party/phpunit}/phpunit*.phar 2> /dev/null | head -1`
    if [[ ! -s $PHPUNIT ]]; then
       echo "ERROR: cannot find phpunit*.phar in PHPUNIT_HOME=$PHPUNIT_HOME" >&2
       exit 1
