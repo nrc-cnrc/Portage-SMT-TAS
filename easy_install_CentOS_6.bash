@@ -17,11 +17,6 @@
 #Before you can start, you will need to Copy and/or Extract  PortageII_cur  into your $HOME.
 [ ! -f "$HOME/PortageII_cur/SETUP.bash" ] &&  echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
 
-#Edit SETUP.bash and uncomment line 30 to enable PYTHON_HOME_OVERRIDE.
-	
-	sed -i -e 's/^#PYTHON_HOME_OVERRIDE/PYTHON_HOME_OVERRIDE/' $HOME/PortageII_cur/SETUP.bash
-
-	
 # Below will define the variables required to run PortageII_cur when you login automaticaly.
 ##Add  "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
 	
@@ -61,14 +56,10 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 
 ## The order is important for the first 3 steps.
 
-#Step 1 Install Python 2.7.9
-	cd $PORTAGE/build_third-party
-	wget http://python.org/ftp/python/2.7.9/Python-2.7.9.tgz
-	tar xfz Python-2.7.9.tgz
-	cd Python-2.7.9
-	./configure --with-threads --enable-shared --prefix=$PORTAGE/third-party/python-2.7
-	make -j 4
-	make install
+#Step 1 Install MiniConda to get Python
+	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
+	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
+	conda install numpy mock theano
 
 
 #Step 2 Install boost 1.57 with Python installed above ( This step might take a while... )
@@ -77,7 +68,7 @@ perl-CPAN perl-JSON  perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes
 	wget https://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz
 	tar -xzf boost_1_57_0.tar.gz
 	cd boost_1_57_0
-	./bootstrap.sh --prefix=$PORTAGE/third-party/boost --with-python=$PORTAGE/third-party/python-2.7/bin
+	./bootstrap.sh --prefix=$PORTAGE/third-party/boost --with-python=$(readlink -f $(dirname $(which python)))
 	./b2 -j4 -d0 -a
 	./b2 -j4 install
 
