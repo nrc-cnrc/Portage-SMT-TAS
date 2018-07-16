@@ -1,0 +1,35 @@
+                          Portage Generic System 2.1
+
+Traitement multilingue de textes / Multilingual Text Processing
+Centre de recherche en technologies numériques / Digital Technologies Research Centre
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2018, Sa Majesté la Reine du Chef du Canada
+Copyright 2018, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                          Portage Generic System 2.1
+
+If you have licensed the Portage Generic System 2.1, you may install these
+contexts on your PortageLive server.
+
+The Portage Generic System 2.1 DVDs/tarballs contain complete PortageLive models
+for Portage Generic System 2.1 English-to-French and French-to-English contexts,
+ready for deployment and use on your PortageLive servers.
+
+The DVDs/tarballs contain the following contexts:
+	generic2.1.en2fr  English-to-French context
+	generic2.1.fr2en  French-to-English context
+
+Copy the Portage Generic System 2.1 contexts to wherever your PortageLive server
+looks for models, for example, in $PORTAGE, typically /opt/PortageII.
+	cd $PORTAGE/models/
+	tar xvzf /path-to-tarballs/PortageGenericSystem-2.1.en2fr.tar.gz
+	tar xvzf /path-to-tarballs/PortageGenericSystem-2.1.fr2en.tar.gz
+
+Optimize the contexts to use the pretrained Portage Generic Model 2.1 models.
+	plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.en2fr
+	plive-optimize-pretrained.sh $PORTAGE/models/generic2.1.fr2en
+	
