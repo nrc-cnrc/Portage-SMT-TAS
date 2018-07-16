@@ -169,13 +169,21 @@ PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_true
 PORTAGE_LIBS += $(if $(filter chinese_segmenter.pl, ${CHINESE}), manseg.fre)
 vpath manseg.fre $(dir $(shell which chinese_segmenter.pl 2> /dev/null))/../lib
 
-# Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
+# Define DO_EXTERNAL_LIBS if you want to bundle all external libs needed by
 # PortageII's software.
 ifdef DO_EXTERNAL_LIBS
 # Here, we fetch the libraries related to PortageII's pgm only.
 EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
+$(info EXTERNAL_LIBS ${EXTERNAL_LIBS})
 EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
-vpath % ${EXTERNAL_LIBS_DIR}
+
+# Hack: MITLM's external libs need to be installed too, and are expected to come from a
+# different directory, so add them to EXTERNAL_LIBS *after* having computed EXTERNAL_LIBS_DIR.
+EXTERNAL_LIBS_MITLM := $(sort $(notdir $(shell ldd `which estimate-ngram 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
+EXTERNAL_LIBS_MITLM_DIR := $(sort $(dir $(shell ldd `which estimate-ngram 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
+EXTERNAL_LIBS := $(sort ${EXTERNAL_LIBS} ${EXTERNAL_LIBS_MITLM})
+$(info EXTERNAL_LIBS ${EXTERNAL_LIBS})
+vpath % ${EXTERNAL_LIBS_DIR} ${EXTERNAL_LIBS_MITLM_DIR}
 endif
 
 # PortageII's libraries are just beside the binaries' directory.
