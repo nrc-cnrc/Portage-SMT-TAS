@@ -17,7 +17,7 @@
 # package.
 # Change this variable to indicate where this package is actually located.
 PORTAGE=$(readlink -f $(dirname ${BASH_SOURCE[@]}))
-echo PORTAGE $PORTAGE
+echo PORTAGE=$PORTAGE >&2
 
 # Where the generic model is installed. Update this variable if you install the
 # generic model in a non-standard location.
