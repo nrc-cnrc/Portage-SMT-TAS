@@ -46,15 +46,15 @@ Arguments:
   -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
 
-  -cur          Current version number, e.g., 2.0
+  -cur          Current version number, e.g., 2.1
 
 Options:
 
   -h(elp):      print this help message
   -d            Git server host and dirname [$GIT_PATH]
   -n            Not Really: just show what will be done.
-  -no-archives  Don't generate the tar ball or iso files [do]
-  -archive-name Infix to insert in .tar and .iso filenames. []
+  -no-archives  Don't generate the tar ball [do]
+  -archive-name Infix to insert in .tar filenames. []
   -v(erbose)    Increment the verbosity level by 1 (may be repeated)
   -debug        Print debugging information
 
@@ -166,27 +166,19 @@ get_models() {
    run_cmd rsync -rLptv --progress $MODELS/* ./$OUTPUT_DIR/generic-model/
 }
 
-make_iso_and_tar() {
-   print_header make_iso_and_tar
-   echo Generating tar ball and iso file.
+make_tar() {
+   print_header make_tar
+   echo Generating tar ball file.
    
    VOLID=PortageGenericModel-$CUR_VERSION
-   # man mkisofs says VOLID can have 32 chars, but Joliet truncates to 16
-   ISO_VOLID=GenericModel-$CUR_VERSION
-   ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}-${ARCHIVE_NAME}
    else
       ARCHIVE_FILE=$VOLID
    fi
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd mkdir DVD-root
-      run_cmd mv generic-model DVD-root/$VOLID
-      run_cmd chmod -R u=rwX,g+rX,g-w,o+rX,o-w DVD-root/$VOLID
-      run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              DVD-root '&>' iso.log
-      run_cmd mv DVD-root/$VOLID .
-      run_cmd rmdir DVD-root
+      run_cmd mv generic-model $VOLID
+      run_cmd chmod -R u=rwX,g+rX,g-w,o+rX,o-w $VOLID
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz $VOLID '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
@@ -202,7 +194,7 @@ do_checkout
 get_models
 
 if [[ ! $NO_ARCHIVES ]]; then
-   make_iso_and_tar
+   make_tar
 fi
 
 echo
