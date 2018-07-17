@@ -37,6 +37,8 @@ function check_dependencies() {
 
    if ! which-test.sh apirunner; then
       echo "Warning: cannot find Rester's apirunner. Please install it from source:"
+      echo "   pip install git+https://github.com/chitamoor/Rester.git@master"
+      echo " OR"
       echo "   git clone https://github.com/chitamoor/Rester"
       echo "   cd Rester"
       echo "   pip install -e ."
