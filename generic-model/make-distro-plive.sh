@@ -1,21 +1,19 @@
 #!/bin/bash
 
-# make-distro.sh - Make a DVD or a copyable distro of Portage Generic Model.
+# make-distro-plive.sh - Make a copyable distro of Portage Generic System.
 # 
-# PROGRAMMER: Darlene Stewart based on Eric Joanis' PORTAGEshared/make-distro.sh
+# PROGRAMMER: Darlene Stewart based on make-distro.sh
 # 
 # Traitement multilingue de textes / Multilingual Text Processing
 # Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2012, 2016, 2018, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2012, 2016, 2018, Her Majesty in Right of Canada
+# Copyright 2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2018, Her Majesty in Right of Canada
 
-# Creating the PortageGenericModel-2.0 DVD: on 221, in /home/joanise/sandboxes/PORTAGEshared/generic-model, Eric ran:
-# ./make-distro.sh -dir v2.0 -models /home/portage/models/generic-model/v2.0/dvd_v2.0 -r master >& log.v2.0 
-# ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
-# ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
+# Creating the PortageGenericSystem-2.1 distro: in $PORTAGE/models/generic-model/v2.0/distro_v2.1/:
+# ~/sandboxes/PORTAGEshared.dev/generic-model/make-distro-plive.sh -r gpsc -models ../dvd_v2.1_systems -dir v2.1_systems -cur 2.1 &> log.v2.1_systems
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2012-2018, Her Majesty in Right of Canada'
+echo 'make-distro-plive.sh, NRC-CNRC, (c) 2018, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 
@@ -25,11 +23,11 @@ usage() {
    done
    cat <<==EOF==
 
-Usage: make-distro.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
+Usage: make-distro-plive.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
        -models MODELS -dir OUTPUT_DIR -cur VERSION
 
-  Make a generic-model distribution folder, ready to burn on CD or copy to a
-  remote site as is.
+  Make a generic-model PortageLive distribution folder, ready to burn on a DVD
+  or copy to a remote site as is.
 
 Arguments:
 
@@ -46,15 +44,15 @@ Arguments:
   -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
 
-  -cur          Current version number, e.g., 2.0
+  -cur          Current version number, e.g., 2.1
 
 Options:
 
   -h(elp):      print this help message
   -d            Git server host and dirname [$GIT_PATH]
   -n            Not Really: just show what will be done.
-  -no-archives  Don't generate the tar ball or iso files [do]
-  -archive-name Infix to insert in .tar and .iso filenames. []
+  -no-archives  Don't generate the tar ball [do]
+  -archive-name Infix to insert in .tar filenames. []
   -v(erbose)    Increment the verbosity level by 1 (may be repeated)
   -debug        Print debugging information
 
@@ -154,11 +152,10 @@ do_checkout() {
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd git clone -n $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
       run_cmd pushd PORTAGEshared
-         run_cmd git checkout $VERSION_TAG -- generic-model
-         run_cmd mv generic-model ..
+         run_cmd git checkout $VERSION_TAG -- generic-model/plive
+         run_cmd mv generic-model/plive ../generic-model
       run_cmd popd
       run_cmd rm -rf PORTAGEshared
-      run_cmd rm -f generic-model/make-distro.sh
    run_cmd popd
 }
 
@@ -167,26 +164,19 @@ get_models() {
    run_cmd rsync -rLptv --progress $MODELS/* ./$OUTPUT_DIR/generic-model/
 }
 
-make_iso_and_tar() {
-   print_header make_iso_and_tar
-   echo Generating tar ball and iso file.
+make_tar() {
+   print_header make_tar
+   echo Generating tar ball file.
    
-   VOLID=PortageGenericModel-$CUR_VERSION
-   # man mkisofs says VOLID can have 32 chars, but Joliet truncates to 16
-   ISO_VOLID=GenericModel-$CUR_VERSION
-   ISO_VOLID=${ISO_VOLID:0:31}
+   VOLID=PortageGenericSystem-$CUR_VERSION
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}-${ARCHIVE_NAME}
    else
       ARCHIVE_FILE=$VOLID
    fi
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd mkdir DVD-root
-      run_cmd mv generic-model DVD-root/$VOLID
-      run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              DVD-root '&>' iso.log
-      run_cmd mv DVD-root/$VOLID .
-      run_cmd rmdir DVD-root
+      run_cmd mv generic-model $VOLID
+      run_cmd chmod -R u=rwX,g+rX,g-w,o+rX,o-w $VOLID
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz $VOLID '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
@@ -202,7 +192,7 @@ do_checkout
 get_models
 
 if [[ ! $NO_ARCHIVES ]]; then
-   make_iso_and_tar
+   make_tar
 fi
 
 echo
