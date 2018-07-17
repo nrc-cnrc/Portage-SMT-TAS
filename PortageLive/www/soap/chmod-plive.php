@@ -35,7 +35,11 @@ only if you really know what you're doing!</p>
       <td>
       </td>
       <td align="center" valign="top">
-	 <small>Traitement multilingue de textes / Multilingual Text Processing  <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.php">Third party Copyright notices</a>
+         <small>Traitement multilingue de textes / Multilingual Text Processing <br />
+            Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre <br />
+            Conseil national de recherches Canada / National Research Council Canada <br />
+            Copyright 2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br />
+            <a href="/portage_notices.php">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>

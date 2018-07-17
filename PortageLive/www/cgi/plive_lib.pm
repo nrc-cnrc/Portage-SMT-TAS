@@ -158,9 +158,9 @@ sub NRCFooter {
                        small(
                           "PortageII cur", br(),
                           "Traitement multilingue de textes / Multilingual Text Processing", br(),
-                          "Technologies de l'information et des communications / Information and Communications Technologies", br(),
+                          "Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2016, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Copyright 2004&ndash;2018, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           a({href=>"/portage_notices.php"}, "Third party Copyright notices")
                           ))),

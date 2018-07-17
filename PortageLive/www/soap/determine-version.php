@@ -258,21 +258,26 @@ the version (e.g., if the PortageLive server predates PortageII 1.0).
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="center">
-	 <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
+         <img alt="NRC-ICT" src="images/sidenav_graphic.png" height="44" />
       </td>
       <td width="60%" align="center" valign="bottom">
-	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
+         <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
       </td>
       <td width="20%" align="left" valign="center">
-	 <img width="93" alt="Government of Canada" src="/images/mainWordmark.gif" height="44" />
+         <img width="93" alt="Government of Canada" src="/images/mainWordmark.gif" height="44" />
       </td>
    </tr>
    <tr>
       <td>
       </td>
       <td align="center" valign="top">
-	 <small>Traitement multilingue de textes / Multilingual Text Processing <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2016, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
-	 </small>
+         <small>
+            Traitement multilingue de textes / Multilingual Text Processing <br />
+            Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre <br />
+            Conseil national de recherches Canada / National Research Council Canada <br />
+            Copyright 2016, 2018, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br />
+            <a href="/portage_notices.html">Third party Copyright notices</a>
+         </small>
       </td>
    </tr>
 </table>

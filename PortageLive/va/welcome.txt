@@ -3,9 +3,9 @@ ${app.name} - ${app.version}
 To manage this VM browse to ${vami.url}
 
 This Virtual Appliance (VA) implements a translation engine that uses the
-PortageII_cur SMT system from the Interactive Language Technologies group (ILT)
-of the NRC's Information and Communications Technologies Portfolio, with models
-trained on the client_corpus_name corpus.
+PortageII_cur SMT system from the Multilingual Text Processing team (MTP)
+of the NRC's Digital Technologies Research Centre, with models trained on the
+client_corpus_name corpus.
 
 Contexts:
 context_name: models/path_to_models
@@ -14,8 +14,7 @@ Web use: http(s)://${app.ip}/
 Definition of a web service (WSDL): http(s)://${app.ip}/PortageLiveAPI.wsdl 
 
 Traitement multilingue de textes / Multilingual Text Processing
-Technologies de l'information et des communications /
-   Information and Communications Technologies
+Centre de recherche en technologies numeriques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2014, Sa Majeste la Reine du Chef du Canada /
-Copyright 2014, Her Majesty in Right of Canada
+Copyright 2014, 2018, Sa Majeste la Reine du Chef du Canada /
+Copyright 2014, 2018, Her Majesty in Right of Canada
