@@ -62,6 +62,9 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 
 	pip install suds
 
+#Step 1a install rester for Portage's unittests
+	pip install git+https://github.com/chitamoor/Rester.git@master
+#OR, if pip install fails for you, you can try the following commands:
 	cd $PORTAGE/build_third-party
 	git clone https://github.com/chitamoor/Rester
 	cd Rester
