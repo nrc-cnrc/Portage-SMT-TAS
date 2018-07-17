@@ -15,6 +15,10 @@
 
 SHELL=/bin/bash
 
+ifneq ($(shell which ngram-count &> /dev/null && echo 0),0)
+$(error Error: we need ngram-count from SRILM for this unittest!)
+endif
+
 all: out out-tppt err_min_lmc coarseout boundary_cases
 
 .PHONY: FORCE
@@ -32,10 +36,13 @@ include ../Makefile.incl
 PT_TYPE ?= cpt
 $(info PT_TYPE ${PT_TYPE})
 
-init-lm:
+ngram_count.dep:
+	[[ `which ngram-count 2> /dev/null` ]] || ! echo "Error: we need ngram-count from SRILM for this unittest!" >&2
+
+init-lm:  ngram_count.dep
 	ngram-count -unk -text <(echo .) -lm lm
 
-init-bilm:
+init-bilm:  ngram_count.dep
 	ngram-count -unk -text train_bilm -lm bilm.tiny.gz
 
 cpt.tppt/tppt: cpt
@@ -136,7 +143,7 @@ coarse${refsuffix}train_bilm: coarse${refsuffix}train_bilm.raw
 	cp $+ $@
 endif
 
-bilm.coarse${refsuffix}.gz: coarse${refsuffix}train_bilm
+bilm.coarse${refsuffix}.gz: coarse${refsuffix}train_bilm  ngram_count.dep
 	ngram-count -unk -text $< -lm $@
 bilm.%.tplm: bilm.%.gz
 	arpalm2tplm.sh -n 1 $< >& log.$@
@@ -198,7 +205,7 @@ boundary_cases: 7bilm_ok 8bilm_fail 8bilm_nomin_ok \
 	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}" \
 	   >& log.$@
 
-bilm.%gram.gz: coarse${refsuffix}train_bilm
+bilm.%gram.gz: coarse${refsuffix}train_bilm  ngram_count.dep
 	ngram-count -order $* -unk -text $< -lm $@ >& log.$@
 
 15gram_ok: bilm.15gram.tplm coarse.in bilm.tiny.tplm FORCE

@@ -12,12 +12,13 @@
 
 MAP_TYPE ?= prefixNumber
 
-all:  ngram_count.dep
+ifneq ($(shell which ngram-count &> /dev/null && echo 0),0)
+$(error Error: we need ngram-count from SRILM for this unittest!)
+endif
+
+
 all:  dynmap_visual_test
 all:  dynmap_cmp
-
-ngram_count.dep:
-	[[ `which ngram-count 2> /dev/null` ]] || { ! echo "Error: we need ngram-count from SRILM for this unittest!" >&2; exit; }
 
 toy.pdf: toy.tex
 	pdflatex -interaction=batchmode toy.tex
@@ -80,11 +81,11 @@ else
 endif
 
 lm: train_en.lm
-train_en.lm: train_en.al  ngram_count.dep
+train_en.lm: train_en.al
 	ngram-count -interpolate -kndiscount -order 3 -text $< -lm $@
 
 number: train_en.lm.number
-train_en.lm.${MAP_TYPE}: train_en.al  ngram_count.dep
+train_en.lm.${MAP_TYPE}: train_en.al
 	cat $< | map_number -map ${MAP_TYPE} | ngram-count -interpolate -kndiscount -order 3 -text - -lm $@
 
 vpath lm_eval.test.txt  src
