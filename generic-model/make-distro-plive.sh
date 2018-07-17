@@ -10,8 +10,8 @@
 # Copyright 2018, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2018, Her Majesty in Right of Canada
 
-# Creating the PortageGenericSystem-2.1 distro: on GPSC, in $PORTAGE/models/generic-model/v2.0/distro_v2.1/:
-# ~/u/sandboxes/PORTAGEshared.dev/generic-model/make-distro-plive.sh -r gpsc -models ../dvd_v2.1_systems -dir v2.1_systems -cur 2.1 &> log.v2.1_systems
+# Creating the PortageGenericSystem-2.1 distro: in $PORTAGE/models/generic-model/v2.0/distro_v2.1/:
+# ~/sandboxes/PORTAGEshared.dev/generic-model/make-distro-plive.sh -r gpsc -models ../dvd_v2.1_systems -dir v2.1_systems -cur 2.1 &> log.v2.1_systems
 
 echo 'make-distro-plive.sh, NRC-CNRC, (c) 2018, Her Majesty in Right of Canada'
 
@@ -26,8 +26,8 @@ usage() {
 Usage: make-distro-plive.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
        -models MODELS -dir OUTPUT_DIR -cur VERSION
 
-  Make a generic-model PortageLive distribution folder, ready to burn on CD or
-  copy to a remote site as is.
+  Make a generic-model PortageLive distribution folder, ready to burn on a DVD
+  or copy to a remote site as is.
 
 Arguments:
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# make-distro.sh - Make a DVD or a copyable distro of Portage Generic Model.
+# make-distro-models.sh - Make a copyable distro of Portage Generic Model.
 # 
 # PROGRAMMER: Darlene Stewart based on Eric Joanis' PORTAGEshared/make-distro.sh
 # 
@@ -10,12 +10,10 @@
 # Copyright 2012, 2016, 2018, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2012, 2016, 2018, Her Majesty in Right of Canada
 
-# Creating the PortageGenericModel-2.0 DVD: on 221, in /home/joanise/sandboxes/PORTAGEshared/generic-model, Eric ran:
-# ./make-distro.sh -dir v2.0 -models /home/portage/models/generic-model/v2.0/dvd_v2.0 -r master >& log.v2.0 
-# ./make-distro.sh -dir v2.0_disk1 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk1
-# ./make-distro.sh -dir v2.0_disk2 -models /home/portage/models/generic-model/v2.0/dvd_v2.0_disk1 -r master >& log.v2.0_disk2
+# Creating the PortageGenericModel-2.1 distro: in $PORTAGE/models/generic-model/v2.0/distro_v2.1/:
+# ~/sandboxes/PORTAGEshared.dev/generic-model/make-distro-models.sh -r gpsc -models ../dvd_v2.1_models -dir v2.1_models -cur 2.1 &> log.v2.1_models
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2012-2018, Her Majesty in Right of Canada'
+echo 'make-distro-models.sh, NRC-CNRC, (c) 2012-2018, Her Majesty in Right of Canada'
 
 GIT_PATH=$PORTAGE_GIT_ROOT
 
@@ -25,11 +23,11 @@ usage() {
    done
    cat <<==EOF==
 
-Usage: make-distro.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
+Usage: make-distro-models.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
        -models MODELS -dir OUTPUT_DIR -cur VERSION
 
-  Make a generic-model distribution folder, ready to burn on CD or copy to a
-  remote site as is.
+  Make a generic-model background models distribution folder, ready to burn on
+  a DVD or copy to a remote site as is.
 
 Arguments:
 
