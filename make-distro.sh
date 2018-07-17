@@ -454,15 +454,16 @@ make_pdfs() {
    r pushd ./$OUTPUT_DIR/PORTAGEshared
 
       r pushd ./src
+         r mkdir -p ../doc/extras
          r r make docs '>&' ../../docs.log
-         r cp */*.pdf ../doc/
+         r cp */*.pdf ../doc/extras
          r make clean '>&' /dev/null
          r rm -f canoe/uml.eps
-         r cp -p adaptation/README ../doc/adaptation.README
-         r mkdir -p ../doc/confidence
-         r cp -p confidence/README confidence/ce*.ini ../doc/confidence/
-         r cp -p rescoring/README ../doc/rescoring.README
-         r cp -p canoe/sparse-features.txt ../doc/sparse-features.README
+         r cp -p adaptation/README ../doc/extras/adaptation.README
+         r mkdir -p ../doc/extras/confidence
+         r cp -p confidence/README confidence/ce*.ini ../doc/extras/confidence/
+         r cp -p rescoring/README ../doc/extras/rescoring.README
+         r cp -p canoe/sparse-features.txt ../doc/extras/sparse-features.README
       r popd
 
       r pushd ./test-suite/unit-testing/toy
