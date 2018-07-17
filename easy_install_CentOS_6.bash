@@ -39,7 +39,7 @@
 	sudo yum -y install epel-release
 	sudo yum -y groupinstall 'Development Tools'
 
-	sudo yum -y install  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel  \
+	sudo yum -y install  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel lsof \
 readline-devel tk-devel libicu-devel vim-common dl time libffi wget bc java-1.6.0-openjdk icu libicu cmake libsvm \
 perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-Time-Piece
 
@@ -48,11 +48,13 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 
 #Build all third-party tools inside $PORTAGE/build_third-party.
 #This folder can be deleted once everything is completed succesfully.
+
 	mkdir $PORTAGE/build_third-party
 
 ## The order is important for the first 3 steps.
 
 #Step 1 Install MiniConda to get Python
+
 	cd $PORTAGE/build_third-party
 	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
@@ -63,6 +65,7 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	pip install suds
 
 #Step 1a install rester for Portage's unittests
+
 	pip install git+https://github.com/chitamoor/Rester.git@master
 #OR, if pip install fails for you, you can try the following commands:
 	cd $PORTAGE/build_third-party
@@ -112,9 +115,20 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	cp bin/word2vec $PORTAGE/third-party/bin/
 
 
-#Step 6 Install PHAR
+#Step 6(optional) Install PHAR
+
 	mkdir $PORTAGE/third-party/phpunit
 	wget -O $PORTAGE/third-party/phpunit/phpunit-4.8.phar 'https://phar.phpunit.de/phpunit-4.phar'
+
+
+#Step 7(optional) Install a newer php>=5.6
+# Based on the following instructions which contain more details
+# https://blog.tinned-software.net/update-to-php-5-6-on-centos-6-using-remi-repository/
+
+	yum install http://rpms.remirepo.net/enterprise/remi-release-6.rpm
+	yum install yum-utils  # <= to get yum-config-manager
+	yum-config-manager --enable remi-php56
+	yum update
 
 
 #Quick PortageII_cur installation check
