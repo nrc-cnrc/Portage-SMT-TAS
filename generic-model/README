@@ -185,25 +185,19 @@ installed the models elsewhere, modify SETUP.bash to define
 PORTAGE_GENERIC_MODEL accordingly.
 
 
-### WORKING IN PROGRESS WARNING - Eric is edditing this file and only got this
-far but is committing anyway so it's on the next distro draft I'm about to
-create. ###
                                Getting Started
 
 Once installed, the models of the Portage Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
+
+LM
 
 You can use the language models in the lm directory in standard (log-linear)
 combination with your own in-domain LMs or in linear combination using a MixLM.
 To do so, prior to training your PortageII system edit your framework
 Makefile.params file as follows.
 
-To train a PortageII system using the generic LM in standard combination with
-your in-domain LMs, add the file path of the TPLM format target language
-generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
-for an English->French system, this would be:
-
-LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
+LM - MixLM (Recommended)
 
 To train a PortageII system using the generic LM in linear combination with your
 in-domain LMs in a MixLM, add the file path of the TPLM format target language
@@ -212,18 +206,28 @@ example, for an English->French system, this would be:
 
 MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
 
+Since PortageII 3.0, you can accomplish the same thing automatically by setting
+you LM training corpus in PRIMARY_LM instead of using MIXLM (or TRAIN_LM): if
+it exists for your target language, the generic LM will be automatically
+combined with your LM in a MixLM.
+
+LM - log-linear combination
+
+To train a PortageII system using the generic LM in standard combination with
+your in-domain LMs, add the file path of the TPLM format target language
+generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
+for an English->French system, this would be:
+
+LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
+
+TM
+
 You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
 using a MixTM CPT. To do so, prior to training your PortageII system, edit
 your framework Makefile.params file as follows.
 
-To train a PortageII system using the generic TM in standard combination with
-your in-domain TMs, add the file path of the en2fr generic model CPT (for an
-English->French system) or fr2en generic model CPT (for a French->English
-system) to the TM_PRETRAINED_TMS variable definition. For example, for an
-English->French system, this would be:
-
-TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
+TM - MixTM (recommended)
 
 To train a PortageII system using the generic TM in linear combination with your
 in-domain TMs in a MixTM, add the file path of the en2fr generic model CPT (for
@@ -233,12 +237,23 @@ English->French system, this would be:
 
 MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
 
+TM - log-linear combination
+
+To train a PortageII system using the generic TM in standard combination with
+your in-domain TMs, add the file path of the en2fr generic model CPT (for an
+English->French system) or fr2en generic model CPT (for a French->English
+system) to the TM_PRETRAINED_TMS variable definition. For example, for an
+English->French system, this would be:
+
+TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
+
+
 The framework will automatically create symbolic links to the necessary generic
 model files within the framework structure, including the LM in TPLM format for
 PortageLive, and the source language LM if needed for training a MixLM.
 
-In all cases, do not include the generic model name in the TRAIN_LM, MIXLM,
-TRAIN_TM, or MIXTM definitions in the Makefile.params file.
+In all cases, do not include the generic model name in the PRIMARY_LM,
+TRAIN_LM, MIXLM, TRAIN_TM, or MIXTM definitions in the Makefile.params file.
 
 Note: All four PRETRAINED variables accept multiple file paths, so you may add
 your own pre-trained models as well.
@@ -267,6 +282,14 @@ is called tm-train, as is the default in the framework.
       be in the MixLM, not as a regular LM:
 
       #TRAIN_LM ?= lm-train
+
+   Variant 1 (recommended):
+
+   b. Define PRIMARY_LM to point to your LM training corpus:
+
+      PRIMARY_LM ?= lm-train
+
+   Variant 2 (still functional):
 
    b. Uncomment and change the line defining MIXLM to specify only your corpus:
 
