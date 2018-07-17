@@ -54,7 +54,7 @@ not introduce external terminology, so its use is safe even if you want to
 preserve pure terminology.
 
 We thank Library and Archives Canada for providing the data on which the models
-for Portage Generic Model 1.0 and 2.0 were trained.
+for Portage Generic Model 1.0 to 2.1 were trained.
 
 
                 History of changes for Portage Generic Model
@@ -190,14 +190,14 @@ PORTAGE_GENERIC_MODEL accordingly.
 Once installed, the models of the Portage Generic Model can be used in
 conjunction with your in-domain models in the PortageII framework.
 
-LM
+   LM
 
 You can use the language models in the lm directory in standard (log-linear)
 combination with your own in-domain LMs or in linear combination using a MixLM.
 To do so, prior to training your PortageII system edit your framework
 Makefile.params file as follows.
 
-LM - MixLM (Recommended)
+      LM - MixLM (Recommended)
 
 To train a PortageII system using the generic LM in linear combination with your
 in-domain LMs in a MixLM, add the file path of the TPLM format target language
@@ -211,7 +211,7 @@ you LM training corpus in PRIMARY_LM instead of using MIXLM (or TRAIN_LM): if
 it exists for your target language, the generic LM will be automatically
 combined with your LM in a MixLM.
 
-LM - log-linear combination
+      LM - log-linear combination
 
 To train a PortageII system using the generic LM in standard combination with
 your in-domain LMs, add the file path of the TPLM format target language
@@ -220,14 +220,14 @@ for an English->French system, this would be:
 
 LM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
 
-TM
+   TM
 
 You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
 using a MixTM CPT. To do so, prior to training your PortageII system, edit
 your framework Makefile.params file as follows.
 
-TM - MixTM (recommended)
+      TM - MixTM (recommended)
 
 To train a PortageII system using the generic TM in linear combination with your
 in-domain TMs in a MixTM, add the file path of the en2fr generic model CPT (for
@@ -237,7 +237,7 @@ English->French system, this would be:
 
 MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
 
-TM - log-linear combination
+      TM - log-linear combination
 
 To train a PortageII system using the generic TM in standard combination with
 your in-domain TMs, add the file path of the en2fr generic model CPT (for an
@@ -247,6 +247,27 @@ English->French system, this would be:
 
 TM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.en2fr.gz
 
+   NNJM
+
+You can use the generic NNJM on its own or fine-tune it using your own
+in-domain data, which is our recommendation. How to do so is documented in
+details in Makefile.params, in the NNJM training section.
+
+      NNJM - using the pretrained NNJM on its own
+
+To use the pre-trained NNJM on its own, uncomment this line in Makefile.params:
+
+NNJM_PRETRAINED_NNJM ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/nnjm/nnjm.generic-2.1.${SRC_LANG}2${TGT_LANG}.mm/model
+
+      NNJM - fine-tuning with your own data
+
+Typical example, assuming tm-train is your main in-domain training corpus:
+
+NNJM_FINE_TUNING_TRAIN_CORPUS ?= tm-train
+NNJM_FINE_TUNING_DEV_CORPUS ?= ${TUNE_DECODE}
+NNJM_PRETRAINED_NNJM ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/nnjm/nnjm.generic-2.1.${SRC_LANG}2${TGT_LANG}.mm/model
+
+
 
 The framework will automatically create symbolic links to the necessary generic
 model files within the framework structure, including the LM in TPLM format for
@@ -255,18 +276,18 @@ PortageLive, and the source language LM if needed for training a MixLM.
 In all cases, do not include the generic model name in the PRIMARY_LM,
 TRAIN_LM, MIXLM, TRAIN_TM, or MIXTM definitions in the Makefile.params file.
 
-Note: All four PRETRAINED variables accept multiple file paths, so you may add
-your own pre-trained models as well.
+Note: All four PRETRAINED variables for LMs and TMs accept multiple file paths,
+so you may add your own pre-trained models as well.
 
 Our recommended practice is to use both the generic model LM and generic model
-TM, both in linear combination with your in-domain models. Our experience is
-that the linear mixtures (MixLM and MixTM) yield a system with better
-translation quality than the standard log-linear combination. If you have a
-situation where translation time is an issue, say for single-sentence-at-a-time
-translation within a short time window, we recommend that you experiment with
-trying out and benchmarking various combinations of standard and mixture models
-to see what works best for you. In some situations the standard models may
-result in quicker translation.
+TM, both in linear combination with your in-domain models, and fine tune the
+NNJM on your data. Our experience is that the linear mixtures (MixLM and MixTM)
+yield a system with better translation quality than the standard log-linear
+combination. If you have a situation where translation time is an issue, say
+for single-sentence-at-a-time translation within a short time window, we
+recommend that you experiment with trying out and benchmarking various
+combinations of standard and mixture models to see what works best for you. In
+some situations the standard models may result in quicker translation.
 
 
                   Simplest use: one corpus plus generic models
@@ -297,7 +318,7 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXLM_PRETRAINED_TGT_LMS:
 
-      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_fr.tplm
+      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/lm/generic-2.1_${TGT_LANG}.tplm
 
    d. TRAIN_TC now needs to be explicitly defined, because its default is to
       copy TRAIN_LM, which is no longer defined.  Uncomment and edit the line
@@ -318,11 +339,24 @@ is called tm-train, as is the default in the framework.
 
    c. Uncomment the line defining MIXTM_PRETRAINED_TMS:
 
-      MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-1.0/tm/cpt.generic-1.0.en2fr.gz
+      MIXTM_PRETRAINED_TMS ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/tm/cpt.generic-2.1.${SRC_LANG}2${TGT_LANG}.gz
 
    d. Leave MIXTM_TRAIN_MIX undefined (don't uncomment its line) since its
       default value is appropriate:
 
       #MIXTM_TRAIN_MIX ?= subtm1
+
+3. Variables for the Fine-tuned NNJM
+
+   a. Define NNJM_FINE_TUNING_TRAIN_CORPUS to your main in-domain training
+      corpus, tm-train, and NNJM_FINE_TUNING_DEV_CORPUS to your decoding dev
+      set, ${TUNE_DECODE}:
+
+      NNJM_FINE_TUNING_TRAIN_CORPUS ?= tm-train
+      NNJM_FINE_TUNING_DEV_CORPUS ?= ${TUNE_DECODE}
+
+   b. Turn on the generic NNJM by uncommenting the line defining it:
+
+      NNJM_PRETRAINED_NNJM ?= ${PORTAGE_GENERIC_MODEL}/generic-2.1/nnjm/nnjm.generic-2.1.${SRC_LANG}2${TGT_LANG}.mm/model
 
 
