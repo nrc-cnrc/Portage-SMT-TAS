@@ -44,14 +44,10 @@ readline-devel tk-devel libicu-devel vim-common dl time libffi wget bc java-1.6.
 perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-Time-Piece
 
 
+#Install third-party tools inside $PORTAGE/third-party/
+
 #Build all third-party tools inside $PORTAGE/build_third-party.
 #This folder can be deleted once everything is completed succesfully.
-
-	mkdir $PORTAGE/build_third-party
-
-
-#Install third-party tools inside $PORTAGE/third-party/
-#Build all third-party tools inside $PORTAGE/build_third-party. This folder can be deleted once everything is completed succesfully.
 	mkdir $PORTAGE/build_third-party
 
 ## The order is important for the first 3 steps.
@@ -62,12 +58,14 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
 	conda install numpy mock theano
 
+	source $PORTAGE/third-party/cond.f/python.bash
+
 	pip install suds
 
 	cd $PORTAGE/build_third-party
 	git clone https://github.com/chitamoor/Rester
 	cd Rester
-	python install -e .
+	pip install -e .
 
 
 #Step 2 Install boost 1.57 with Python installed above ( This step might take a while... )
