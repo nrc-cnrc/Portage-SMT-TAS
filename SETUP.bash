@@ -16,7 +16,7 @@
 # The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-PORTAGE=$(readlink -f $(dirname ${BASH_SOURCE[@]}))
+PORTAGE=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 echo PORTAGE=$PORTAGE >&2
 
 # Where the generic model is installed. Update this variable if you install the
