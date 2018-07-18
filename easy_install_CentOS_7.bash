@@ -88,6 +88,28 @@ perl-JSON.noarch  perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch pe
 	cp bin/word2vec $PORTAGE/third-party/bin/
 
 
+#4) Install Miniconda2 / Python
+
+	##NOTE if you have a compatible GPU and would like to train a NNJM 
+	#Please read for more details : $PORTAGE/doc/user-manual/TheanoInstallation.html 
+
+	cd $PORTAGE/build_third-party
+	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
+	sh Miniconda2-latest-Linux-x86_64.sh
+	#(enter)( space to continue...) (accept the license: Yes) (Install in: $PORTAGE/third-party/miniconda2 ) (Add to Path: Yes )
+
+	#Install required Python packages: numpy mock theano
+	# make sure miniconda2/bin is working in  your path ex: by starting a fresh shell.
+	
+	conda install numpy mock theano
+
+	#Once you've created a PortageLive server, tell PortageLive where to find
+	#Python 2.7 by creating these two symlinks:
+	ln -s $PORTAGE/third-party/miniconda2/bin/python /opt/PortageII/bin/python
+	ln -s $PORTAGE/third-party/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
+
+
+
 #Quick PortageII_cur installation check
 
 	source $HOME/PortageII_cur/SETUP.bash
@@ -128,5 +150,3 @@ echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
 #
 
 #Have fun!
-
-
