@@ -384,7 +384,10 @@ do_checkout() {
 
       r rm -f PORTAGEshared/src/.log.klocwork*
       r rm -f PORTAGEshared/make-distro.sh
-      r rm -f PORTAGEshared/generic-model/make-distro.sh
+      r mv PORTAGEshared/generic-model PORTAGEshared/generic-model-rm
+      r mkdir PORTAGEshared/generic-model
+      r mv PORTAGEshared/generic-model-rm/models/{LICENCE,README} PORTAGEshared/generic-model
+      r rm -rf PORTAGEshared/generic-model-rm
       r rm -rf PORTAGEshared/PortageLive/plive-only-distro
       r rm -f PORTAGEshared/doc/PortageAPIComparison.xlsx
       r rm -f PORTAGEshared/doc/system-requirements.doc
