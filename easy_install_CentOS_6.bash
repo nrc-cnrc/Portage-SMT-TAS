@@ -15,15 +15,15 @@
 
 
 #Before you can start, you will need to Copy and/or Extract  PortageII_cur  into your $HOME.
-[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] &&  echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
+[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] && echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
 
 # Below will define the variables required to run PortageII_cur when you login automaticaly.
-##Add  "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
+##Add "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
 	
 	echo "source $HOME/PortageII_cur/SETUP.bash" >> $HOME/.bashrc
 
 
-#login / logout or  source $HOME/PortageII_cur/SETUP.bash for this session.
+#login / logout or source $HOME/PortageII_cur/SETUP.bash for this session.
 #If you get the error below, it is expected till everything is installed properly.
 ##PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
 ##Error: PortageII requires Java version 1.6 or more recent
@@ -58,9 +58,10 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	cd $PORTAGE/build_third-party
 	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
-	conda install numpy mock theano
 
-	source $PORTAGE/third-party/cond.f/python.bash
+	# Activate Python
+	source $PORTAGE/third-party/conf.d/python.bash
+	conda install numpy mock theano
 
 	pip install suds
 
@@ -103,7 +104,7 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	cd mitlm
 	./autogen.sh --prefix=$PORTAGE/third-party/mitlm
 	make -j 4
-	make  install
+	make install
 
 
 #Step 5 Install word2vec
@@ -145,10 +146,10 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 #Needed for running the full test suite or to be used as a replacement for MITLM
 #
 #Get SRILM 1.71 http://www.speech.sri.com/projects/srilm/download.html
-#Filling  out the form will activate the download
+#Filling out the form will activate the download
 #For Noncommercial use only! See link on page for commercial licensing if you fall under that category.
 #
-#copy srilm-1.7.1.tar.gz  into  /tmp
+#copy srilm-1.7.1.tar.gz into /tmp
 #	
 #	mkdir -p /tmp/srilm
 #	cd /tmp/srilm
