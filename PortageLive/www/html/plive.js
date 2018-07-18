@@ -462,7 +462,7 @@ Vue.component('translatefile', {
                         app.translation_url = token.replace(/^0 Done: /, '/');
                         app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
-                        let myToast = app.$toasted.global.success(`Successfully translate your file ${app.file.name}! ${icon}`);
+                        let myToast = app.$toasted.global.success(`Successfully translated your file ${app.file.name}! ${icon}`);
                         myToastInfo.goAway(250);
                         app._enqueue({
                            name: app.file.name,
