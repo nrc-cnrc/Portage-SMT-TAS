@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-# PortageII_cur easy install (CentOS 6.x)
+# PortageII_cur easy install (CentOS 7.x)
 # Run all the commands in this file, in order, to install PortageII_cur and all
-# its dependencies on a CentOS 6.x machine (recommended) or execute this file.
+# its dependencies on a CentOS 7.x machine (recommended) or execute this file.
 # You will need internet access for the downloads.
 #
 # Marc Tessier
@@ -15,7 +15,7 @@
 
 
 #Before you can start, you will need to Copy and/or Extract  PortageII_cur  into your $HOME.
-[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] &&  echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
+[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] && echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
 
 
 #Remove the file $HOME/PortageII_cur/lib/x86_64-el6-icu/libstdc++.so.6 and link to the system file instead.
@@ -23,42 +23,76 @@
 	rm $HOME/PortageII_cur/lib/x86_64-el6-icu/libstdc++.so.6
 	ln -s /usr/lib64/libstdc++.so.6 $HOME/PortageII_cur/lib/x86_64-el6-icu/
 
-	
+
 # Below will define the variables required to run PortageII_cur when you login automaticaly.
-##Add  "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
-	
+##Add "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
+
 	echo "source $HOME/PortageII_cur/SETUP.bash" >> $HOME/.bashrc
 
 
-#login / logout or  source $HOME/PortageII_cur/SETUP.bash for this current session.
+#login / logout or source $HOME/PortageII_cur/SETUP.bash for this current session.
 #If you get the error below, it is expected till everything is installed properly.
 ##PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
 ##Error: PortageII requires Java version 1.6 or more recent
 ##Error: PortageII requires Python version 2.7
-	
+
 	source $HOME/PortageII_cur/SETUP.bash
 
 
 #Below will install the basic dependencies required to run PortageII_cur and the third-party build tools.
 ##sudo access will be required for the next few steps if you are not root!
 ###epel-release is needed for libsvm
-	
+
 	sudo yum -y install epel-release
 	sudo yum -y groupinstall 'Development Tools'
 
-	sudo yum install -y  java-1.6.0-openjdk.x86_64 openssl-devel zlib-devel bzip2-devel icu.x86_64 libicu.i686 libicu-devel.x86_64  \
+	sudo yum install -y  java-1.6.0-openjdk.x86_64 openssl-devel zlib-devel bzip2-devel icu.x86_64 libicu.i686 libicu-devel.x86_64 \
 sqlite-devel readline-devel tk-devel tkinter dl ncurses-devel python-devel boost boost-* \
 bc.x86_64 wget.x86_64 libsvm.x86_64 cmake.x86_64 time.x86_64 vim-common wget \
-perl-JSON.noarch  perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch perl-Time-HiRes.x86_64 perl-Env.noarch  perl-Time-Piece.x86_64
-
+perl-JSON.noarch perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch perl-Time-HiRes.x86_64 perl-Env.noarch perl-Time-Piece.x86_64
 
 
 #Install third-party tools inside $PORTAGE/third-party/
-#Build all third-party tools inside $PORTAGE/build_third-party. This folder can be deleted once everything is completed succesfully.
+
+#Build all third-party tools inside $PORTAGE/build_third-party.
+#This folder can be deleted once everything is completed succesfully.
+
 	mkdir $PORTAGE/build_third-party
 
-#1) Install MGIZA
-	
+
+#1) Install Miniconda2 / Python
+
+	##NOTE if you have a compatible GPU and would like to train a NNJM
+	#Please read for more details : $PORTAGE/doc/user-manual/TheanoInstallation.html
+
+	cd $PORTAGE/build_third-party
+	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
+	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
+
+	#Install required Python packages: numpy mock theano
+	# make sure miniconda2/bin is working in your path ex: by starting a fresh shell.
+
+	conda install numpy mock theano
+
+	pip install suds
+
+#Step 1a install rester for Portage's unittests
+
+	pip install git+https://github.com/chitamoor/Rester.git@master
+#OR, if pip install fails for you, you can try the following commands:
+	cd $PORTAGE/build_third-party
+	git clone https://github.com/chitamoor/Rester
+	cd Rester
+	pip install -e .
+
+	#Once you've created a PortageLive server, tell PortageLive where to find
+	#Python 2.7 by creating these two symlinks:
+	ln -s $PORTAGE/third-party/miniconda2/bin/python /opt/PortageII/bin/python
+	ln -s $PORTAGE/third-party/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
+
+
+#2) Install MGIZA
+
 	cd $PORTAGE/build_third-party
 	git clone https://github.com/moses-smt/mgiza.git
 	cd mgiza/mgizapp
@@ -69,18 +103,18 @@ perl-JSON.noarch  perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch pe
 	make install
 
 
-#2) Install MITLM
-	
+#3) Install MITLM
+
 	cd $PORTAGE/build_third-party
 	git clone https://github.com/mit-nlp/mitlm.git
 	cd mitlm
 	./autogen.sh --prefix=$PORTAGE/third-party/mitlm
 	make -j 4
-	make  install
+	make install
 
 
-#3) Install word2vec
-	
+#4) Install word2vec
+
 	cd $PORTAGE/build_third-party
 	git clone https://github.com/dav/word2vec
 	cd word2vec
@@ -88,26 +122,20 @@ perl-JSON.noarch  perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch pe
 	cp bin/word2vec $PORTAGE/third-party/bin/
 
 
-#4) Install Miniconda2 / Python
+#5)(optional) Install PHAR
 
-	##NOTE if you have a compatible GPU and would like to train a NNJM 
-	#Please read for more details : $PORTAGE/doc/user-manual/TheanoInstallation.html 
+	mkdir $PORTAGE/third-party/phpunit
+	wget -O $PORTAGE/third-party/phpunit/phpunit-4.8.phar 'https://phar.phpunit.de/phpunit-4.phar'
 
-	cd $PORTAGE/build_third-party
-	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
-	sh Miniconda2-latest-Linux-x86_64.sh
-	#(enter)( space to continue...) (accept the license: Yes) (Install in: $PORTAGE/third-party/miniconda2 ) (Add to Path: Yes )
 
-	#Install required Python packages: numpy mock theano
-	# make sure miniconda2/bin is working in  your path ex: by starting a fresh shell.
-	
-	conda install numpy mock theano
+#6)(optional) Install a newer php>=5.6
+# Based on the following instructions which contain more details
+# https://blog.tinned-software.net/update-to-php-5-6-on-centos-6-using-remi-repository/
 
-	#Once you've created a PortageLive server, tell PortageLive where to find
-	#Python 2.7 by creating these two symlinks:
-	ln -s $PORTAGE/third-party/miniconda2/bin/python /opt/PortageII/bin/python
-	ln -s $PORTAGE/third-party/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
-
+	yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+	yum install yum-utils  # <= to get yum-config-manager
+	yum-config-manager --enable remi-php56
+	yum update
 
 
 #Quick PortageII_cur installation check
@@ -124,15 +152,15 @@ echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
 #Needed for passing the full test suite or to be used as a replacement for MITLM
 #
 #Get SRILM 1.71 http://www.speech.sri.com/projects/srilm/download.html
-#Filling  out the form will activate the download.
+#Filling out the form will activate the download.
 #For Noncommercial use only! See link on page for commercial licensing if you fall under that category.
 #
-#copy srilm-1.7.1.tar.gz  into  /tmp
-#	
+#copy srilm-1.7.1.tar.gz into /tmp
+#
 #	mkdir -p /tmp/srilm
 #	cd /tmp/srilm
 #	tar -xzf ../srilm-1.7.1.tar.gz
-#	sed -i -e 's/\# SRILM = \/home\/speech\/stolcke\/project\/srilm\/devel/SRILM = \/tmp\/srilm/' Makefile	
+#	sed -i -e 's/\# SRILM = \/home\/speech\/stolcke\/project\/srilm\/devel/SRILM = \/tmp\/srilm/' Makefile
 #	make -j 4 World
 #	make -j 4 test 	#optional All test should pass (it takes a while to run...)
 #	make -j 4 cleanest

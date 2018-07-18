@@ -1,10 +1,10 @@
 #!/usr/bin/bash
-# PortageII_cur easy install (CentOS 7.x)
+# PortageII_cur easy install (CentOS 6.x)
 # Run all the commands in this file, in order, to install PortageII_cur and all
-# its dependencies on a CentOS 7.x machine (recommended) or execute this file.
+# its dependencies on a CentOS 6.x machine (recommended) or execute this file.
 # You will need internet access for the downloads.
 #
-# Marc Tessier
+# Marc Tessier & Samuel Larkin
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Technologies de l'information et des communications /
@@ -19,23 +19,23 @@
 
 # Below will define the variables required to run PortageII_cur when you login automaticaly.
 ##Add "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
-	
+
 	echo "source $HOME/PortageII_cur/SETUP.bash" >> $HOME/.bashrc
 
 
-#login / logout or source $HOME/PortageII_cur/SETUP.bash for this session.
+#login / logout or source $HOME/PortageII_cur/SETUP.bash for this current session.
 #If you get the error below, it is expected till everything is installed properly.
 ##PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
 ##Error: PortageII requires Java version 1.6 or more recent
 ##Error: PortageII requires Python version 2.7
-	
+
 	source $HOME/PortageII_cur/SETUP.bash
 
 
 #Below will install the basic dependencies required to run PortageII_cur and the third-party build tools.
 ##sudo access will be required for the next few steps if you are not root!
 ###epel-release is needed for libsvm
-	
+
 	sudo yum -y install epel-release
 	sudo yum -y groupinstall 'Development Tools'
 
@@ -55,6 +55,9 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 
 #Step 1 Install MiniConda to get Python
 
+	##NOTE if you have a compatible GPU and would like to train a NNJM
+	#Please read for more details : $PORTAGE/doc/user-manual/TheanoInstallation.html
+
 	cd $PORTAGE/build_third-party
 	wget 'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh'
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
@@ -73,6 +76,11 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	git clone https://github.com/chitamoor/Rester
 	cd Rester
 	pip install -e .
+
+	#Once you've created a PortageLive server, tell PortageLive where to find
+	#Python 2.7 by creating these two symlinks:
+	ln -s $PORTAGE/third-party/miniconda2/bin/python /opt/PortageII/bin/python
+	ln -s $PORTAGE/third-party/miniconda2/lib/libpython2.7.so* /opt/PortageII/lib/
 
 
 #Step 2 Install boost 1.57 with Python installed above ( This step might take a while... )
@@ -137,24 +145,24 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	source $HOME/PortageII_cur/SETUP.bash
 	make -C $PORTAGE/test-suite/unit-testing/check-installation
 
-	echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
 
 
+echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
 
 
 ##OPTIONAL SRILM ( install manually )
-#Needed for running the full test suite or to be used as a replacement for MITLM
+#Needed for passing the full test suite or to be used as a replacement for MITLM
 #
 #Get SRILM 1.71 http://www.speech.sri.com/projects/srilm/download.html
-#Filling out the form will activate the download
+#Filling out the form will activate the download.
 #For Noncommercial use only! See link on page for commercial licensing if you fall under that category.
 #
 #copy srilm-1.7.1.tar.gz into /tmp
-#	
+#
 #	mkdir -p /tmp/srilm
 #	cd /tmp/srilm
 #	tar -xzf ../srilm-1.7.1.tar.gz
-#	sed -i -e 's/\# SRILM = \/home\/speech\/stolcke\/project\/srilm\/devel/SRILM = \/tmp\/srilm/' Makefile	
+#	sed -i -e 's/\# SRILM = \/home\/speech\/stolcke\/project\/srilm\/devel/SRILM = \/tmp\/srilm/' Makefile
 #	make -j 4 World
 #	make -j 4 test 	#optional All test should pass (it takes a while to run...)
 #	make -j 4 cleanest
@@ -162,8 +170,6 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 #	cp lib/i686-m64/* $PORTAGE/third-party/lib/
 #
 #login/logout or re-source your PortageII_cur setup.
-#
-#
 #
 #
 #If you wish, you can run the PortageII_cur unit test suite.
@@ -174,5 +180,3 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 #
 
 #Have fun!
-
-
