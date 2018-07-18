@@ -247,3 +247,10 @@ footer:after {
   opacity: 0;
   transform: translateX(130px);
 }
+
+
+
+.toasted.bubble .action {
+   color: red;
+   font-weight: bold;
+}
