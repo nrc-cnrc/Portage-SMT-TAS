@@ -346,6 +346,12 @@ is called tm-train, as is the default in the framework.
 
       #MIXTM_TRAIN_MIX ?= subtm1
 
+   e. TRAIN_SPARSE now needs to be explicitly defined, because its default is
+      to copy TRAIN_TM, which is no longer defined.  Uncomment and edit the line
+      defining it:
+
+      TRAIN_SPARSE ?= tm-train
+
 3. Variables for the Fine-tuned NNJM
 
    a. Define NNJM_FINE_TUNING_TRAIN_CORPUS to your main in-domain training
