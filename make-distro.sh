@@ -384,6 +384,7 @@ do_checkout() {
 
       r rm -f PORTAGEshared/src/.log.klocwork*
       r rm -f PORTAGEshared/make-distro.sh
+      r rm -f PORTAGEshared/README-dvd.txt
       r mv PORTAGEshared/generic-model PORTAGEshared/generic-model-rm
       r mkdir PORTAGEshared/generic-model
       r mv PORTAGEshared/generic-model-rm/models/{LICENCE,README} PORTAGEshared/generic-model

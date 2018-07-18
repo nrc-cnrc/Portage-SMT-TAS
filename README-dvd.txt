@@ -15,4 +15,4 @@ Expand the tar ball on the DVD to a location of your choice, typically your
 home directory:
    tar xzf /path/to/PortageII-4.0.tar.gz
 
-All the documentation is found inside the tar ball.
+Everything you need is found inside the tar ball.
