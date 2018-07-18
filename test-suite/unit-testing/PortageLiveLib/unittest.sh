@@ -11,7 +11,7 @@ fi
 
 if [[ ! $PHPUNIT_HOME ]]; then
    if [[ -d $PORTAGE/third-party/phpunit ]]; then
-      export PHPUNIT_HOME=$PORTAGE/third-party/phpunit;
+      export PHPUNIT_HOME=$PORTAGE/third-party/phpunit
    else
       echo "Warning: cannot find phpunit. Please download the right version of phpunit for your version of php at https://phpunit.de/ and set PHPUNIT_HOME to the directory where you saved it." >&2
       exit 0
