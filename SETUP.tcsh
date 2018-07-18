@@ -13,10 +13,17 @@
 # =======================================================================
 # USER CONFIGURABLE VARIABLES
 
+set called=($_)
+if ( "$called" != "" ) then  ### called by source
+   set script_fn=`readlink -f $called[2]`
+else                         ### called by direct excution of the script
+   set script_fn=`readlink -f $0`
+endif
 # The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-setenv PORTAGE $HOME/PortageII-cur
+setenv PORTAGE `dirname $script_fn`
+unset script_fn
 
 # Where the generic model is installed. Update this variable if you install the
 # generic model in a non-standard location.
