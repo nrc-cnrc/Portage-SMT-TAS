@@ -68,7 +68,7 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	source $PORTAGE/third-party/conf.d/python.bash
 
 	#Install required Python packages: numpy mock theano
-	yes | conda install numpy mock theano
+	conda install --yes  numpy mock theano
 
 	pip install suds
 

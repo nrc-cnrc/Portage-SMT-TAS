@@ -76,7 +76,7 @@ perl-JSON.noarch perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch per
 
 	#Install required Python packages: numpy mock theano
 
-	yes | conda install numpy mock theano
+	 conda install --yes  numpy mock theano
 
 	pip install suds
 
