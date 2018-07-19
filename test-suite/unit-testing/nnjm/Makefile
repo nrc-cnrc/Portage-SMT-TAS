@@ -48,7 +48,7 @@ out2/log.noal:
 
 ifdef PORTAGE_GENERIC_MODEL
 canoe.ini.mm: models/canoe.ini
-	configtool args:"-nnjm-file $$PORTAGE_GENERIC_MODEL/generic-2.0/nnjm/nnjm.generic-2.0.fr2en.mm/model" $< $@
+	configtool args:"-nnjm-file $$PORTAGE_GENERIC_MODEL/generic-2.1/nnjm/nnjm.generic-2.1.fr2en/model" $< $@
 
 memmap: canoe.ini.mm
 	M=`configtool memmap $<`; echo $$M; if [[ $$M < 10 ]]; then echo "configtool memmap is not including NNJM: got $$M, expected 200+"; exit 1; fi
