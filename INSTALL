@@ -20,19 +20,8 @@ keep it simple, but that's not always easy...
 This section describes installing PortageII itself. Please scroll down to the
 External dependencies section below for instructions on installing those.
 
-Copy the full contents of the CD to a directory of your choice, say
-$HOME/PortageII-cur
-   cp -prd /CDlocation $HOME/PortageII-cur
-or
-   rsync -av /CDlocation $HOME/PortageII-cur
-
-Some users have reported needing to run "chmod +w" on some files or directories
-after the cp or rsync above.  Running "chmod -R +w $HOME/PortageII-cur" might
-solve this problem.
-
-If you chose a location other than $HOME/PortageII-cur, edit SETUP.bash and
-SETUP.tcsh and change the value of the PORTAGE variable to the actual location
-where your installed PortageII, and adjust the next steps below accordingly.
+Expand the tar ball to a to a directory of your choice, say $HOME/PortageII-cur
+   tar xzf /path/to/PortageII-cur-bin.tar.gz
 
 Add $HOME/PortageII-cur/{bin,lib} to the appropriate environment variables by
 sourcing $HOME/PortageII-cur/SETUP.bash or SETUP.tcsh (depending on your
