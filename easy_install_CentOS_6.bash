@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-# PortageII_cur easy install (CentOS 6.x)
-# Run all the commands in this file, in order, to install PortageII_cur and all
+# PortageII-cur easy install (CentOS 6.x)
+# Run all the commands in this file, in order, to install PortageII-cur and all
 # its dependencies on a CentOS 6.x machine (recommended) or execute this file.
 # You will need internet access for the downloads.
 #
@@ -10,29 +10,29 @@
 # Technologies de l'information et des communications /
 # Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2016, Her Majesty in Right of Canada
+# Copyright 2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2018, Her Majesty in Right of Canada
 
 
-#Before you can start, you will need to Copy and/or Extract  PortageII_cur  into your $HOME.
-[ ! -f "$HOME/PortageII_cur/SETUP.bash" ] && echo "Error: $HOME/PortageII_cur/SETUP.bash does not exists. Copy or Extract PortageII_cur into $HOME" && exit
+#Before you can start, you will need to Copy and/or Extract  PortageII-cur  into your $HOME.
+[ ! -f "$HOME/PortageII-cur/SETUP.bash" ] && echo "Error: $HOME/PortageII-cur/SETUP.bash does not exists. Copy or Extract PortageII-cur into $HOME" && exit
 
-# Below will define the variables required to run PortageII_cur when you login automaticaly.
-##Add "source $HOME/PortageII_cur/SETUP.bash" somewhere in your $HOME/.bashrc.
+# Below will define the variables required to run PortageII-cur when you login automaticaly.
+##Add "source $HOME/PortageII-cur/SETUP.bash" somewhere in your $HOME/.bashrc.
 
-	echo "source $HOME/PortageII_cur/SETUP.bash" >> $HOME/.bashrc
+	echo "source $HOME/PortageII-cur/SETUP.bash" >> $HOME/.bashrc
 
 
-#login / logout or source $HOME/PortageII_cur/SETUP.bash for this current session.
+#login / logout or source $HOME/PortageII-cur/SETUP.bash for this current session.
 #If you get the error below, it is expected till everything is installed properly.
-##PortageII_cur, NRC-CNRC, (c) 2004 - 2016, Her Majesty in Right of Canada
+##PortageII-cur, NRC-CNRC, (c) 2004 - 2018, Her Majesty in Right of Canada
 ##Error: PortageII requires Java version 1.6 or more recent
 ##Error: PortageII requires Python version 2.7
 
-	source $HOME/PortageII_cur/SETUP.bash
+	source $HOME/PortageII-cur/SETUP.bash
 
 
-#Below will install the basic dependencies required to run PortageII_cur and the third-party build tools.
+#Below will install the basic dependencies required to run PortageII-cur and the third-party build tools.
 ##sudo access will be required for the next few steps if you are not root!
 ###epel-release is needed for libsvm
 
@@ -63,19 +63,24 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 	sh Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2
 
 	# Activate Python
+        # make sure miniconda2/bin is working in your path ex: by starting a fresh shell.
+
 	source $PORTAGE/third-party/conf.d/python.bash
-	conda install numpy mock theano
+
+	#Install required Python packages: numpy mock theano
+	yes | conda install numpy mock theano
 
 	pip install suds
 
 #Step 1a install rester for Portage's unittests
 
 	pip install git+https://github.com/chitamoor/Rester.git@master
+
 #OR, if pip install fails for you, you can try the following commands:
-	cd $PORTAGE/build_third-party
-	git clone https://github.com/chitamoor/Rester
-	cd Rester
-	pip install -e .
+	#cd $PORTAGE/build_third-party
+	#git clone https://github.com/chitamoor/Rester
+	#cd Rester
+	#pip install -e .
 
 	#Once you've created a PortageLive server, tell PortageLive where to find
 	#Python 2.7 by creating these two symlinks:
@@ -134,15 +139,15 @@ perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-
 # Based on the following instructions which contain more details
 # https://blog.tinned-software.net/update-to-php-5-6-on-centos-6-using-remi-repository/
 
-	yum install http://rpms.remirepo.net/enterprise/remi-release-6.rpm
-	yum install yum-utils  # <= to get yum-config-manager
-	yum-config-manager --enable remi-php56
-	yum update
+	sudo yum -y  install  http://rpms.remirepo.net/enterprise/remi-release-6.rpm
+	sudo yum -y  install yum-utils  # <= to get yum-config-manager
+	sudo yum-config-manager --enable remi-php56
+	sudo yum update -y 
 
 
-#Quick PortageII_cur installation check
+#Quick PortageII-cur installation check
 
-	source $HOME/PortageII_cur/SETUP.bash
+	source $HOME/PortageII-cur/SETUP.bash
 	make -C $PORTAGE/test-suite/unit-testing/check-installation
 
 
@@ -169,10 +174,10 @@ echo "Go try out the Tutorial @--> $PORTAGE/docs/tutorial.pdf"
 #	cp bin/i686-m64/* $PORTAGE/third-party/bin/
 #	cp lib/i686-m64/* $PORTAGE/third-party/lib/
 #
-#login/logout or re-source your PortageII_cur setup.
+#login/logout or re-source your PortageII-cur setup.
 #
 #
-#If you wish, you can run the PortageII_cur unit test suite.
+#If you wish, you can run the PortageII-cur unit test suite.
 #You should get the massage once completed: PASSED all test suites
 #
 #	cd $PORTAGE/test-suite/unit-testing/
