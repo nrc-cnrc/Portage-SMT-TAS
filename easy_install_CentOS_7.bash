@@ -48,7 +48,7 @@
 
 	sudo yum install -y  java-1.6.0-openjdk.x86_64 openssl-devel zlib-devel bzip2-devel icu.x86_64 libicu.i686 libicu-devel.x86_64 \
 sqlite-devel readline-devel tk-devel tkinter dl ncurses-devel python-devel boost boost-* \
-bc.x86_64 wget.x86_64 libsvm.x86_64 cmake.x86_64 time.x86_64 vim-common wget \
+bc.x86_64 wget.x86_64 libsvm.x86_64 cmake.x86_64 time.x86_64 vim-common wget jq \
 perl-JSON.noarch perl-XML-Twig.noarch perl-XML-XPath.noarch perl-YAML.noarch perl-Time-HiRes.x86_64 perl-Env.noarch perl-Time-Piece.x86_64
 
 

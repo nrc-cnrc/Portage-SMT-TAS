@@ -41,7 +41,7 @@
 
 	sudo yum -y install  zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel lsof \
 readline-devel tk-devel libicu-devel vim-common dl time libffi wget bc java-1.6.0-openjdk icu libicu cmake libsvm \
-perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-Time-Piece
+perl-CPAN perl-JSON perl-XML-Twig perl-XML-XPath perl-YAML perl-Time-HiRes perl-Time-Piece jq
 
 
 #Install third-party tools inside $PORTAGE/third-party/
