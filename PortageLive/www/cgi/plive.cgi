@@ -503,6 +503,7 @@ sub processText {
                  $newline,
                  $use_xtags,
                  $useConfidenceEstimation);
+              utf8::encode($translation);
               translationTextOutput($source_text, $work_dir, split(/\n/, $translation));
            }
            or do {
