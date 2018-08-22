@@ -498,7 +498,9 @@ sub processText {
               my $useConfidenceEstimation = defined(param('useConfidenceEstimation'));
               my $newline = param('newline') || "p";
 
-              my $translation = $services->translate($source_text,
+              my $source_text_decoded = $source_text;
+              utf8::decode($source_text_decoded);
+              my $translation = $services->translate($source_text_decoded,
                  $context . '/' . $document_id,
                  $newline,
                  $use_xtags,
