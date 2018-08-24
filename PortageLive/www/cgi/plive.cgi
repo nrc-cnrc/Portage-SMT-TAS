@@ -88,6 +88,9 @@ Michel Simard & Samuel Larkin
 use strict;
 use warnings;
 
+# Require to encode/decode before calls to SOAP::Lite.
+use Encode qw(decode_utf8 encode_utf8);
+
 use plive_lib;
 
 ## --------------------- USER CONFIGURATION ------------------------------
@@ -211,11 +214,12 @@ else {
          }
          my $extra = '';
 
-         my $translation = $services->incrAddSentence($context,
-            $document_id,
-            $source_segment,
-            $target_segment,
-            $extra);
+         my $translation = $services->incrAddSentence(
+            decode_utf8($context),
+            decode_utf8($document_id),
+            decode_utf8($source_segment),
+            decode_utf8($target_segment),
+            decode_utf8($extra));
          # Sentence pair was added, let's clear the form.
          param(-name=>'incr_document_id', -values=>'');
          param('incr_source_segment', '');
