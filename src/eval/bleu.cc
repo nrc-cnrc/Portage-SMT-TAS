@@ -395,7 +395,7 @@ double BLEUstats::score(Uint maxN, double epsilon) const
          result += log(epsilon) / N;
       }
    }
-   else if (smooth == 3) // score = sum_{i=1}N {i-BLEU(x,y) / 2^{N-i+1}
+   else if (smooth == 3) // score = sum_{i=1}N {i-BLEU(x,y) / 2^{N-i+1}}
    {
       double result1 = 0;
 
