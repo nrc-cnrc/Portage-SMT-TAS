@@ -502,10 +502,12 @@ sub processText {
               my $useConfidenceEstimation = defined(param('useConfidenceEstimation'));
               my $newline = param('newline') || "p";
 
-              my $source_text_decoded = $source_text;
-              utf8::decode($source_text_decoded);
-              my $translation = $services->translate($source_text_decoded,
-                 $context . '/' . $document_id,
+              my $translation = $services->translate(
+                 decode_utf8($source_text),
+                 # TODO: when making the tempdir, normalizeName removes any characters that are not [-_.+a-zA-Z0-9].
+                 # All string should be properly encoded/decoded for good
+                 # measure before invoking translate().
+                 decode_utf8($context . '/' . $document_id),
                  $newline,
                  $use_xtags,
                  $useConfidenceEstimation);
