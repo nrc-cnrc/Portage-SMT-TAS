@@ -371,7 +371,7 @@ sub load {
   my $tmpdir = $this->{tmp_dir};
   $filename .= ".cem" unless $filename =~ /\.cem$/;
 #  system "unzip -o -d $tmpdir ${filename}";
-  system "tar --extract --gzip --directory ${tmpdir} --file ${filename}";
+  system "tar --extract --gzip --directory \"${tmpdir}\" --file \"${filename}\"";
 
   $this->readDesc($this->{model_file});
 
@@ -401,7 +401,7 @@ sub save {
   $this->writeDesc($this->{model_file});
 
 #  system "zip -j ${filename} ${tmpdir}/model ${tmpdir}/norm ${tmpdir}/svm";
-  system "tar --create --gzip --directory ${tmpdir} --file ${filename} model norm svm";
+  system "tar --create --gzip --directory \"${tmpdir}\" --file \"${filename}\" model norm svm";
 }
 
 =pod

@@ -89,13 +89,13 @@ sub train {
     my $options = "-s 4 -h 0"; # -q";
 
     if ($kfold) {
-        my $cmd = "svm-train  -v ${kfold} ${options} ${datafile}";
+        my $cmd = "svm-train  -v ${kfold} ${options} \"${datafile}\"";
         debug("Calling: $cmd\n");
 
         system($cmd) == 0 
             or die sprintf("Error: Command \"%s\" failed: $?", $cmd);
     }
-    my $cmd = "svm-train ${options} ${datafile} ${model} 1>&2"; # because svm-predict writes verbose-style output to stdout";
+    my $cmd = "svm-train ${options} \"${datafile}\" \"${model}\" 1>&2"; # because svm-predict writes verbose-style output to stdout";
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 
@@ -122,7 +122,7 @@ sub predict {
     close $outfh;
 
     my $options = "";
-    my $cmd = "svm-predict ${options} ${datafile} ${model} ${outfile} 1>&2"; # because svm-predict writes verbose-style output to stdout
+    my $cmd = "svm-predict ${options} \"${datafile}\" \"${model}\" \"${outfile}\" 1>&2"; # because svm-predict writes verbose-style output to stdout
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 

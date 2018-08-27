@@ -409,7 +409,7 @@ TRANS:{
    if ( $n > 1 ) {
       $decoder = "canoe-parallel.sh -n $n canoe";
    }
-   call("$decoder -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
+   call("$decoder -trace -ffvals -f \"${canoe_ini}\" < \"${q_dec}\" > \"${p_raw}\"");
    call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
    # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
    plugin("postdecode", $tgt, $p_dec, $p_tok);
@@ -431,10 +431,10 @@ CE:{
       $ce_opt .= " -k=$k" if $k;
       $ce_opt .= " -norm=$norm" if $norm;
 
-      call("ce_train.pl ${ce_opt} ${ce_model} \"${dir}\"");
+      call("ce_train.pl ${ce_opt} \"${ce_model}\" \"${dir}\"");
    } else {
       $ce_opt .= " -stats" if $test;
-      call("ce.pl ${ce_opt} ${ce_model} \"${dir}\"");
+      call("ce.pl ${ce_opt} \"${ce_model}\" \"${dir}\"");
    }
 }
 
@@ -447,7 +447,7 @@ OUT:{
          call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} -score ${fopt} replace \"$dir\"");
       } else {
          my $ce_output = $out ? "> \"$out\"" : "";
-         call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
+         call("paste \"${dir}/pr.ce\" \"${P_txt}\" \"${ce_output}\"");
       }
    }
 }
@@ -495,7 +495,7 @@ sub plogCreate {
       my @plog_opt = qw(-create);
       push @plog_opt, "-verbose" if $verbose;
       push @plog_opt, "-comment=\"$comment\"" if defined $comment;
-      my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${job_name}\"";
+      my $cmd = "plog.pl " . join(" ", @plog_opt) . " \"${job_name}\"";
       $plog_file = callOutput($cmd);
    }
     
