@@ -1,11 +1,11 @@
 #!/bin/bash
-# @file run-test.sh
-# @brief
+# @file madamira-test.sh
+# @brief Run the MADAMIRA part of this test suite
 #
 # @author Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2017, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2017, Her Majesty in Right of Canada
@@ -20,7 +20,7 @@ readonly RESET='\e[00m'
 
 ERROR_COUNT=0
 
-function testcaseDescritption() {
+function testcaseDescription() {
    echo -e "${BOLD}Testcase:${RESET} $@" >&2
 }
 
@@ -43,7 +43,7 @@ which $MADAMIRA_PY &> /dev/null \
 
 
 function stop_madamira_server() {
-   testcaseDescritption "Stopping MADAMIRA."
+   testcaseDescription "Stopping MADAMIRA."
    PID=`pgrep -f MADAMIRA`
    [[ -z $PID ]] \
    || kill $PID &> /dev/null \
@@ -53,7 +53,7 @@ function stop_madamira_server() {
 
 function basic_usage() {
    set -o errexit
-   testcaseDescritption "Basic usage with MyD3 scheme."
+   testcaseDescription "Basic usage with MyD3 scheme."
    ridbom.sh \
       < $MADAMIRA_HOME/samples/raw/SampleTextInput.txt \
    | $MADAMIRA_PY \
@@ -66,7 +66,7 @@ function basic_usage() {
 
 function invalid_scheme() {
    set -o errexit
-   testcaseDescritption "Using invalid scheme."
+   testcaseDescription "Using invalid scheme."
    ridbom.sh \
       < $MADAMIRA_HOME/samples/raw/SampleTextInput.txt \
    | $MADAMIRA_PY \
@@ -79,7 +79,7 @@ function invalid_scheme() {
 
 function ascii() {
    set -o errexit
-   testcaseDescritption "Using ascii sentence"
+   testcaseDescription "Using ascii sentence"
    #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "La tour Eiffel"
    #__ascii__La __ascii__tour __ascii__Eiffel
 
@@ -94,7 +94,7 @@ function ascii() {
 
 function ascii_hashtag() {
    set -o errexit
-   testcaseDescritption "ascii hashtag: Mark non Arabic words."
+   testcaseDescription "ascii hashtag: Mark non Arabic words."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -n <<< "#La_tour_Eiffel"
    # __ascii__#La_tour_Eiffel
    $MADAMIRA_PY \
@@ -105,7 +105,7 @@ function ascii_hashtag() {
    || error_message "Invalid ascii hashtag output (1)"
 
 
-   testcaseDescritption "ascii hashtag: xmlishify Arabic hashtags."
+   testcaseDescription "ascii hashtag: xmlishify Arabic hashtags."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m <<< "#La_tour_Eiffel"
    # <hashtag> La_tour_Eiffel </hashtag>
    $MADAMIRA_PY \
@@ -116,7 +116,7 @@ function ascii_hashtag() {
    || error_message "Invalid ascii hashtag output (2)"
 
 
-   testcaseDescritption "ascii hashtag: xmlishify Arabic hashtags and Mark non Arabic words."
+   testcaseDescription "ascii hashtag: xmlishify Arabic hashtags and Mark non Arabic words."
    # /opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "#La_tour_Eiffel"
    # __ascii__#La_tour_Eiffel
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m -n <<< "#La_tour_Eiffel"
@@ -133,7 +133,7 @@ function ascii_hashtag() {
 function arabic_hashtag() {
    set -o errexit
 
-   testcaseDescritption "Arabic hashtag: vanilla."
+   testcaseDescription "Arabic hashtag: vanilla."
    #~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar <<< "#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ"
    # # dyslr _ b+ sbb
    $MADAMIRA_PY \
@@ -143,7 +143,7 @@ function arabic_hashtag() {
    || error_message "Invalid Arabic hashtag output (0)"
 
 
-   testcaseDescritption "Arabic hashtag: Mark non Arabic words."
+   testcaseDescription "Arabic hashtag: Mark non Arabic words."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -n <<< "#ديسلر_بسبب"
    # # dyslr _ b+ sbb
    $MADAMIRA_PY \
@@ -154,7 +154,7 @@ function arabic_hashtag() {
    || error_message "Invalid Arabic hashtag output (1)"
 
 
-   testcaseDescritption "Arabic hashtag: xmlishify hashtags."
+   testcaseDescription "Arabic hashtag: xmlishify hashtags."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m <<< "#ديسلر_بسبب"
    # <hashtag> dyslr b+ </hashtag> sbb
    $MADAMIRA_PY \
@@ -164,7 +164,7 @@ function arabic_hashtag() {
    | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
    || error_message "Invalid Arabic hashtag output (2)"
 
-   testcaseDescritption "Arabic hashtag: Mark non Arabic words and xmlishify hashtags."
+   testcaseDescription "Arabic hashtag: Mark non Arabic words and xmlishify hashtags."
    #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin <<< "#ديسلر_بسبب"
    #<hashtag> dyslr b+ </hashtag> sbb
    $MADAMIRA_PY \
@@ -178,7 +178,7 @@ function arabic_hashtag() {
 
 function beginWithWaw() {
    set -o errexit
-   testcaseDescritption "Handling Waws at the beginning of a sentence."
+   testcaseDescription "Handling Waws at the beginning of a sentence."
    # Examples from:
    # /home/corpora/arabic-gigaword-v5/data/aaw_arb/aaw_arb_201012.gz
    $MADAMIRA_PY \
@@ -199,7 +199,7 @@ function beginWithWaw() {
 
 function noConfig() {
    set -o errexit
-   testcaseDescritption "No specifying a configuration."
+   testcaseDescription "No specifying a configuration."
    $MADAMIRA_PY \
       <<< 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
    | grep 'اميركا , و+ ما زال البحث جاريا بين هذه' --quiet \

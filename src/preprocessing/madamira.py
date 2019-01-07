@@ -4,7 +4,7 @@
 # @file madamira.py
 # @brief Wrapper for MADAMIRA with OSPL input/output
 #
-# @author Samuel Larking
+# @author Samuel Larkin
 #
 # Note: requires xmltodict - run "pip install xmltodict" to install
 
