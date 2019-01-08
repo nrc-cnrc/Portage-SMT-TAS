@@ -186,14 +186,14 @@ function beginWithWaw() {
       --config $MADAMIRA_HOME/samples/sampleConfigFile.xml \
       <<< 'ﻮﺑﺮﻴﻃﺎﻨﻳﺍ، ﻭﺄﻗﺭ ﺐﺧﺭﻮﺟ ﻁﺭﺪﻴﻧ ﻒﻘﻃ ﻢﻧ ﺎﻠﻴﻤﻧ..' \
    | grep 'بريطانيا , و+ اقر ب+ خروج طردين فقط من اليمن . .' --quiet \
-   || error_message "We should have remove the Waw at the beginning of the sentence."
+   || error_message "We should have removed the Waw at the beginning of the sentence."
 
    $MADAMIRA_PY \
       -w \
       --config $MADAMIRA_HOME/samples/sampleConfigFile.xml \
       <<< 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
    | grep 'اميركا , و+ ما زال البحث جاريا بين هذه' --quiet \
-   || error_message "We should have remove the Waw at the beginning of the sentence."
+   || error_message "We should have removed the Waw at the beginning of the sentence."
 }
 
 
@@ -228,8 +228,8 @@ noConfig
 stop_madamira_server
 
 if [[ $ERROR_COUNT -gt 0 ]]; then
-   error_message "Testsuite failed."
+   error_message "Testsuite failed. ($0)"
    exit 1
 else
-   echo "All tests PASSED."
+   echo "All tests PASSED. ($0)"
 fi

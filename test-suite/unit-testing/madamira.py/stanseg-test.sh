@@ -18,6 +18,8 @@ readonly BOLD='\e[1m'
 readonly RESET='\e[00m'
 
 ERROR_COUNT=0
+VERBOSE="cat" # Quiet mode
+VERBOSE="tee /dev/stderr" # Verbose mode
 
 function testcaseDescription() {
    echo -e "${BOLD}Testcase:${RESET} $@" >&2
@@ -28,7 +30,13 @@ function error_message() {
    ERROR_COUNT=$((ERROR_COUNT + 1))
 }
 
-STANSEG_PY=${STANSEG_PY:-stanseg}
+if [[ ! -d $STANFORD_SEGMENTER_HOME ]]; then
+   echo -e "${YELLOW}Skipping TestSuite since you don't have the Stanford Segmenter installed${RESET}" >&2
+   # It is not an error to skip stanseg.py's testsuite.
+   exit 0
+fi
+
+STANSEG_PY=${STANSEG_PY:-stanseg.py}
 which $STANSEG_PY &> /dev/null \
 || error_message "Can't find stanseg.py"
 
@@ -42,6 +50,7 @@ function ascii() {
    $STANSEG_PY \
       -n -m \
       <<< 'La tour Eiffel' \
+   | $VERBOSE \
    | grep '__ascii__La __ascii__tour __ascii__Eiffel' --quiet \
    || error_message "Invalid ascii output"
 }
@@ -55,6 +64,7 @@ function ascii_hashtag() {
    $STANSEG_PY \
       -n \
       <<< '#La_tour_Eiffel' \
+   | $VERBOSE \
    | grep '__ascii__#La_tour_Eiffel' --quiet \
    || error_message "Invalid ascii hashtag output (1)"
 
@@ -65,6 +75,7 @@ function ascii_hashtag() {
    $STANSEG_PY \
       -m \
       <<< '#La_tour_Eiffel' \
+   | $VERBOSE \
    | grep '<hashtag> La tour Eiffel </hashtag>' --quiet \
    || error_message "Invalid ascii hashtag output (2)"
 
@@ -77,6 +88,7 @@ function ascii_hashtag() {
    $STANSEG_PY \
       -n -m \
       <<< '#La_tour_Eiffel' \
+   | $VERBOSE \
    | grep '__ascii__#La_tour_Eiffel' --quiet \
    || error_message "Invalid ascii hashtag output (3)"
 }
@@ -90,6 +102,7 @@ function arabic_hashtag() {
    # # dyslr _ b+ sbb
    $STANSEG_PY \
       <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | $VERBOSE \
    | grep '# ديسلر ـ ب+ سبب' --quiet \
    || error_message "Invalid Arabic hashtag output (0)"
 
@@ -100,6 +113,7 @@ function arabic_hashtag() {
    $STANSEG_PY \
       -n \
       <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | $VERBOSE \
    | grep '# ديسلر ـ ب+ سبب' --quiet \
    || error_message "Invalid Arabic hashtag output (1)"
 
@@ -110,6 +124,7 @@ function arabic_hashtag() {
    $STANSEG_PY \
       -m \
       <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | $VERBOSE \
    | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
    || error_message "Invalid Arabic hashtag output (2)"
 
@@ -119,6 +134,7 @@ function arabic_hashtag() {
    $STANSEG_PY \
       -n -m \
       <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | $VERBOSE \
    | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
    || error_message "Invalid Arabic hashtag output (3)"
 }
@@ -133,13 +149,13 @@ function beginWithWaw() {
       -w \
       <<< 'ﻮﺑﺮﻴﻃﺎﻨﻳﺍ، ﻭﺄﻗﺭ ﺐﺧﺭﻮﺟ ﻁﺭﺪﻴﻧ ﻒﻘﻃ ﻢﻧ ﺎﻠﻴﻤﻧ..' \
    | grep 'بريطانيا , و+ اقر ب+ خروج طردين فقط من اليمن . .' --quiet \
-   || error_message "We should have remove the Waw at the beginning of the sentence."
+   || error_message "We should have removed the Waw at the beginning of the sentence."
 
    $STANSEG_PY \
       -w \
       <<< 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
    | grep 'اميركا , و+ ما زال البحث جاريا بين هذه' --quiet \
-   || error_message "We should have remove the Waw at the beginning of the sentence."
+   || error_message "We should have removed the Waw at the beginning of the sentence."
 }
 
 ascii
@@ -148,8 +164,8 @@ arabic_hashtag
 beginWithWaw
 
 if [[ $ERROR_COUNT -gt 0 ]]; then
-   error_message "Testsuite failed."
+   error_message "Testsuite failed. ($0)"
    exit 1
 else
-   echo "All tests PASSED."
+   echo "All tests PASSED. ($0)"
 fi
