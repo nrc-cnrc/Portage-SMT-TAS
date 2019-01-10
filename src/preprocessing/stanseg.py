@@ -11,8 +11,11 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import os
 import sys
+import codecs
+import re
 from argparse import ArgumentParser
 from portage_utils import *
+from subprocess import *
 
 def get_args():
    """Command line argument processing."""
@@ -31,9 +34,6 @@ def get_args():
    parser.add_argument("-v", "--verbose", action=VerboseAction)
    parser.add_argument("-d", "--debug", action=DebugAction)
 
-   parser.add_argument("-n", dest="markNonArabic", action='store_true', default=False,
-                       help="Mark non Arabic words. [%(default)s]")
-
    parser.add_argument("-m", dest="xmlishifyHashtags", action='store_true', default=False,
                        help="xmlishify hashtags. [%(default)s]")
 
@@ -51,13 +51,63 @@ def get_args():
 
    return cmd_args
 
+class RequestPostprocessor():
+   def __init__(self, removeWaw=False, xmlishifyHashtags=False):
+      self.removeWaw = removeWaw
+      self.xmlishifyHashtags = xmlishifyHashtags
+
+   def _escapeXMLChars(self, sentence):
+      # < hashtag > -> <hashtag> and </ hashtag > -> </hashtag> since Stan Seg toks them
+      sentence = re.sub("(^| )<(/|) hashtag >($| )", "\g<1><\g<2>hashtag>\g<3>", sentence)
+      tokens = sentence.split()
+      for i, tok in enumerate(tokens):
+         if tok not in ("<hashtag>", "</hashtag>"):
+            tok = re.sub("&(?![a-zA-Z]+;)","&amp;",tok)
+            tok = re.sub("<","&lt;",tok)
+            tok = re.sub(">","&gt;",tok)
+            tokens[i] = tok
+      return ' '.join(tokens)
+
+   def _removeWaw(self, sentence):
+      return re.sub(u'^و\+ ', '', sentence)
+
+   def __call__(self, sentence):
+      if self.xmlishifyHashtags:
+         sentence = self._escapeXMLChars(sentence)
+      if self.removeWaw:
+         sentence = self._removeWaw(sentence)
+      return sentence
+
+def run_prepro(infile, cmd_args):
+   pre_cmd = "stanseg-pre.py"
+   if cmd_args.xmlishifyHashtags:
+      pre_cmd += " -m"
+   p = Popen(pre_cmd, shell=True, stdin=infile, stdout=PIPE).stdout
+   return p
+
+def run_stan_seg(infile):
+   stanseg_home = os.environ.get('STANFORD_SEGMENTER_HOME', None)
+   stanseg_classifier = "arabic-segmenter-atb+bn+arztrain.ser.gz"
+   stanseg_cmd = "java -mx16g " + \
+      "edu.stanford.nlp.international.arabic.process.ArabicSegmenter " + \
+      "-loadClassifier " + stanseg_home + "/data/" + stanseg_classifier + \
+      " -prefixMarker + -suffixMarker + -domain arz -nthreads 1"
+   p = Popen(stanseg_cmd, shell=True, stdin=infile, stdout=PIPE).stdout
+   #print(p)
+   #print(p[0])
+   return p
 
 def main():
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
 
    cmd_args = get_args()
 
-   cmd_args.outfile.write(cmd_args.infile.read())
+   p1 = run_prepro(cmd_args.infile, cmd_args)
+   p2 = codecs.getreader('utf-8')(run_stan_seg(p1))
+   outfile = codecs.getwriter('utf-8')(cmd_args.outfile)
+   post = RequestPostprocessor(cmd_args.removeWaw, cmd_args.xmlishifyHashtags)
+   for line in p2:
+      print(post(line.rstrip()), file=outfile)
 
 
 if __name__ == '__main__':
