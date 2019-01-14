@@ -8,8 +8,8 @@
 # Traitement multilingue de textes / Multilingual Text Processing
 # Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2017, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2017, Her Majesty in Right of Canada
+# Copyright 2018, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2018, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
 BIN=`dirname $0`
