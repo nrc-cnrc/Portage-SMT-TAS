@@ -78,14 +78,31 @@ class RequestPostprocessor():
          sentence = self._removeWaw(sentence)
       return sentence
 
-def run_prepro(infile, cmd_args):
+def run_normalize(infile):
+   """
+   Pass the input through normalize-unicode.pl ar since the Stanford Segmenter
+   does not recognize characters in their presentation form, only in their
+   canonical form.
+   """
+   norm_cmd = "normalize-unicode.pl ar"
+   p = Popen(norm_cmd, shell=True, stdin=infile, stdout=PIPE).stdout
+   return p
+
+def run_prepro(infile, xmlishifyHashtags):
+   """
+   Run the preprocessing in a separate script before calling the stanford
+   segmenter itself. The code might have been placed in a child process in this
+   script by using os.fork(), but writing a separate script is simpler (and
+   lazier, I know...)
+   """
    pre_cmd = "stanseg-pre.py"
-   if cmd_args.xmlishifyHashtags:
+   if xmlishifyHashtags:
       pre_cmd += " -m"
    p = Popen(pre_cmd, shell=True, stdin=infile, stdout=PIPE).stdout
    return p
 
 def run_stan_seg(infile):
+   """Run the Stanford Segmenter itself"""
    stanseg_home = os.environ.get('STANFORD_SEGMENTER_HOME', None)
    stanseg_classifier = "arabic-segmenter-atb+bn+arztrain.ser.gz"
    stanseg_cmd = "java -mx16g " + \
@@ -102,11 +119,14 @@ def main():
 
    cmd_args = get_args()
 
-   p1 = run_prepro(cmd_args.infile, cmd_args)
-   p2 = codecs.getreader('utf-8')(run_stan_seg(p1))
+   pipe1 = run_normalize(cmd_args.infile)
+   pipe2 = run_prepro(pipe1, cmd_args.xmlishifyHashtags)
+   pipe3 = codecs.getreader('utf-8')(run_stan_seg(pipe2))
+
    outfile = codecs.getwriter('utf-8')(cmd_args.outfile)
+
    post = RequestPostprocessor(cmd_args.removeWaw, cmd_args.xmlishifyHashtags)
-   for line in p2:
+   for line in pipe3:
       print(post(line.rstrip()), file=outfile)
 
 

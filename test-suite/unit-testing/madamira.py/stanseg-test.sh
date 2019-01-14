@@ -40,6 +40,10 @@ STANSEG_PY=${STANSEG_PY:-stanseg.py}
 which $STANSEG_PY &> /dev/null \
 || error_message "Can't find stanseg.py"
 
+# Normalize text before calling stanseg.py - for when it didn't normalize internally:
+#NORMALIZE_CMD="normalize-unicode.pl ar"
+# Assume stanseg.py does its own normalization:
+NORMALIZE_CMD=cat
 
 function ascii() {
    set -o errexit
