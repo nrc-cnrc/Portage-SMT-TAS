@@ -45,14 +45,25 @@ function ascii() {
    set -o errexit
    testcaseDescription "Using ascii sentence"
    #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "La tour Eiffel"
-   #__ascii__La __ascii__tour __ascii__Eiffel
+   #La tour Eiffel
 
    $STANSEG_PY \
-      -n -m \
-      <<< 'La tour Eiffel' \
+      <<< 'La tour Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep '__ascii__La __ascii__tour __ascii__Eiffel' --quiet \
-   || error_message "Invalid ascii output"
+   | grep 'La tour Eiffel a < b > c R & D' --quiet \
+   || error_message "Invalid ascii output (1)"
+
+
+   testcaseDescription "Using ascii sentence with xml markup"
+   #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "La tour Eiffel"
+   #La tour Eiffel
+
+   $STANSEG_PY \
+      -m \
+      <<< 'La tour Eiffel a<b>c R&D' \
+   | $VERBOSE \
+   | grep 'La tour Eiffel a &lt; b &gt; c R &amp; D' --quiet \
+   || error_message "Invalid ascii output (2)"
 }
 
 
@@ -60,12 +71,11 @@ function ascii_hashtag() {
    set -o errexit
    testcaseDescription "ascii hashtag: Mark non Arabic words."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -n <<< "#La_tour_Eiffel"
-   # __ascii__#La_tour_Eiffel
+   # #La_tour_Eiffel
    $STANSEG_PY \
-      -n \
-      <<< '#La_tour_Eiffel' \
+      <<< '#La_tour_Eiffel  a<b>c R&D ' \
    | $VERBOSE \
-   | grep '__ascii__#La_tour_Eiffel' --quiet \
+   | grep '# La tour Eiffel a < b > c R & D' --quiet \
    || error_message "Invalid ascii hashtag output (1)"
 
 
@@ -74,23 +84,10 @@ function ascii_hashtag() {
    # <hashtag> La_tour_Eiffel </hashtag>
    $STANSEG_PY \
       -m \
-      <<< '#La_tour_Eiffel' \
+      <<< '#La_tour_Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep '<hashtag> La tour Eiffel </hashtag>' --quiet \
+   | grep '<hashtag> La tour Eiffel </hashtag> a &lt; b &gt; c R &amp; D' --quiet \
    || error_message "Invalid ascii hashtag output (2)"
-
-
-   testcaseDescription "ascii hashtag: xmlishify Arabic hashtags and Mark non Arabic words."
-   # /opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "#La_tour_Eiffel"
-   # __ascii__#La_tour_Eiffel
-   # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m -n <<< "#La_tour_Eiffel"
-   # __ascii__#La_tour_Eiffel
-   $STANSEG_PY \
-      -n -m \
-      <<< '#La_tour_Eiffel' \
-   | $VERBOSE \
-   | grep '__ascii__#La_tour_Eiffel' --quiet \
-   || error_message "Invalid ascii hashtag output (3)"
 }
 
 
@@ -100,43 +97,23 @@ function arabic_hashtag() {
    testcaseDescription "Arabic hashtag: vanilla."
    #~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar <<< "#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ"
    # # dyslr _ b+ sbb
-   $STANSEG_PY \
-      <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   echo '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | normalize-unicode.pl ar \
+   | $STANSEG_PY \
    | $VERBOSE \
-   | grep '# ديسلر ـ ب+ سبب' --quiet \
+   | grep '# ديسلربسبب' --quiet \
    || error_message "Invalid Arabic hashtag output (0)"
-
-
-   testcaseDescription "Arabic hashtag: Mark non Arabic words."
-   # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -n <<< "#ديسلر_بسبب"
-   # # dyslr _ b+ sbb
-   $STANSEG_PY \
-      -n \
-      <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
-   | $VERBOSE \
-   | grep '# ديسلر ـ ب+ سبب' --quiet \
-   || error_message "Invalid Arabic hashtag output (1)"
-
 
    testcaseDescription "Arabic hashtag: xmlishify hashtags."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m <<< "#ديسلر_بسبب"
    # <hashtag> dyslr b+ </hashtag> sbb
-   $STANSEG_PY \
+   echo '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
+   | normalize-unicode.pl ar \
+   | $STANSEG_PY \
       -m \
-      <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
    | $VERBOSE \
    | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
-   || error_message "Invalid Arabic hashtag output (2)"
-
-   testcaseDescription "Arabic hashtag: Mark non Arabic words and xmlishify hashtags."
-   #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin <<< "#ديسلر_بسبب"
-   #<hashtag> dyslr b+ </hashtag> sbb
-   $STANSEG_PY \
-      -n -m \
-      <<< '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
-   | $VERBOSE \
-   | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
-   || error_message "Invalid Arabic hashtag output (3)"
+   || error_message "Invalid Arabic hashtag output (1)"
 }
 
 
@@ -145,16 +122,20 @@ function beginWithWaw() {
    testcaseDescription "Handling Waws at the beginning of a sentence."
    # Examples from:
    # /home/corpora/arabic-gigaword-v5/data/aaw_arb/aaw_arb_201012.gz
-   $STANSEG_PY \
+   echo 'ﻮﺑﺮﻴﻃﺎﻨﻳﺍ، ومحيط ﺐﺧﺭﻮﺟ ﻁﺭﺪﻴﻧ ﻒﻘﻃ ﻢﻧ ﺎﻠﻴﻤﻧ..' \
+   | normalize-unicode.pl ar \
+   | $STANSEG_PY \
       -w \
-      <<< 'ﻮﺑﺮﻴﻃﺎﻨﻳﺍ، ﻭﺄﻗﺭ ﺐﺧﺭﻮﺟ ﻁﺭﺪﻴﻧ ﻒﻘﻃ ﻢﻧ ﺎﻠﻴﻤﻧ..' \
-   | grep 'بريطانيا , و+ اقر ب+ خروج طردين فقط من اليمن . .' --quiet \
-   || error_message "We should have removed the Waw at the beginning of the sentence."
+   | $VERBOSE \
+   | grep 'بريطانيا , و+ محيط ب+ خروج طردين فقط من اليمن ..' --quiet \
+   || error_message "We should have removed the Waw at the beginning of the sentence.  (new)"
 
-   $STANSEG_PY \
+   echo 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
+   | normalize-unicode.pl ar \
+   | $STANSEG_PY \
       -w \
-      <<< 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
-   | grep 'اميركا , و+ ما زال البحث جاريا بين هذه' --quiet \
+   | $VERBOSE \
+   | grep 'اميركا , و+ +ما زال البحث جاريا بين هذه' --quiet \
    || error_message "We should have removed the Waw at the beginning of the sentence."
 }
 
