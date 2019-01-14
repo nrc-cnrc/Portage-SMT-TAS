@@ -16,6 +16,7 @@
 
 use strict;
 use warnings;
+use File::Basename;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -43,9 +44,10 @@ Usage: $0 [-v] UNICODEDATA UTF8InputText(s) > CanonicalUTF8Output
   UnicodeData.txt, or a subset thereof.  All non-canonical characters found in
   the input are converted into their canonical equivalent.
 
-  The program will look for UNICODEDATA first in the local directory, then in
-  \$PORTAGE/models/unicode.  Provided subsets: UnicodeData-Arabic.txt, (alias:
-  ar), and UnicodeData-Arabic-full.txt, (alias: ar-full).  (Refer to
+  The program will look for UNICODEDATA first in the local directory, then
+  where this script is located, finally in \$PORTAGE/models/unicode.
+  Provided subsets: UnicodeData-Arabic.txt, (alias: ar), and
+  UnicodeData-Arabic-full.txt, (alias: ar-full).  (Refer to
   \$PORTAGE/models/unicode/README for details.)
 
 Options:
@@ -74,7 +76,9 @@ if ( $unicode_data eq "ar"  ) { $unicode_data = "UnicodeData-Arabic.txt" }
 if ( $unicode_data eq "ar-full" ) { $unicode_data = "UnicodeData-Arabic-full.txt" }
 
 if ( ! -e $unicode_data ) {
-   if ( ! exists $ENV{PORTAGE} ) {
+   if ( -e dirname($0)."/".$unicode_data ) {
+      $unicode_data = dirname($0)."/".$unicode_data;
+   } elsif ( ! exists $ENV{PORTAGE} ) {
       die "Error: Can't find $unicode_data file in local directory, and \$PORTAGE " .
           "is not \ndefined, so there is nowhere else to look.\n"
    } elsif ( -e "$ENV{PORTAGE}/models/unicode/$unicode_data" ) {
