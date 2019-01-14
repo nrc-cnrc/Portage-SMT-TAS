@@ -87,14 +87,18 @@ if ( ! -e $unicode_data ) {
 
 # hex2utf8($hex_char) returns the UTF-8 character number UCS $hex_char
 sub hex2utf8 ($) {
+   no warnings;
    use encoding 'utf-8';
    return chr(hex($_[0]));
+   use warnings;
 }
 
 # utf82hex($utf8_char) returns the UCS hex representation of $utf8_char
 sub utf82hex ($) {
+   no warnings;
    use encoding 'utf-8';
    return sprintf "%04X", ord($_[0]);
+   use warnings;
 }
 
 open UNICODEDATA, $unicode_data or die "Error: Can't open $unicode_data: $!\n";
