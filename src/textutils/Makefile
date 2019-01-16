@@ -44,6 +44,10 @@ $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm:  tokenize/Arabic/Data.pm
 	install -d -m0750 $(dir $@)
 	install -p -m0640 $< $(dir $@)
 
+install: install_unicode_data
+
+install_unicode_data: UnicodeData-Arabic-full.txt UnicodeData-Arabic.txt
+	cp $+ $(BIN_DIR)
 
 # Some programs need extra dynamic libraries
 utf8_casemap: DYNLIBS += $(LIBICU)

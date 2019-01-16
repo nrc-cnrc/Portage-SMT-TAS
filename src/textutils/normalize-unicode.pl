@@ -89,6 +89,10 @@ if ( ! -e $unicode_data ) {
    }
 }
 
+if ($debug || $verbose) {
+   print STDERR "Using data from: $unicode_data\n";
+}
+
 # hex2utf8($hex_char) returns the UTF-8 character number UCS $hex_char
 sub hex2utf8 ($) {
    no warnings;

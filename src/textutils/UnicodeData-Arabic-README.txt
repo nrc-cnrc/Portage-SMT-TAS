@@ -20,3 +20,12 @@ equivalents.
 
 normalize-unicode.pl has "ar-full" and "ar" as shorthands for these two data
 files.
+
+Update history:
+ - the original version in $PORTAGE/models/unicode was created in May 2006 when
+   I wrote normalize-unicode.pl and stayed static until 2019.
+ - 14/01/2019: normalize-unicode.pl was updated to optionally find its data
+   files in its bin directory, for easier use in PortageLive plugins.
+ - UnicodeData.txt downloaded fresh on 16/01/2016 to update the two Arabic
+   files.  The only difference that affects normalize-unicode.pl is the addition
+   of the Arabic mathematical font characters, code points 1EE00-1EEF1.
