@@ -105,7 +105,7 @@ def run_stan_seg(infile):
    """Run the Stanford Segmenter itself"""
    stanseg_home = os.environ.get('STANFORD_SEGMENTER_HOME', None)
    stanseg_classifier = "arabic-segmenter-atb+bn+arztrain.ser.gz"
-   stanseg_cmd = "java -mx16g " + \
+   stanseg_cmd = "java -mx4g " + \
       "edu.stanford.nlp.international.arabic.process.ArabicSegmenter " + \
       "-loadClassifier " + stanseg_home + "/data/" + stanseg_classifier + \
       " -prefixMarker + -suffixMarker + -domain arz -nthreads 1"
