@@ -59,6 +59,9 @@ class RequestPostprocessor():
    def _escapeXMLChars(self, sentence):
       # < hashtag > -> <hashtag> and </ hashtag > -> </hashtag> since Stan Seg toks them
       sentence = re.sub("(^| )<(/|) hashtag >($| )", "\g<1><\g<2>hashtag>\g<3>", sentence)
+      # We need to run this RE sub twice because the first misses a < hashtag >
+      # immediately after a </ hashtag >
+      sentence = re.sub("(^| )<(/|) hashtag >($| )", "\g<1><\g<2>hashtag>\g<3>", sentence)
       tokens = sentence.split()
       for i, tok in enumerate(tokens):
          if tok not in ("<hashtag>", "</hashtag>"):

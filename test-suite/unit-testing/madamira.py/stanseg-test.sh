@@ -45,6 +45,19 @@ which $STANSEG_PY &> /dev/null \
 # Assume stanseg.py does its own normalization:
 NORMALIZE_CMD=cat
 
+function basic_usage() {
+   set -o errexit
+   for options in "" "-m" "-w" "-m -w"; do
+      testcaseDescription "Basic usage with options $options."
+      reffile=data/dev12_ar.tok`echo -n $options | tr -d ' '`
+      $STANSEG_PY \
+         $options \
+         < data/dev12_ar.txt \
+      | diff --brief --ignore-all-space - $reffile \
+      || error_message "basic usage with option(s) $options is not like our reference."
+   done
+}
+
 function ascii() {
    set -o errexit
    testcaseDescription "Using ascii sentence"
@@ -143,10 +156,11 @@ function beginWithWaw() {
    || error_message "We should have removed the Waw at the beginning of the sentence."
 }
 
-ascii
-ascii_hashtag
-arabic_hashtag
-beginWithWaw
+basic_usage
+#ascii
+#ascii_hashtag
+#arabic_hashtag
+#beginWithWaw
 
 if [[ $ERROR_COUNT -gt 0 ]]; then
    error_message "Testsuite failed. ($0)"

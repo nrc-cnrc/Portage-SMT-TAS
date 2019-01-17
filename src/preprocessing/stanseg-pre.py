@@ -74,7 +74,7 @@ def main():
    outfile = codecs.getwriter('utf-8')(cmd_args.outfile)
    r = RequestPackager(xmlishifyHashtags=cmd_args.xmlishifyHashtags)
    for line in infile:
-      print(r(line), file=outfile, end='')
+      print(r(line.rstrip()), file=outfile)
 
 
 if __name__ == '__main__':
