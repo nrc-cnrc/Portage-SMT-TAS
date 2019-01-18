@@ -46,6 +46,8 @@ which $STANSEG_PY &> /dev/null \
 NORMALIZE_CMD=cat
 
 function basic_usage() {
+   #BRIEF="--brief"
+   BRIEF=""
    set -o errexit
    for options in "" "-m" "-w" "-m -w"; do
       testcaseDescription "Basic usage with options $options."
@@ -53,7 +55,7 @@ function basic_usage() {
       $STANSEG_PY \
          $options \
          < data/dev12_ar.txt \
-      | diff --brief --ignore-all-space - $reffile \
+      | diff $BRIEF --ignore-all-space - $reffile \
       || error_message "basic usage with option(s) $options is not like our reference."
    done
 }
@@ -157,10 +159,10 @@ function beginWithWaw() {
 }
 
 basic_usage
-#ascii
-#ascii_hashtag
-#arabic_hashtag
-#beginWithWaw
+ascii
+ascii_hashtag
+arabic_hashtag
+beginWithWaw
 
 if [[ $ERROR_COUNT -gt 0 ]]; then
    error_message "Testsuite failed. ($0)"

@@ -52,9 +52,16 @@ def get_args():
    return cmd_args
 
 class RequestPostprocessor():
-   def __init__(self, removeWaw=False, xmlishifyHashtags=False):
+   def __init__(self, removeWaw=False, xmlishifyHashtags=False, unescapeHandles=False):
       self.removeWaw = removeWaw
       self.xmlishifyHashtags = xmlishifyHashtags
+      self.unescapeHandles = unescapeHandles
+      self.re_escaped_handle = re.compile(ur'^TWITTERHANDLEZA[a-zA-Z]+$')
+      self.re_handle_reverse_dict = {
+         'A': '@', 'U': '_', 'Z': 'Z',
+         'a': '0', 'b': '1', 'c': '2', 'd': '3', 'e': '4',
+         'f': '5', 'g': '6', 'h': '7', 'i': '8', 'j': '9',
+      }
 
    def _escapeXMLChars(self, sentence):
       # < hashtag > -> <hashtag> and </ hashtag > -> </hashtag> since Stan Seg toks them
@@ -62,6 +69,7 @@ class RequestPostprocessor():
       # We need to run this RE sub twice because the first misses a < hashtag >
       # immediately after a </ hashtag >
       sentence = re.sub("(^| )<(/|) hashtag >($| )", "\g<1><\g<2>hashtag>\g<3>", sentence)
+
       tokens = sentence.split()
       for i, tok in enumerate(tokens):
          if tok not in ("<hashtag>", "</hashtag>"):
@@ -69,6 +77,17 @@ class RequestPostprocessor():
             tok = re.sub("<","&lt;",tok)
             tok = re.sub(">","&gt;",tok)
             tokens[i] = tok
+      return ' '.join(tokens)
+
+   def _unescapeTwitterHandle(self, sentence):
+      tokens = sentence.split()
+      prefix_len = len("TWITTERHANDLE")
+      for i, tok in enumerate(tokens):
+         if self.re_escaped_handle.match(tok):
+            #print("unescape {}".format(tok), file=sys.stderr)
+            tokens[i] = re.sub('Z(.)',
+               lambda m: self.re_handle_reverse_dict.get(m.group(1), m.group(1)),
+               tok[prefix_len:])
       return ' '.join(tokens)
 
    def _removeWaw(self, sentence):
@@ -79,6 +98,8 @@ class RequestPostprocessor():
          sentence = self._escapeXMLChars(sentence)
       if self.removeWaw:
          sentence = self._removeWaw(sentence)
+      if self.unescapeHandles:
+         sentence = self._unescapeTwitterHandle(sentence)
       return sentence
 
 def run_normalize(infile):
@@ -128,7 +149,8 @@ def main():
 
    outfile = codecs.getwriter('utf-8')(cmd_args.outfile)
 
-   post = RequestPostprocessor(cmd_args.removeWaw, cmd_args.xmlishifyHashtags)
+   post = RequestPostprocessor(cmd_args.removeWaw, cmd_args.xmlishifyHashtags,
+      unescapeHandles=True)
    for line in pipe3:
       print(post(line.rstrip()), file=outfile)
 
