@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-# @file prog.pl 
-# @brief Briefly describe your program here.
+# @file stanseg.pl
+# @brief Wrapper for the Stanford Segmenter
 #
-# @author Write your name here
+# @author Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Centre de recherche en technologies numériques / Digital Technologies Research Centre
@@ -67,6 +67,9 @@ GetOptions(
    waw         => \my $remove_waw,
 ) or usage "Error: Invalid option(s).";
 
+$xmlishify_hashtags = 0 unless defined $xmlishify_hashtags;
+$remove_waw = 0 unless defined $remove_waw;
+
 my $in  = shift || "-";
 my $out = shift || "-";
 
@@ -78,11 +81,17 @@ binmode IN, ":encoding(UTF-8)";
 binmode OUT, ":encoding(UTF-8)";
 binmode STDERR, ":encoding(UTF-8)";
 
+
 use File::Temp qw/tempfile/;
 my ($ar_fh, $ar_filename) = tempfile(UNLINK=>1);
-my ($non_ar_fh, $non_ar_filename) = tempfile(UNLINK=>1);
 binmode $ar_fh, ":encoding(UTF-8)";
+my ($non_ar_fh, $non_ar_filename) = tempfile(UNLINK=>1);
 binmode $non_ar_fh, ":encoding(UTF-8)";
+my ($tok_non_ar_fh, $tok_non_ar_filename) = tempfile(UNLINK=>1);
+binmode $tok_non_ar_fh, ":encoding(UTF-8)";
+
+
+### Phase 1: Split the input into two streams: Arabic and non-Arabic
 
 my $last_arabic_id=0;
 while (<IN>) {
@@ -95,7 +104,7 @@ while (<IN>) {
    tr/٠-٩٪٫٬/0-9%.,/;
 
    # Extract Arabic text to feed to the Stanford Segmenter
-   s/(\p{Arabic}[\p{Arabic}\s_]+)/
+   s/(\p{Script_Extensions: Arabic}[\p{Script_Extensions: Arabic}\s_]+)/
       #print STDERR "ARABIC $1\n";
       ++$last_arabic_id;
       print {$ar_fh} $1, "\n";
@@ -114,7 +123,30 @@ if ($debug) {
    system("ls -l $ar_filename $non_ar_filename");
 }
 
-open NON_AR_IN, "<$non_ar_filename" or die "Cannot opem temporarily non-Arabic stream file $non_ar_filename: $!\n";
+
+### Phase 2: Tokenize the non-Arabic stream
+
+{
+   my $lang = "en";
+   my $v = 0;
+   my $p = 0;
+   my $ss = 0;
+   my $noss = 1; # We're working on OSPL: don't split sentences
+   my $notok = 0;
+   my $pretok = 0;
+   my $paraline = 0;
+   # If we are working with xml-ish tags, preserve them.
+   my $xtags = $xmlishify_hashtags;
+
+   tokenize_file($non_ar_filename, $tok_non_ar_filename, $lang, $v, $p, $ss, $noss, $notok,
+                 $pretok, $paraline, $xtags) == 0
+      or die "Error: stanseg.pl encountered a fatal error running tokenizer\n";
+}
+
+
+### Phase 3: use the Stanford Segmenter on the Arabic stream
+
+open NON_AR_IN, "<$tok_non_ar_filename" or die "Cannot opem temporarily non-Arabic stream file $tok_non_ar_filename: $!\n";
 binmode NON_AR_IN, ":encoding(UTF-8)";
 
 my $stanseg_home = $ENV{'STANFORD_SEGMENTER_HOME'};
@@ -123,8 +155,11 @@ my $stanseg_cmd = "java -mx1g " .
       "edu.stanford.nlp.international.arabic.process.ArabicSegmenter " .
       "-loadClassifier " . $stanseg_home . "/data/" . $stanseg_classifier .
       " -prefixMarker + -suffixMarker + -domain arz -nthreads 1";
-open STAN_SEG_PIPE, "$stanseg_cmd < $ar_filename |" or die "Cannot open Stanford segmenter pipe: $!\n";
+open STAN_SEG_PIPE, "normalize-unicode.pl ar < $ar_filename | $stanseg_cmd |" or die "Cannot open Stanford segmenter pipe: $!\n";
 binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
+
+
+### Phase 4: merge the processed Arabic and non-Arabic streams
 
 while (<NON_AR_IN>) {
    s/__ARABIC__ID([0-9]+)__/
@@ -136,7 +171,7 @@ while (<NON_AR_IN>) {
    s/   */ /g;
    s/ *$//;
    s/^ *//;
-   s/'^و\+ '// if $remove_waw;
+   s/^و\+ // if $remove_waw;
    print OUT;
 }
 

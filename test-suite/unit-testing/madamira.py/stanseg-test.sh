@@ -69,7 +69,7 @@ function ascii() {
    $STANSEG \
       <<< 'La tour Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep 'La tour Eiffel a < b > c R & D' --quiet \
+   | grep 'La tour Eiffel a<b>c R&D' --quiet \
    || error_message "Invalid ascii output (1)"
 
 
@@ -94,7 +94,7 @@ function ascii_hashtag() {
    $STANSEG \
       <<< '#La_tour_Eiffel  a<b>c R&D ' \
    | $VERBOSE \
-   | grep '# La tour Eiffel a < b > c R & D' --quiet \
+   | grep '# La tour Eiffel a<b>c R&D' --quiet \
    || error_message "Invalid ascii hashtag output (1)"
 
 
