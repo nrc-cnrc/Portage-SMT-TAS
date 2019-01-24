@@ -40,13 +40,15 @@ Usage: $0 [-m] [-w] [infile [outfile]]
 
   Wrapper around the Stanford Segmenter that processes non-arabic text and
   numbers in a way that Portage needs.
+
   Input should be one-sentence-per-line. (Use sentsplit_plugin ar if necessary.)
   Output will be line-aligned to the input.
 
 Options:
 
-  -m    xmlishify hashtags
-  -w    remove waw (w+) prefix at the beginning of the sentence
+  -m            xmlishify hashtags
+  -w(aw)        remove waw prefix at the beginning of the sentence
+  -t(hreads) T  Run the Stanford Segmenter with T threads and T GB of RAM
 
 ";
    exit @_ ? 1 : 0;
@@ -65,10 +67,12 @@ GetOptions(
 
    m           => \my $xmlishify_hashtags,
    waw         => \my $remove_waw,
+   "threads=i" => \my $threads,
 ) or usage "Error: Invalid option(s).";
 
 $xmlishify_hashtags = 0 unless defined $xmlishify_hashtags;
 $remove_waw = 0 unless defined $remove_waw;
+$threads = 1 unless defined $threads;
 
 my $in  = shift || "-";
 my $out = shift || "-";
@@ -151,10 +155,10 @@ binmode NON_AR_IN, ":encoding(UTF-8)";
 
 my $stanseg_home = $ENV{'STANFORD_SEGMENTER_HOME'};
 my $stanseg_classifier = "arabic-segmenter-atb+bn+arztrain.ser.gz";
-my $stanseg_cmd = "java -mx1g " .
+my $stanseg_cmd = "java -mx" . $threads . "g " .
       "edu.stanford.nlp.international.arabic.process.ArabicSegmenter " .
       "-loadClassifier " . $stanseg_home . "/data/" . $stanseg_classifier .
-      " -prefixMarker + -suffixMarker + -domain arz -nthreads 1";
+      " -prefixMarker + -suffixMarker + -domain arz -nthreads " . $threads;
 open STAN_SEG_PIPE, "normalize-unicode.pl ar < $ar_filename | $stanseg_cmd |" or die "Cannot open Stanford segmenter pipe: $!\n";
 binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
 
