@@ -57,6 +57,7 @@ function basic_usage() {
          < data/dev12_ar.txt \
       | diff $BRIEF --ignore-all-space - $reffile \
       || error_message "basic usage with option(s) $options is not like our reference."
+      #| tee $reffile-new \ # to generate new ref files, uncomment and move this line up two lines
    done
 }
 
@@ -81,7 +82,7 @@ function ascii() {
       -m \
       <<< 'La tour Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep 'La tour Eiffel a &lt; b &gt; c R &amp; D' --quiet \
+   | grep 'La tour Eiffel a&lt;b&gt;c R&amp;D' --quiet \
    || error_message "Invalid ascii output (2)"
 }
 
@@ -94,7 +95,7 @@ function ascii_hashtag() {
    $STANSEG \
       <<< '#La_tour_Eiffel  a<b>c R&D ' \
    | $VERBOSE \
-   | grep '# La tour Eiffel a<b>c R&D' --quiet \
+   | grep '# La_tour_Eiffel a<b>c R&D' --quiet \
    || error_message "Invalid ascii hashtag output (1)"
 
 
@@ -105,7 +106,7 @@ function ascii_hashtag() {
       -m \
       <<< '#La_tour_Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep '<hashtag> La tour Eiffel </hashtag> a &lt; b &gt; c R &amp; D' --quiet \
+   | grep '<hashtag> La tour Eiffel </hashtag> a&lt;b&gt;c R&amp;D' --quiet \
    || error_message "Invalid ascii hashtag output (2)"
 }
 
