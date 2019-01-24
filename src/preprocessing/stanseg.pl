@@ -107,6 +107,17 @@ while (<IN>) {
    # transform arabic numbers into English ones
    tr/٠-٩٪٫٬/0-9%.,/;
 
+   if ($xmlishify_hashtags) {
+      s/&(?![a-zA-Z]+;)/&amp;/g;
+      s/</&lt;/g;
+      s/>/&gt;/g;
+      s|#([^ #]+)|
+         my $tokenized_hashtag = $1;
+         $tokenized_hashtag =~ tr/_/ /;
+         " <hashtag> $tokenized_hashtag </hashtag> "
+      |eg;
+   }
+
    # Extract Arabic text to feed to the Stanford Segmenter
    s/(\p{Script_Extensions: Arabic}[\p{Script_Extensions: Arabic}\s_]+)/
       #print STDERR "ARABIC $1\n";
@@ -172,6 +183,7 @@ while (<NON_AR_IN>) {
       chomp $contents;
       $contents
    /eg;
+   s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
    s/   */ /g;
    s/ *$//;
    s/^ *//;
