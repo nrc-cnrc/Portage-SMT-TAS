@@ -36,9 +36,9 @@ if [[ ! -d $STANFORD_SEGMENTER_HOME ]]; then
    exit 0
 fi
 
-STANSEG_PY=${STANSEG_PY:-stanseg.py}
-which $STANSEG_PY &> /dev/null \
-|| error_message "Can't find stanseg.py"
+STANSEG=${STANSEG:-stanseg.pl}
+which $STANSEG &> /dev/null \
+|| error_message "Can't find $STANSEG"
 
 # Normalize text before calling stanseg.py - for when it didn't normalize internally:
 #NORMALIZE_CMD="normalize-unicode.pl ar"
@@ -52,11 +52,12 @@ function basic_usage() {
    for options in "" "-m" "-w" "-m -w"; do
       testcaseDescription "Basic usage with options $options."
       reffile=data/dev12_ar.tok`echo -n $options | tr -d ' '`
-      $STANSEG_PY \
+      $STANSEG \
          $options \
          < data/dev12_ar.txt \
       | diff $BRIEF --ignore-all-space - $reffile \
       || error_message "basic usage with option(s) $options is not like our reference."
+      #| tee $reffile-new \ # to generate new ref files, uncomment and move this line up two lines
    done
 }
 
@@ -66,10 +67,10 @@ function ascii() {
    #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "La tour Eiffel"
    #La tour Eiffel
 
-   $STANSEG_PY \
+   $STANSEG \
       <<< 'La tour Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep 'La tour Eiffel a < b > c R & D' --quiet \
+   | grep 'La tour Eiffel a<b>c R&D' --quiet \
    || error_message "Invalid ascii output (1)"
 
 
@@ -77,11 +78,11 @@ function ascii() {
    #/opt/PortageII/models/ar2en-0.4/plugins/tokenize_plugin  <<< "La tour Eiffel"
    #La tour Eiffel
 
-   $STANSEG_PY \
+   $STANSEG \
       -m \
       <<< 'La tour Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep 'La tour Eiffel a &lt; b &gt; c R &amp; D' --quiet \
+   | grep 'La tour Eiffel a&lt;b&gt;c R&amp;D' --quiet \
    || error_message "Invalid ascii output (2)"
 }
 
@@ -91,21 +92,21 @@ function ascii_hashtag() {
    testcaseDescription "ascii hashtag: Mark non Arabic words."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -n <<< "#La_tour_Eiffel"
    # #La_tour_Eiffel
-   $STANSEG_PY \
+   $STANSEG \
       <<< '#La_tour_Eiffel  a<b>c R&D ' \
    | $VERBOSE \
-   | grep '# La tour Eiffel a < b > c R & D' --quiet \
+   | grep '# La_tour_Eiffel a<b>c R&D' --quiet \
    || error_message "Invalid ascii hashtag output (1)"
 
 
    testcaseDescription "ascii hashtag: xmlishify Arabic hashtags."
    # ~/sandboxes/PORTAGEshared/src/textutils/tokenize_plugin_ar ar -m <<< "#La_tour_Eiffel"
    # <hashtag> La_tour_Eiffel </hashtag>
-   $STANSEG_PY \
+   $STANSEG \
       -m \
       <<< '#La_tour_Eiffel a<b>c R&D' \
    | $VERBOSE \
-   | grep '<hashtag> La tour Eiffel </hashtag> a &lt; b &gt; c R &amp; D' --quiet \
+   | grep '<hashtag> La tour Eiffel </hashtag> a&lt;b&gt;c R&amp;D' --quiet \
    || error_message "Invalid ascii hashtag output (2)"
 }
 
@@ -118,7 +119,7 @@ function arabic_hashtag() {
    # # dyslr _ b+ sbb
    echo '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
    | normalize-unicode.pl ar \
-   | $STANSEG_PY \
+   | $STANSEG \
    | $VERBOSE \
    | grep '# ديسلربسبب' --quiet \
    || error_message "Invalid Arabic hashtag output (0)"
@@ -128,7 +129,7 @@ function arabic_hashtag() {
    # <hashtag> dyslr b+ </hashtag> sbb
    echo '#ﺪﻴﺴﻟﺭ_ﺐﺴﺒﺑ' \
    | normalize-unicode.pl ar \
-   | $STANSEG_PY \
+   | $STANSEG \
       -m \
    | $VERBOSE \
    | grep '<hashtag> ديسلر ب+ سبب </hashtag>' --quiet \
@@ -143,7 +144,7 @@ function beginWithWaw() {
    # /home/corpora/arabic-gigaword-v5/data/aaw_arb/aaw_arb_201012.gz
    echo 'ﻮﺑﺮﻴﻃﺎﻨﻳﺍ، ومحيط ﺐﺧﺭﻮﺟ ﻁﺭﺪﻴﻧ ﻒﻘﻃ ﻢﻧ ﺎﻠﻴﻤﻧ..' \
    | normalize-unicode.pl ar \
-   | $STANSEG_PY \
+   | $STANSEG \
       -w \
    | $VERBOSE \
    | grep 'بريطانيا , و+ محيط ب+ خروج طردين فقط من اليمن ..' --quiet \
@@ -151,7 +152,7 @@ function beginWithWaw() {
 
    echo 'ﻭﺄﻤﻳﺮﻛﺍ، ﻮﻣﺍ ﺯﺎﻟ ﺎﻠﺒﺤﺛ ﺝﺍﺮﻳﺍ ﺐﻴﻧ ﻩﺬﻫ' \
    | normalize-unicode.pl ar \
-   | $STANSEG_PY \
+   | $STANSEG \
       -w \
    | $VERBOSE \
    | grep 'اميركا , و+ +ما زال البحث جاريا بين هذه' --quiet \
