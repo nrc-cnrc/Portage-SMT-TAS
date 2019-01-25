@@ -105,7 +105,7 @@ while (<IN>) {
    s/__ARABIC__ID/__ESCAPE_ARABIC_ID/g; # Avoid collision with ID marker
 
    # transform arabic numbers into English ones
-   tr/٠-٩٪٫٬/0-9%.,/;
+   tr/٠-٩۰-۹٪٫٬/0-90-9%.,/;
 
    if ($xmlishify_hashtags) {
       s/&(?![a-zA-Z]+;)/&amp;/g;
