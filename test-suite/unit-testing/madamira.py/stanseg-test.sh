@@ -54,10 +54,10 @@ function basic_usage() {
       reffile=data/dev12_ar.tok`echo -n $options | tr -d ' '`
       $STANSEG \
          $options \
-         < data/dev12_ar.txt \
-      | diff $BRIEF --ignore-all-space - $reffile \
+         < data/dev12_ar.txt |
+      tee $reffile-new  | # to generate new ref files, uncomment this line
+      diff $BRIEF --ignore-all-space - $reffile \
       || error_message "basic usage with option(s) $options is not like our reference."
-      #| tee $reffile-new \ # to generate new ref files, uncomment and move this line up two lines
    done
 }
 
