@@ -87,11 +87,15 @@ binmode STDERR, ":encoding(UTF-8)";
 
 
 use File::Temp qw/tempfile/;
-my ($ar_fh, $ar_filename) = tempfile(UNLINK=>1);
+use File::Spec;
+my ($ar_fh, $ar_filename) =
+   tempfile("stanseg-tmp-ar.XXXX", DIR=>File::Spec->tmpdir(), UNLINK=>1);
 binmode $ar_fh, ":encoding(UTF-8)";
-my ($non_ar_fh, $non_ar_filename) = tempfile(UNLINK=>1);
+my ($non_ar_fh, $non_ar_filename) =
+   tempfile("stanseg-tmp-non-ar.XXXX", DIR=>File::Spec->tmpdir(), UNLINK=>1);
 binmode $non_ar_fh, ":encoding(UTF-8)";
-my ($tok_non_ar_fh, $tok_non_ar_filename) = tempfile(UNLINK=>1);
+my ($tok_non_ar_fh, $tok_non_ar_filename) =
+   tempfile("stanseg-tmp-non-ar-tok.XXXX", DIR=>File::Spec->tmpdir(), UNLINK=>1);
 binmode $tok_non_ar_fh, ":encoding(UTF-8)";
 
 
@@ -157,6 +161,8 @@ if ($debug) {
                  $pretok, $paraline, $xtags) == 0
       or die "Error: stanseg.pl encountered a fatal error running tokenizer\n";
 }
+
+$debug and system("ls -l $tok_non_ar_filename");
 
 
 ### Phase 3: use the Stanford Segmenter on the Arabic stream
