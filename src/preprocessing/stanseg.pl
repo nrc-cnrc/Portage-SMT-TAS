@@ -14,6 +14,7 @@
 use utf8;
 use strict;
 use warnings;
+use 5.014;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -126,7 +127,8 @@ while (<IN>) {
    s/(\p{Script_Extensions: Arabic}[\p{Script_Extensions: Arabic}\s_]+)/
       #print STDERR "ARABIC $1\n";
       ++$last_arabic_id;
-      print {$ar_fh} "BEGIN $1 END\n";
+      print {$ar_fh} "BEGIN " if ($-[0] != 0);
+      print {$ar_fh} "$1 END\n";
       " __ARABIC__ID" . $last_arabic_id . "__ "
    /eg;
 
