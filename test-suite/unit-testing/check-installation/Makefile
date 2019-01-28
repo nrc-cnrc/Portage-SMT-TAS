@@ -58,7 +58,7 @@ pre_installation:
 
 .PHONY: perl_version
 perl_version:
-	@$(call check,Perl version,perl -e 'require 5.10.0;',Portage requires Perl 5.10 or greater for proper UTF-8 handling.)
+	@$(call check,Perl version,perl -e 'require 5.14.0;',Portage requires Perl 5.14 or greater for proper UTF-8 handling.)
 	@$(call check,Perl -Dusethreads,perl -e 'use threads',Perl must be installed with -Dusethreads.)
 
 .PHONY: perl_modules
