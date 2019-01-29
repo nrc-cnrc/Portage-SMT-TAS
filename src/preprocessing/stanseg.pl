@@ -49,7 +49,7 @@ Options:
 
   -m            xmlishify hashtags
   -w(aw)        remove waw prefix at the beginning of the sentence
-  -t(hreads) T  Run the Stanford Segmenter with T threads and T GB of RAM
+  -t(hreads) T  Run the Stanford Segmenter with T threads and T GB of RAM [1]
 
 ";
    exit @_ ? 1 : 0;
@@ -112,6 +112,9 @@ while (<IN>) {
    # transform arabic numbers into English ones
    tr/٠-٩۰-۹٪٫٬/0-90-9%.,/;
 
+   # Normalize quotes - normally this is done by the segmenter but we bypass it...
+   tr/«»“”‘’/""""''/;
+
    if ($xmlishify_hashtags) {
       s/&(?![a-zA-Z]+;)/&amp;/g;
       s/</&lt;/g;
@@ -124,7 +127,7 @@ while (<IN>) {
    }
 
    # Extract Arabic text to feed to the Stanford Segmenter
-   s/(\p{Script_Extensions: Arabic}[\p{Script_Extensions: Arabic}\s_]+)/
+   s/(\p{Script_Extensions: Arabic}[\p{Script_Extensions: Arabic}\s_]*)/
       #print STDERR "ARABIC $1\n";
       ++$last_arabic_id;
       print {$ar_fh} "BEGIN " if ($-[0] != 0);
