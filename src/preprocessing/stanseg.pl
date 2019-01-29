@@ -188,14 +188,15 @@ binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
 ### Phase 4: merge the processed Arabic and non-Arabic streams
 
 while (<NON_AR_IN>) {
-   s|__ARABIC__ID([0-9]+)__|
+   s&__ARABIC__ID([0-9]+)__&
       my $contents = <STAN_SEG_PIPE>;
+      $debug and print STDERR "FROM STANSEG: $contents";
       die "Error: Missing line in $ar_filename for ARABIC ID$1" if (!defined $contents);
       chomp $contents;
       $contents =~ s/^BEGIN +//;
-      $contents =~ s/ +END$//;
+      $contents =~ s/(^| +)END$//;
       $contents
-   |eg;
+   &eg;
    s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
    s/   */ /g;
    s/ *$//;
