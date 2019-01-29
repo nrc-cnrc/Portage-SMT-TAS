@@ -49,7 +49,7 @@ function basic_usage() {
    #BRIEF="--brief"
    BRIEF=""
    set -o errexit
-   for options in "" "-m" "-w" "-m -w"; do
+   for options in "" "-m" "-w" "-m -w" "-tok-ar-hashtags"; do
       testcaseDescription "Basic usage with options $options."
       reffile=data/dev12_ar.tok`echo -n $options | tr -d ' '`
       $STANSEG \

@@ -47,9 +47,10 @@ Usage: $0 [-m] [-w] [infile [outfile]]
 
 Options:
 
-  -m            xmlishify hashtags
-  -w(aw)        remove waw prefix at the beginning of the sentence
-  -t(hreads) T  Run the Stanford Segmenter with T threads and T GB of RAM [1]
+  -w(aw)            Remove waw prefix at the beginning of the sentence
+  -m                xmlishify hashtags
+  -tok-ar-hashtags  Alternative to -m: replace _ by space in Arabic hashtags
+  -t(hreads) T      Run the Stanford Segmenter with T threads and T GB of RAM [1]
 
 ";
    exit @_ ? 1 : 0;
@@ -62,18 +63,19 @@ Getopt::Long::Configure("no_ignore_case");
 # Note to programmer: Getopt::Long automatically accepts unambiguous
 # abbreviations for all options.
 my $verbose = 1;
+my $threads = 1;
 GetOptions(
-   help        => sub { usage },
-   debug       => \my $debug,
+   help              => sub { usage },
+   debug             => \my $debug,
 
-   m           => \my $xmlishify_hashtags,
-   waw         => \my $remove_waw,
-   "threads=i" => \my $threads,
+   m                 => \my $xmlishify_hashtags,
+   waw               => \my $remove_waw,
+   "threads=i"       => \$threads,
+   "t=i"             => \$threads,
+   "tok-ar-hashtags" => \my $tokenize_ar_hashtags,
 ) or usage "Error: Invalid option(s).";
 
 $xmlishify_hashtags = 0 unless defined $xmlishify_hashtags;
-$remove_waw = 0 unless defined $remove_waw;
-$threads = 1 unless defined $threads;
 
 my $in  = shift || "-";
 my $out = shift || "-";
@@ -123,6 +125,12 @@ while (<IN>) {
          my $tokenized_hashtag = $1;
          $tokenized_hashtag =~ tr/_/ /;
          " <hashtag> $tokenized_hashtag </hashtag> "
+      |eg;
+   } elsif ($tokenize_ar_hashtags) {
+      s|#([^ #]+)|
+         my $hashtag = $1;
+         $hashtag =~ tr/_/ / if ($hashtag =~ /\p{Script_Extensions: Arabic}/);
+         "#$hashtag";
       |eg;
    }
 
