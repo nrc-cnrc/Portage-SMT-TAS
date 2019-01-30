@@ -29,6 +29,10 @@
 # inside/outside, or comment it out to leave them together:
 FIX_SLASHES=1
 
+# Uncomment the following line to protect '&', '<', '>' using XML excapes
+# Only appropriate in special circumstances, don't use by default.
+#USE_XML_ESCAPES=1
+
 # ######################################################## #
 #            End of Quick configuration options            #
 # ######################################################## #
@@ -48,6 +52,12 @@ clean-utf8-text.pl |
 # Optionally pre-tokenize around slashes:
 if [[ $FIX_SLASHES ]]; then
    fix-slashes.pl
+else
+   cat
+fi |
+
+if [[ $USE_XML_ESCAPES ]]; then
+   perl -ple 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g;'
 else
    cat
 fi
