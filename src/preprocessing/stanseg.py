@@ -141,6 +141,8 @@ def run_stan_seg(infile):
 def main():
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
 
+   print("DEPRECATED WARNING: stanseg.py was the first attempt to wrap the Stanford Segmenter and is somewhat buggy. It's here for development and documentation purposes only. Use stanseg.pl instead.\n", file=sys.stderr)
+
    cmd_args = get_args()
 
    pipe1 = run_normalize(cmd_args.infile)
