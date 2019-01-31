@@ -2,20 +2,21 @@
 # @file tokenize_plugin
 # @brief  A special tokenize_plugin for Arabic that can apply special
 # tokenizing rules to OOVs found within tweets.
+# This version is adapted to use the Stanford Segmenter
 #
-# @author Darlene Stewart
+# @author Darlene Stewart & Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2016, 2017, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2016, 2017, Her Majesty in Right of Canada
+# Copyright 2016, 2017, 2019, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, 2017, 2019, Her Majesty in Right of Canada
 
 ## 
 ## Usage: tokenize_plugin SRC_LANG < in > out
 ##
-## Specialized tokenize plugin for Arabic tokenization using MADAMIRA 
-## (madamira.py) or MADA Map (tokenize_plugin_ar).
+## Specialized tokenize plugin for Arabic tokenization using the Stanford
+## Segmenter or MADA Map (tokenize_plugin_ar).
 ##
 ## SRC_LANG must be ar for this version of tokenize_plugin.
 ##
@@ -26,13 +27,21 @@
 ## Warning: currently, the tokenize plugin is only used by translate.pl if the
 ## source language is not one of "en", "fr", or "es", the languages supported by
 ## utokenize.pl.
+##
+## Installation instructions: to install tokenize_plugin_ar_alt in a given
+## PortageLive system, copy it to that system's plugins directory and rename it
+## tokenize_plugin.
 
 # ######################################################## #
 #               Quick configuration options                #
 # ######################################################## #
 
+# Uncomment to turn on tokenizing using the Stanford Segmenter instead of
+# MADAMIRA or the MADA Map
+USE_STANFORD_SEGMENTER=1
+
 # Uncomment to turn on tokenizing using MADAMIRA instead of MADA Map
-USE_MADAMIRA=1
+#USE_MADAMIRA=1
 
 # Uncomment to turn on Tweet OOV rules processing for Arabic
 APPLY_AR_TWEET_OOV_RULES=1
@@ -57,9 +66,11 @@ SOURCE_LANGUAGE=$1; shift
 [[ $SOURCE_LANGUAGE != ar ]] && echo "Error: Language code argument must be ar" >&2 && exit 1
 
 # Define TRANSLIT_OPT outside the first sub-shell.
-if [[ -n $USE_MADAMIRA ]]; then
+if [[ -n $USE_MADAMIRA || -n $USE_STANFORD_SEGMENTER ]]; then
+   # Proper segmenters maintain real Arabic characters in utf-8
    TRANSLIT_OPT="-ar"
 else
+   # MADA Map uses Buckwalter transliteration
    TRANSLIT_OPT="-bw"
 fi
 
@@ -74,7 +85,11 @@ fi
 
 set -o pipefail
 
-if [[ -n $USE_MADAMIRA ]]; then
+if [[ -n $USE_STANFORD_SEGMENTER ]]; then
+   stanseg.pl $TOK_OPTS
+   RC=$?
+   [[ $RC = 0 ]] || exit 1
+elif [[ -n $USE_MADAMIRA ]]; then
    madamira.py --config $(dirname $0)/msa.madamira.xml --scheme D3 $TOK_OPTS
    RC=$?
    [[ $RC = 0 ]] || exit 1
@@ -101,7 +116,7 @@ if [[ -n $APPLY_AR_TWEET_OOV_RULES ]]; then
    predecode_plugin ar-en |
    # Locate the canoe.ini.cow file relative to the plugins directory.
    # This doesn't work if tokenize_plugin is run from the default location (/opt/PortageII/bin/)
-   canoe -v 1 -f $(dirname $0)/../canoe.ini.cow -oov write-src-marked |
+   canoe -v 0 -f $(dirname $0)/../canoe.ini.cow.for-oovs-only -oov write-src-marked |
    merge_oov_markup.py $TMP_Q_TOK_TAGS - |
    apply_ar_tweet_oov_rules.py $TRANSLIT_OPT -oov
    RC=$?
