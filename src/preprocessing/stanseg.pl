@@ -50,6 +50,7 @@ Options:
   -w(aw)            Remove waw prefix at the beginning of the sentence
   -m                xmlishify hashtags
   -tok-ar-hashtags  Alternative to -m: replace _ by space in Arabic hashtags
+  -n(on-arabic)     Mark non Arabic words with __arcii__
   -t(hreads) T      Run the Stanford Segmenter with T threads and T GB of RAM [1]
 
 ";
@@ -69,6 +70,7 @@ GetOptions(
    debug             => \my $debug,
 
    m                 => \my $xmlishify_hashtags,
+   "non-arabic"      => \my $mark_non_arabic,
    waw               => \my $remove_waw,
    "threads=i"       => \$threads,
    "t=i"             => \$threads,
@@ -196,21 +198,42 @@ binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
 ### Phase 4: merge the processed Arabic and non-Arabic streams
 
 while (<NON_AR_IN>) {
-   s&__ARABIC__ID([0-9]+)__&
-      my $contents = <STAN_SEG_PIPE>;
-      $debug and print STDERR "FROM STANSEG: $contents";
-      die "Error: Missing line in $ar_filename for ARABIC ID$1" if (!defined $contents);
-      chomp $contents;
-      $contents =~ s/^BEGIN +//;
-      $contents =~ s/(^| +)END$//;
-      $contents
-   &eg;
-   s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
-   s/   */ /g;
+   my @tokens = split /\s+/, $_;
+   my $in_hashtag = 0;
+   @tokens = map {
+      my $count =
+      s&__ARABIC__ID([0-9]+)__&
+         my $contents = <STAN_SEG_PIPE>;
+         $debug and print STDERR "FROM STANSEG: $contents";
+         die "Error: Missing line in $ar_filename for ARABIC ID$1" if (!defined $contents);
+         chomp $contents;
+         $contents =~ s/^BEGIN +//;
+         $contents =~ s/(^| +)END$//;
+         $contents
+      &eg;
+
+      if ($mark_non_arabic) {
+         if (1) {
+            # v2 does not add __ascii__ inside <hashtag>
+            $in_hashtag = 1 if /^<hashtag>$/;
+            s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && !$in_hashtag);
+            $in_hashtag = 0 if /^<\/hashtag>$/;
+         } else {
+            # v1 adds __ascii__ in and out of <hashtag>
+            s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && !m/<\/?hashtag>/);
+         }
+      }
+
+      s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
+      $_;
+   } @tokens;
+   $_ = join(" ", @tokens);
+   s/(^| )# __ascii__/$1__ascii__#/g;
+   s/  +/ /g;
    s/ *$//;
    s/^ *//;
    s/^و\+ // if $remove_waw;
-   print OUT;
+   print OUT $_, "\n";
 }
 
 close STAN_SEG_PIPE or die "Error closing Stanford segmenter pipe: $!\n";
