@@ -199,7 +199,6 @@ binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
 
 while (<NON_AR_IN>) {
    my @tokens = split /\s+/, $_;
-   print STDERR "SPLIT ", join("+++", @tokens);
    @tokens = map {
       my $count =
       s&__ARABIC__ID([0-9]+)__&
@@ -211,9 +210,7 @@ while (<NON_AR_IN>) {
          $contents =~ s/(^| +)END$//;
          $contents
       &eg;
-      print STDERR "token=$_ count=$count\n";
       s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && $mark_non_arabic);
-      print STDERR "token=$_ count=$count\n";
 
       s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
       $_;
