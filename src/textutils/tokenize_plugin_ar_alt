@@ -52,6 +52,9 @@ MARK_HASHTAGS=1
 # Uncomment to turn on removal of WaW at the beginning of the sentence
 REMOVE_WAW=1
 
+# Uncomment here and in predecode_plugin to turn on ascii markup processing for Arabic
+CONVERT_ASCII_TO_MARKUP=1
+
 # ######################################################## #
 #            End of Quick configuration options            #
 # ######################################################## #
@@ -80,6 +83,9 @@ if [[ -n $MARK_HASHTAGS ]]; then
 fi
 if [[ -n $REMOVE_WAW ]]; then
    TOK_OPTS+=" -w"
+fi
+if [[ -n $CONVERT_ASCII_TO_MARKUP ]]; then
+   TOK_OPTS+=" -n"
 fi
 
 

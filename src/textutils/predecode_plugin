@@ -32,7 +32,7 @@
 # Note: has no effect unless the system is en->fr or fr->en.
 MARK_NUMBERS_ENFR=1
 
-# Uncomment to turn on ascii markup processing for Arabic
+# Uncomment here and in tokenize_plugin(_ar_alt) to turn on ascii markup processing for Arabic
 #CONVERT_ASCII_TO_MARKUP=1
 
 # ######################################################## #
