@@ -199,7 +199,6 @@ binmode STAN_SEG_PIPE, ":encoding(UTF-8)";
 
 while (<NON_AR_IN>) {
    my @tokens = split /\s+/, $_;
-   my $in_hashtag = 0;
    @tokens = map {
       my $count =
       s&__ARABIC__ID([0-9]+)__&
@@ -213,15 +212,7 @@ while (<NON_AR_IN>) {
       &eg;
 
       if ($mark_non_arabic) {
-         if (1) {
-            # v2 does not add __ascii__ inside <hashtag>
-            $in_hashtag = 1 if /^<hashtag>$/;
-            s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && !$in_hashtag);
-            $in_hashtag = 0 if /^<\/hashtag>$/;
-         } else {
-            # v1 adds __ascii__ in and out of <hashtag>
-            s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && !m/<\/?hashtag>/);
-         }
+         s/(.*[a-zA-Z])/__ascii__$1/ if (!$count && !m/<\/?hashtag>/);
       }
 
       s/__ESCAPE_ARABIC_ID/__ARABIC__ID/g; # Undo collision avoidance
