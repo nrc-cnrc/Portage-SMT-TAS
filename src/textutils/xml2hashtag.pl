@@ -53,6 +53,11 @@ while (my $line = <STDIN>) {
     while ($line =~ /<hashtag/) { # handle nested hashtags!!
         $line =~ s{<hashtag>([^<]*)</hashtag>}{hashtagify($1)}ge;
     }
+
+    $line =~ s/&lt;/</g;
+    $line =~ s/&gt;/>/g;
+    $line =~ s/&amp;/&/g;
+
     print "$line\n";
 }
 

@@ -108,7 +108,7 @@ fi \
    # rules. This to avoid unwanted translations when Buckwalter
    # transliterations accidentally collide with English words. Initial
    # "__ascii__" prefixing is performed within tokenize_plugin. [MS]
-   perl -pe 'sub escapeQuotes { my ($s)=@_; $s =~ s/\"/\\\"/g; return $s };$_=~s{__ascii__([^\s]+)}{"<ascii target=\"".escapeQuotes($1)."\"> $1 </ascii>"}ge;'
+   perl -pe 'sub escapeQuotesAndPipes { my ($s)=@_; $s =~ s/\"/\\\"/g; $s =~ s/\|/\\\|/; return $s };$_=~s{__ascii__([^\s]+)}{"<ascii target=\"".escapeQuotesAndPipes($1)."\"> $1 </ascii>"}ge;'
 else
    cat
 fi
