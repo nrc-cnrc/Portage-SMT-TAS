@@ -328,6 +328,12 @@ bool InputParser::readMark(vector<string> &sent,
             phrases.back().pop_back();
          }
       }
+      if (phrases.back().empty()) {
+         phrases.pop_back();
+         error(ETWarn, "Format error in input line %d: "
+               "empty target phrase in mark.", lineNum);
+         return false;
+      }
    }
    if ( in.eof() || c == '\n' )
    {
