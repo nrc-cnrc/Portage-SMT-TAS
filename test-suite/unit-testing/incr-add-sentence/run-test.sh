@@ -221,6 +221,16 @@ function multiple_add_and_multiple_trigger() {
    # script, it is not sufficient to simply `wait` we need to sleep.
    sleep $(( $DELAY + 2 * $TRAINING_TIME + 2 ))
 
+   # On the GPSC, it can take another several seconds to update the witness, so give it a
+   # chance...
+   for i in `seq 1 10`; do
+      if [[ `wc -l < $WITNESS` -lt 2 ]]; then
+         sleep 1
+      else
+         break
+      fi
+   done
+
    echo "Validating..." >&2
    set -o errexit
 
@@ -253,16 +263,6 @@ function multiple_add_and_multiple_trigger() {
    [[ `grep --count 'is training' $LOG.* | grep --count --invert-match ':0$'` -eq 1 ]] \
    || ! error_message "Only one process should have trained multiple times."
 
-   # On the GPSC, it can take another several seconds to update the witness, so give it a
-   # chance...
-   for i in `seq 1 10`; do
-      if [[ `wc -l < $WITNESS` -lt 2 ]]; then
-         sleep 1
-      else
-         break
-      fi
-   done
-
    [[ `wc -l < $WITNESS` -eq 2 ]] \
    || ! error_message "The witness should report 2."
 }
@@ -294,6 +294,14 @@ function insert_and_multiple_trigger_training() {
    # script, it is not sufficient to simply `wait` we need to sleep.
    sleep $(( $DELAY + $TRAINING_TIME + 1 ))
 
+   for i in `seq 1 10`; do
+      if [[ ! -r $WITNESS ]]; then
+         sleep 1
+      else
+         break
+      fi
+   done
+
    echo "Validating..." >&2
    set -o errexit
 
@@ -303,14 +311,6 @@ function insert_and_multiple_trigger_training() {
    # All except one process should claim that training is already ongoing.
    [[ `grep 'Training is already in progress' $LOG.trigger.* | wc -l` -eq $(($MAX_CONCURRENT_CALLS - 1)) ]] \
    || ! error_message "Only one process should have trained multiple times."
-
-   for i in `seq 1 10`; do
-      if [[ ! -r $WITNESS ]]; then
-         sleep 1
-      else
-         break
-      fi
-   done
 
    [[ `wc -l < $WITNESS` -eq 1 ]] \
    || ! error_message "The witness should report 1."
