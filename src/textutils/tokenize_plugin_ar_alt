@@ -114,8 +114,8 @@ if [[ -n $APPLY_AR_TWEET_OOV_RULES ]]; then
    fi
    # We need to run canoe to mark the OOVs.
    cat > $TMP_Q_TOK_TAGS
-   echo "***tokenize_plugin using predecode_plugin: $(which predecode_plugin)" >&2
-   echo "***tokenize_plugin using apply_ar_tweet_oov_rules.py: $(which apply_ar_tweet_oov_rules.py)" >&2
+   echo "tokenize_plugin using predecode_plugin: $(which predecode_plugin)" >&2
+   echo "tokenize_plugin using apply_ar_tweet_oov_rules.py: $(which apply_ar_tweet_oov_rules.py)" >&2
    cat $TMP_Q_TOK_TAGS |
    # The perl command strips XML entities (e.g. <tag a="xyz">) and removes XML escape sequences
    perl -ple 's/(?:<(?! )(?:"[^"]*"|[^">])+>)//g; s/&gt;/>/g; s/&lt;/</g; s/&amp;/&/g;' |
