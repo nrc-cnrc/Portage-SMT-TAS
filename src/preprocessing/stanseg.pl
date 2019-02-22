@@ -185,6 +185,10 @@ $debug and system("ls -l $tok_non_ar_filename");
 open NON_AR_IN, "<$tok_non_ar_filename" or die "Cannot opem temporarily non-Arabic stream file $tok_non_ar_filename: $!\n";
 binmode NON_AR_IN, ":encoding(UTF-8)";
 
+# Java needs a utf-8 locale to read and write utf-8 text, so give it one
+# which should exist on every machine, with even the most basic configuration.
+$ENV{LC_ALL} = "en_US.utf-8";
+
 my $stanseg_home = $ENV{'STANFORD_SEGMENTER_HOME'};
 my $stanseg_classifier = "arabic-segmenter-atb+bn+arztrain.ser.gz";
 my $stanseg_cmd = "java -mx" . $threads . "g " .
