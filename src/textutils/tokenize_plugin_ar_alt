@@ -40,6 +40,11 @@
 # MADAMIRA or the MADA Map
 USE_STANFORD_SEGMENTER=1
 
+# If using the Stanford Segmenter, you have to tell the plugin where it is installed
+# by setting STANFORD_SEGMENTER_INSTALL_DIR and STANFORD_SEGMENTER_JAR_NAME:
+STANFORD_SEGMENTER_INSTALL_DIR=/opt/stanford-segmenter-2018-10-16
+STANFORD_SEGMENTER_JAR_NAME=stanford-segmenter-3.9.2.jar
+
 # Uncomment to turn on tokenizing using MADAMIRA instead of MADA Map
 #USE_MADAMIRA=1
 
@@ -92,6 +97,10 @@ fi
 set -o pipefail
 
 if [[ -n $USE_STANFORD_SEGMENTER ]]; then
+   if [[ $STANFORD_SEGMENTER_INSTALL_DIR ]]; then
+      export STANFORD_SEGMENTER_HOME=$STANFORD_SEGMENTER_INSTALL_DIR
+      export CLASSPATH=$STANFORD_SEGMENTER_HOME/stanford-segmenter-3.9.2.jar${CLASSPATH:+:$CLASSPATH}
+   fi
    stanseg.pl $TOK_OPTS
    RC=$?
    [[ $RC = 0 ]] || exit 1
