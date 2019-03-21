@@ -132,6 +132,16 @@ factors, such as the size of the corpus. For large corpora, the HMM model\n\
 training should be done in parallel using cat.sh.  Variants on this procedure\n\
 involve tuning ssal's -w parameter using al-diff.py, and training the HMM on\n\
 only high-confidence len-based alignments from step 4.\n\
+\n\
+8) Optionally, you can reconstruct the original, non-tokenized parallel corpus:\n\
+\n\
+   At step 3, sentence split and tokenize the corpus in two separate steps:\n\
+      utokenize.pl -notok -ss -paraline -p -lang=LL LL.para.al | head -n -1 > LL.sent\n\
+      utokenize.pl -noss -lang=LL LL.sent > LL.sent.tok\n\
+   Run steps 4, 5 and 6 on LL.sent.tok instead of LL.sent.\n\
+   Apply the alignments from al.ibm on the original sentences:\n\
+      select-lines.py -a 1 al.ibm en.sent > en.sent.al\n\
+      select-lines.py -a 2 al.ibm fr.sent > fr.sent.al\n\
 ";
 
 /**
