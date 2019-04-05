@@ -30,7 +30,7 @@ using namespace Portage;
 /// Program ssal (Simple sentence aligner) usage
 static char help_message[] = "\n\
 ssal [-vH][-hm mark][-m1 m][-m2 m][-w w][-ibm_1g2 model][-ibm_2g1 model]\n\
-     [-l][-lc locale][-f][-fm][-a alfile][-i idfile]\n\
+     [-l][-lc locale][-f][-fm][-a alfile][-rel_a][-i idfile]\n\
      file1 file2\n\
 \n\
 Sentence-align file1 with file2, writing the results to file1.al and file2.al.\n\
@@ -68,6 +68,8 @@ Options:\n\
     indicating that line numbers [b1,e1) from file1 align to lines [b2,e2)\n\
     from file2, with alignment pattern n1-n2, and score s (the total alignment\n\
     score is the sum over all sentences).\n\
+-rel_a In <alfile>, by default, b1, e1, b2, e2 are lines numbers in the file.\n\
+    With -rel_a, make them relative to the last hard marker.\n\
 -i  Read one id line from <idfile> for each region identified by hard markup,\n\
     and write one copy of the line to <idfile>.al for each sentence pair in the\n\
     region after alignment (<idfile>.al will be line-aligned to the other .al\n\
@@ -189,6 +191,7 @@ static bool filt_mark = false;
 static string filename1, filename2;
 static string ofilename1, ofilename2;
 static string alfilename;
+static bool al_relative = false;
 static string idfilename;
 static string oidfilename;
 static Uint maxsegs1 = 3;      ///< max # file1 segs that can participate in an alignment
@@ -225,6 +228,7 @@ static bool align(const vector<string>& lines1, const vector<string>& lines2,
                   vector<Coord>& connections, bool reversed);
 static void write(Uint region_num,
                   const vector<string>& lines1, const vector<string>& lines2,
+                  Uint s1_offset, Uint s2_offset,
                   const ScoreMatrix& score_matrix,
                   vector<Coord>& connections,
                   ostream& file1, ostream& file2, ostream* alfile,
@@ -266,6 +270,11 @@ int main(int argc, char* argv[])
    vector<string> lines1, lines2;
    string idline;
    Uint region_num = 0;
+
+   // lines processed before current block, when using hard markers
+   Uint s1_offset = 0;
+   Uint s2_offset = 0;
+
    while (true) {
       bool s1 = read(file1, lines1);
       bool s2 = read(file2, lines2);
@@ -305,8 +314,11 @@ int main(int argc, char* argv[])
             ++numGrowth;
          } while (!align(rlines1, rlines2, score_matrix, backlink_matrix, connections, reversed));
 
-         write(region_num, lines1, lines2, score_matrix,
+         write(region_num, lines1, lines2, s1_offset, s2_offset, score_matrix,
                connections, ofile1, ofile2, alfile, idline, oidfile, reversed);
+
+         s1_offset += lines1.size()+1;
+         s2_offset += lines2.size()+1;
       }
       else if (s1 == false && s2 == false && (idfile == NULL || si == false)) {
          break;  // end of file
@@ -348,7 +360,7 @@ string getAlignFilename(const string& file) {
  */
 static void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"d", "v", "f", "fm", "hm:", "a:", "i:", "m1:", "m2:",
+   const char* switches[] = {"d", "v", "f", "fm", "hm:", "a:", "rel_a", "i:", "m1:", "m2:",
                              "w:", "ibm_1g2:", "ibm_2g1:", "l", "lc:",
                              "o1:", "o2:", "oid:", "ne", "x",
                              "b:", "g:", "c:", "mw:"};
@@ -381,7 +393,7 @@ static void getArgs(int argc, char* argv[])
    if (closeness >= minimumWidth)
       error(ETFatal, "Beam's minimum width (%d) must be greater than the closeness factor (%d)\n 0 < %d < %d", minimumWidth, closeness, closeness, minimumWidth);
    // 1.0 < growthFactor
-   if (growthFactor <= 1.0) 
+   if (growthFactor <= 1.0)
       error(ETFatal, "The growth factor (%f) must always be greater than 1!", growthFactor);
 
    static string markstring;
@@ -389,6 +401,7 @@ static void getArgs(int argc, char* argv[])
       mark = markstring.c_str();
 
    arg_reader.testAndSet("a", alfilename);
+   arg_reader.testAndSet("rel_a", al_relative);
    arg_reader.testAndSet("i", idfilename);
    arg_reader.testAndSet("m1", maxsegs1);
    arg_reader.testAndSet("m2", maxsegs2);
@@ -690,12 +703,15 @@ bool align(const vector<string>& lines1, const vector<string>& lines2,
  * connections list is emptied as alignments are written.
  * @param ofile1 destination for aligned lines1
  * @param ofile2 destination for aligned lines2
+ * @param s1_offset offset for lines1 line numbers in their file
+ * @param s2_offset offset for lines2 line numbers in their file
  * @param alfile destination for alignment info
  * @param idline id line for this region
  * @param oidfile sentence-aligned output id file
  */
 void write(Uint region_num,
            const vector<string>& lines1, const vector<string>& lines2,
+           Uint s1_offset, Uint s2_offset,
            const ScoreMatrix& score_matrix,
            vector<Coord>& connections,
            ostream& ofile1, ostream& ofile2, ostream* alfile,
@@ -711,6 +727,11 @@ void write(Uint region_num,
          (*oidfile) << mark << endl;
    }
 
+   // Zero-out the file offsets when using -rel_a, so line numbers are printed
+   // with respect to the current block rather than the whole file
+   if (al_relative)
+      s1_offset = s2_offset = 0;
+
    Uint ibeg = 0, jbeg = 0;
    double begscore = 0.0;
    while (!connections.empty()) {
@@ -719,7 +740,8 @@ void write(Uint region_num,
       const double score = reversed ? score_matrix.get(j, i) : score_matrix.get(i, j);
       if (!filt || keep(lines1, lines2, ibeg, i, jbeg, j)) {
          if (alfile)
-            (*alfile) << ibeg << "-" << i << " " << jbeg << "-" << j << " "
+            (*alfile) << ibeg+s1_offset << "-" << i+s1_offset << " "
+                      << jbeg+s2_offset << "-" << j+s2_offset << " "
                       << i-ibeg << "-" << j-jbeg << " "
                       << score - begscore << endl;
          if (oidfile)
