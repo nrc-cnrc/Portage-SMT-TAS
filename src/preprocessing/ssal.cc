@@ -130,6 +130,8 @@ Here is a suggested multi-pass procedure for aligning raw text:\n\
         -ibm_1g2 hmm.en_given_fr.bin -ibm_2g1 hmm.fr_given_en.bin \\\n\
         en.sent fr.sent\n\
 \n\
+   (Or, even better, redo steps 2-4 using -ibm_*, to realign paragraphs too.)\n\
+\n\
 7) Optionally, compare length-based and ibm-based alignments, eg:\n\
 \n\
    al-diff.py -m \"\" al.len al.ibm en.sent fr.sent | less\n\
