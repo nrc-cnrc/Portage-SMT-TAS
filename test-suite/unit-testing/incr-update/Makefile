@@ -202,6 +202,26 @@ workdir.test.custom_cmds: context.custom_cmds
 
 
 #################################################################
+# Test line-end brackets (used to cause errors in estimate-ngram,
+# making incr-update.sh fail)
+.PHONY: test.bracket check.test.bracket
+
+all: test.bracket
+test.bracket: %: check.%
+
+check.test.bracket: check.%: workdir.%
+	grep -q 'target \[ </s>' $</lm.incremental_fr
+	[[ -d $</lm.incremental_fr.tplm ]]
+
+workdir.test.bracket: TIME_TAG = incr-update bracket
+
+workdir.test.bracket: context.main
+	mkdir -p $@
+	echo "`date +'%F %T'`	source [	target [" > $@/corpora
+	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.test.bracket
+
+
+#################################################################
 # Test initialization failure
 .PHONY: test.bad_init check.test.bad_init
 

@@ -197,14 +197,16 @@ run_cmd "$TGT_LOWERCASE_CMD < $WD/target.tok > $WD/target.lc"
 verbose 1 Train the incremental LM on target
 set +o errexit
 ulimit -c 0 # suppress estimate-ngram's core dump files (when corpus is too small)
-run_cmd "estimate-ngram -s ML -text $WD/target.lc -write-lm $WD/$INCREMENTAL_LM"
+ESTIMATE_FILTER="perl -ple 's/^\\s+//; s/\\s+\$//; s/\\s+/ /g;' | fold -s -w 4095"
+ESTIMATE_CMD="estimate-ngram -s ML -text /dev/stdin -write-lm $WD/$INCREMENTAL_LM"
+run_cmd "cat $WD/target.lc | $ESTIMATE_FILTER | $ESTIMATE_CMD"
 RC=$?
 set -o errexit
 #echo RC=$RC
 if [[ $RC == 139 ]]; then
    echo "Warning: estimate-ngram core dumped; adding dummy tokens to the document LM corpus and trying again"
    { echo __DUMMY__ __DUMMY__ __DUMMY__ __DUMMY__; cat $WD/target.lc; } > $WD/target.lc.forLM
-   run_cmd "estimate-ngram -s ML -text $WD/target.lc.forLM -write-lm $WD/$INCREMENTAL_LM" ||
+   run_cmd "cat $WD/target.lc.forLM | $ESTIMATE_FILTER | $ESTIMATE_CMD" ||
       error_exit "Cannot train document LM with added dummy tokens"
 elif [[ $RC != 0 ]]; then
    error_exit "Cannot train document LM"
