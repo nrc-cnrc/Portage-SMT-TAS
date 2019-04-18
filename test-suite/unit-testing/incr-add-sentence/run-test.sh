@@ -159,6 +159,25 @@ function with_tab() {
 
 
 
+function with_dash() {
+   testcaseDescription "Let's start the source with hyphen."
+   cleanup
+   # We want to use a stub for incr-update.sh.
+   PATH=.:$PATH \
+   incr-add-sentence.sh \
+      -verbose \
+      -unittest \
+      -- \
+      '-source sentence'\
+      '-target sentence' \
+   || error_message "Error calling incr-add-sentence.sh."
+   sleep $((TRAINING_TIME+1))
+   grep --quiet -- $'-source sentence\t-target sentence' $CORPORA \
+   || error_message "Dashes got lost."
+}
+
+
+
 function unable_to_write_to_the_queue(){
    testcaseDescription "Unable to write to the queue"
    cleanup
@@ -349,6 +368,7 @@ function integration_with_incremental_update_sh() {
 which incr-add-sentence.sh &> /dev/null \
 || { error_message "incr-add-sentence.sh not defined"; exit 1; }
 
+with_dash
 unable_to_write_to_the_queue
 with_extra_data
 with_utf8
