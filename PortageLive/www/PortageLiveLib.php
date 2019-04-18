@@ -830,7 +830,7 @@ class PortageLiveLib
          $command .= " -extra-data " . $extra_data;
       }
       $command .= " -c " . $i["canoe_ini"];
-      $command .= " $source_sentence $target_sentence";
+      $command .= " -- $source_sentence $target_sentence";
       #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       $dummy_context_info = array( 'context_dir' => '' );
