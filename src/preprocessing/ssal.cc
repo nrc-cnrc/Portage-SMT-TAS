@@ -51,6 +51,7 @@ Options:\n\
     pairs between consecutive marks, never across them. It is an error for one\n\
     input file to contain more hard marks than the other. By default, <mark>\n\
     pairs are written to all output files, but this can be changed with -fm.\n\
+    WARNING: mind your whitespace: -hm __MARK__ will *not* match \"__MARK__ \"\n\
 -p  Paragraph mode: two consecutive newlines form a hard markup. Intended to\n\
     process the output of utokenize.pl -ss -p. Different from -hm \"\" in that\n\
     an empty paragraph is still treated as just one paragraph, not two.\n\
