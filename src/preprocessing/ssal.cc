@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
       bool si = idfile ? getline(*idfile, idline) : true;
       if (s1 && s2 && si) {
          ++region_num;
-         if (verbose) cerr << "aligning region " << region_num << endl;
+         if (verbose) cerr << "\naligning region " << region_num << endl;
 
          // We need the bigger set of segments to be the rows for the BandedMatrix.
          const bool reversed = lines1.size() < lines2.size();
@@ -340,6 +340,10 @@ int main(int argc, char* argv[])
          break;
       }
    }
+
+   if (mark)
+      cerr << "Aligned " << region_num << " regions totalling "
+           << (s1_offset-1) << "/" << (s2_offset-1) << " lines." << endl;
 
    // cleanup (safe as is, without guard, even when pointers are NULL)
    delete alfile;
