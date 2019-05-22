@@ -627,6 +627,8 @@ Vue.component('translatetext', {
          enable_phrase_table_debug: false,
          translation: '',
          newline: 'p',
+         oov_url: undefined,
+         pal_url: undefined,
       };
    },
    methods: {
@@ -638,6 +640,8 @@ Vue.component('translatetext', {
          app.enable_phrase_table_debug = false;
          app.translation = '';
          app.newline = 'p';
+         app.oov_url = undefined;
+         app.pal_url = undefined;
       },
 
       is_translating_possible: function() {
@@ -665,6 +669,8 @@ Vue.component('translatetext', {
          }
 
          let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         app.oov_url = undefined;
+         app.pal_url = undefined;
 
          return app.$soap('translate', {
                srcString: app.source,
@@ -676,6 +682,10 @@ Vue.component('translatetext', {
             .then(function(response) {
                myToastInfo.goAway(250);
                app.translation = response.Body.translateResponse.Result;
+               let workdir = response.Body.translateResponse.workdir;
+               app.oov_url = `${workdir}/oov.html`;
+               app.pal_url = `${workdir}/pal.html`;
+
                let myToast = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {

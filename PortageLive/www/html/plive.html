@@ -478,6 +478,15 @@
                      rows="5">
                   </textarea>
                </div>
+               <div id="translate_text_urls" v-show="pal_url != undefined">
+                  <ul>
+                     <!--
+                         <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                      -->
+                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                  </ul>
+               </div>
                <div>
                   <label for="text_xtags" class="lineup">
                      <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />

@@ -382,7 +382,9 @@ class PortageLiveLib
       $work_dir = $this->makeWorkDir("{$context}_srcString");
       $options .= " -dir=\"$work_dir\"";
 
-      return $this->runCommand($i["script"] . $options, $src_string, $i);
+      $translations = $this->runCommand($i["script"] . $options, $src_string, $i);
+      global $base_web_dir;
+      return Array('Result' => $translations, 'workdir' => str_replace($base_web_dir, "", $work_dir));
    }
 
    # Translate a file using model $context and the confidence threshold
