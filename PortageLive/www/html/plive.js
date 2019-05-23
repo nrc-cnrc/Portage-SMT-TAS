@@ -675,17 +675,17 @@ Vue.component('translatetext', {
       },
 
 
+      add_newline: function() {
+         const app = this;
+         app.source += '\n';
+      },
+
+
       is_translating_possible: function() {
          const app = this;
          return app.context !== 'unselected'
             && app.source !== undefined
             && app.source !== '';
-      },
-
-
-      add_newline: function() {
-         const app = this;
-         app.source += '\n';
       },
 
 
