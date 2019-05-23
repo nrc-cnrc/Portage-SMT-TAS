@@ -629,6 +629,9 @@ Vue.component('translatetext', {
          newline: 'p',
          oov_url: undefined,
          pal_url: undefined,
+         styleObject: {
+            color: 'black',
+         },
       };
    },
    methods: {
@@ -642,6 +645,9 @@ Vue.component('translatetext', {
          app.newline = 'p';
          app.oov_url = undefined;
          app.pal_url = undefined;
+         app.styleObject = {
+            color: 'black',
+         };
       },
 
       is_translating_possible: function() {
@@ -661,7 +667,7 @@ Vue.component('translatetext', {
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
-         app.translation = '';
+         app.styleObject.color = 'CornflowerBlue';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
             alert(`${app.context} does not support incremental.  Please select another system.`);
@@ -682,6 +688,8 @@ Vue.component('translatetext', {
             .then(function(response) {
                myToastInfo.goAway(250);
                app.translation = response.Body.translateResponse.Result;
+               app.styleObject.color = 'black';
+
                let workdir = response.Body.translateResponse.workdir;
                app.oov_url = `${workdir}/oov.html`;
                app.pal_url = `${workdir}/pal.html`;
