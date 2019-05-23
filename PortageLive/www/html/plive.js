@@ -632,6 +632,7 @@ Vue.component('translatetext', {
             color: 'black',
          },
          last_translations: [],   // Create a Queue(maxSize=3)
+         number_translation_in_progress: 0,
       };
    },
    // On page loaded...
@@ -662,6 +663,7 @@ Vue.component('translatetext', {
             color: 'black',
          };
          app.last_translations = [];
+         app.number_translation_in_progress = 0;
       },
 
 
@@ -700,6 +702,7 @@ Vue.component('translatetext', {
          }
 
          let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         app.number_translation_in_progress += 1;
 
          return app.$soap('translate', {
                srcString: app.source,
@@ -712,7 +715,10 @@ Vue.component('translatetext', {
                myToastInfo.goAway(250);
 
                app.translation = response.Body.translateResponse.Result;
-               app.styleObject.color = 'black';
+               app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress - 1);
+               if (app.number_translation_in_progress == 0) {
+                  app.styleObject.color = 'black';
+               }
 
                let workdir = response.Body.translateResponse.workdir;
                app._enqueue({
