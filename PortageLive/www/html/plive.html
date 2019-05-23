@@ -479,14 +479,17 @@
                      rows="5">
                   </textarea>
                </div>
-               <div id="translate_text_urls" v-show="pal_url != undefined">
-                  <ul>
-                     <!--
-                         <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                      -->
-                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
-                  </ul>
+               <div>
+                  <transition-group name="list" tag="ol" class="last_translations">
+                     <li v-for="t in last_translations" :key="t.time">
+                        <ul class="last_translation" style="padding-left: 1em;">
+                           <li><a v-bind:href="t.source_url" name="source" target="_blank">Source</a></li>
+                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
+                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                        </ul>
+                     </li>
+                  </transition-group>
                </div>
                <div>
                   <label for="text_xtags" class="lineup">
