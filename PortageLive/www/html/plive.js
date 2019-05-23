@@ -839,6 +839,11 @@ var plive_app = new Vue({
                   {});
                app.contexts = contexts;
                app.context  = 'unselected';
+               // If there is only one translation system available, let's select it.
+               if (Object.keys(app.contexts).length == 1) {
+                  app.context = Object.keys(app.contexts)[0];
+               }
+               // The user had previously selected a translation system, we will restore his selection.
                if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
                   app.context = localStorage.context;
                }
