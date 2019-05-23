@@ -102,23 +102,23 @@
                      <select id="context" v-model="context" name="context" title="Which context to use during translation">
                         <option :selected="true" disabled value="unselected">&mdash; Please pick one &mdash;</option>
                         <option
-                        v-for="context in contexts"
-                        :value="context.name"
-                        v-bind:class="{ incremental : context.is_incremental}">
-                        {{context.description}}
+                           v-for="context in contexts"
+                           :value="context.name"
+                           v-bind:class="{ incremental : context.is_incremental}">
+                           {{context.description}}
                         </option>
                      </select>
                   </label>
                   <label>
                      Incremental Model Document ID:
                      <input
-                     name="document_id"
-                     title="Document id to translate with an incremental model."
-                     placeholder="Document Model ID"
-                     type="text"
-                     v-model="document_id"
-                     size="20"
-                     maxlength="40" />
+                        name="document_id"
+                        title="Document id to translate with an incremental model."
+                        placeholder="Document Model ID"
+                        type="text"
+                        v-model="document_id"
+                        size="20"
+                        maxlength="40" />
                   </label>
                </fieldset>
             </section>
