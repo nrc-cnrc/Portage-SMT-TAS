@@ -25,6 +25,7 @@
       <title>PortageLive</title>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+      <script>window.jQuery || document.write('\x3Cscript src="jquery-2.1.1.min.js">\x3C/script>')</script>
 
       <!--
             Website: http://www.fyneworks.com/jquery/xml-to-json/
@@ -35,9 +36,14 @@
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
+      <script>window.Vue || document.write('\x3Cscript src="vue-2.6.10.min.js">\x3C/script>')</script>
+
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
+      <script>window.Toasted || document.write('\x3Cscript src="vue-toasted-1.1.24.min.js">\x3C/script>')</script>
+
+      <!-- [How to fallback to local stylesheet (not script) if CDN fails](https://stackoverflow.com/a/7452378) -->
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
       <!--
