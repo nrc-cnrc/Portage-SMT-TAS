@@ -64,6 +64,7 @@
 
   <message name="translateResponse">
     <part name="Result" type="xsd:string"/>
+    <part name="workdir" type="xsd:string"/>
   </message>
 
 

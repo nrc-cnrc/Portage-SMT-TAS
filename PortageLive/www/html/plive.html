@@ -9,8 +9,8 @@
   Traitement multilingue de textes / Multilingual Text Processing
   Centre de recherche en technologies numériques / Digital Technologies Research Centre
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2018, Sa Majeste la Reine du Chef du Canada
-  Copyright 2018, Her Majesty in Right of Canada
+  Copyright 2019, Sa Majeste la Reine du Chef du Canada
+  Copyright 2019, Her Majesty in Right of Canada
 -->
 
 <!--
@@ -25,6 +25,7 @@
       <title>PortageLive</title>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+      <script>window.jQuery || document.write('\x3Cscript src="jquery-2.1.1.min.js">\x3C/script>')</script>
 
       <!--
             Website: http://www.fyneworks.com/jquery/xml-to-json/
@@ -34,10 +35,15 @@
             -->
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
+      <script>window.Vue || document.write('\x3Cscript src="vue-2.6.10.min.js">\x3C/script>')</script>
+
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
+      <script>window.Toasted || document.write('\x3Cscript src="vue-toasted-1.1.24.min.js">\x3C/script>')</script>
+
+      <!-- [How to fallback to local stylesheet (not script) if CDN fails](https://stackoverflow.com/a/7452378) -->
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
       <!--
@@ -102,23 +108,23 @@
                      <select id="context" v-model="context" name="context" title="Which context to use during translation">
                         <option :selected="true" disabled value="unselected">&mdash; Please pick one &mdash;</option>
                         <option
-                        v-for="context in contexts"
-                        :value="context.name"
-                        v-bind:class="{ incremental : context.is_incremental}">
-                        {{context.description}}
+                           v-for="context in contexts"
+                           :value="context.name"
+                           v-bind:class="{ incremental : context.is_incremental}">
+                           {{context.description}}
                         </option>
                      </select>
                   </label>
                   <label>
                      Incremental Model Document ID:
                      <input
-                     name="document_id"
-                     title="Document id to translate with an incremental model."
-                     placeholder="Document Model ID"
-                     type="text"
-                     v-model="document_id"
-                     size="20"
-                     maxlength="40" />
+                        name="document_id"
+                        title="Document id to translate with an incremental model."
+                        placeholder="Document Model ID"
+                        type="text"
+                        v-model="document_id"
+                        size="20"
+                        maxlength="40" />
                   </label>
                </fieldset>
             </section>
@@ -171,7 +177,7 @@
                      <p>Traitement multilingue de textes / Multilingual Text Processing</p>
                      <p>Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre</p>
                      <p>Conseil national de recherches Canada / National Research Council Canada</p>
-                     <p>Copyright 2004&ndash;2018, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada</p>
+                     <p>Copyright 2004&ndash;2019, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada</p>
                      <p><a href="/portage_notices.php">Third party Copyright notices</a></p>
                   </div>
                </div>
@@ -224,7 +230,7 @@
 
 
       <script type="text/x-template" id="incraddsentence_template">
-         <section name="incrAddSentence">
+         <section name="incrAddSentence" id="incrAddSentence">
             <fieldset class="round_corners">
                <legend>Add a sentence pair for a document id</legend>
 
@@ -278,7 +284,7 @@
 
 
       <script type="text/x-template" id="incrStatus_template">
-         <section name="incrStatus">
+         <section name="incrStatus" id="incrStatus">
             <fieldset class="round_corners">
                Select a context, provide a document id then click to get the incremental status.
                <button
@@ -299,7 +305,7 @@
 
 
       <script type="text/x-template" id="prime_template">
-         <section name="priming">
+         <section name="priming" id="priming">
             <fieldset class="round_corners">
                <legend>Prime Context</legend>
                <div>
@@ -342,7 +348,7 @@
 
 
       <script type="text/x-template" id="translatefile_template">
-         <section name="translate_file">
+         <section name="translate_file" id="translate_file">
             <fieldset class="round_corners">
                <legend>Translate a file</legend>
 
@@ -449,27 +455,47 @@
 
 
       <script type="text/x-template" id="translatetext_template">
-         <section name="translate_text">
+         <section name="translate_text" id="translate_text">
             <fieldset class="round_corners">
                <legend>Translate Text</legend>
                <div>
                   <strong>Type in source-language text:</strong>
                </div>
                <div>
+                  <!--
+                    https://stackoverflow.com/questions/47221119/vuejs-how-to-prevent-textarea-default-behavior
+                   -->
                   <textarea
                      name="text_source"
-                     title="The text you want to translate"
+                     title="CTRL + enter to translate"
+                     placeholder="The text you want to translate"
                      v-model="source"
+                     @keydown.enter.exact.prevent
+                     @keyup.enter.ctrl.exact="translate"
+                     @keydown.enter.exact="add_newline"
                      rows="5">
                   </textarea>
                   <textarea
                      name="translation"
                      title="You will see your translations in this box"
+                     placeholder="Your translations."
                      v-model="translation"
-                     rows="5"
+                     v-bind:style="styleObject"
                      readonly="true"
-                     placeholder="Your translations.">
+                     rows="5">
                   </textarea>
+               </div>
+               <div>
+                  <transition-group name="list" tag="ol" class="last_translations">
+                     <li v-for="t in last_translations" :key="t.time">
+                        <ul class="last_translation" style="padding-left: 1em;">
+                           <li><a v-bind:href="t.source_url" name="source" target="_blank">Source</a></li>
+                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
+                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                        </ul>
+                     </li>
+                  </transition-group>
                </div>
                <div>
                   <label for="text_xtags" class="lineup">

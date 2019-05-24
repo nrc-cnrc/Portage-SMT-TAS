@@ -6,8 +6,8 @@
  * Traitement multilingue de textes / Multilingual Text Processing
  * Centre de recherche en technologies numériques / Digital Technologies Research Centre
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2018, Sa Majeste la Reine du Chef du Canada
- * Copyright 2018, Her Majesty in Right of Canada
+ * Copyright 2019, Sa Majeste la Reine du Chef du Canada
+ * Copyright 2019, Her Majesty in Right of Canada
  */
 
 
@@ -403,9 +403,17 @@ Vue.component('translatefile', {
    mounted: function() {
       const app = this;
       app._createFilters();
-      if (localStorage.last_translations) {
-         app.last_translations = JSON.parse(localStorage.last_translations);
+      if (localStorage.last_file_translations) {
+         app.last_translations = JSON.parse(localStorage.last_file_translations);
       }
+   },
+   watch: {
+      last_translations: {
+         handler: function(val, oldVal) {
+            localStorage.last_file_translations = JSON.stringify(val);
+         },
+         deep: true,
+      },
    },
    methods: {
       _clear: function () {
@@ -421,6 +429,7 @@ Vue.component('translatefile', {
          app.trace_url = undefined;
          app.translation_progress = 0;
          app.translate_file_error = '';
+         app.last_translations = [];
       },
 
 
@@ -604,14 +613,6 @@ Vue.component('translatefile', {
             });
       },
    },  // methods
-   watch: {
-      last_translations: {
-         handler: function(val, oldVal) {
-            localStorage.last_translations = JSON.stringify(val);
-         },
-         deep: true,
-      },
-   },
 });
 
 
@@ -627,7 +628,27 @@ Vue.component('translatetext', {
          enable_phrase_table_debug: false,
          translation: '',
          newline: 'p',
+         styleObject: {
+            color: 'black',
+         },
+         last_translations: [],   // Create a Queue(maxSize=3)
+         number_translation_in_progress: 0,
       };
+   },
+   // On page loaded...
+   mounted: function() {
+      const app = this;
+      if (localStorage.last_text_translations) {
+         app.last_translations = JSON.parse(localStorage.last_text_translations);
+      }
+   },
+   watch: {
+      last_translations: {
+         handler: function(val, oldVal) {
+            localStorage.last_text_translations = JSON.stringify(val);
+         },
+         deep: true,
+      },
    },
    methods: {
       _clear: function () {
@@ -638,7 +659,29 @@ Vue.component('translatetext', {
          app.enable_phrase_table_debug = false;
          app.translation = '';
          app.newline = 'p';
+         app.styleObject = {
+            color: 'black',
+         };
+         app.last_translations = [];
+         app.number_translation_in_progress = 0;
       },
+
+
+      _enqueue: function(translation) {
+         const app = this;
+
+         app.last_translations.unshift(translation);
+         if (app.last_translations.length > 3) {
+            app.last_translations.pop();
+         }
+      },
+
+
+      add_newline: function() {
+         const app = this;
+         app.source += '\n';
+      },
+
 
       is_translating_possible: function() {
          const app = this;
@@ -651,7 +694,7 @@ Vue.component('translatetext', {
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
-         app.translation = '';
+         app.styleObject.color = 'CornflowerBlue';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
             alert(`${app.context} does not support incremental.  Please select another system.`);
@@ -659,6 +702,7 @@ Vue.component('translatetext', {
          }
 
          let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         app.number_translation_in_progress += 1;
 
          return app.$soap('translate', {
                srcString: app.source,
@@ -669,7 +713,22 @@ Vue.component('translatetext', {
             })
             .then(function(response) {
                myToastInfo.goAway(250);
+
                app.translation = response.Body.translateResponse.Result;
+               app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress - 1);
+               if (app.number_translation_in_progress == 0) {
+                  app.styleObject.color = 'black';
+               }
+
+               let workdir = response.Body.translateResponse.workdir;
+               app._enqueue({
+                  oov_url: `${workdir}/oov.html`,
+                  pal_url: `${workdir}/pal.html`,
+                  source_url: `${workdir}/Q.txt`,
+                  translation_url: `${workdir}/P.txt`,
+                  time: new Date().toISOString(),
+               });
+
                let myToast = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {
@@ -706,7 +765,7 @@ Vue.component('translatetext', {
             console.log(translations);})
          .catch(function(err) { console.error(err) } )
       },
-   },
+   },  // methods end
 });
 
 
@@ -815,6 +874,11 @@ var plive_app = new Vue({
                   {});
                app.contexts = contexts;
                app.context  = 'unselected';
+               // If there is only one translation system available, let's select it.
+               if (Object.keys(app.contexts).length == 1) {
+                  app.context = Object.keys(app.contexts)[0];
+               }
+               // The user had previously selected a translation system, we will restore his selection.
                if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
                   app.context = localStorage.context;
                }
