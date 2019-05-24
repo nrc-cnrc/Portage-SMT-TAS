@@ -648,6 +648,12 @@ Vue.component('translatetext', {
       },
 
 
+      add_newline: function() {
+         const app = this;
+         app.source += '\n';
+      },
+
+
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';

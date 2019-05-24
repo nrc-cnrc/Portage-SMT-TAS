@@ -34,7 +34,7 @@
             -->
       <script type="text/javascript" src="jquery.xml2json.js"></script>
 
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.js"></script>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -456,19 +456,26 @@
                   <strong>Type in source-language text:</strong>
                </div>
                <div>
+                  <!--
+                    https://stackoverflow.com/questions/47221119/vuejs-how-to-prevent-textarea-default-behavior
+                   -->
                   <textarea
                      name="text_source"
-                     title="The text you want to translate"
+                     title="CTRL + enter to translate"
+                     placeholder="The text you want to translate"
                      v-model="source"
+                     @keydown.enter.exact.prevent
+                     @keyup.enter.ctrl.exact="translate"
+                     @keydown.enter.exact="add_newline"
                      rows="5">
                   </textarea>
                   <textarea
                      name="translation"
                      title="You will see your translations in this box"
+                     placeholder="Your translations."
                      v-model="translation"
-                     rows="5"
                      readonly="true"
-                     placeholder="Your translations.">
+                     rows="5">
                   </textarea>
                </div>
                <div>
