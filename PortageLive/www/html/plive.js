@@ -181,7 +181,7 @@ Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.
    .then(function(response) {
       /*
          if (!response.ok) {
-         throw Error(response.statusText);
+         throw new Error(response.statusText);
          }
          */
       return response.text();
@@ -191,7 +191,7 @@ Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.
    })
    .then(function(response) {
       if (!!response.Body.Fault) {
-         throw Error(`${response.Body.Fault.faultcode}: ${response.Body.Fault.faultstring}`);
+         throw new Error(`${response.Body.Fault.faultcode}: ${response.Body.Fault.faultstring}`);
       }
       return response;
    });
