@@ -694,7 +694,6 @@ Vue.component('translatetext', {
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
-         app.styleObject.color = 'CornflowerBlue';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
             alert(`${app.context} does not support incremental.  Please select another system.`);
@@ -712,13 +711,7 @@ Vue.component('translatetext', {
                useCE: false,
             })
             .then(function(response) {
-               myToastInfo.goAway(250);
-
                app.translation = response.Body.translateResponse.Result;
-               app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress - 1);
-               if (app.number_translation_in_progress == 0) {
-                  app.styleObject.color = 'black';
-               }
 
                let workdir = response.Body.translateResponse.workdir;
                app._enqueue({
@@ -732,9 +725,13 @@ Vue.component('translatetext', {
                let myToast = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {
-               myToastInfo.goAway(250);
                alert(`Failed to translate your sentences! ${err}`);
                let myToast = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
+            })
+            .finally(function() {
+               myToastInfo.goAway(250);
+               app.number_translation_in_progress -= 1;
+               console.log(`number_translation_in_progress: ${app.number_translation_in_progress}`);
             });
       },
 
@@ -766,6 +763,19 @@ Vue.component('translatetext', {
          .catch(function(err) { console.error(err) } )
       },
    },  // methods end
+
+   watch: {
+      number_translation_in_progress: function(old_value, new_value) {
+         const app = this;
+         app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress);
+         if (app.number_translation_in_progress == 0) {
+            app.styleObject.color = 'black';
+         }
+         else {
+            app.styleObject.color = 'CornflowerBlue';
+         }
+      },
+   },
 });
 
 
