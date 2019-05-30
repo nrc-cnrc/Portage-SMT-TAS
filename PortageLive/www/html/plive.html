@@ -115,7 +115,7 @@
                         </option>
                      </select>
                   </label>
-                  <label>
+                  <label class="ui_incremental">
                      Incremental Model Document ID:
                      <input
                         name="document_id"
@@ -131,17 +131,17 @@
 
             <section class="row">
                <section>
-                  <translatetext :context="context" :contexts="contexts" :document_id="document_id"></translatetext>
+                  <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
 
-                  <prime :context="context" :contexts="contexts"></prime>
+                  <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
                </section>
 
                <section class="group_translate_file_and_incremental">
-                  <translatefile :context="context" :contexts="contexts" :document_id="document_id"></translatefile>
+                  <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
 
-                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id"></incraddsentence>
+                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
 
-                  <incrstatus :context="context" :contexts="contexts" :document_id="document_id"></incrstatus>
+                  <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
                </section>
             </section>
 
@@ -497,7 +497,7 @@
                      </li>
                   </transition-group>
                </div>
-               <div>
+               <div class="ui_full ui_incremental">
                   <label for="text_xtags" class="lineup">
                      <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
                      <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
@@ -511,7 +511,7 @@
                         </label>
                      </div>
                      -->
-               <fieldset id="text_advanced_options" class="round_corners">
+               <fieldset id="text_advanced_options" class="round_corners ui_full ui_incremental">
                   <legend>Advanced Options: newline</legend>
                   <label class="lineup" title="Check this box if input text has one sentence per line">
                      <input v-model="newline" type="radio" name="newline" value="s" />
