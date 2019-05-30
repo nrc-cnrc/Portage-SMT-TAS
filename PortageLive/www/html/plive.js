@@ -87,7 +87,7 @@ Vue.toasted.register('error', message => message, {
    fullWidth : true,
    icon : 'error',
    iconPack: 'material',
-   position: 'bottom-center',
+   position: 'top-center',
    theme: 'bubble',
    type: 'error',
 });
@@ -99,7 +99,7 @@ Vue.toasted.register('success', message => message, {
    fullWidth : true,
    icon : 'done_outline',
    iconPack: 'material',
-   position: 'bottom-center',
+   position: 'top-center',
    theme: 'bubble',
    type: 'success',
 });
@@ -117,7 +117,7 @@ Vue.toasted.register('info', message => message, {
    fullWidth : true,
    icon : 'info-circle',
    iconPack: 'fontawesome',
-   position: 'bottom-center',
+   position: 'top-center',
    theme: 'bubble',
    type: 'info',
 });
