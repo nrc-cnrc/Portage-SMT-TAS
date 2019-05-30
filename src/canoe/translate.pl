@@ -754,7 +754,7 @@ unless ($dryrun) {
    open (README, ">", "$dir/README")
       or cleanupAndDie("Unable to open '$dir/README' for writing.\n");
    print README (
-      "Filenames starting with 'Q' or 'q' = query text = source language input.\n",
+      "Filenames starting with 'Q' or 'q' = query text = unlatered source language input provided by the user.\n",
       "Filenames starting with 'P' or 'p' = product text = target language output.\n",
       "\n",
       "Filenames starting with an uppercase letter contain (possibly) truecased text\n",
@@ -790,7 +790,7 @@ my $ostype = `uname -s`;
 chomp $ostype;
 my $ci = ($ostype eq "Darwin") ? "l" : ""; # for case insensitive file systems
 
-my $Q_txt  = "${dir}/Q.txt";     # Raw source text
+my $Q_txt  = "${dir}/Q.txt";     # Raw source text, unaltered text provided by the user and may contain tags
 my $Q_tags = "${dir}/Q.tags";     # Raw source text with tags
 # --> preprocessor plugin
 my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
@@ -838,11 +838,9 @@ IN:{
       cleanupAndDie("XML file $input_text has no sentences in language $xsrc.\n") unless -e $Q_txt or $dryrun;
    }
    else {
+      copy($input_text, $Q_txt);
       if ($xtags) {
-         copy($input_text, $Q_tags);
-      }
-      else {
-         copy($input_text, $Q_txt);
+         copy($Q_txt, $Q_tags);
       }
    }
 }
