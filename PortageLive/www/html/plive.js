@@ -259,7 +259,7 @@ Vue.component('incraddsentence', {
             .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
                const faultcode = response.Body.Fault.faultcode;
-               alert(`Error adding sentence pair. ${faultstring}`);
+               let myToast = app.$toasted.global.error(`Failed to add sentence pair to ${context} ${faultstring}! ${icon}`);
             });
       },
 
@@ -307,7 +307,6 @@ Vue.component('incrstatus', {
             })
             .catch(function(err) {
                let myToast = app.$toasted.global.failed(`Failed to get incremental status ${icon}`);
-               alert(`Failed to get incremental status ${full_context}\n ${err}`);
             });
       },
 
@@ -360,18 +359,19 @@ Vue.component('prime', {
                'PrimeMode': app.prime_mode,
             })
             .then(function(response) {
-               myToastInfo.goAway(250);
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
                   let myToast = app.$toasted.global.success(`Successfully primed ${context}! ${icon}`);
                }
                else {
-                  let myToast = app.$toasted.global.error(`Failed to prime ${context}! ${icon}`);
+                  throw new Error('Failed to prime!');
                }
             })
             .catch(function(err) {
+               let myToast = app.$toasted.global.error(`Failed to prime ${context}! ${icon}`);
+            })
+            .finally(function() {
                myToastInfo.goAway(250);
-               alert(`Failed to prime context ${context} ${err}`);
             });
       },
    },
@@ -696,7 +696,7 @@ Vue.component('translatetext', {
          const icon = '<i class="fa fa-keyboard-o"></i>';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
-            alert(`${app.context} does not support incremental.  Please select another system.`);
+            let myToast = app.$toasted.global.error(`${app.context} does not support incremental.  Please select another system. ${icon}`);
             return;
          }
 
@@ -914,7 +914,7 @@ var plive_app = new Vue({
             })
             .catch(function(err) {
                app.version = "Failed to retrieve Portage's version";
-               alert(`Failed to get Portage's version. ${err}`);
+               let myToast = app.$toasted.global.error(`Failed to get Portage's version. ${err}!`);
             });
       },
    },  // methods
