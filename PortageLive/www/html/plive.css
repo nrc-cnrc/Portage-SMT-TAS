@@ -27,8 +27,8 @@ body {
 
 #plive_app {
    margin: auto;
+   min-width: 400px;
    width: 90%;
-   min-width: 800px;
 }
 
 #copyright {
@@ -93,6 +93,8 @@ fieldset label.lineup input[type="radio"] {
    margin-left: -18px;
 }
 
+
+
 /* Create a three columns layout. */
 /* https://www.w3schools.com/howto/howto_css_three_columns.asp */
 .row > section {
@@ -107,23 +109,42 @@ fieldset label.lineup input[type="radio"] {
    clear: both;
 }
 
+/*
+.row {
+   columns: 2;
+}
+*/
+
+
+
 /* Responsive layout - when the screen is less than 600px wide, make the three columns stack on top of each other instead of next to each other */
-@media screen and (max-width:959px),
-screen and (max-device-width:1023px) {
+@media screen and (max-width:1759px),
+screen and (max-device-width:1823px) {
    .row > section {
       width: 100%;
    }
+
+   #plive_app {
+      max-width: 900px;
+      min-width: 400px;
+   }
+
+   /*
+   .row {
+      columns: 1;
+   }
+   */
 }
 
 /* The next section is for dynamic layout. */
-/*
 .row > section {
-   transition: width 1.2s;
-   -webkit-transition: width 1.2s;
+   transition: width 0.2s;
+   -webkit-transition: width 0.2s;
    transition-timing-function: ease-out;
    -webkit-transition-timing-function: ease-out;
 }
 
+/*
 .row > section:hover {
    width: 60%;
 }
@@ -254,3 +275,17 @@ footer:after {
    color: red;
    font-weight: bold;
 }
+
+
+/*
+.ui_full{
+   display: none;
+}
+*/
+
+
+/*
+.ui_incremental {
+   display: none;
+}
+*/
