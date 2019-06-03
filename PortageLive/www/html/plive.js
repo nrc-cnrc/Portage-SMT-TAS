@@ -124,6 +124,28 @@ Vue.toasted.register('info', message => message, {
 
 
 
+Vue.toasted.register('translating', message => {
+      const prefix = document.getElementById('translating_template').text || 'translating...';
+      return prefix + message;
+   },
+   {
+      action : {
+         text : 'Dismiss',
+         onClick : (e, toastObject) => {
+            toastObject.goAway(250);
+         }
+      },
+      duration : 300000,
+      fullWidth : true,
+      icon : 'info-circle',
+      iconPack: 'fontawesome',
+      position: 'bottom-center',
+      theme: 'bubble',
+      type: 'info',
+});
+
+
+
 Vue.prototype.$body = function(method, args) {
    const method_args = Object.keys(args).reduce(function(previous, current) {
       previous += `<${current}>${String(args[current]).encodeHTML()}</${current}>`;
@@ -712,6 +734,7 @@ Vue.component('translatetext', {
          }
 
          let translatingToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         //let translatingToastInfo = app.$toasted.global.translating(`${icon}`);
          app.number_translation_in_progress += 1;
 
          return app.$soap('translate', {
