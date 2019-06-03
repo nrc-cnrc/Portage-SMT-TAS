@@ -254,12 +254,12 @@ Vue.component('incraddsentence', {
                const status = response.Body.incrAddSentenceResponse.status;
                app._clear();
                // TODO: There is no feedback if the status is false.
-               let myToast = app.$toasted.global.success(`Successfully added sentence pair!${icon}`);
+               let incrementAddSentenceToastSuccess = app.$toasted.global.success(`Successfully added sentence pair!${icon}`);
             })
             .catch(function(err) {
                const faultstring = response.Body.Fault.faultstring;
                const faultcode = response.Body.Fault.faultcode;
-               let myToast = app.$toasted.global.error(`Failed to add sentence pair to ${context} ${faultstring}! ${icon}`);
+               let incrementAddSentenceToastError = app.$toasted.global.error(`Failed to add sentence pair to ${context} ${faultstring}! ${icon}`);
             });
       },
 
@@ -303,10 +303,10 @@ Vue.component('incrstatus', {
             .then(function(response) {
                const status = `full_context : ${String(response.Body.incrStatusResponse.status_description)}`;
                app.incrStatus_status = status;
-               let myToast = app.$toasted.global.success(`${status} ${icon}`);
+               let incrementStatusToastSuccess = app.$toasted.global.success(`${status} ${icon}`);
             })
             .catch(function(err) {
-               let myToast = app.$toasted.global.failed(`Failed to get incremental status ${icon}`);
+               let incrementStatusToastFailed = app.$toasted.global.failed(`Failed to get incremental status ${icon}`);
             });
       },
 
@@ -352,7 +352,7 @@ Vue.component('prime', {
          // priming is done.
          const context = app.context;
 
-         let myToastInfo = app.$toasted.global.info(`priming ${context} ${icon}`);
+         let primingToastInfo = app.$toasted.global.info(`priming ${context} ${icon}`);
 
          return app.$soap('primeModels', {
                'context': context,
@@ -361,17 +361,17 @@ Vue.component('prime', {
             .then(function(response) {
                const status = String(response.Body.primeModelsResponse.status);
                if (status === 'true') {
-                  let myToast = app.$toasted.global.success(`Successfully primed ${context}! ${icon}`);
+                  let primingToastSuccess = app.$toasted.global.success(`Successfully primed ${context}! ${icon}`);
                }
                else {
                   throw new Error('Failed to prime!');
                }
             })
             .catch(function(err) {
-               let myToast = app.$toasted.global.error(`Failed to prime ${context}! ${icon}`);
+               let primingToastError = app.$toasted.global.error(`Failed to prime ${context}! ${icon}`);
             })
             .finally(function() {
-               myToastInfo.goAway(250);
+               primingToastInfo.goAway(250);
             });
       },
    },
@@ -452,7 +452,7 @@ Vue.component('translatefile', {
       },
 
 
-      _translateFileSuccess: function (soapResponse, method, myToastInfo) {
+      _translateFileSuccess: function (soapResponse, method, translatingToastInfo) {
          const app = this;
          const icon = '<i class="fa fa-file-text"></i>';
          var response = soapResponse.Body;
@@ -471,8 +471,8 @@ Vue.component('translatefile', {
                         app.translation_url = token.replace(/^0 Done: /, '/');
                         app.pal_url = app.translation_url.replace(/[^\/]+$/, 'pal.html');
                         app.oov_url = app.translation_url.replace(/[^\/]+$/, 'oov.html');
-                        let myToast = app.$toasted.global.success(`Successfully translated your file ${app.file.name}! ${icon}`);
-                        myToastInfo.goAway(250);
+                        let translateFileToastSuccess = app.$toasted.global.success(`Successfully translated your file ${app.file.name}! ${icon}`);
+                        translatingToastInfo.goAway(250);
                         app._enqueue({
                            name: app.file.name,
                            oov_url: app.oov_url,
@@ -490,7 +490,7 @@ Vue.component('translatefile', {
                         }
                      }
                      else if (token.startsWith('2 Failed')) {
-                        myToastInfo.goAway(250);
+                        translatingToastInfo.goAway(250);
                         window.clearInterval(watcher);
                         // 2 Failed - no sentences to translate : plive/SOAP_BtB-METEO.v2.E2F_Devoirdephilo2.docx.xliff_20180503T152059Z_mBJdDf/trace
                         const messages = token.match(/2 Failed - ([^:]+) : (.*)/);
@@ -501,16 +501,16 @@ Vue.component('translatefile', {
                         }
                      }
                      else if (token.startsWith('3')) {
-                        myToastInfo.goAway(250);
+                        translatingToastInfo.goAway(250);
                         window.clearInterval(watcher);
                      }
                      else {
-                        myToastInfo.goAway(250);
+                        translatingToastInfo.goAway(250);
                         window.clearInterval(watcher);
                      }
                   })
                   .catch(function(err) {
-                     myToastInfo.goAway(250);
+                     translatingToastInfo.goAway(250);
                      alert(`Failed to retrieve your translation status! ${err}`);
                   });
             },
@@ -601,14 +601,14 @@ Vue.component('translatefile', {
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation} ${data.Filename} ${icon}`);
+         let translatingToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation} ${data.Filename} ${icon}`);
 
          return app.$soap(translate_method, data)
             .then(function(response) {
-               app._translateFileSuccess(response, `${translate_method}Response`, myToastInfo);
+               app._translateFileSuccess(response, `${translate_method}Response`, translatingToastInfo);
             })
             .catch(function(err) {
-               myToastInfo.goAway(250);
+               translatingToastInfo.goAway(250);
                alert(`Failed to translate your file! ${soapResponse.toJSON()}`);
             });
       },
@@ -707,11 +707,11 @@ Vue.component('translatetext', {
          const icon = '<i class="fa fa-keyboard-o"></i>';
          const is_incremental = app.contexts[app.context].is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
-            let myToast = app.$toasted.global.error(`${app.context} does not support incremental.  Please select another system. ${icon}`);
+            let translateTextToastError = app.$toasted.global.error(`${app.context} does not support incremental.  Please select another system. ${icon}`);
             return;
          }
 
-         let myToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         let translatingToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
          app.number_translation_in_progress += 1;
 
          return app.$soap('translate', {
@@ -733,16 +733,16 @@ Vue.component('translatetext', {
                   time: new Date().toISOString(),
                });
 
-               let myToast = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
+               let translateTextToastSuccess = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {
                alert(`Failed to translate your sentences! ${err}`);
-               let myToast = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
+               let translateTextToastError = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
             })
             .finally(function() {
-               myToastInfo.goAway(250);
                app.number_translation_in_progress -= 1;
                console.log(`number_translation_in_progress: ${app.number_translation_in_progress}`);
+               translatingToastInfo.goAway(250);
             });
       },
 
@@ -804,7 +804,7 @@ var plive_app = new Vue({
          // This is useful for debugging vue-toasted.
          let myToastFailed = app.$toasted.global.error('<i class="fa fa-car"></i>My custom error message');
          let myToastSuccess = app.$toasted.global.success('Successfully translate your file! <i class="fa fa-file"></i><i class="fa fa-file-text"></i><i class="fa fa-edit"></i><i class="fa fa-keyboard-o"></i> <i class="fa fa-pencil"></i>', {duration: 10000});
-         let myToastInfo = app.$toasted.info(app.translating_animation, {
+         let translatingToastInfo = app.$toasted.info(app.translating_animation, {
             duration: 100000,
             action : {
                text : 'Dismiss',
@@ -908,7 +908,7 @@ var plive_app = new Vue({
             })
             .catch(function(err) {
                app.version = "Failed to retrieve Portage's version";
-               let myToast = app.$toasted.global.error(`Failed to get Portage's version. ${err}!`);
+               let getVersionToastError = app.$toasted.global.error(`Failed to get Portage's version. ${err}!`);
             });
       },
    },  // methods
