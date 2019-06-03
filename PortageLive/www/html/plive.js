@@ -778,6 +778,15 @@ Vue.component('translatetext', {
 
 
 
+function clear_recursively(nodes) {
+   nodes.forEach(function(e) {
+      e._clear && e._clear();
+      clear_recursively(e.$children);
+   });
+}
+
+
+
 var plive_app = new Vue({
    el: '#plive_app',
 
@@ -861,10 +870,8 @@ var plive_app = new Vue({
          app.context = 'unselected';
          app.document_id = '';
 
-         // TODO: apply clear() on all children.
-         app.$children.forEach(function(e) {
-            e._clear();
-         });
+         // apply clear() on all children.
+         clear_recursively(app.$children);
       },
 
 
