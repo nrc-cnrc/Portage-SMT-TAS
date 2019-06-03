@@ -653,6 +653,16 @@ Vue.component('translatetext', {
          },
          deep: true,
       },
+      number_translation_in_progress: function(old_value, new_value) {
+         const app = this;
+         app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress);
+         if (app.number_translation_in_progress == 0) {
+            app.styleObject.color = 'black';
+         }
+         else {
+            app.styleObject.color = 'CornflowerBlue';
+         }
+      },
    },
    methods: {
       _clear: function () {
@@ -764,19 +774,6 @@ Vue.component('translatetext', {
          .catch(function(err) { console.error(err) } )
       },
    },  // methods end
-
-   watch: {
-      number_translation_in_progress: function(old_value, new_value) {
-         const app = this;
-         app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress);
-         if (app.number_translation_in_progress == 0) {
-            app.styleObject.color = 'black';
-         }
-         else {
-            app.styleObject.color = 'CornflowerBlue';
-         }
-      },
-   },
 });
 
 
