@@ -645,6 +645,10 @@ Vue.component('translatetext', {
    watch: {
       last_translations: {
          handler: function(val, oldVal) {
+            // We only keep the last three translation records.
+            if (val.length > 3) {
+               val.pop();
+            }
             localStorage.last_text_translations = JSON.stringify(val);
          },
          deep: true,
@@ -671,9 +675,6 @@ Vue.component('translatetext', {
          const app = this;
 
          app.last_translations.unshift(translation);
-         if (app.last_translations.length > 3) {
-            app.last_translations.pop();
-         }
       },
 
 
