@@ -235,6 +235,76 @@ Vue.filter('doubleDigits', function (value) {
 
 
 
+// [Vue.js Tabs](https://codepen.io/tatimblin/pen/oWKdjR)
+// [Vue tabs (bare bones) for CSS](https://codepen.io/mburridge/pen/WgXrvG)
+// [CSS](https://raw.githubusercontent.com/spatie/vue-tabs-component/master/docs/resources/tabs-component.css)
+Vue.component('tabs', {
+   template: `
+   <div>
+      <div class="tabs">
+         <ul>
+            <li v-for="tab in tabs" :class="{ 'is-active': tab.isActive }">
+               <a :href="tab.href" @click="selectTab(tab)">{{ tab.name }}</a>
+            </li>
+         </ul>
+      </div>
+
+      <div class="tabs-details">
+         <slot></slot>
+      </div>
+   </div>
+   `,
+
+   data: function() {
+      return {tabs: [] };
+   },
+
+   created: function() {
+
+      this.tabs = this.$children;
+
+   },
+   methods: {
+      selectTab: function(selectedTab) {
+         this.tabs.forEach(tab => {
+            tab.isActive = (tab.name == selectedTab.name);
+         });
+      }
+   }
+});
+
+
+
+Vue.component('tab', {
+   template: `
+      <div v-show="isActive" class="tabcontent"><slot></slot></div>
+   `,
+
+   props: {
+      name: { required: true },
+      selected: { default: false},
+   },
+
+   data: function() {
+      return {
+         isActive: false,
+      };
+
+   },
+
+   computed: {
+      href: function() {
+         return '#' + this.name.toLowerCase().replace(/ /g, '-');
+      }
+   },
+
+   mounted: function() {
+      this.isActive = this.selected;
+   }
+});
+
+
+
 // https://css-tricks.com/intro-to-vue-2-components-props-slots/
 // https://alligator.io/vuejs/component-communication/
 Vue.component('translating', {
@@ -316,7 +386,7 @@ Vue.component('incrstatus', {
       incrStatus: function() {
          const app = this;
          const icon = '<i class="fa fa-cogs"></i>';
-         const full_context = app.$parent._getContext();
+         const full_context = app.$root._getContext();
 
          return app.$soap('incrStatus', {
             'context': app.context,
@@ -608,7 +678,7 @@ Vue.component('translatefile', {
          const data = {
             ContentsBase64: app.file.base64,
             Filename: app.file.name,
-            context: app.$parent._getContext(),
+            context: app.$root._getContext(),
             useCE: app.useConfidenceEstimation,
             xtags: app.xtags,
          };
@@ -623,7 +693,7 @@ Vue.component('translatefile', {
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         let translatingToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation} ${data.Filename} ${icon}`);
+         let translatingToastInfo = app.$toasted.global.info(`${app.$root.translating_animation} ${data.Filename} ${icon}`);
 
          return app.$soap(translate_method, data)
             .then(function(response) {
@@ -733,13 +803,13 @@ Vue.component('translatetext', {
             return;
          }
 
-         let translatingToastInfo = app.$toasted.global.info(`${app.$parent.translating_animation}${icon}`);
+         let translatingToastInfo = app.$toasted.global.info(`${app.$root.translating_animation}${icon}`);
          //let translatingToastInfo = app.$toasted.global.translating(`${icon}`);
          app.number_translation_in_progress += 1;
 
          return app.$soap('translate', {
                srcString: app.source,
-               context: app.$parent._getContext(),
+               context: app.$root._getContext(),
                newline: app.newline,
                xtags: app.xtags,
                useCE: false,

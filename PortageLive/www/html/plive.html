@@ -54,6 +54,10 @@
       <link rel="stylesheet" href="nrc.gc.ca.css">
       <link rel="stylesheet" href="plive.css">
       <link rel="stylesheet" href="plive.translating.css">
+      <!--
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
+      <link rel="stylesheet" href="tabs-component.css">
+      -->
    </head>
 
    <body>
@@ -131,17 +135,25 @@
 
             <section class="row">
                <section>
-                  <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
-
-                  <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
+                  <tabs>
+                     <tab name="Text" :selected="true">
+                        <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
+                     </tab>
+                     <tab name="File">
+                        <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
+                     </tab>
+                  </tabs>
                </section>
 
-               <section class="group_translate_file_and_incremental">
-                  <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
+               <section>
+                  <fieldset>
+                     <legend>Advanced</legend>
+                     <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
 
-                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
+                     <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
 
-                  <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
+                     <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
+                  </fieldset>
                </section>
             </section>
 
