@@ -108,6 +108,7 @@ fieldset label.lineup {
    display: block;
    /*float: left;*/
    margin-left: 18px;
+   padding: 0.2em;
 }
 
 fieldset label.lineup input[type="checkbox"] {
@@ -243,6 +244,11 @@ footer:after {
    text-align: center;
    padding-left: 1em;
    text-decoration: none;
+}
+
+
+#translate_file div {
+   padding: 0.5em;
 }
 
 
