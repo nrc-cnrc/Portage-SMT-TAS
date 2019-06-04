@@ -134,28 +134,22 @@
                </fieldset>
             </section>
 
-            <section class="row">
-               <section>
-                  <tabs>
-                     <tab name="Text" :selected="true">
-                        <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
-                     </tab>
-                     <tab name="File">
-                        <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
-                     </tab>
-                  </tabs>
-               </section>
-
-               <section id="advanced">
-                  <fieldset class="round_corners">
-                     <legend>Advanced</legend>
+            <section id="tab_section">
+               <tabs>
+                  <tab name="Text" :selected="true">
+                     <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
+                  </tab>
+                  <tab name="File">
+                     <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
+                  </tab>
+                  <tab name="Advanced">
                      <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
 
                      <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
 
                      <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
-                  </fieldset>
-               </section>
+                  </tab>
+               </tabs>
             </section>
 
             <section name="clear">
