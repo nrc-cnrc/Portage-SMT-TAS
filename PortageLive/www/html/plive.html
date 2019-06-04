@@ -286,6 +286,7 @@
                      title="Given a context, add a sentence pair to a document id."
                      v-on:click="incrAddSentence"
                      :disabled="!is_incrAddSentence_possible()"
+                     style="float: right"
                      accesskey="a">
                      Add Sentence Pair
                   </button>
@@ -305,6 +306,7 @@
                   title="Select a context, provide a document id, then click to get the incremental status"
                   @click="incrStatus"
                   :disabled="!is_incrStatus_possible()"
+                  style="float: right"
                   accesskey="s">
                   Incremental Document Status
                </button>
@@ -326,7 +328,7 @@
                   on the server.  Note that you cannot prime all models due to memory
                   limitation on the server.  Priming too often is also not recommended.
                </div>
-               <div style="display: table-cell; vertical-align: middle;">
+               <div style="vertical-align: middle;">
                   <!--
                       Wow I don't understand centering two divs inside a div.
                       This does not work as I would expect it to work.  It is
@@ -334,7 +336,7 @@
                       http://jsfiddle.net/5vpA3/1120/
                       http://jsfiddle.net/5vpA3/1117/
                   -->
-                  <div style="display: inline-block; vertical-align: middle;">
+                  <div style="display: inline-block; vertical-align: middle; padding-left: 1em;">
                      <label class="lineup" title="Refreshes most important models in memory">
                         <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
                         partial
@@ -344,7 +346,7 @@
                         full
                      </label class="lineup">
                   </div>
-                  <div style="display: inline-block; vertical-align: middle; margin-left: 2em;">
+                  <div style="display: inline-block; vertical-align: middle; margin-left: 2em; float: right;">
                      <button
                         title="Select a context, select a mode then prime your models"
                         @click="primeModel"
@@ -354,6 +356,7 @@
                      </button>
                   </div>
                </div>
+               <div style="clear: both;"></div>
             </fieldset>
          </section>
       </script>
