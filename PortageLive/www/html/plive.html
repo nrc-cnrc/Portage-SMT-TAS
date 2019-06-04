@@ -115,7 +115,7 @@
                         <option
                            v-for="context in contexts"
                            :value="context.name"
-                           v-bind:class="{ incremental : context.is_incremental}">
+                           :class="{ incremental : context.is_incremental}">
                            {{context.description}}
                         </option>
                      </select>
@@ -162,7 +162,7 @@
                <button
                   name=".defaults"
                   title="Reset the fields to their default values."
-                  v-on:click="clearForm"
+                  @click="clearForm"
                   accesskey="c">Clear Form</button>
             </section>
 
@@ -284,7 +284,7 @@
                   <button
                      name="incr_add_sentence"
                      title="Given a context, add a sentence pair to a document id."
-                     v-on:click="incrAddSentence"
+                     @click="incrAddSentence"
                      :disabled="!is_incrAddSentence_possible()"
                      style="float: right"
                      accesskey="a">
@@ -380,7 +380,7 @@
                         name="filename"
                         title="Select a file to translate"
                         type="file"
-                        v-on:change="prepareFile"
+                        @change="prepareFile"
                         size="60"
                         accept=".txt,.tmx,.sdlxliff,.xliff" />
                   </label>
@@ -428,7 +428,7 @@
                      <button
                         name="translate_file"
                         title="Select a context, select a file then translate"
-                        v-on:click="translateFile"
+                        @click="translateFile"
                         :disabled="!is_translating_a_file_possible()"
                         accesskey="f">
                         Translate File
@@ -436,28 +436,28 @@
                   </div>
                </div>
                <div v-show="translation_progress >= 0">
-                  <progress v-bind:value="translation_progress" max="100"></progress>
+                  <progress :value="translation_progress" max="100"></progress>
                </div>
                <div id="translate_file_urls" v-show="translation_url != undefined">
                   <ul>
-                     <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                     <li><a :href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                     <li><a :href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                     <li><a :href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                   </ul>
                </div>
                <div v-show="trace_url != undefined">
                   <h3>Error</h3>
                   {{translate_file_error}}
-                  <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
+                  <a :href="trace_url" name="trace_url" target="_blank">trace</a>
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
                      <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
                            <li>{{ t.name }}</li>
-                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                           <li><a :href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                           <li><a :href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a :href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                         </ul>
                      </li>
                   </transition-group>
@@ -494,7 +494,7 @@
                      title="You will see your translations in this box"
                      placeholder="Your translations."
                      v-model="translation"
-                     v-bind:style="styleObject"
+                     :style="styleObject"
                      readonly="true"
                      rows="5">
                   </textarea>
@@ -503,10 +503,10 @@
                   <transition-group name="list" tag="ol" class="last_translations">
                      <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
-                           <li><a v-bind:href="t.source_url" name="source" target="_blank">Source</a></li>
-                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
-                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                           <li><a :href="t.source_url" name="source" target="_blank">Source</a></li>
+                           <li><a :href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
+                           <li><a :href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a :href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                         </ul>
                      </li>
                   </transition-group>
@@ -551,7 +551,7 @@
                   <div style="float: left">
                      <button
                         title="Select a context, type your sentence then translate."
-                        v-on:click="translate"
+                        @click="translate"
                         :disabled="!is_translating_possible()"
                         accesskey="t">
                         Translate Text
