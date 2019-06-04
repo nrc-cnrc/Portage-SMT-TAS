@@ -242,7 +242,7 @@
                <legend>Add a sentence pair for a document id</legend>
 
                <div v-if="context == 'unselected'">
-                  Please, also select a context
+                  Select a context that supports incremental <i>[incr]</i> and provide a document id.
                </div>
                <div v-else>
                   Using context <em>{{context}}</em> to add sentence pair to.
@@ -295,10 +295,10 @@
          <section name="incrStatus" id="incrStatus">
             <fieldset class="round_corners">
                <legend>Incremental Document Status</legend>
-               Select a context, provide a document id, then click to get the incremental status.
+               Select a context that supports incremental <i>[incr]</i>, provide a document id, then click to get the incremental status.
                <button
                   name="incrStatus"
-                  title="Select a context, provide a document id, then click to get the incremental status"
+                  title="Select a context that supports incremental [incr], provide a document id, then click to get the incremental status"
                   @click="incrStatus"
                   :disabled="!is_incrStatus_possible()"
                   style="float: right"
