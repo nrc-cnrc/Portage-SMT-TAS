@@ -17,6 +17,31 @@ body {
    flex-direction: column;
 }
 
+button {
+   background-color: #0078e7;
+   border-radius: 8px;
+   color: white;
+   display: inline-block;
+   font-size: larger;
+   margin: .4em;
+   padding: .5em 1em .5em 1em;
+   text-align: center;
+   text-decoration: none;
+}
+
+button:hover {
+   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+#advanced button {
+   background-color: rgb(66, 184, 221);
+}
+
+button:disabled, #advanced button:disabled {
+   background: #dddddd;
+   cursor: not-allowed;
+}
+
 #wb-body {
    flex: 1 0 auto;
 }
