@@ -359,6 +359,8 @@ Vue.component('incraddsentence', {
       is_incrAddSentence_possible: function() {
          const app = this;
          return app.context !== 'unselected'
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].is_incremental
             && app.incr_source_segment !== ''
             && app.incr_target_segment !== ''
             && app.document_id !== '';
@@ -406,6 +408,8 @@ Vue.component('incrstatus', {
       is_incrStatus_possible: function() {
          const app = this;
          return app.context !== 'unselected'
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].is_incremental
             && app.document_id !== undefined
             && app.document_id !== '';
       },
