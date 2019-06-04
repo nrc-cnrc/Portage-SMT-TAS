@@ -336,16 +336,25 @@ footer:after {
    margin-left: 10px;
 }
 
+.tabs li.is-active a {
+   border-bottom-color: #A7D8FE;
+   color: black;
+   background-color: #A7D8FE;
+}
+
 .tabs a {
-   float: left;
-   cursor: pointer;
-   padding: 12px 24px;
-   transition: background-color 0.2s;
-   border: 1px solid #ccc;
-   border-right: none;
-   background-color: #f1f1f1;
+   background-color: #B7E8FE;
    border-radius: 10px 10px 0 0;
+   border-right: none;
+   border: 1px solid #ccc;
+   color: white;
+   cursor: pointer;
+   float: left;
+   font-size: large;
    font-weight: bold;
+   padding: 12px 24px;
+   text-decoration: none;
+   transition: background-color 0.2s;
 }
 
 .tabs a:last-child {
@@ -368,8 +377,9 @@ footer:after {
 
 /* Style the tab content */
 .tabcontent {
-   padding: 10px;
-   border: 1px solid #ccc;
+   background-color: #A7D8FE;
    border-radius: 10px;
-   box-shadow: 3px 3px 6px #e1e1e1
+   border: 1px solid #ccc;
+   box-shadow: 3px 3px 6px #e1e1e1;
+   padding: 10px;
 }
