@@ -383,3 +383,9 @@ footer:after {
    box-shadow: 3px 3px 6px #e1e1e1;
    padding: 10px;
 }
+
+/* Stack vertically inside the context field. */
+#context_section label {
+   display: inline-block;
+   margin: 0.2em;
+}
