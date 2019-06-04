@@ -486,7 +486,7 @@ Vue.component('translatefile', {
          oov_url: undefined,
          pal_url: undefined,
          trace_url: undefined,
-         translation_progress: 0,
+         translation_progress: undefined,
          translate_file_error: '',
          last_translations: [],   // Create a Queue(maxSize=3)
       };
@@ -519,7 +519,7 @@ Vue.component('translatefile', {
          app.oov_url = undefined;
          app.pal_url = undefined;
          app.trace_url = undefined;
-         app.translation_progress = 0;
+         app.translation_progress = undefined;
          app.translate_file_error = '';
          app.last_translations = [];
       },
