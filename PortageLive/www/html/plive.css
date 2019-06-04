@@ -324,12 +324,6 @@ footer:after {
 
 
 
-/* RESET */
-* {
-   box-sizing: border-box;
-}
-
-
 /* Style the tabs */
 .tabs {
    overflow: hidden;
