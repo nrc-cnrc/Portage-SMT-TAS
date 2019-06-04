@@ -1524,7 +1524,8 @@ sub generateOOVsPage {
    open(OOV, "<${oov}") or die "Error: can't open ${oov} to create the OOV html page. ($!)";
    open(HTML, ">${html}")   or die "Error: can't open ${html} to create the OOV html page. ($!)";
 
-   print HTML "<!DOCTYPE html>\n<html>\n<head><style>.OOV { color: red;} </style></head>\n<body>\n";
+   print HTML "<!DOCTYPE html>\n<html>\n<head><style>.OOV { color: red;} </style><title>Out-Of-Vocabulary</title></head>\n<body>\n";
+   print HTML "<h1>Out-Of-Vocabulary words are <span class=\"OOV\">red</span>.</h1>\n";
    while (<OOV>) {
       s/&/\&amp;/g;
       s/</\&lt;/g;

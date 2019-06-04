@@ -54,6 +54,10 @@
       <link rel="stylesheet" href="nrc.gc.ca.css">
       <link rel="stylesheet" href="plive.css">
       <link rel="stylesheet" href="plive.translating.css">
+      <!--
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
+      <link rel="stylesheet" href="tabs-component.css">
+      -->
    </head>
 
    <body>
@@ -101,8 +105,9 @@
 
          <section id="plive_app" name="plive_app">
 
-            <section name="context">
+            <section id="context_section" name="context_section">
                <fieldset class="round_corners">
+                  <legend>Context</legend>
                   <label for="context">
                      <strong>Select a context:</strong>
                      <select id="context" v-model="context" name="context" title="Which context to use during translation">
@@ -110,7 +115,7 @@
                         <option
                            v-for="context in contexts"
                            :value="context.name"
-                           v-bind:class="{ incremental : context.is_incremental}">
+                           :class="{ incremental : context.is_incremental}">
                            {{context.description}}
                         </option>
                      </select>
@@ -129,28 +134,30 @@
                </fieldset>
             </section>
 
-            <section class="row">
-               <section>
-                  <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
+            <section id="tab_section">
+               <tabs>
+                  <tab name="Text" :selected="true">
+                     <translatetext :context="context" :contexts="contexts" :document_id="document_id" class="ui_light"></translatetext>
+                  </tab>
+                  <tab name="File">
+                     <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
+                  </tab>
+                  <tab name="Advanced">
+                     <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
 
-                  <prime :context="context" :contexts="contexts" class="ui_full ui_incremental"></prime>
-               </section>
+                     <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
 
-               <section class="group_translate_file_and_incremental">
-                  <translatefile :context="context" :contexts="contexts" :document_id="document_id" class="ui_full ui_incremental"></translatefile>
-
-                  <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
-
-                  <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
-               </section>
+                     <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
+                  </tab>
+               </tabs>
             </section>
 
             <section name="clear">
                <button
                   name=".defaults"
                   title="Reset the fields to their default values."
-                  v-on:click="clearForm"
-                  accesskey="c">Clear Form</button>
+                  @click="clearForm"
+                  accesskey="c">Clear All</button>
             </section>
 
             <div id="plive_version">Powered by: {{version}}</div>
@@ -235,7 +242,7 @@
                <legend>Add a sentence pair for a document id</legend>
 
                <div v-if="context == 'unselected'">
-                  Please, also select a context
+                  Select a context that supports incremental <i>[incr]</i> and provide a document id.
                </div>
                <div v-else>
                   Using context <em>{{context}}</em> to add sentence pair to.
@@ -271,8 +278,9 @@
                   <button
                      name="incr_add_sentence"
                      title="Given a context, add a sentence pair to a document id."
-                     v-on:click="incrAddSentence"
+                     @click="incrAddSentence"
                      :disabled="!is_incrAddSentence_possible()"
+                     style="float: right"
                      accesskey="a">
                      Add Sentence Pair
                   </button>
@@ -286,12 +294,14 @@
       <script type="text/x-template" id="incrStatus_template">
          <section name="incrStatus" id="incrStatus">
             <fieldset class="round_corners">
-               Select a context, provide a document id then click to get the incremental status.
+               <legend>Incremental Document Status</legend>
+               Select a context that supports incremental <i>[incr]</i>, provide a document id, then click to get the incremental status.
                <button
                   name="incrStatus"
-                  title="Select a context, provide a document id then click to get the incremental status"
+                  title="Select a context that supports incremental [incr], provide a document id, then click to get the incremental status"
                   @click="incrStatus"
                   :disabled="!is_incrStatus_possible()"
+                  style="float: right"
                   accesskey="s">
                   Incremental Document Status
                </button>
@@ -313,7 +323,7 @@
                   on the server.  Note that you cannot prime all models due to memory
                   limitation on the server.  Priming too often is also not recommended.
                </div>
-               <div style="display: table-cell; vertical-align: middle;">
+               <div style="vertical-align: middle;">
                   <!--
                       Wow I don't understand centering two divs inside a div.
                       This does not work as I would expect it to work.  It is
@@ -321,7 +331,7 @@
                       http://jsfiddle.net/5vpA3/1120/
                       http://jsfiddle.net/5vpA3/1117/
                   -->
-                  <div style="display: inline-block; vertical-align: middle;">
+                  <div style="display: inline-block; vertical-align: middle; padding-left: 1em;">
                      <label class="lineup" title="Refreshes most important models in memory">
                         <input v-model="prime_mode" type="radio" name="partial" value="partial" checked="true" />
                         partial
@@ -331,7 +341,7 @@
                         full
                      </label class="lineup">
                   </div>
-                  <div style="display: inline-block; vertical-align: middle; margin-left: 2em;">
+                  <div style="display: inline-block; vertical-align: middle; margin-left: 2em; float: right;">
                      <button
                         title="Select a context, select a mode then prime your models"
                         @click="primeModel"
@@ -341,6 +351,7 @@
                      </button>
                   </div>
                </div>
+               <div style="clear: both;"></div>
             </fieldset>
          </section>
       </script>
@@ -355,9 +366,6 @@
                <div v-if="context == 'unselected'">
                   Please, also select a context
                </div>
-               <div v-else>
-                  Using context <em>{{context}}</em> to add sentence pair to.
-               </div>
 
                <div>
                   <label>
@@ -366,7 +374,7 @@
                         name="filename"
                         title="Select a file to translate"
                         type="file"
-                        v-on:change="prepareFile"
+                        @change="prepareFile"
                         size="60"
                         accept=".txt,.tmx,.sdlxliff,.xliff" />
                   </label>
@@ -410,40 +418,42 @@
                   </label>
                </div>
                <div>
-                  <div style="float: left">
+                  <div style="display: inline-block;">
                      <button
                         name="translate_file"
                         title="Select a context, select a file then translate"
-                        v-on:click="translateFile"
+                        @click="translateFile"
                         :disabled="!is_translating_a_file_possible()"
                         accesskey="f">
                         Translate File
                      </button>
                   </div>
+                  <div v-show="translation_progress >= 0" style="display: inline-block;">
+                     <progress :value="translation_progress" max="100"></progress>
+                  </div>
                </div>
-               <div v-show="translation_progress >= 0">
-                  <progress v-bind:value="translation_progress" max="100"></progress>
-               </div>
+               <!--
                <div id="translate_file_urls" v-show="translation_url != undefined">
                   <ul>
-                     <li><a v-bind:href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                     <li><a v-bind:href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                     <li><a v-bind:href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                     <li><a :href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                     <li><a :href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                     <li><a :href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                   </ul>
                </div>
+               -->
                <div v-show="trace_url != undefined">
                   <h3>Error</h3>
                   {{translate_file_error}}
-                  <a v-bind:href="trace_url" name="trace_url" target="_blank">trace</a>
+                  <a :href="trace_url" name="trace_url" target="_blank">trace</a>
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
                      <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
                            <li>{{ t.name }}</li>
-                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                           <li><a :href="t.translation_url" name="translate_url" target="_blank">Translated File</a></li>
+                           <li><a :href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a :href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                         </ul>
                      </li>
                   </transition-group>
@@ -480,7 +490,7 @@
                      title="You will see your translations in this box"
                      placeholder="Your translations."
                      v-model="translation"
-                     v-bind:style="styleObject"
+                     :style="styleObject"
                      readonly="true"
                      rows="5">
                   </textarea>
@@ -489,10 +499,10 @@
                   <transition-group name="list" tag="ol" class="last_translations">
                      <li v-for="t in last_translations" :key="t.time">
                         <ul class="last_translation" style="padding-left: 1em;">
-                           <li><a v-bind:href="t.source_url" name="source" target="_blank">Source</a></li>
-                           <li><a v-bind:href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
-                           <li><a v-bind:href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                           <li><a v-bind:href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
+                           <li><a :href="t.source_url" name="source" target="_blank">Source</a></li>
+                           <li><a :href="t.translation_url" name="translate_url" target="_blank">Translation</a></li>
+                           <li><a :href="t.oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
+                           <li><a :href="t.pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
                         </ul>
                      </li>
                   </transition-group>
@@ -504,15 +514,15 @@
                   </label>
                </div>
                <!-- Portage's WSDL doesn't offer phrase table.
-                     <div>
-                        <label for="enable_phrase_table_debug">
-                           <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
-                           <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
-                        </label>
-                     </div>
-                     -->
+               <div>
+                  <label for="enable_phrase_table_debug">
+                     <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
+                     <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
+                  </label>
+               </div>
+               -->
                <fieldset id="text_advanced_options" class="round_corners ui_full ui_incremental">
-                  <legend>Advanced Options: newline</legend>
+                  <legend>newline Options</legend>
                   <label class="lineup" title="Check this box if input text has one sentence per line">
                      <input v-model="newline" type="radio" name="newline" value="s" />
                      one sentence per line
@@ -537,7 +547,7 @@
                   <div style="float: left">
                      <button
                         title="Select a context, type your sentence then translate."
-                        v-on:click="translate"
+                        @click="translate"
                         :disabled="!is_translating_possible()"
                         accesskey="t">
                         Translate Text

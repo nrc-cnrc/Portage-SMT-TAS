@@ -11,10 +11,35 @@
  */
 
 body {
-   font-family: "sans-serif";
+   /*font-family: "sans-serif";*/
    height: 100vh;
    display: flex;
    flex-direction: column;
+}
+
+button {
+   background-color: #0078e7;
+   border-radius: 8px;
+   color: white;
+   display: inline-block;
+   font-size: larger;
+   margin: .4em;
+   padding: .5em 1em .5em 1em;
+   text-align: center;
+   text-decoration: none;
+}
+
+button:hover {
+   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+#advanced button {
+   background-color: rgb(66, 184, 221);
+}
+
+button:disabled, #advanced button:disabled {
+   background: #dddddd;
+   cursor: not-allowed;
 }
 
 #wb-body {
@@ -83,6 +108,7 @@ fieldset label.lineup {
    display: block;
    /*float: left;*/
    margin-left: 18px;
+   padding: 0.2em;
 }
 
 fieldset label.lineup input[type="checkbox"] {
@@ -221,6 +247,11 @@ footer:after {
 }
 
 
+#translate_file div {
+   padding: 0.5em;
+}
+
+
 .primeModel_status_priming {
    color: white;
 }
@@ -289,3 +320,72 @@ footer:after {
    display: none;
 }
 */
+
+
+
+
+/* Style the tabs */
+.tabs {
+   overflow: hidden;
+   margin-left: 10px;
+   margin-bottom: -2px; // hide bottom border
+}
+
+.tabs ul {
+   list-style-type: none;
+   margin-left: 10px;
+}
+
+.tabs li.is-active a {
+   border-bottom-color: #A7D8FE;
+   color: black;
+   background-color: #A7D8FE;
+}
+
+.tabs a {
+   background-color: #B7E8FE;
+   border-radius: 10px 10px 0 0;
+   border-right: none;
+   border: 1px solid #ccc;
+   color: white;
+   cursor: pointer;
+   float: left;
+   font-size: large;
+   font-weight: bold;
+   padding: 12px 24px;
+   text-decoration: none;
+   transition: background-color 0.2s;
+}
+
+.tabs a:last-child {
+   border-right: 1px solid #ccc;
+}
+
+/* Change background color of tabs on hover */
+.tabs a:hover {
+   background-color: #aaa;
+   color: #fff;
+}
+
+/* Styling for active tab */
+.tabs a.active {
+   background-color: #fff;
+   color: #484848;
+   border-bottom: 2px solid #fff;
+   cursor: default;
+}
+
+/* Style the tab content */
+.tabcontent {
+   background-color: #A7D8FE;
+   border-radius: 10px;
+   border: 1px solid #ccc;
+   box-shadow: 3px 3px 6px #e1e1e1;
+   padding: 10px;
+}
+
+/* Stack vertically inside the context field. */
+#context_section label {
+   display: inline-block;
+   margin: 0.2em;
+}
