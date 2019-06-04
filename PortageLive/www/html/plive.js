@@ -628,15 +628,19 @@ Vue.component('translatefile', {
 
 
       prepareFile: function(evt) {
-         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
-         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
          const app   = this;
          const files = evt.target.files;
          if (files.length === 0) {
             app.file = undefined;
             return;
          }
-         const file  = files[0];
+         app.file = files[0];
+      },
+
+      translateFile: function(evt) {
+         const app = this;
+         // Inspiration: https://stackoverflow.com/questions/36280818/how-to-convert-file-to-base64-in-javascript
+         // https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
 
          // UI related.
          app.translation_progress = 0;
@@ -644,19 +648,18 @@ Vue.component('translatefile', {
          app.trace_url            = undefined;
          app.translate_file_error = '';
 
-         app.$getBase64(file)
+         app.$getBase64(app.file)
             .then( function(data) {
-               app.file = file;
                app.file.base64 = data;
-               if (/\.(sdlxliff|xliff)$/i.test(file.name)) {
+               if (/\.(sdlxliff|xliff)$/i.test(app.file.name)) {
                   app.is_xml = true;
                   app.file.translate_method = 'translateSDLXLIFF';
                }
-               else if (/\.tmx$/i.test(file.name)) {
+               else if (/\.tmx$/i.test(app.file.name)) {
                   app.is_xml = true;
                   app.file.translate_method = 'translateTMX';
                }
-               else if (/\.txt$/i.test(file.name)) {
+               else if (/\.txt$/i.test(app.file.name)) {
                   app.is_xml = false;
                   app.file.translate_method = 'translatePlainText';
                }
@@ -664,14 +667,14 @@ Vue.component('translatefile', {
                   app.is_xml = false;
                   app.file.translate_method = 'translatePlainText';
                }
+               app._translate();
             })
             .catch( function(error) {
                alert("Error converting your file to base64!");
             } );
       },
 
-
-      translateFile: function(evt) {
+      _translate: function() {
          const app = this;
          const icon = '<i class="fa fa-file-text"></i>';
          const translate_method = app.file.translate_method;
