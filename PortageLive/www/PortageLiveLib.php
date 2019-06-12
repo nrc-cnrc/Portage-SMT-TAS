@@ -383,6 +383,9 @@ class PortageLiveLib
       $options .= " -dir=\"$work_dir\"";
 
       $translations = $this->runCommand($i["script"] . $options, $src_string, $i);
+      if ($src_string != '' and $translations == '')
+         throw new SoapFault("PortageServer",
+            "Server error while translating your input.");
       global $base_web_dir;
       return Array('Result' => $translations, 'workdir' => str_replace($base_web_dir, "", $work_dir));
    }

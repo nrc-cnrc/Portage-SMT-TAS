@@ -836,8 +836,9 @@ Vue.component('translatetext', {
                let translateTextToastSuccess = app.$toasted.global.success(`Successfully translated your text! ${icon}`);
             })
             .catch(function(err) {
-               alert(`Failed to translate your sentences! ${err}`);
                let translateTextToastError = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
+               app.translate = '';
+               //alert(`Failed to translate your sentences! ${err}`);
             })
             .finally(function() {
                app.number_translation_in_progress -= 1;
