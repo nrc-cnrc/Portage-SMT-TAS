@@ -157,8 +157,10 @@ class PortageLiveLib
    #   If $exit_status is not NULL, set $exit_status to $command's exit status.
    # If $wantoutput is false, STDERR and STDOUT are discarded; required to
    # launch a background job using &, for example.
+   # $work_dir is not NULL, STDERR will be sent to $work_dir/trace.
    protected function runCommand($command, $src_string, &$i,
-                                 &$exit_status = NULL, $wantoutput = true)
+      &$exit_status = NULL, $wantoutput = true,
+      $work_dir = NULL)
    {
       global $error_output_dir;
       $cwd = "/tmp";
@@ -191,7 +193,12 @@ class PortageLiveLib
          $descriptorspec[1] = array("file", "/dev/null", "a");
       }
       # stderr is a file to write to
-      $descriptorspec[2] = array("file", "$error_output_dir/error-output.txt", "a");
+      if ($work_dir != NULL) {
+         $descriptorspec[2] = array("file", "$work_dir/trace", "a");
+      }
+      else {
+         $descriptorspec[2] = array("file", "$error_output_dir/error-output.txt", "a");
+      }
 
       $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
@@ -382,7 +389,8 @@ class PortageLiveLib
       $work_dir = $this->makeWorkDir("{$context}_srcString");
       $options .= " -dir=\"$work_dir\"";
 
-      $translations = $this->runCommand($i["script"] . $options, $src_string, $i);
+      $exit_status = NULL;
+      $translations = $this->runCommand($i["script"] . $options, $src_string, $i, $exit_status, true, $work_dir);
       if ($src_string != '' and $translations == '')
          throw new SoapFault("PortageServer",
             "Server error while translating your input.");
@@ -468,7 +476,7 @@ class PortageLiveLib
                     . "touch $work_dir/done)& disown %1";
 
       $start_time = time();
-      $result = $this->runCommand($command, "", $i, $exit_status, false);
+      $result = $this->runCommand($command, "", $i, $exit_status, false, $work_dir);
       $info2 = "result len: " . strlen($result) . "<br/>";
       global $base_url;
       $monitor = "http://" . $_SERVER['SERVER_NAME'] .
@@ -672,7 +680,7 @@ class PortageLiveLib
 
       if ($encoding == 'cp-1252') {
          $this->runCommand("iconv -f cp1252 -t UTF-8 < $localFilename > $localFilename.utf8",
-                           "", $contextInfo, $exit_status, false);
+                           "", $contextInfo, $exit_status, false, $work_dir);
          if ($exit_status != 0) {
             throw new SoapFault("PortageServer", "Error converting fixed terms to UTF-8");
          }
@@ -690,7 +698,7 @@ class PortageLiveLib
       #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
 
       $exit_status = NULL;
-      $result = $this->runCommand($command, "", $contextInfo, $exit_status, true);
+      $result = $this->runCommand($command, "", $contextInfo, $exit_status, true, $work_dir);
       if ($exit_status != 0)
          throw new SoapFault("PortageServer",
             "non-zero return code from $command: $exit_status\n" . $result);
