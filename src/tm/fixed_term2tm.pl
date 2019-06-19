@@ -106,11 +106,17 @@ if ( $debug ) {
 }
 
 # This list should actually contain utokenize.pl's valid language codes.
+# Ref for ISO 639-1/2 codes: https://www.loc.gov/standards/iso639-2/php/code_list.php
 my %languageMap = (
-   fra=>'fr',
-   eng=>'en',
-   fr=>'fr',
-   en=>'en',
+   fra=>'fr', # ISO 639-2 (T) code for French
+   fre=>'fr', # ISO 639-2 (B) code for French
+   fr=>'fr',  # ISO 639-1 code for French
+   eng=>'en', # ISO 639-2 code for English
+   en=>'en',  # ISO 639-1 code for English
+   dan=>'da', # ISO 639-2 code for Danish
+   da=>'da',  # ISO 639-1 code for Danish
+   spa=>'es', # ISO 639-2 code for Spanish
+   es=>'es',  # ISO 639-1 code for Spanish
 );
 
 $sourceLanguage = lc($sourceLanguage);
