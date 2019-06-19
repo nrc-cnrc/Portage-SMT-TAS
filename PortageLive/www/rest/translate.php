@@ -191,7 +191,7 @@ class RestTranlator extends PortageLiveLib {
          # Translate the queries.
          $translations = parent::translate($q, $context, $newline, $performTagTransfer, $useConfidenceEstimation);
 
-         return $this->bundleTranslations($translations);
+         return $this->bundleTranslations($translations['Result']);
       }
       else {
          throw new Exception("You need to provide a query using q=X.");
