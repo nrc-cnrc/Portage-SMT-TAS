@@ -51,8 +51,14 @@ usage() if (@ARGV && $ARGV[0] eq "-h");
 while (my $line = <STDIN>) {
     chop $line;
     while ($line =~ /<hashtag/) { # handle nested hashtags!!
-        $line =~ s{<hashtag>([^<]*)</hashtag>}{hashtagify($1)}ge;
+        $line =~ s{<hashtag>([^<]*)</hashtag>}{hashtagify($1)}ge
+            or last; # avoid infinite loop
     }
+
+    $line =~ s/&lt;/</g;
+    $line =~ s/&gt;/>/g;
+    $line =~ s/&amp;/&/g;
+
     print "$line\n";
 }
 

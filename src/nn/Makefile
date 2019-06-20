@@ -27,6 +27,7 @@ BINSCRIPTS = \
 	train-nnjm.sh \
 	nnjm-genex.py \
 	repickle.py \
+	test-theano-gpu-init.sh \
 	train-nnjm.py \
 	unpickle.py
 

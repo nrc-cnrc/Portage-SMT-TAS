@@ -47,34 +47,51 @@ def get_args():
    return cmd_args
 
 class RequestPackager():
-   def __init__(self, xmlishifyHashtags=False):
+   def __init__(self, xmlishifyHashtags=False, escapeHandles=False):
       self.xmlishifyHashtags = xmlishifyHashtags
+      self.escapeHandles = escapeHandles
       self.re_hashtag = re.compile(ur'(?<!__ascii__)#([^ #]+)')
+      self.re_handle = re.compile(ur'^(@[A-Za-z0-9_]+)(.*)')
+      self.re_handle_dict = {
+         '@': 'ZA', '_': 'ZU', 'Z': 'ZZ',
+         '0': 'Za', '1': 'Zb', '2': 'Zc', '3': 'Zd', '4': 'Ze',
+         '5': 'Zf', '6': 'Zg', '7': 'Zh', '8': 'Zi', '9': 'Zj',
+      }
+
 
    def _escapeHashtags(self, sentence):
-      """
-      """
-      if self.xmlishifyHashtags == False:
-         return sentence
-
       sentence = sentence.split()
-      if self.xmlishifyHashtags:
-         sentence = map(lambda w: self.re_hashtag.sub(lambda x:
-                    ' <hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag> ', w), sentence)
-
+      sentence = map(lambda w: self.re_hashtag.sub(lambda x:
+                 ' <hashtag> ' + re.sub('_', ' ', x.group(1)) + ' </hashtag> ', w), sentence)
       return ' '.join(sentence)
 
+   def _escapeTwitterHandles(self, sentence):
+      tokens = sentence.split()
+      for i, tok in enumerate(tokens):
+         match = self.re_handle.match(tok)
+         if match:
+            escaped_tok="TWITTERHANDLE"
+            for c in match.group(1):
+               escaped_tok += self.re_handle_dict.get(c, c)
+            #print('handle {} -> {}'.format(tok, escaped_tok), file=sys.stderr)
+            tokens[i] = escaped_tok + ' ' + match.group(2)
+      return ' '.join(tokens)
+
    def __call__(self, sentence):
-      return self._escapeHashtags(sentence)
+      if self.escapeHandles:
+         sentence = self._escapeTwitterHandles(sentence)
+      if self.xmlishifyHashtags:
+         sentence = self._escapeHashtags(sentence)
+      return sentence
 
 def main():
    cmd_args = get_args()
 
    infile = codecs.getreader('utf-8')(cmd_args.infile)
    outfile = codecs.getwriter('utf-8')(cmd_args.outfile)
-   r = RequestPackager(xmlishifyHashtags=cmd_args.xmlishifyHashtags)
+   r = RequestPackager(xmlishifyHashtags=cmd_args.xmlishifyHashtags, escapeHandles=True)
    for line in infile:
-      print(r(line), file=outfile, end='')
+      print(r(line.rstrip()), file=outfile)
 
 
 if __name__ == '__main__':

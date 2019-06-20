@@ -42,6 +42,7 @@ Options:
                  assumed but user can specify G for GB or M for MB. [6G]
   -gpu           Ask for a node with a GPU.
   -i RES_IMAGE   Change the container's image [\$ENV{PSUB_RES_IMAGE}]
+  -Q PROJECT     Project's name for fairshare scheduling [\$ENV{PSUB_PROJECT_NAME}]
   -pe ENVIRONMENT Change the parallel environment [dev]
   -pepp          Change parallel processes [1]
   -rt RUNTIME    Specify the job's run time in minutes [1440 (one day)]
@@ -53,6 +54,10 @@ Options:
                  export JOBCTL_CELL=gpsc2.science.gc.ca
 
   General options:
+  -uc            As in usage CPU, keep track of memory and process usage using
+                 process-memory-usage.pl.
+  -ug            As in usage GPU, keep track of GPU memory and process usage
+                 using nvidia-smi.
   -memmap SIZE   request SIZE GB extra virtual memory, to accomodate memory
                  mapped IO.  Balzac note: use a value less than or equal to the
                  total size of files you will open using memory mapped IO,
@@ -174,11 +179,14 @@ JOB_ARRAY=
 OPT_J=1
 REQUIRES_GPU=
 NOCLUSTER_OPTION=
+USAGE_CPU=
+USAGE_GPU=
 
 PSUB_RESOURCE_OPTIONS=
 
 ### GPSC
 PARALLEL_ENVIRONMENT=dev
+PE_EXPLICIT=
 # NOTE, PE_PARALLEL_PROCESSES should always be 1.
 PE_PARALLEL_PROCESSES=1
 RUNTIME_MINUTES=${PSUB_OVERRIDE_DEFAULT_RUNTIME_MINUTES:-((24*60))} # default: one day in minutes (24 x 60 = 1440).
@@ -212,6 +220,8 @@ while [ $# -gt 0 ]; do
                     PSUB_RESOURCE_OPTIONS="$PSUB_RESOURCE_OPTIONS $1 $2"
                     MEM_OPTION_MB=$VMEM_LIMIT_MB
                     shift;;
+   -uc)             USAGE_CPU=1;;
+   -ug)             USAGE_GPU=1;;
    -memmap)         arg_check 1 $# $!
                     arg_check_pos_int $2 $1
                     MEMMAP_GB=$2
@@ -231,8 +241,12 @@ while [ $# -gt 0 ]; do
    -i)              arg_check 1 $# $!;
                     PSUB_RES_IMAGE=$2;
                     shift;;
+   -Q)              arg_check 1 $# $!;
+                    PSUB_PROJECT_NAME=$2;
+                    shift;;
    -pe)             arg_check 1 $# $!;
                     PARALLEL_ENVIRONMENT=$2;
+                    PE_EXPLICIT=1;
                     shift;;
    -pepp)           arg_check 1 $# $!;
                     PE_PARALLEL_PROCESSES=$2;
@@ -440,12 +454,27 @@ function write_gpsc_script {
    # control of the image at the project-level.
    local RES_IMAGE=${PSUB_RES_IMAGE:-nrc/nrc_all_default_centos-6-amd64_latest}
 
+   # PSUB_PROJECT_NAME is set in portage/profile.d in order to have
+   # control of the project for faireshare at the project-level.
+   local PROJECT_NAME=$PSUB_PROJECT_NAME
+
    TMPSCRIPT=/tmp/psub.`whoami`.`date +%s`.$$
    TMPSCRIPT=`mktemp $TMPSCRIPT.XXX` || error_exit "Cannot create temp file."
    trap "rm -f $TMPSCRIPT; exit" 0 2 3 13 14 15
 
    # Calculate the total required value of res_mem
    TOTAL_RES_MEM_MB=$((VMEM_LIMIT_MB * OPT_J + MEMMAP_GB * 1024))
+
+   # Adjust the default PE if memory requirements are too big.
+   if [[ ! $PE_EXPLICIT && $PARALLEL_ENVIRONMENT = dev ]]; then
+      if [[ $TOTAL_RES_MEM_MB -gt 980000 ]]; then
+         PARALLEL_ENVIRONMENT=dev-sln
+      elif [[ $TOTAL_RES_MEM_MB -gt 100000 ]]; then
+         PARALLEL_ENVIRONMENT=dev-ln
+      fi
+      #echo "TOTAL_RES_MEM_MB = $TOTAL_RES_MEM_MB" >&2
+      #echo "PARALLEL_ENVIRONMENT = $PARALLEL_ENVIRONMENT" >&2
+   fi
 
    # The job's actual number of CPUs requested is $
    TOTAL_CPU_COUNT=$((OPT_J * CPU_COUNT))
@@ -506,6 +535,7 @@ cat <<==EOF== > $TMPSCRIPT
 #$ -S /bin/bash
 #$ -M $USER
 #$ -notify
+#$ ${PROJECT_NAME:+-P $PROJECT_NAME}
 
 ## User provided from the command line.
 ## Job Array:
@@ -518,6 +548,8 @@ cat <<==EOF== > $TMPSCRIPT
 #$ ${NODES:+-l nodes=$NODES}
 ## Additional user-specified qsub parameters
 #$ $QSPARAMS
+
+export JOB_NAME=$NAME
 
 # User's environment.
 `env | egrep '^PORTAGE' | sed -e 's/^/export /'`
@@ -563,12 +595,42 @@ if [[ ! \$PSUB_NO_DEBUG ]]; then
    echo END DEBUGGING
    echo; echo; echo; echo
 fi >&2
+
+# GPU
+if [[ -n "$REQUIRES_GPU" ]]; then
+   hostname;
+   uname -a;
+   # What GPU id is assigned to this job.
+   grep CUDA /etc/rc.local;
+   eval \$(grep CUDA /etc/rc.local)
+   #nvidia-smi -L
+   nvidia-smi -L | sed -E '/'\$(tr "," "\|" <<< \$CUDA_VISIBLE_DEVICES)'/ s/^/   /'
+   #nvidia-smi -i \$CUDA_VISIBLE_DEVICES
+   nvidia-smi
+   pgrep -l nvidia;
+fi | sed 's/^/   /' >&2
 # DEBUGGING
 
 # Preserve the calling working directory
 cd $HERE || { ! echo "Error: Cannot change directory to $HERE" >&2; exit; }
 
-#process-memory-usage.pl $(($MEMORY_POLLING_DELAY*60)) \$\$ >&2 &
+if [[ -n "$USAGE_CPU" ]]; then
+   process-memory-usage.pl -s 3 $(($MEMORY_POLLING_DELAY*60)) \$\$ &> $NAME.c\$JOB_ID &
+   readonly pmu_pid=\$!
+fi
+
+if [[ -n "$REQUIRES_GPU" && -n "$USAGE_GPU" ]]; then
+   # Humm looks like we need to re-eval to get CUDA_VISIBLE_DEVICES?!
+   eval \$(grep CUDA /etc/rc.local)
+   echo "CUDA_VISIBLE_DEVICES: \$CUDA_VISIBLE_DEVICES" >&2
+   nvidia-smi \
+      --id=\$CUDA_VISIBLE_DEVICES \
+      --loop=10 \
+      --query-gpu=utilization.gpu,utilization.memory,memory.used,memory.free,memory.total,driver_version \
+      --format=csv \
+      &> $NAME.g\$JOB_ID &
+   readonly nvidia_pid=\$!
+fi
 
 # Display the exact start time
 echo ============ Starting job \$GECOSHEP_JOB_ID on \`date\` on node \`hostname\` >&2
@@ -583,6 +645,10 @@ trap 'echo "[\`date\` \`hostname\`] psub-generated script \`basename \$0\` caugh
 # User command
 $COMMAND
 RC=\$?
+
+# Stop monitoring
+[[ -n "\$pmu_pid\$nvidia_pid" ]] && kill -9 \$pmu_pid \$nvidia_pid
+
 
 # Display the exact end time
 echo ============ Finished job \$GECOSHEP_JOB_ID on \`date\` with rc=\$RC >&2

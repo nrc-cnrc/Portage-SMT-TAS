@@ -175,7 +175,7 @@ my $footer = <<FOOTER;
 Traitement multilingue de textes / Multilingual Text Processing<BR>
 Centre de recherche en technologies num&eacute;riques / Digital Technologies Research Centre<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2018, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2019, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>

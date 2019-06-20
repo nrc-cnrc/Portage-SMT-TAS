@@ -636,7 +636,7 @@ Options (in command-line format):\n\
      disappears, canoe will exit automatically with exit status 45.\n\
 \n\
  -verbose|-v V                          Verbosity level  [1]\n\
-     The verbosity level (1 to 4).  Verbose output is written to std error.\n\
+     The verbosity level (0 to 4).  Verbose output is written to std error.\n\
 \n\
  -quiet-empty-lines                     Don't report empty input lines  pdo]\n\
 \n\

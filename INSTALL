@@ -212,8 +212,7 @@ Mandatory dependencies for all distributions:
    experimental framework, our Makefiles use GNU extensions to make, as well as
    features that were introduced in version 3.81.
 
- - Perl 5.10 or more recent. Older versions do not handle UTF-8 data correctly.
-   If you're processing Arabic text, Perl 5.14 or more recent is required.
+ - Perl 5.14 or more recent. Older versions do not handle UTF-8 data correctly.
    If you install Perl in a non-standard location, make sure it comes first on
    your PATH, or set PERL_HOME_OVERRIDE in SETUP.bash/tcsh.
 
