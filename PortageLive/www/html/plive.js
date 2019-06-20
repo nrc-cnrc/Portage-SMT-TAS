@@ -837,7 +837,7 @@ Vue.component('translatetext', {
             })
             .catch(function(err) {
                let translateTextToastError = app.$toasted.global.error(`Failed to translate your text! ${icon}`);
-               app.translate = '';
+               app.translation = '';
                //alert(`Failed to translate your sentences! ${err}`);
             })
             .finally(function() {
