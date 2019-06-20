@@ -149,6 +149,9 @@
 
                      <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
                   </tab>
+                  <tab name="Fixed Terms">
+                     <fixedterms :context="context" :contexts="contexts" :document_id="document_id"></fixedterms>
+                  </tab>
                </tabs>
             </section>
 
@@ -233,6 +236,23 @@
             <span class="translating-text-words">n</span>
             <span class="translating-text-words">g</span>
          </div>
+      </script>
+
+
+
+      <script type="text/x-template" id="fixedterms_template">
+         <section name="fixedterms" id="fixedterms">
+            <div>
+               <button
+                  name="load_fixedTerms"
+                  title="Load fixed terms for the currently selected context"
+                  @click="load"
+                  style="float: right"
+                  accesskey="f">
+                  Load
+               </button>
+            </div>
+         </section>
       </script>
 
 

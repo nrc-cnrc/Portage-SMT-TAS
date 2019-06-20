@@ -314,6 +314,40 @@ Vue.component('translating', {
 
 
 
+Vue.component('fixedterms', {
+   data: function() {
+      return {
+         fixedTerms: [],
+      };
+   },
+   template: '#fixedterms_template',
+   props: ['context', 'contexts', 'document_id'],
+   methods: {
+      load: function() {
+         const app = this;
+         const icon = '<i class="fa fa-send"></i>';
+
+         return app.$soap('getFixedTerms', {
+               context: app.context,
+            })
+            .then(function(response) {
+               let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
+               fixedTerms = atob(fixedTerms);
+               fixedTerms = fixedTerms.split('\n');
+               app.fixedTerms = fixedTerms.map(terms => terms.split('\t'));
+               const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully retrieve fixed terms!${icon}`);
+            })
+            .catch(function(err) {
+               const faultstring = response.Body.Fault.faultstring;
+               const faultcode = response.Body.Fault.faultcode;
+               const getFixedTermsToastError = app.$toasted.global.error(`Failed to fetch fixed terms for ${context} ${faultstring}! ${icon}`);
+            });
+      },
+   },
+});
+
+
+
 Vue.component('incraddsentence', {
    template: '#incraddsentence_template',
    props: ['context', 'contexts', 'document_id'],
