@@ -75,6 +75,8 @@ if (!String.prototype.encodeHTML) {
 
 
 
+Vue.use(Vuetify);
+
 //Vue.use(Toasted);
 Vue.use(Toasted, {
    iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
@@ -318,11 +320,42 @@ Vue.component('fixedterms', {
    data: function() {
       return {
          fixedTerms: [],
+         snack: false,
+         snackColor: '',
+         snackText: '',
+         max25chars: v => v.length <= 25 || 'Input too long!',
+         pagination: {},
+         headers: [
+            {
+               text: 'Source',
+               align: 'left',
+               sortable: true,
+               value: 'source'
+            },
+            {
+               text: 'Target',
+               align: 'left',
+               sortable: true,
+               value: 'target'
+            },
+         ],
       };
    },
    template: '#fixedterms_template',
    props: ['context', 'contexts', 'document_id'],
    methods: {
+      open: function() {
+        console.log('fixedTerms::open()');
+      },
+      close: function() {
+        console.log('fixedTerms::close()');
+      },
+      cancel: function() {
+        console.log('fixedTerms::cancel()');
+      },
+      save: function() {
+        console.log('fixedTerms::save()');
+      },
       load: function() {
          const app = this;
          const icon = '<i class="fa fa-send"></i>';
@@ -334,7 +367,8 @@ Vue.component('fixedterms', {
                let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
                fixedTerms = atob(fixedTerms);
                fixedTerms = fixedTerms.split('\n');
-               app.fixedTerms = fixedTerms.map(terms => terms.split('\t'));
+               //app.fixedTerms = fixedTerms.map(terms => terms.split('\t'));
+               app.fixedTerms = fixedTerms.map(terms => {terms = terms.split('\t'); return {'source': terms[0], 'target':terms[1]}});
                const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully retrieve fixed terms!${icon}`);
             })
             .catch(function(err) {

@@ -45,6 +45,8 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+      <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet" />
+      <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet" />
 
       <!--
       <script src="https://cdn.jsdelivr.net/npm/tinysoap@1.0.2/tinysoap-browser-min.js"></script>
@@ -242,6 +244,72 @@
 
       <script type="text/x-template" id="fixedterms_template">
          <section name="fixedterms" id="fixedterms">
+	    <v-app id="inspire">
+	    <div>
+	       <v-data-table
+		 :headers="headers"
+		 :items="fixedTerms"
+	       >
+		 <template v-slot:items="props">
+		  <td class="text-xs-right">{{ props.item.source }}</td>
+<!--
+		   <td>
+		     <v-edit-dialog
+		       :return-value.sync="props.item.source"
+		       lazy
+		       @save="save"
+		       @cancel="cancel"
+		       @open="open"
+		       @close="close"
+		     > {{ props.item.source }}
+		       <template v-slot:input>
+			 <v-text-field
+			   v-model="props.item.source"
+			   :rules="[max25chars]"
+			   label="Edit"
+			   single-line
+			   counter
+			 ></v-text-field>
+		       </template>
+		     </v-edit-dialog>
+		   </td>
+		   <td class="text-xs-right">
+		     <v-edit-dialog
+		       :return-value.sync="props.item.target"
+		       large
+		       lazy
+		       persistent
+		       @save="save"
+		       @cancel="cancel"
+		       @open="open"
+		       @close="close"
+		     >
+		       <div>{{ props.item.target }}</div>
+		       <template v-slot:input>
+			 <div class="mt-3 title">Update Target</div>
+		       </template>
+		       <template v-slot:input>
+			 <v-text-field
+			   v-model="props.item.target"
+			   :rules="[max25chars]"
+			   label="Edit"
+			   single-line
+			   counter
+			   autofocus
+			 ></v-text-field>
+		       </template>
+		     </v-edit-dialog>
+		   </td>
+-->
+		 </template>
+	       </v-data-table>
+	   
+	       <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+		 {{ snackText }}
+		 <v-btn flat @click="snack = false">Close</v-btn>
+	       </v-snackbar>
+	     </div>
+
             <div>
                <button
                   name="load_fixedTerms"
@@ -252,6 +320,7 @@
                   Load
                </button>
             </div>
+	    </v-app>
          </section>
       </script>
 
@@ -569,6 +638,8 @@
       </script>
 
 
+
+      <script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.16/dist/vuetify.min.js"></script>
 
       <script type="text/javascript" src="plive.js"> </script>
 
