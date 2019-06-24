@@ -319,6 +319,8 @@ Vue.component('translating', {
 Vue.component('fixedterms', {
    data: function() {
       return {
+         source: undefined,
+         target: undefined,
          fixedTerms: [],
          snack: false,
          snackColor: '',
@@ -345,16 +347,20 @@ Vue.component('fixedterms', {
    props: ['context', 'contexts', 'document_id'],
    methods: {
       open: function() {
-        console.log('fixedTerms::open()');
+         const app = this;
+         console.log('fixedTerms::open()');
       },
       close: function() {
-        console.log('fixedTerms::close()');
+         const app = this;
+         console.log('fixedTerms::close()');
       },
       cancel: function() {
-        console.log('fixedTerms::cancel()');
+         const app = this;
+         console.log('fixedTerms::cancel()');
       },
       save: function() {
-        console.log('fixedTerms::save()');
+         const app = this;
+         console.log('fixedTerms::save()');
       },
       load: function() {
          const app = this;
@@ -367,8 +373,27 @@ Vue.component('fixedterms', {
                let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
                fixedTerms = atob(fixedTerms);
                fixedTerms = fixedTerms.split('\n');
-               //app.fixedTerms = fixedTerms.map(terms => terms.split('\t'));
-               app.fixedTerms = fixedTerms.map(terms => {terms = terms.split('\t'); return {'source': terms[0], 'target':terms[1]}});
+               fixedTerms = fixedTerms.filter(x => x.length > 1)
+               fixedTerms = fixedTerms.map(terms => terms.split('\t'));
+               app.source = fixedTerms[0][0];
+               app.target = fixedTerms[0][1];
+               fixedTerms = fixedTerms.slice(1);  // Drop the header line
+               app.headers = [
+                  {
+                     text: `Source (${app.source})`,
+                     align: 'left',
+                     sortable: true,
+                     value: 'source'
+                  },
+                  {
+                     text: `Target (${app.target})`,
+                     align: 'left',
+                     sortable: true,
+                     value: 'target'
+                  },
+               ];
+               //app.fixedTerms = fixedTerms.map(terms => {terms = terms.split('\t'); return {'source': terms[0], 'target': terms[1]};});
+               app.fixedTerms = fixedTerms.map(terms => { return {'source': terms[0], 'target': terms[1]};});
                const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully retrieve fixed terms!${icon}`);
             })
             .catch(function(err) {

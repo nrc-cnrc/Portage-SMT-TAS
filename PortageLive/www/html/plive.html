@@ -1,6 +1,6 @@
 <!DOCTYPE html
-	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!--
   @author Samuel Larkin
   @file plive.html
@@ -244,83 +244,84 @@
 
       <script type="text/x-template" id="fixedterms_template">
          <section name="fixedterms" id="fixedterms">
-	    <v-app id="inspire">
-	    <div>
-	       <v-data-table
-		 :headers="headers"
-		 :items="fixedTerms"
-	       >
-		 <template v-slot:items="props">
-		  <td class="text-xs-right">{{ props.item.source }}</td>
-<!--
-		   <td>
-		     <v-edit-dialog
-		       :return-value.sync="props.item.source"
-		       lazy
-		       @save="save"
-		       @cancel="cancel"
-		       @open="open"
-		       @close="close"
-		     > {{ props.item.source }}
-		       <template v-slot:input>
-			 <v-text-field
-			   v-model="props.item.source"
-			   :rules="[max25chars]"
-			   label="Edit"
-			   single-line
-			   counter
-			 ></v-text-field>
-		       </template>
-		     </v-edit-dialog>
-		   </td>
-		   <td class="text-xs-right">
-		     <v-edit-dialog
-		       :return-value.sync="props.item.target"
-		       large
-		       lazy
-		       persistent
-		       @save="save"
-		       @cancel="cancel"
-		       @open="open"
-		       @close="close"
-		     >
-		       <div>{{ props.item.target }}</div>
-		       <template v-slot:input>
-			 <div class="mt-3 title">Update Target</div>
-		       </template>
-		       <template v-slot:input>
-			 <v-text-field
-			   v-model="props.item.target"
-			   :rules="[max25chars]"
-			   label="Edit"
-			   single-line
-			   counter
-			   autofocus
-			 ></v-text-field>
-		       </template>
-		     </v-edit-dialog>
-		   </td>
--->
-		 </template>
-	       </v-data-table>
-	   
-	       <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
-		 {{ snackText }}
-		 <v-btn flat @click="snack = false">Close</v-btn>
-	       </v-snackbar>
-	     </div>
+            <v-app id="fixedTermsDataTable">
+               <div>
+                  <v-data-table :headers="headers" :items="fixedTerms">
+                     <template v-slot:items="props">
+                        <td>
+                           <v-edit-dialog
+                              :return-value.sync="props.item.source"
+                              large
+                              lazy
+                              persistent
+                              @save="save"
+                              @cancel="cancel"
+                              @open="open"
+                              @close="close"
+                           >
+                              <div>{{ props.item.source }}</div>
+                              <template v-slot:input>
+                                 <div class="mt-3 title">Update Target</div>
+                              </template>
+                              <template v-slot:input>
+                                 <v-text-field
+                                    v-model="props.item.source"
+                                    :rules="[max25chars]"
+                                    label="Edit"
+                                    single-line
+                                    counter
+                                    autofocus
+                                 ></v-text-field>
+                              </template>
+                           </v-edit-dialog>
+                        </td>
+                        <td class="text-xs-right">
+                           <v-edit-dialog
+                              :return-value.sync="props.item.target"
+                              large
+                              lazy
+                              persistent
+                              @save="save"
+                              @cancel="cancel"
+                              @open="open"
+                              @close="close"
+                           >
+                              <div>{{ props.item.target }}</div>
+                              <template v-slot:input>
+                                 <div class="mt-3 title">Update Target</div>
+                              </template>
+                              <template v-slot:input>
+                                 <v-text-field
+                                    v-model="props.item.target"
+                                    :rules="[max25chars]"
+                                    label="Edit"
+                                    single-line
+                                    counter
+                                    autofocus
+                                 ></v-text-field>
+                              </template>
+                           </v-edit-dialog>
+                        </td>
+                     </template>
+                  </v-data-table>
 
-            <div>
-               <button
-                  name="load_fixedTerms"
-                  title="Load fixed terms for the currently selected context"
-                  @click="load"
-                  style="float: right"
-                  accesskey="f">
-                  Load
-               </button>
-            </div>
-	    </v-app>
+                  <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+                     {{ snackText }}
+                     <v-btn flat @click="snack = false">Close</v-btn>
+                  </v-snackbar>
+               </div>
+
+               <div>
+                  <button
+                     name="load_fixedTerms"
+                     title="Load fixed terms for the currently selected context"
+                     @click="load"
+                     style="float: right"
+                     accesskey="f">
+                     Load
+                  </button>
+               </div>
+            </v-app>
          </section>
       </script>
 
