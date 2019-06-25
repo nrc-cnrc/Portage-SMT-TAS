@@ -152,12 +152,13 @@
                </tabs>
             </section>
 
-            <section name="clear">
+            <section name="clear" style="height:5em">
                <button
                   name=".defaults"
                   title="Reset the fields to their default values."
                   @click="clearForm"
-                  accesskey="c">Clear All</button>
+                  accesskey="c"
+                  style="float:right">Clear All</button>
             </section>
 
             <div id="plive_version">Powered by: {{version}}</div>
@@ -425,7 +426,7 @@
                         @click="translateFile"
                         :disabled="!is_translating_a_file_possible()"
                         accesskey="f">
-                        Translate File
+                        Translate
                      </button>
                   </div>
                   <div v-show="translation_progress >= 0" style="display: inline-block;">
@@ -550,7 +551,7 @@
                         @click="translate"
                         :disabled="!is_translating_possible()"
                         accesskey="t">
-                        Translate Text
+                        Translate
                      </button>
                   </div>
                </div>
