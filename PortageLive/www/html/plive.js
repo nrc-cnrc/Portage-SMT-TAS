@@ -418,8 +418,8 @@ Vue.component('fixedterms', {
                const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully retrieve fixed terms!${icon}`);
             })
             .catch(function(err) {
-               const faultstring = response.Body.Fault.faultstring;
-               const faultcode = response.Body.Fault.faultcode;
+               const faultstring = err.Body.Fault.faultstring;
+               const faultcode   = err.Body.Fault.faultcode;
                const getFixedTermsToastError = app.$toasted.global.error(`Failed to fetch fixed terms for ${context} ${faultstring}! ${icon}`);
             });
       },
