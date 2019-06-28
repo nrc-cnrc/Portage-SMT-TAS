@@ -317,11 +317,24 @@ Vue.component('translating', {
 
 
 Vue.component('fixedterms', {
+   computed: {
+      formTitle: function() {
+        return this.editedIndex === -1 ? 'New Fixed Term' : 'Edit Fixed Term'
+      }
+   },
+
+   watch: {
+      dialog: function(val) {
+        val || this.close()
+      }
+   },
+
    data: function() {
       return {
          source: undefined,
          target: undefined,
          fixedTerms: [],
+         // Vuetify
          search: '',
          snack: false,
          snackColor: '',
@@ -342,10 +355,24 @@ Vue.component('fixedterms', {
                value: 'target'
             },
          ],
+         // New Item Related
+         dialog: false,
+         editedIndex: -1,
+         editedItem: {
+           source: '',
+           target: '',
+         },
+         defaultItem: {
+           source: '',
+           target: '',
+         },
       };
    },
+
    template: '#fixedterms_template',
+
    props: ['context', 'contexts', 'document_id'],
+
    methods: {
       open: function() {
          const app = this;
@@ -354,6 +381,11 @@ Vue.component('fixedterms', {
       close: function() {
          const app = this;
          console.log('fixedTerms::close()');
+         app.dialog = false;
+         setTimeout(() => {
+            app.editedItem = Object.assign({}, app.defaultItem)
+            app.editedIndex = -1
+         }, 300)
       },
       cancel: function() {
          const app = this;
@@ -362,6 +394,14 @@ Vue.component('fixedterms', {
       save: function() {
          const app = this;
          console.log('fixedTerms::save()');
+
+         if (app.editedIndex > -1) {
+            Object.assign(app.fixedTerms[app.editedIndex], app.editedItem)
+         }
+         else {
+            app.fixedTerms.push(app.editedItem)
+         }
+         app.close()
 
          const icon = '<i class="fa fa-send"></i>';
          let fixedTerms = app.fixedTerms.map(x => `${x.source}\t${x.target}`);
