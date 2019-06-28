@@ -322,6 +322,7 @@ Vue.component('fixedterms', {
          source: undefined,
          target: undefined,
          fixedTerms: [],
+         search: '',
          snack: false,
          snackColor: '',
          snackText: '',
