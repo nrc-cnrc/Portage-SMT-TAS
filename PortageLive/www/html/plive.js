@@ -372,7 +372,7 @@ Vue.component('fixedterms', {
             .then(function(response) {
                let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
                fixedTerms = atob(fixedTerms);
-               fixedTerms = fixedTerms.split('\n');
+               fixedTerms = fixedTerms.split(/\r?\n/);
                fixedTerms = fixedTerms.filter(x => x.length > 1)
                fixedTerms = fixedTerms.map(terms => terms.split('\t'));
                app.source = fixedTerms[0][0];
