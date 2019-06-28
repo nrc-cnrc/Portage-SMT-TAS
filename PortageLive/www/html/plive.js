@@ -146,7 +146,7 @@ Vue.toasted.register('translating', message => {
 
 
 
-Vue.prototype.$body = function(method, args) {
+Vue.prototype.$SOAPbody = function(method, args) {
    const method_args = Object.keys(args).reduce(function(previous, current) {
       previous += `<${current}>${String(args[current]).encodeHTML()}</${current}>`;
       return previous;
@@ -190,7 +190,7 @@ Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.
         <soap:Body> \
            {body} \
          </soap:Body> \
-      </soap:Envelope>'.format({'body': app.$body(soapaction, args)});
+      </soap:Envelope>'.format({'body': app.$SOAPbody(soapaction, args)});
 
    return fetch(service_url, {
       method: 'POST',
