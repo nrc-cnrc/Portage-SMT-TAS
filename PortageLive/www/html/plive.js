@@ -361,6 +361,27 @@ Vue.component('fixedterms', {
       save: function() {
          const app = this;
          console.log('fixedTerms::save()');
+
+         const icon = '<i class="fa fa-send"></i>';
+         let fixedTerms = app.fixedTerms.map(x => `${x.source}\t${x.target}`);
+         fixedTerms = `${app.source}\t${app.target}\n` + fixedTerms.join('\n');
+
+         return app.$soap('updateFixedTerms', {
+               ContentsBase64: btoa(fixedTerms),
+               Filename: 'update.fixedterms.txt',
+               encoding: 'UTF-8',
+               context: app.context,
+               sourceColumnIndex: 1,
+               sourceLanguage: app.source,
+               targetLanguage: app.target,
+            })
+            .then(function(response) {
+               const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully updated fixed terms!${icon}`);
+            })
+            .catch(function(err) {
+               const message = err.message;
+               const getFixedTermsToastError = app.$toasted.global.error(`Failed to update fixed terms for ${app.context} ${message}! ${icon}`);
+            });
       },
       load: function() {
          const app = this;
