@@ -320,7 +320,10 @@ Vue.component('fixedterms', {
    computed: {
       formTitle: function() {
         return this.editedIndex === -1 ? 'New Fixed Term' : 'Edit Fixed Term'
-      }
+      },
+      rowsPerPageItems: function() {
+         return [10,25,100,{"text":"$vuetify.dataIterator.rowsPerPageAll","value":-1}];
+      },
    },
 
    watch: {
