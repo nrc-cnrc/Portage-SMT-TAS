@@ -402,7 +402,11 @@ Vue.component('fixedterms', {
                const getFixedTermsToastError = app.$toasted.global.error(`Failed to fetch fixed terms for ${context} ${faultstring}! ${icon}`);
             });
       },
-   },
+      deleteItem: function(item) {
+         const index = this.fixedTerms.indexOf(item)
+         confirm('Are you sure you want to delete this item?') && this.fixedTerms.splice(index, 1)
+      },
+   }, // ends methods
 });
 
 
