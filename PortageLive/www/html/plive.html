@@ -105,7 +105,7 @@
 
 
 
-         <section id="plive_app" name="plive_app">
+         <v-app id="plive_app" name="plive_app">
 
             <section id="context_section" name="context_section">
                <fieldset class="round_corners">
@@ -115,7 +115,7 @@
                      <select id="context" v-model="context" name="context" title="Which context to use during translation">
                         <option :selected="true" disabled value="unselected">&mdash; Please pick one &mdash;</option>
                         <option
-                           v-for="context in contexts"
+                           v-for="(context, name, index) in contexts"
                            :value="context.name"
                            :class="{ incremental : context.is_incremental}">
                            {{context.description}}
@@ -133,6 +133,34 @@
                         size="20"
                         maxlength="40" />
                   </label>
+               </fieldset>
+               <fieldset class="round_corners">
+                  <legend>Context</legend>
+                  <v-container fluid grid-list-xs>
+                     <v-layout wrap align-center>
+                        <v-flex xs12 sm6 d-flex>
+                           <v-select
+                              v-model="context"
+                              :items="contexts"
+                              label="Context"
+                              outline
+                              item-text="description"
+                              item-value="name"
+                              :class="{ incremental : context.is_incremental}"
+                           ></v-select>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                           <v-text-field
+                              name="document_id"
+                              title="Document id to translate with an incremental model"
+                              label="document id"
+                              placeholder="Document Model ID"
+                              outline
+                              v-model="document_id"
+                           ></v-text-field>
+                        </v-flex>
+                     </v-layout>
+                  </v-container>
                </fieldset>
             </section>
 
@@ -167,7 +195,7 @@
             </section>
 
             <div id="plive_version">Powered by: {{version}}</div>
-         </section>
+         </v-app>
       </div>
 
 
@@ -244,7 +272,7 @@
 
       <script type="text/x-template" id="fixedterms_template">
          <section name="fixedterms" id="fixedterms">
-            <v-app id="fixedTermsDataTable">
+            <div id="fixedTermsDataTable">
                <div>
                   <v-card>
                      <v-card-title>
@@ -373,7 +401,7 @@
                      Load
                   </button>
                </div>
-            </v-app>
+            </div>
          </section>
       </script>
 
@@ -619,6 +647,20 @@
                      @keydown.enter.exact="add_newline"
                      rows="5">
                   </textarea>
+                  <v-textarea
+                     outline
+                     name="input-7-1"
+                     box
+                     clearable
+                     auto-grow
+                     title="CTRL + enter to translate"
+                     placeholder="The text you want to translate"
+                     v-model="source"
+                     @keydown.enter.exact.prevent
+                     @keyup.enter.ctrl.exact="translate"
+                     @keydown.enter.exact="add_newline"
+                     value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
+                  ></v-textarea>
                   <textarea
                      name="translation"
                      title="You will see your translations in this box"

@@ -1153,9 +1153,13 @@ var plive_app = new Vue({
                   },
                   {});
                app.contexts = contexts;
+               app.contexts = jsonContexts.contexts;
                app.context  = 'unselected';
                // The user had previously selected a translation system, we will restore his selection.
                if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
+                  app.context = localStorage.context;
+               }
+               if (localStorage.context && app.contexts.find(x => x.name == localStorage.context)) {
                   app.context = localStorage.context;
                }
             })
