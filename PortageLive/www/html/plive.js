@@ -409,6 +409,7 @@ Vue.component('fixedterms', {
          const icon = '<i class="fa fa-send"></i>';
          let fixedTerms = app.fixedTerms.map(x => `${x.source}\t${x.target}`);
          fixedTerms = `${app.source}\t${app.target}\n` + fixedTerms.join('\n');
+         fixedTerms = unescape(encodeURIComponent(fixedTerms));
 
          return app.$soap('updateFixedTerms', {
                ContentsBase64: btoa(fixedTerms),
@@ -437,6 +438,7 @@ Vue.component('fixedterms', {
             .then(function(response) {
                let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
                fixedTerms = atob(fixedTerms);
+               fixedTerms = decodeURIComponent(escape(fixedTerms));
                fixedTerms = fixedTerms.split(/\r?\n/);
                fixedTerms = fixedTerms.filter(x => x.length > 1)
                fixedTerms = fixedTerms.map(terms => terms.split('\t'));
