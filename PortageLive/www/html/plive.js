@@ -780,10 +780,11 @@ Vue.component('translatefile', {
 
       is_ce_possible: function() {
          const app = this;
+         const context_info = app.contexts.find(x => x.name == app.context);
          return app.is_xml
             && app.contexts !== undefined
-            && app.contexts.hasOwnProperty(app.context)
-            && app.contexts[app.context].as_ce;
+            && context_info !== undefined
+            && context_info.as_ce;
       },
 
 
