@@ -110,32 +110,6 @@
             <section id="context_section" name="context_section">
                <fieldset class="round_corners">
                   <legend>Context</legend>
-                  <label for="context">
-                     <strong>Select a context:</strong>
-                     <select id="context" v-model="context" name="context" title="Which context to use during translation">
-                        <option :selected="true" disabled value="unselected">&mdash; Please pick one &mdash;</option>
-                        <option
-                           v-for="(context, name, index) in contexts"
-                           :value="context.name"
-                           :class="{ incremental : context.is_incremental}">
-                           {{context.description}}
-                        </option>
-                     </select>
-                  </label>
-                  <label class="ui_incremental">
-                     Incremental Model Document ID:
-                     <input
-                        name="document_id"
-                        title="Document id to translate with an incremental model."
-                        placeholder="Document Model ID"
-                        type="text"
-                        v-model="document_id"
-                        size="20"
-                        maxlength="40" />
-                  </label>
-               </fieldset>
-               <fieldset class="round_corners">
-                  <legend>Context</legend>
                   <v-container fluid grid-list-xs>
                      <v-layout wrap align-center>
                         <v-flex xs12 sm6 d-flex>
@@ -147,7 +121,23 @@
                               item-text="description"
                               item-value="name"
                               :class="{ incremental : context.is_incremental}"
-                           ></v-select>
+                           >
+                              <!-- https://codepen.io/lucafaggianelli/pen/VMaoKJ?editors=1010 -->
+                              <template slot="item" scope="data">
+                                 <template v-if="typeof data.item !== 'object'">
+                                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                                 </template>
+                                 <template v-else>
+                                    <v-list-tile-content>
+                                       <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
+                                       <v-list-tile-sub-title v-html="data.item.description"></v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-avatar v-if="data.item.is_incremental">
+                                       <i class="fa fa-paragraph"></i>
+                                    </v-list-tile-avatar>
+                                 </template>
+                              </template>
+                           </v-select>
                         </v-flex>
                         <v-flex xs12 sm6 md3>
                            <v-text-field
@@ -635,39 +625,32 @@
                   <!--
                     https://stackoverflow.com/questions/47221119/vuejs-how-to-prevent-textarea-default-behavior
                    -->
-                  <textarea
+                  <v-textarea
                      name="text_source"
                      title="CTRL + enter to translate"
                      placeholder="The text you want to translate"
+                     value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
                      v-model="source"
                      @keydown.enter.exact.prevent
                      @keyup.enter.ctrl.exact="translate"
                      @keydown.enter.exact="add_newline"
-                     rows="5">
-                  </textarea>
-                  <v-textarea
-                     outline
-                     name="input-7-1"
+                     auto-grow
                      box
                      clearable
-                     auto-grow
-                     title="CTRL + enter to translate"
-                     placeholder="The text you want to translate"
-                     v-model="source"
-                     @keydown.enter.exact.prevent
-                     @keyup.enter.ctrl.exact="translate"
-                     @keydown.enter.exact="add_newline"
-                     value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-                  ></v-textarea>
-                  <textarea
+                     outline
+                  > </v-textarea>
+                  <v-textarea
                      name="translation"
                      title="You will see your translations in this box"
                      placeholder="Your translations."
                      v-model="translation"
                      :style="styleObject"
-                     readonly="true"
-                     rows="5">
-                  </textarea>
+                     rows="5"
+                     auto-grow
+                     box
+                     outline
+                     readonly
+                  > </v-textarea>
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
@@ -681,41 +664,44 @@
                      </li>
                   </transition-group>
                </div>
-               <div class="ui_full ui_incremental">
-                  <label for="text_xtags" class="lineup">
-                     <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
+               <v-checkbox
+                  id="text_xtags"
+                  v-model="xtags"
+               >
+                  <template v-slot:label>
                      <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
-                  </label>
-               </div>
-               <!-- Portage's WSDL doesn't offer phrase table.
-               <div>
-                  <label for="enable_phrase_table_debug">
-                     <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
-                     <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
-                  </label>
-               </div>
-               -->
+                  </template>
+               </v-checkbox>
+
                <fieldset id="text_advanced_options" class="round_corners ui_full ui_incremental">
                   <legend>newline Options</legend>
-                  <label class="lineup" title="Check this box if input text has one sentence per line">
-                     <input v-model="newline" type="radio" name="newline" value="s" />
-                     one sentence per line
-                  </label>
-                  <label class="lineup" title="Check this box if input text has one paragraph per line">
-                     <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
-                     one paragraph per line
-                  </label class="lineup">
-                  <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
-                     <input v-model="newline" type="radio" name="newline" value="w" />
-                     blank lines mark paragraphs
-                  </label>
-                  <!-- Portage's WSDL doesn't offer pretokenized option.
-                        <br />
-                        <label>
-                           <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
-                           <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
-                        </label>
-                        -->
+                  <!-- [Tooltip for radio button](https://codepen.io/anon/pen/BwOJZw?editors=1010) -->
+                  <v-radio-group v-model="newline" :mandatory="true">
+                     <v-tooltip bottom debounce="3">
+                        <v-radio
+                           label="one sentence per line"
+                           value="s"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has one sentence per line</span>
+                     </v-tooltip>
+                     <v-tooltip bottom>
+                        <v-radio
+                           label="one paragraph per line"
+                           value="p"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has one paragraph per line</span>
+                     </v-tooltip>
+                     <v-tooltip bottom>
+                        <v-radio
+                           label="blank lines mark paragraphs"
+                           value="w"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace</span>
+                     </v-tooltip>
+                  </v-radio-group>
                </fieldset>
                <div style="float: left">
                   <button

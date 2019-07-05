@@ -262,10 +262,9 @@ Vue.component('tabs', {
    },
 
    created: function() {
-
       this.tabs = this.$children;
-
    },
+
    methods: {
       selectTab: function(selectedTab) {
          this.tabs.forEach(tab => {
@@ -891,9 +890,11 @@ Vue.component('translatetext', {
          enable_phrase_table_debug: false,
          translation: '',
          newline: 'p',
+         /*
          styleObject: {
             color: 'black',
          },
+         */
          last_translations: [],   // Create a Queue(maxSize=3)
          number_translation_in_progress: 0,
       };
@@ -904,6 +905,17 @@ Vue.component('translatetext', {
       if (localStorage.last_text_translations) {
          app.last_translations = JSON.parse(localStorage.last_text_translations);
       }
+   },
+   computed: {
+      styleObject: function() {
+         const app = this;
+         if (app.number_translation_in_progress == 0) {
+            return {color: 'black'};
+         }
+         else {
+            return {color: 'CornflowerBlue'};
+         }
+      },
    },
    watch: {
       last_translations: {
@@ -919,12 +931,14 @@ Vue.component('translatetext', {
       number_translation_in_progress: function(old_value, new_value) {
          const app = this;
          app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress);
+         /*
          if (app.number_translation_in_progress == 0) {
             app.styleObject.color = 'black';
          }
          else {
             app.styleObject.color = 'CornflowerBlue';
          }
+         */
       },
    },
    methods: {
@@ -968,7 +982,7 @@ Vue.component('translatetext', {
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
-         const is_incremental = app.contexts[app.context].is_incremental;
+         const is_incremental = app.contexts.find(x => x.name == app.context).is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
             let translateTextToastError = app.$toasted.global.error(`${app.context} does not support incremental.  Please select another system. ${icon}`);
             return;
@@ -1052,7 +1066,7 @@ function clear_recursively(nodes) {
 
 
 
-var plive_app = new Vue({
+const plive_app = new Vue({
    el: '#plive_app',
 
    data: {
@@ -1154,6 +1168,7 @@ var plive_app = new Vue({
                   {});
                app.contexts = contexts;
                app.contexts = jsonContexts.contexts;
+               app.contexts.unshift({name: 'unselected', description: '— Please pick one —', disabled: true});
                app.context  = 'unselected';
                // The user had previously selected a translation system, we will restore his selection.
                if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
