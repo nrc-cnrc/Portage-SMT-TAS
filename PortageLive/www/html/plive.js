@@ -639,6 +639,22 @@ Vue.component('translatefile', {
             return;
          }
          app.file = files[0];
+         if (/\.(sdlxliff|xliff)$/i.test(app.file.name)) {
+            app.is_xml = true;
+            app.file.translate_method = 'translateSDLXLIFF';
+         }
+         else if (/\.tmx$/i.test(app.file.name)) {
+            app.is_xml = true;
+            app.file.translate_method = 'translateTMX';
+         }
+         else if (/\.txt$/i.test(app.file.name)) {
+            app.is_xml = false;
+            app.file.translate_method = 'translatePlainText';
+         }
+         else {
+            app.is_xml = false;
+            app.file.translate_method = 'translatePlainText';
+         }
       },
 
       translateFile: function(evt) {
@@ -655,22 +671,6 @@ Vue.component('translatefile', {
          app.$getBase64(app.file)
             .then( function(data) {
                app.file.base64 = data;
-               if (/\.(sdlxliff|xliff)$/i.test(app.file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateSDLXLIFF';
-               }
-               else if (/\.tmx$/i.test(app.file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateTMX';
-               }
-               else if (/\.txt$/i.test(app.file.name)) {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-               else {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
                app._translate();
             })
             .catch( function(error) {
