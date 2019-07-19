@@ -50,6 +50,9 @@ notation to submit multiple sentences at once, e.g. `q[]=sent1&q[]=sent2`)
 
 | `prettyprint`       | if set to 1 or "true", result is pretty-printed JSON;
                         if set to 0 or "false", result is raw JSON.
+
+| `xtag`              | if set to 1 or "true";  Process and transfer tags.
+
 |===
 
 The return value is a JSON structure such as the one below. Note that `\u00c7`
