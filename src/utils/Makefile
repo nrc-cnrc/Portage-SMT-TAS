@@ -101,7 +101,9 @@ PGM_WITH_ALTERNATIVE_HELP = plog.pl
 
 PERL_LIBS=portage_utils.pm
 
-PYTHON_LIBS=portage_utils.pyc
+# Install the .py file not the .pyc to allow Python (2.7 or 3.X) being used to
+# compile the file and drop it in the appropriate place.
+PYTHON_LIBS=portage_utils.py
 
 # Tell Make to skip -lportage_utils, since we're building it here.
 NO_UTILS_LIB = true
