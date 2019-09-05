@@ -535,16 +535,14 @@
                         </label>
                         -->
                </fieldset>
-               <div>
-                  <div style="float: left">
-                     <button
-                        title="Select a context, type your sentence then translate."
-                        @click="translate"
-                        :disabled="!is_translating_possible()"
-                        accesskey="t">
-                        Translate
-                     </button>
-                  </div>
+               <div style="float: left">
+                  <button
+                     title="Select a context, type your sentence then translate."
+                     @click="translate"
+                     :disabled="!is_translating_possible()"
+                     accesskey="t">
+                     Translate
+                  </button>
                </div>
             </fieldset>
          </section>
