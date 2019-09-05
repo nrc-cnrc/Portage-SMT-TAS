@@ -469,8 +469,9 @@ Vue.component('fixedterms', {
             });
       },
       deleteItem: function(item) {
-         const index = this.fixedTerms.indexOf(item)
-         confirm('Are you sure you want to delete this item?') && this.fixedTerms.splice(index, 1)
+         const app = this;
+         const index = app.fixedTerms.indexOf(item)
+         confirm('Are you sure you want to delete this item?') && app.fixedTerms.splice(index, 1)
       },
    }, // ends methods
 });
