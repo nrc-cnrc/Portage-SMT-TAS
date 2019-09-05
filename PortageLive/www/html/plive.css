@@ -39,6 +39,7 @@ button:hover {
 
 button:disabled, #advanced button:disabled {
    background: #dddddd;
+   color: #777;
    cursor: not-allowed;
 }
 
@@ -343,11 +344,11 @@ footer:after {
 }
 
 .tabs a {
-   background-color: #B7E8FE;
+   background-color: #eee;
    border-radius: 10px 10px 0 0;
    border-right: none;
    border: 1px solid #ccc;
-   color: white;
+   color: #777;
    cursor: pointer;
    float: left;
    font-size: large;
@@ -363,7 +364,7 @@ footer:after {
 
 /* Change background color of tabs on hover */
 .tabs a:hover {
-   background-color: #aaa;
+   background-color: #B7E8FE;
    color: #fff;
 }
 

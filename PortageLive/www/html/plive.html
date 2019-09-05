@@ -51,9 +51,9 @@
       <script type="text/javascript" src="tinysoap-browser.js"></script>
       -->
 
-      <link rel="stylesheet" href="nrc.gc.ca.css">
-      <link rel="stylesheet" href="plive.css">
-      <link rel="stylesheet" href="plive.translating.css">
+      <link rel="stylesheet" href="nrc.gc.ca.css" />
+      <link rel="stylesheet" href="plive.css" />
+      <link rel="stylesheet" href="plive.translating.css" />
       <!--
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
       <link rel="stylesheet" href="tabs-component.css">
@@ -152,12 +152,13 @@
                </tabs>
             </section>
 
-            <section name="clear">
+            <section name="clear" style="height:5em">
                <button
                   name=".defaults"
                   title="Reset the fields to their default values."
                   @click="clearForm"
-                  accesskey="c">Clear All</button>
+                  accesskey="c"
+                  style="float:right">Clear All</button>
             </section>
 
             <div id="plive_version">Powered by: {{version}}</div>
@@ -425,22 +426,13 @@
                         @click="translateFile"
                         :disabled="!is_translating_a_file_possible()"
                         accesskey="f">
-                        Translate File
+                        Translate
                      </button>
                   </div>
                   <div v-show="translation_progress >= 0" style="display: inline-block;">
                      <progress :value="translation_progress" max="100"></progress>
                   </div>
                </div>
-               <!--
-               <div id="translate_file_urls" v-show="translation_url != undefined">
-                  <ul>
-                     <li><a :href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                     <li><a :href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                     <li><a :href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
-                  </ul>
-               </div>
-               -->
                <div v-show="trace_url != undefined">
                   <h3>Error</h3>
                   {{translate_file_error}}
@@ -543,16 +535,14 @@
                         </label>
                         -->
                </fieldset>
-               <div>
-                  <div style="float: left">
-                     <button
-                        title="Select a context, type your sentence then translate."
-                        @click="translate"
-                        :disabled="!is_translating_possible()"
-                        accesskey="t">
-                        Translate Text
-                     </button>
-                  </div>
+               <div style="float: left">
+                  <button
+                     title="Select a context, type your sentence then translate."
+                     @click="translate"
+                     :disabled="!is_translating_possible()"
+                     accesskey="t">
+                     Translate
+                  </button>
                </div>
             </fieldset>
          </section>

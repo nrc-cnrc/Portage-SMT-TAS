@@ -146,7 +146,7 @@ Vue.toasted.register('translating', message => {
 
 
 
-Vue.prototype.$body = function(method, args) {
+Vue.prototype.$SOAPbody = function(method, args) {
    const method_args = Object.keys(args).reduce(function(previous, current) {
       previous += `<${current}>${String(args[current]).encodeHTML()}</${current}>`;
       return previous;
@@ -190,7 +190,7 @@ Vue.prototype.$soap = function(soapaction, args, service_url = '/PortageLiveAPI.
         <soap:Body> \
            {body} \
          </soap:Body> \
-      </soap:Envelope>'.format({'body': app.$body(soapaction, args)});
+      </soap:Envelope>'.format({'body': app.$SOAPbody(soapaction, args)});
 
    return fetch(service_url, {
       method: 'POST',
@@ -639,6 +639,22 @@ Vue.component('translatefile', {
             return;
          }
          app.file = files[0];
+         if (/\.(sdlxliff|xliff)$/i.test(app.file.name)) {
+            app.is_xml = true;
+            app.file.translate_method = 'translateSDLXLIFF';
+         }
+         else if (/\.tmx$/i.test(app.file.name)) {
+            app.is_xml = true;
+            app.file.translate_method = 'translateTMX';
+         }
+         else if (/\.txt$/i.test(app.file.name)) {
+            app.is_xml = false;
+            app.file.translate_method = 'translatePlainText';
+         }
+         else {
+            app.is_xml = false;
+            app.file.translate_method = 'translatePlainText';
+         }
       },
 
       translateFile: function(evt) {
@@ -655,22 +671,6 @@ Vue.component('translatefile', {
          app.$getBase64(app.file)
             .then( function(data) {
                app.file.base64 = data;
-               if (/\.(sdlxliff|xliff)$/i.test(app.file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateSDLXLIFF';
-               }
-               else if (/\.tmx$/i.test(app.file.name)) {
-                  app.is_xml = true;
-                  app.file.translate_method = 'translateTMX';
-               }
-               else if (/\.txt$/i.test(app.file.name)) {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
-               else {
-                  app.is_xml = false;
-                  app.file.translate_method = 'translatePlainText';
-               }
                app._translate();
             })
             .catch( function(error) {
