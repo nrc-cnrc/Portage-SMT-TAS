@@ -1,6 +1,6 @@
 <!DOCTYPE html
-	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!--
   @author Samuel Larkin
   @file plive.html
@@ -45,6 +45,8 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vue-toasted/1.1.24/vue-toasted.min.css" />
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+      <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet" />
+      <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet" />
 
       <!--
       <script src="https://cdn.jsdelivr.net/npm/tinysoap@1.0.2/tinysoap-browser-min.js"></script>
@@ -103,34 +105,98 @@
 
 
 
-         <section id="plive_app" name="plive_app">
+         <v-app id="plive_app" name="plive_app" style="background-color: transparent;">
+
+            <v-toolbar>
+               <v-toolbar-title>
+                  <v-container fluid grid-list-xl>
+                     <v-layout wrap align-center>
+                        <v-flex xs12 sm6 d-flex>
+                           <v-select
+                              v-model="context"
+                              :items="contexts"
+                              label="Context"
+                              outline
+                              item-text="description"
+                              item-value="name"
+                              :class="{ incremental : context.is_incremental}"
+                           >
+                              <!-- https://codepen.io/lucafaggianelli/pen/VMaoKJ?editors=1010 -->
+                              <template slot="item" scope="data">
+                                 <template v-if="typeof data.item !== 'object'">
+                                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                                 </template>
+                                 <template v-else>
+                                    <v-list-tile-content>
+                                       <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
+                                       <v-list-tile-sub-title v-html="data.item.description"></v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-avatar v-if="data.item.is_incremental">
+                                       <i class="fa fa-paragraph"></i>
+                                    </v-list-tile-avatar>
+                                 </template>
+                              </template>
+                           </v-select>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                           <v-text-field
+                              name="document_id"
+                              title="Document id to translate with an incremental model"
+                              label="document id"
+                              placeholder="Document Model ID"
+                              outline
+                              v-model="document_id"
+                           ></v-text-field>
+                        </v-flex>
+                     </v-layout>
+                  </v-container>
+               </v-toolbar-title>
+            </v-toolbar>
 
             <section id="context_section" name="context_section">
                <fieldset class="round_corners">
                   <legend>Context</legend>
-                  <label for="context">
-                     <strong>Select a context:</strong>
-                     <select id="context" v-model="context" name="context" title="Which context to use during translation">
-                        <option :selected="true" disabled value="unselected">&mdash; Please pick one &mdash;</option>
-                        <option
-                           v-for="context in contexts"
-                           :value="context.name"
-                           :class="{ incremental : context.is_incremental}">
-                           {{context.description}}
-                        </option>
-                     </select>
-                  </label>
-                  <label class="ui_incremental">
-                     Incremental Model Document ID:
-                     <input
-                        name="document_id"
-                        title="Document id to translate with an incremental model."
-                        placeholder="Document Model ID"
-                        type="text"
-                        v-model="document_id"
-                        size="20"
-                        maxlength="40" />
-                  </label>
+                  <v-container fluid grid-list-xs>
+                     <v-layout wrap align-center>
+                        <v-flex xs12 sm6 d-flex>
+                           <v-select
+                              v-model="context"
+                              :items="contexts"
+                              label="Context"
+                              outline
+                              item-text="description"
+                              item-value="name"
+                              :class="{ incremental : context.is_incremental}"
+                           >
+                              <!-- https://codepen.io/lucafaggianelli/pen/VMaoKJ?editors=1010 -->
+                              <template slot="item" scope="data">
+                                 <template v-if="typeof data.item !== 'object'">
+                                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                                 </template>
+                                 <template v-else>
+                                    <v-list-tile-content>
+                                       <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
+                                       <v-list-tile-sub-title v-html="data.item.description"></v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-avatar v-if="data.item.is_incremental">
+                                       <i class="fa fa-paragraph"></i>
+                                    </v-list-tile-avatar>
+                                 </template>
+                              </template>
+                           </v-select>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                           <v-text-field
+                              name="document_id"
+                              title="Document id to translate with an incremental model"
+                              label="document id"
+                              placeholder="Document Model ID"
+                              outline
+                              v-model="document_id"
+                           ></v-text-field>
+                        </v-flex>
+                     </v-layout>
+                  </v-container>
                </fieldset>
             </section>
 
@@ -149,6 +215,9 @@
 
                      <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
                   </tab>
+                  <tab name="Fixed Terms">
+                     <fixedterms :context="context" :contexts="contexts" :document_id="document_id"></fixedterms>
+                  </tab>
                </tabs>
             </section>
 
@@ -162,7 +231,7 @@
             </section>
 
             <div id="plive_version">Powered by: {{version}}</div>
-         </section>
+         </v-app>
       </div>
 
 
@@ -233,6 +302,149 @@
             <span class="translating-text-words">n</span>
             <span class="translating-text-words">g</span>
          </div>
+      </script>
+
+
+
+      <script type="text/x-template" id="fixedterms_template">
+         <section name="fixedterms" id="fixedterms">
+            <div id="fixedTermsDataTable">
+               <div>
+                  <v-card>
+                     <v-card-title>
+                        Fixed Terms
+                        <v-spacer></v-spacer>
+                        <v-text-field
+                           v-model="search"
+                           append-icon="search"
+                           label="Search"
+                           single-line
+                           hide-details
+                        ></v-text-field>
+
+                        <v-dialog v-model="dialog" max-width="500px">
+                           <template v-slot:activator="{ on }">
+                              <v-btn color="primary" dark class="mb-2" v-on="on">New Fixed Term</v-btn>
+                           </template>
+                           <v-card>
+                              <v-card-title>
+                                 <span class="headline">{{ formTitle }}</span>
+                              </v-card-title>
+
+                              <v-card-text>
+                                 <v-container grid-list-md>
+                                    <v-layout wrap>
+                                       <v-flex xs12 sm6 md4>
+                                          <v-text-field v-model="editedItem.source" label="Source fixed term"></v-text-field>
+                                       </v-flex>
+                                       <v-flex xs12 sm6 md4>
+                                          <v-text-field v-model="editedItem.target" label="Target fixed term"></v-text-field>
+                                       </v-flex>
+                                    </v-layout>
+                                 </v-container>
+                              </v-card-text>
+
+                              <v-card-actions>
+                                 <v-spacer></v-spacer>
+                                 <v-btn color="blue darken-1" flat @click="close">Cancel</v-btn>
+                                 <v-btn color="blue darken-1" flat @click="save">Save</v-btn>
+                              </v-card-actions>
+                           </v-card>
+                        </v-dialog>
+                     </v-card-title>
+
+                     <v-data-table :headers="headers" :items="fixedTerms" :search="search" :rows-per-page-items="rowsPerPageItems">
+                        <template v-slot:items="props">
+                           <td>
+                              <v-edit-dialog
+                                 :return-value.sync="props.item.source"
+                                 large
+                                 lazy
+                                 persistent
+                                 @save="save"
+                                 @cancel="cancel"
+                                 @open="open"
+                                 @close="close"
+                              >
+                                 <div>{{ props.item.source }}</div>
+                                 <template v-slot:input>
+                                    <div class="mt-3 title">Update Target</div>
+                                 </template>
+                                 <template v-slot:input>
+                                    <v-text-field
+                                       v-model="props.item.source"
+                                       label="Edit"
+                                       single-line
+                                       counter
+                                       autofocus
+                                    ></v-text-field>
+                                 </template>
+                              </v-edit-dialog>
+                           </td>
+                           <td class="text-xs-right">
+                              <v-edit-dialog
+                                 :return-value.sync="props.item.target"
+                                 large
+                                 lazy
+                                 persistent
+                                 @save="save"
+                                 @cancel="cancel"
+                                 @open="open"
+                                 @close="close"
+                              >
+                                 <div>{{ props.item.target }}</div>
+                                 <template v-slot:input>
+                                    <div class="mt-3 title">Update Target</div>
+                                 </template>
+                                 <template v-slot:input>
+                                    <v-text-field
+                                       v-model="props.item.target"
+                                       label="Edit"
+                                       single-line
+                                       counter
+                                       autofocus
+                                    ></v-text-field>
+                                 </template>
+                              </v-edit-dialog>
+                           </td>
+                           <td class="justify-center layout px-0">
+                              <v-icon
+                                 small
+                                 @click="deleteItem(props.item)"
+                              >
+                                 delete
+                              </v-icon>
+                           </td>
+                        </template>
+                     </v-data-table>
+                  </v-card>
+
+                  <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+                     {{ snackText }}
+                     <v-btn flat @click="snack = false">Close</v-btn>
+                  </v-snackbar>
+               </div>
+
+               <div>
+                  <button
+                     name="export_fixedTerms"
+                     title="Export fixed terms for the currently selected context"
+                     @click="export_fixedTerms"
+                     style="float: right"
+                     accesskey="e">
+                     Export
+                  </button>
+                  <button
+                     name="load_fixedTerms"
+                     title="Load fixed terms for the currently selected context"
+                     @click="load"
+                     style="float: right"
+                     accesskey="f">
+                     Load
+                  </button>
+               </div>
+            </div>
+         </section>
       </script>
 
 
@@ -467,25 +679,32 @@
                   <!--
                     https://stackoverflow.com/questions/47221119/vuejs-how-to-prevent-textarea-default-behavior
                    -->
-                  <textarea
+                  <v-textarea
                      name="text_source"
                      title="CTRL + enter to translate"
                      placeholder="The text you want to translate"
+                     value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
                      v-model="source"
                      @keydown.enter.exact.prevent
                      @keyup.enter.ctrl.exact="translate"
                      @keydown.enter.exact="add_newline"
-                     rows="5">
-                  </textarea>
-                  <textarea
+                     auto-grow
+                     box
+                     clearable
+                     outline
+                  > </v-textarea>
+                  <v-textarea
                      name="translation"
                      title="You will see your translations in this box"
                      placeholder="Your translations."
                      v-model="translation"
                      :style="styleObject"
-                     readonly="true"
-                     rows="5">
-                  </textarea>
+                     rows="5"
+                     auto-grow
+                     box
+                     outline
+                     readonly
+                  > </v-textarea>
                </div>
                <div>
                   <transition-group name="list" tag="ol" class="last_translations">
@@ -499,41 +718,44 @@
                      </li>
                   </transition-group>
                </div>
-               <div class="ui_full ui_incremental">
-                  <label for="text_xtags" class="lineup">
-                     <input v-model="xtags" id="text_xtags" name="text_xtags" type="checkbox" value="on" />
+               <v-checkbox
+                  id="text_xtags"
+                  v-model="xtags"
+               >
+                  <template v-slot:label>
                      <strong>xtags</strong> &ndash; Check this box if input text contains tags and you want to process &amp; transfer them.
-                  </label>
-               </div>
-               <!-- Portage's WSDL doesn't offer phrase table.
-               <div>
-                  <label for="enable_phrase_table_debug">
-                     <input id="enable_phrase_table_debug" v-model="enable_phrase_table_debug" type="checkbox" name="enable_phrase_table_debug" value="on" />
-                     <strong>phrase table</strong> - Check this box if you want to genereate a phrase table per source sentence for debugging purposes.
-                  </label>
-               </div>
-               -->
+                  </template>
+               </v-checkbox>
+
                <fieldset id="text_advanced_options" class="round_corners ui_full ui_incremental">
                   <legend>newline Options</legend>
-                  <label class="lineup" title="Check this box if input text has one sentence per line">
-                     <input v-model="newline" type="radio" name="newline" value="s" />
-                     one sentence per line
-                  </label>
-                  <label class="lineup" title="Check this box if input text has one paragraph per line">
-                     <input v-model="newline" type="radio" name="newline" value="p" checked="checked" />
-                     one paragraph per line
-                  </label class="lineup">
-                  <label class="lineup" title="Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace">
-                     <input v-model="newline" type="radio" name="newline" value="w" />
-                     blank lines mark paragraphs
-                  </label>
-                  <!-- Portage's WSDL doesn't offer pretokenized option.
-                        <br />
-                        <label>
-                           <input v-model="pretokenized" type="checkbox" name="notok" value="on" />
-                           <strong>pre-tokenized</strong> - Check this box if word-tokens are already space-separated in the source text file.
-                        </label>
-                        -->
+                  <!-- [Tooltip for radio button](https://codepen.io/anon/pen/BwOJZw?editors=1010) -->
+                  <v-radio-group v-model="newline" :mandatory="true">
+                     <v-tooltip bottom debounce="3">
+                        <v-radio
+                           label="one sentence per line"
+                           value="s"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has one sentence per line</span>
+                     </v-tooltip>
+                     <v-tooltip bottom>
+                        <v-radio
+                           label="one paragraph per line"
+                           value="p"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has one paragraph per line</span>
+                     </v-tooltip>
+                     <v-tooltip bottom>
+                        <v-radio
+                           label="blank lines mark paragraphs"
+                           value="w"
+                           slot="activator"
+                        ></v-radio>
+                        <span>Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace</span>
+                     </v-tooltip>
+                  </v-radio-group>
                </fieldset>
                <div style="float: left">
                   <button
@@ -549,6 +771,8 @@
       </script>
 
 
+
+      <script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.16/dist/vuetify.min.js"></script>
 
       <script type="text/javascript" src="plive.js"> </script>
 

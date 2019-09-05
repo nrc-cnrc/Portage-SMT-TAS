@@ -75,6 +75,8 @@ if (!String.prototype.encodeHTML) {
 
 
 
+Vue.use(Vuetify);
+
 //Vue.use(Toasted);
 Vue.use(Toasted, {
    iconPack : 'material' // set your iconPack, defaults to material. material|fontawesome
@@ -260,10 +262,9 @@ Vue.component('tabs', {
    },
 
    created: function() {
-
       this.tabs = this.$children;
-
    },
+
    methods: {
       selectTab: function(selectedTab) {
          this.tabs.forEach(tab => {
@@ -310,6 +311,212 @@ Vue.component('tab', {
 Vue.component('translating', {
       props: ['is_translating'],
       template: '#vue_translating_template'
+});
+
+
+
+Vue.component('fixedterms', {
+   computed: {
+      formTitle: function() {
+        return this.editedIndex === -1 ? 'New Fixed Term' : 'Edit Fixed Term'
+      },
+      rowsPerPageItems: function() {
+         return [10,25,100,{"text":"$vuetify.dataIterator.rowsPerPageAll","value":-1}];
+      },
+   },
+
+   watch: {
+      dialog: function(val) {
+        val || this.close()
+      }
+   },
+
+   data: function() {
+      return {
+         source: undefined,
+         target: undefined,
+         fixedTerms: [],
+         // Vuetify
+         search: '',
+         snack: false,
+         snackColor: '',
+         snackText: '',
+         max25chars: v => v.length <= 25 || 'Input too long!',
+         pagination: {},
+         headers: [
+            {
+               text: 'Source',
+               align: 'left',
+               sortable: true,
+               value: 'source'
+            },
+            {
+               text: 'Target',
+               align: 'left',
+               sortable: true,
+               value: 'target'
+            },
+         ],
+         // New Item Related
+         dialog: false,
+         editedIndex: -1,
+         editedItem: {
+           source: '',
+           target: '',
+         },
+         defaultItem: {
+           source: '',
+           target: '',
+         },
+      };
+   },
+
+   template: '#fixedterms_template',
+
+   props: ['context', 'contexts', 'document_id'],
+
+   methods: {
+      open: function() {
+         const app = this;
+         console.log('fixedTerms::open()');
+      },
+      close: function() {
+         const app = this;
+         console.log('fixedTerms::close()');
+         app.dialog = false;
+         setTimeout(() => {
+            app.editedItem = Object.assign({}, app.defaultItem)
+            app.editedIndex = -1
+         }, 300)
+      },
+      cancel: function() {
+         const app = this;
+         console.log('fixedTerms::cancel()');
+      },
+      save: function() {
+         const app = this;
+         console.log('fixedTerms::save()');
+
+         if (app.editedIndex > -1) {
+            Object.assign(app.fixedTerms[app.editedIndex], app.editedItem)
+         }
+         else {
+            app.fixedTerms.push(app.editedItem)
+         }
+         app.close()
+
+         const icon = '<i class="fa fa-send"></i>';
+         let fixedTerms = app.fixedTerms.map(x => `${x.source}\t${x.target}`);
+         fixedTerms = `${app.source}\t${app.target}\n` + fixedTerms.join('\n');
+         fixedTerms = unescape(encodeURIComponent(fixedTerms));
+
+         return app.$soap('updateFixedTerms', {
+               ContentsBase64: btoa(fixedTerms),
+               Filename: 'update.fixedterms.txt',
+               encoding: 'UTF-8',
+               context: app.context,
+               sourceColumnIndex: 1,
+               sourceLanguage: app.source,
+               targetLanguage: app.target,
+            })
+            .then(function(response) {
+               const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully updated fixed terms!${icon}`);
+            })
+            .catch(function(err) {
+               const message = err.message;
+               const getFixedTermsToastError = app.$toasted.global.error(`Failed to update fixed terms for ${app.context} ${message}! ${icon}`);
+            });
+      },
+      load: function() {
+         const app = this;
+         const icon = '<i class="fa fa-send"></i>';
+
+         return app.$soap('getFixedTerms', {
+               context: app.context,
+            })
+            .then(function(response) {
+               let fixedTerms = response.Body.getFixedTermsResponse.ContentsBase64;
+               fixedTerms = atob(fixedTerms);
+               fixedTerms = decodeURIComponent(escape(fixedTerms));
+               fixedTerms = fixedTerms.split(/\r?\n/);
+               fixedTerms = fixedTerms.filter(x => x.length > 1)
+               fixedTerms = fixedTerms.map(terms => terms.split('\t'));
+               app.source = fixedTerms[0][0];
+               app.target = fixedTerms[0][1];
+               fixedTerms = fixedTerms.slice(1);  // Drop the header line
+               app.headers = [
+                  {
+                     text: `Source (${app.source})`,
+                     align: 'left',
+                     sortable: true,
+                     value: 'source'
+                  },
+                  {
+                     text: `Target (${app.target})`,
+                     align: 'left',
+                     sortable: true,
+                     value: 'target'
+                  },
+               ];
+               //app.fixedTerms = fixedTerms.map(terms => {terms = terms.split('\t'); return {'source': terms[0], 'target': terms[1]};});
+               app.fixedTerms = fixedTerms.map(terms => { return {'source': terms[0], 'target': terms[1]};});
+               const getFixedTermsToastSuccess = app.$toasted.global.success(`Successfully retrieve fixed terms!${icon}`);
+            })
+            .catch(function(err) {
+               const faultstring = err.Body.Fault.faultstring;
+               const faultcode   = err.Body.Fault.faultcode;
+               const getFixedTermsToastError = app.$toasted.global.error(`Failed to fetch fixed terms for ${context} ${faultstring}! ${icon}`);
+            });
+      },
+      deleteItem: function(item) {
+         const app = this;
+         const index = app.fixedTerms.indexOf(item)
+         confirm('Are you sure you want to delete this item?') && app.fixedTerms.splice(index, 1)
+      },
+      export_fixedTerms: function() {
+         const app = this;
+         const options = {
+            fieldSeparator: ',',
+            quoteStrings: '"',
+            decimalSeparator: '.',
+            showLabels: true,
+            showTitle: true,
+            title: 'My Awesome CSV',
+            useTextFile: false,
+            useBom: true,
+            //useKeysAsHeaders: true,
+            headers: ['Column 1', 'Column 2'],
+         };
+         const csvExporter = new ExportToCsv(options);
+
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         csvExporter.generateCsv(app.fixedTerms);
+      },
+      export_fixedTerms: function() {
+         // [How to export JavaScript array info to csv (on client side)?](https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side?rq=1)
+         const app = this;
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         var encodedUri = encodeURI(csvContent);
+         window.open(encodedUri);
+      },
+      export_fixedTerms: function() {
+         // [JavaScript blob filename without link](https://stackoverflow.com/a/19328891)
+         const app = this;
+         var a = document.createElement("a");
+         document.body.appendChild(a);
+         a.style = "display: none";
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         var blob = new Blob([csvContent], {type: "octet/stream"}),
+            url = window.URL.createObjectURL(blob);
+         a.href = url;
+         a.download = 'fixedTerms.csv';
+         a.click();
+         window.URL.revokeObjectURL(url);
+      },
+   }, // ends methods
 });
 
 
@@ -617,10 +824,11 @@ Vue.component('translatefile', {
 
       is_ce_possible: function() {
          const app = this;
+         const context_info = app.contexts.find(x => x.name == app.context);
          return app.is_xml
             && app.contexts !== undefined
-            && app.contexts.hasOwnProperty(app.context)
-            && app.contexts[app.context].as_ce;
+            && context_info !== undefined
+            && context_info.as_ce;
       },
 
 
@@ -727,9 +935,11 @@ Vue.component('translatetext', {
          enable_phrase_table_debug: false,
          translation: '',
          newline: 'p',
+         /*
          styleObject: {
             color: 'black',
          },
+         */
          last_translations: [],   // Create a Queue(maxSize=3)
          number_translation_in_progress: 0,
       };
@@ -740,6 +950,17 @@ Vue.component('translatetext', {
       if (localStorage.last_text_translations) {
          app.last_translations = JSON.parse(localStorage.last_text_translations);
       }
+   },
+   computed: {
+      styleObject: function() {
+         const app = this;
+         if (app.number_translation_in_progress == 0) {
+            return {color: 'black'};
+         }
+         else {
+            return {color: 'CornflowerBlue'};
+         }
+      },
    },
    watch: {
       last_translations: {
@@ -755,12 +976,14 @@ Vue.component('translatetext', {
       number_translation_in_progress: function(old_value, new_value) {
          const app = this;
          app.number_translation_in_progress = Math.max(0, app.number_translation_in_progress);
+         /*
          if (app.number_translation_in_progress == 0) {
             app.styleObject.color = 'black';
          }
          else {
             app.styleObject.color = 'CornflowerBlue';
          }
+         */
       },
    },
    methods: {
@@ -804,7 +1027,7 @@ Vue.component('translatetext', {
       translate: function() {
          const app = this;
          const icon = '<i class="fa fa-keyboard-o"></i>';
-         const is_incremental = app.contexts[app.context].is_incremental;
+         const is_incremental = app.contexts.find(x => x.name == app.context).is_incremental;
          if (app.document_id !== undefined && app.document_id !== '' && !is_incremental) {
             let translateTextToastError = app.$toasted.global.error(`${app.context} does not support incremental.  Please select another system. ${icon}`);
             return;
@@ -888,7 +1111,7 @@ function clear_recursively(nodes) {
 
 
 
-var plive_app = new Vue({
+const plive_app = new Vue({
    el: '#plive_app',
 
    data: {
@@ -989,9 +1212,14 @@ var plive_app = new Vue({
                   },
                   {});
                app.contexts = contexts;
+               app.contexts = jsonContexts.contexts;
+               app.contexts.unshift({name: 'unselected', description: '— Please pick one —', disabled: true});
                app.context  = 'unselected';
                // The user had previously selected a translation system, we will restore his selection.
                if (localStorage.context && app.contexts.hasOwnProperty(localStorage.context)) {
+                  app.context = localStorage.context;
+               }
+               if (localStorage.context && app.contexts.find(x => x.name == localStorage.context)) {
                   app.context = localStorage.context;
                }
             })
