@@ -433,15 +433,6 @@
                      <progress :value="translation_progress" max="100"></progress>
                   </div>
                </div>
-               <!--
-               <div id="translate_file_urls" v-show="translation_url != undefined">
-                  <ul>
-                     <li><a :href="translation_url" name="translate_url" target="_blank">Translated File</a></li>
-                     <li><a :href="oov_url" name="oov_url" target="_blank">Out-of-vocabulary words</a></li>
-                     <li><a :href="pal_url" name="pal_url" target="_blank">Phrase alignments</a></li>
-                  </ul>
-               </div>
-               -->
                <div v-show="trace_url != undefined">
                   <h3>Error</h3>
                   {{translate_file_error}}
