@@ -105,7 +105,53 @@
 
 
 
-         <v-app id="plive_app" name="plive_app">
+         <v-app id="plive_app" name="plive_app" style="background-color: transparent;">
+
+            <v-toolbar>
+               <v-toolbar-title>
+                  <v-container fluid grid-list-xl>
+                     <v-layout wrap align-center>
+                        <v-flex xs12 sm6 d-flex>
+                           <v-select
+                              v-model="context"
+                              :items="contexts"
+                              label="Context"
+                              outline
+                              item-text="description"
+                              item-value="name"
+                              :class="{ incremental : context.is_incremental}"
+                           >
+                              <!-- https://codepen.io/lucafaggianelli/pen/VMaoKJ?editors=1010 -->
+                              <template slot="item" scope="data">
+                                 <template v-if="typeof data.item !== 'object'">
+                                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                                 </template>
+                                 <template v-else>
+                                    <v-list-tile-content>
+                                       <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
+                                       <v-list-tile-sub-title v-html="data.item.description"></v-list-tile-sub-title>
+                                    </v-list-tile-content>
+                                    <v-list-tile-avatar v-if="data.item.is_incremental">
+                                       <i class="fa fa-paragraph"></i>
+                                    </v-list-tile-avatar>
+                                 </template>
+                              </template>
+                           </v-select>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                           <v-text-field
+                              name="document_id"
+                              title="Document id to translate with an incremental model"
+                              label="document id"
+                              placeholder="Document Model ID"
+                              outline
+                              v-model="document_id"
+                           ></v-text-field>
+                        </v-flex>
+                     </v-layout>
+                  </v-container>
+               </v-toolbar-title>
+            </v-toolbar>
 
             <section id="context_section" name="context_section">
                <fieldset class="round_corners">
@@ -380,6 +426,14 @@
                </div>
 
                <div>
+                  <button
+                     name="export_fixedTerms"
+                     title="Export fixed terms for the currently selected context"
+                     @click="export_fixedTerms"
+                     style="float: right"
+                     accesskey="e">
+                     Export
+                  </button>
                   <button
                      name="load_fixedTerms"
                      title="Load fixed terms for the currently selected context"

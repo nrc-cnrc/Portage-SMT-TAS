@@ -473,6 +473,49 @@ Vue.component('fixedterms', {
          const index = app.fixedTerms.indexOf(item)
          confirm('Are you sure you want to delete this item?') && app.fixedTerms.splice(index, 1)
       },
+      export_fixedTerms: function() {
+         const app = this;
+         const options = {
+            fieldSeparator: ',',
+            quoteStrings: '"',
+            decimalSeparator: '.',
+            showLabels: true,
+            showTitle: true,
+            title: 'My Awesome CSV',
+            useTextFile: false,
+            useBom: true,
+            //useKeysAsHeaders: true,
+            headers: ['Column 1', 'Column 2'],
+         };
+         const csvExporter = new ExportToCsv(options);
+
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         csvExporter.generateCsv(app.fixedTerms);
+      },
+      export_fixedTerms: function() {
+         // [How to export JavaScript array info to csv (on client side)?](https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side?rq=1)
+         const app = this;
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         var encodedUri = encodeURI(csvContent);
+         window.open(encodedUri);
+      },
+      export_fixedTerms: function() {
+         // [JavaScript blob filename without link](https://stackoverflow.com/a/19328891)
+         const app = this;
+         var a = document.createElement("a");
+         document.body.appendChild(a);
+         a.style = "display: none";
+         let csvContent = "data:text/csv;charset=utf-8,"
+             + app.fixedTerms.map(e => e.source + "\t" + e.target).join("\n");
+         var blob = new Blob([csvContent], {type: "octet/stream"}),
+            url = window.URL.createObjectURL(blob);
+         a.href = url;
+         a.download = 'fixedTerms.csv';
+         a.click();
+         window.URL.revokeObjectURL(url);
+      },
    }, // ends methods
 });
 
