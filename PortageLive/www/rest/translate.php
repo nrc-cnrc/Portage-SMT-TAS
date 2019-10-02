@@ -67,6 +67,7 @@ class RestTranlator extends PortageLiveLib {
    protected $context = '';
    protected $q = array();
    protected $document_model_ID;
+   protected $xtag;
 
    protected $invalid_url_arguments = array();
 
@@ -174,7 +175,13 @@ class RestTranlator extends PortageLiveLib {
       }
       */
 
-      $performTagTransfer = false;
+      if ( ($this->xtag == "true" ) || $this->xtag == "1" ) {
+         $performTagTransfer = true;
+      }
+      else {
+          $performTagTransfer = false ;
+      }
+
       $useConfidenceEstimation = false;
       $newline = "p";
 

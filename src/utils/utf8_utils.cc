@@ -42,7 +42,14 @@ bool UTF8Utils::status(string* msg)
 bool UTF8Utils::convToU16(const string& in)
 {
    ecode = U_ZERO_ERROR;
-   Uint need = (in.size() + 8) * 4; // wild guess
+   // One UTF-16 Uchar character suffices, by definition in the standard, to encode
+   // Unicode code points requiring up to 3 bytes in utf8, i.e., up to 16 bits. Two
+   // UChars are only required for code points needing 4 bytes in utf8, i.e., >= 17 bits.
+   // So the Uchar representation of a string is guaranteed to have:
+   //   length (in Uchars) <= length of its utf8 representation (in bytes)
+   // with equality iff the string is all ASCII codepoints (i.e., 0-7F).
+   // The +1 is for the NULL terminator.
+   Uint need = in.size() + 1;
    if (u16.size() < need)
       u16.resize(need);
    
@@ -54,7 +61,9 @@ bool UTF8Utils::convToU16(const string& in)
 bool UTF8Utils::convFromU16(string& out)
 {
    ecode = U_ZERO_ERROR;
-   Uint need = u_strlen(&u16[0]) * 2 + 1; // wild guess
+   // A single character encoded in utf8 can take a maximum of 4 bytes - allocate
+   // the buffer accordingly: 4 bytes per character + 1 NULL byte.
+   Uint need = u_strlen(&u16[0]) * 4 + 1;
    if (output.size() < need)
       output.resize(need);
       
