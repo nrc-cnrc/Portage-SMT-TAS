@@ -14,7 +14,10 @@
 
 .PHONY: clean all
 
-all:
+all: all_rp
+
+.PHONY: all_rp
+all_rp:
 	make -f Makefile.rp all 2>&1 | egrep '^ *<D>' | diff ref -
 
 TEMP_FILES=delme run-parallel-logs-*
