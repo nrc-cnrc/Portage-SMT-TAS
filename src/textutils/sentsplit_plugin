@@ -28,6 +28,9 @@
 ## source language is not one of "en", "fr", "es", or "da", the languages
 ## supported by utokenize.pl.
 ##
+## For the languages supported by utokenize.pl, the equivalent of this is used:
+##   utokenize.pl -lang=SRC_LANG -notok -paraline -p -ss
+##
 
 if [[ $1 == -help || $1 == -h ]]; then
     cat $0 | grep "^##" | cut -c4-
