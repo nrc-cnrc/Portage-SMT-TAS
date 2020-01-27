@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# @file ssal-pipeline.sh 
+# @file ssal-pipeline.sh
 # @brief Run a full sentence alignment pipeline on a pair of files
-# 
+#
 # @author Eric Joanis
-# 
+#
 # Traitement multilingue de textes / Multilingual Text Processing
 # Centre de recherche en technologies numériques / Digital Technologies Research Centre
 # Conseil national de recherches Canada / National Research Council Canada
@@ -30,10 +30,10 @@ Usage: $PROG [-c CONFIG] [options] L1_FILE_IN L2_FILE_IN L1_FILE_OUT L2_FILE_OUT
 
   Run a full sentence alignment pipeline on L[12]_FILE_IN:
    1. Clean the corpus files
-   2. Align paragraphs, using the IBM model provided
+   2. Align paragraphs, using the IBM models if provided
    3. Sentence split
    4. Tokenize
-   5. Align sentences within paragraphs, using the IBM model provided
+   5. Align sentences within paragraphs, using the IBM models if provided
 
   The output will be cleaned, non-tokenized sentences, saved into L[12]_FILE_OUT
 
@@ -146,10 +146,12 @@ r "cat $WD/l1.$CLEAN_IN | $L1_TOK > $WD/l1.p.tok"
 r "cat $WD/l2.$CLEAN_IN | $L2_TOK > $WD/l2.p.tok"
 
 if [[ $USE_IBM == 1 ]]; then
-   r "ssal -ibm_1g2 $IBM_L1_GIVEN_L2 -ibm_2g1 $IBM_L2_GIVEN_L1 -a $WD/p.scores $WD/l1.p.tok $WD/l2.p.tok"
+   SSAL_IBM_OPTS="-ibm_1g2 $IBM_L1_GIVEN_L2 -ibm_2g1 $IBM_L2_GIVEN_L1"
 else
-   r "ssal -a $WD/p.scores $WD/l1.p.tok $WD/l2.p.tok"
+   SSAL_IBM_OPTS=
 fi
+
+r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 $WD/l1.p.tok.al -o2 $WD/l2.p.tok.al $WD/l1.p.tok $WD/l2.p.tok"
 
 r "select-lines.py -a 1 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l1.$CLEAN_IN > $WD/l1.p.al"
 r "select-lines.py -a 2 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l2.$CLEAN_IN > $WD/l2.p.al"
@@ -163,11 +165,7 @@ L2_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L2_TOK)
 r "cat $WD/l1.s | $L1_TOK | sed 's/$L1_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l1.s.tok"
 r "cat $WD/l2.s | $L2_TOK | sed 's/$L2_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l2.s.tok"
 
-if [[ $USE_IBM == 1 ]]; then
-   r "ssal -hm __PARAGRAPH__ -fm -ibm_1g2 $IBM_L1_GIVEN_L2 -ibm_2g1 $IBM_L2_GIVEN_L1 -a $WD/s.scores $WD/l1.s.tok $WD/l2.s.tok"
-else
-   r "ssal -hm __PARAGRAPH__ -fm -a $WD/s.scores $WD/l1.s.tok $WD/l2.s.tok"
-fi
+r "ssal -hm __PARAGRAPH__ -fm $SSAL_IBM_OPTS -a $WD/s.scores -o1 $WD/l1.s.tok.al -o2 $WD/l2.s.tok.al $WD/l1.s.tok $WD/l2.s.tok"
 
 # And append the aligned sentence pairs
 r "select-lines.py -a 1 $WD/s.scores $WD/l1.s | sed -e 's/^ *//' -e 's/ *\$//' >> $WD/l1.s.al"
