@@ -44,18 +44,7 @@ Usage: $PROG [-c CONFIG] [options] L1_FILE_IN L2_FILE_IN L1_FILE_OUT L2_FILE_OUT
      L1_SS, L2_SS: commands to sentence split
      L1_TOK, L2_TOK: commands to tokenized and maybe lowercase for the IBM model
      IBM_L1_GIVEN_L2, IBM_L2_GIVEN_L1: IBM models
-  E.g.:
-     L1_CLEAN="clean-utf8-text.pl"
-     L2_CLEAN="clean-utf8-text.pl | normalize-iu-spelling.pl"
-     L1_SS="utokenize.pl -lang=en -notok -ss -paraline -p"
-     L2_SS="utokenize.pl -lang=iu -notok -ss -paraline -p"
-     MODELS=/space/project/portage/corpora/Inuktitut-2017/Hansard-Nunavut-2017/Hansard-best
-     L1_BPE=\$MODELS/02-oppl-clean/Hansard-en-iu.bpe-lc
-     L2_BPE=\$MODELS/02-oppl-clean/Hansard-en-iu.bpe-lc
-     L1_TOK="utokenize.pl -lang=en -noss | utf8_casemap | subword-nmt apply-bpe -c \$L1_BPE | sed 's/  *$//'"
-     L2_TOK="utokenize.pl -lang=iu -noss | utf8_casemap | subword-nmt apply-bpe -c \$L2_BPE | sed 's/  *$//'"
-     IBM_L1_GIVEN_L2=\$MODELS/06-ibm-model/hmm.en_given_iu.bin
-     IBM_L2_GIVEN_L1=\$MODELS/06-ibm-model/hmm.iu_given_en.bin
+  Run "$PROG -template" to produce a template config file you can edit.
 
 Options:
 
@@ -64,6 +53,7 @@ Options:
   -header N    Assume the first N lines of the files are fixed headers [none]
   -ibm         Use IBM models [automatic if IBM_L1_GIVEN_L2 and IBM_L2_GIVEN_L1 are defined]
   -no-ibm      Don't use IBM models
+  -t(emplate)  Output a template config file and exit
   -h(elp)      print this help message
   -v(erbose)   increment the verbosity level by 1 (may be repeated)
   -d(ebug)     print debugging information
@@ -79,6 +69,7 @@ NOTREALLY=
 HEADER=
 DEBUG=
 USE_IBM=
+TEMPLATE=
 while [[ $# -gt 0 ]]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
@@ -86,6 +77,7 @@ while [[ $# -gt 0 ]]; do
    -header)             arg_check 1 $# $1; HEADER=$2; shift;;
    -ibm)                USE_IBM=1;;
    -no-ibm)             USE_IBM=0;;
+   -t|-template)        TEMPLATE=1;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -95,6 +87,52 @@ while [[ $# -gt 0 ]]; do
    esac
    shift
 done
+
+if [[ $TEMPLATE ]]; then
+   echo '#Template ssal-pipeline.sh config file. Set the variables below according
+# to your language pair and corpus processing requirements.
+# Each command must read from STDIN and output to STDOUT, and can pipe as many
+# program calls as needed.
+
+# Two digit language codes. These variables are optional but make some commands
+# below usable as is.
+L1=<L1>
+L2=<L2>
+
+# L[12]_CLEAN: how to clean up the corpus data.
+L1_CLEAN="clean-utf8-text.pl | <optional-language-or-corpus-specific-cleanup>"
+L2_CLEAN="clean-utf8-text.pl | <optional-language-or-corpus-specific-cleanup>"
+
+# L[12]_SS: how to split paragraphs into sentences. Must read one paragraph per
+# line, output one sentence per line, and insert an extra black line after
+# each paragraph. An empty paragraph is represented by two blank lines.
+# Must *not* tokenize.
+L1_SS="utokenize.pl -lang=$L1 -notok -ss -paraline -p"
+L2_SS="utokenize.pl -lang=$L2 -notok -ss -paraline -p"
+
+# L[12]_TOK: how to tokenize text. Must *not* split sentences.  If the IBM
+# models (see below) are trained on BPE and/or lowercase data, L[12]_TOK should
+# reproduce that processing. Keep only one of the examples below.
+# Simplest example:
+L1_TOK="utokenize.pl -lang=$L1 -noss"
+L2_TOK="utokenize.pl -lang=$L2 -noss"
+# Example with lowercasing and pre-trained BPE:
+MODELS=<path-to-models> # another optional variable for better reusability
+L1_BPE=$MODELS/<l1-bpe-file>
+L2_BPE=$MODELS/<l2-bpe-file>
+L1_TOK="utokenize.pl -lang=$L1 -noss | utf8_casemap | subword-nmt apply-bpe -c $L1_BPE"
+L2_TOK="utokenize.pl -lang=$L2 -noss | utf8_casemap | subword-nmt apply-bpe -c $L2_BPE"
+
+# If defined, IBM_L[12]_GIVEN_L[21] will trigger the use of IBM models by ssal.
+# Recommended process: run once without IBM models, train the IBM (HMM) models
+# on the results, run again with the IBM models. This replicates the full
+# multi-pass approach documented in "ssal -H", and the 4-pass approach used in
+# the LREC 2020 paper on the Nunavut Hansard corpus 3.0.
+IBM_L1_GIVEN_L2=$MODELS/hmm.${L1}_given_$L2.bin
+IBM_L2_GIVEN_L1=$MODELS/hmm.${L2}_given_$L1.bin
+'
+   exit
+fi
 
 [[ $CONFIG_FILE ]] || error_exit "-c CONFIG argument is required."
 [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE."
@@ -145,12 +183,12 @@ else
 fi
 
 # Step 2: align paragraphs using the IBM model
-#r "cat $WD/l1.$CLEAN_IN | $L1_TOK > $WD/l1.p.tok"
-#r "cat $WD/l2.$CLEAN_IN | $L2_TOK > $WD/l2.p.tok"
+#r "cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' > $WD/l1.p.tok"
+#r "cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' > $WD/l2.p.tok"
 #r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null $WD/l1.p.tok $WD/l2.p.tok"
 r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
-   <(cat $WD/l1.$CLEAN_IN | $L1_TOK) \
-   <(cat $WD/l2.$CLEAN_IN | $L2_TOK)"
+   <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//') \
+   <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//')"
 
 r "select-lines.py -a 1 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l1.$CLEAN_IN | \
    $L1_SS > $WD/l1.s"
@@ -158,15 +196,14 @@ r "select-lines.py -a 2 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p
    $L2_SS > $WD/l2.s"
 
 # Step 3: align sentences within paragraphs using the IBM model
-L1_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L1_TOK)
-L2_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L2_TOK)
-#r "cat $WD/l1.s | $L1_TOK | sed 's/$L1_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l1.s.tok"
-#r "cat $WD/l2.s | $L2_TOK | sed 's/$L2_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l2.s.tok"
-
+L1_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L1_TOK | sed 's/  *$//')
+L2_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L2_TOK | sed 's/  *$//')
+#r "cat $WD/l1.s | $L1_TOK | sed 's/  *$//' | sed 's/$L1_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l1.s.tok"
+#r "cat $WD/l2.s | $L2_TOK | sed 's/  *$//' | sed 's/$L2_PARAGRAPH_STR/__PARAGRAPH__/' > $WD/l2.s.tok"
 #r "ssal -hm __PARAGRAPH__ -fm $SSAL_IBM_OPTS -a $WD/s.scores -o1 /dev/null -o2 /dev/null $WD/l1.s.tok $WD/l2.s.tok"
 r "ssal -hm __PARAGRAPH__ -fm $SSAL_IBM_OPTS -a $WD/s.scores -o1 /dev/null -o2 /dev/null \
-   <(cat $WD/l1.s | $L1_TOK | sed 's/$L1_PARAGRAPH_STR/__PARAGRAPH__/') \
-   <(cat $WD/l2.s | $L2_TOK | sed 's/$L2_PARAGRAPH_STR/__PARAGRAPH__/')"
+   <(cat $WD/l1.s | $L1_TOK | sed 's/  *$//' | sed 's/$L1_PARAGRAPH_STR/__PARAGRAPH__/') \
+   <(cat $WD/l2.s | $L2_TOK | sed 's/  *$//' | sed 's/$L2_PARAGRAPH_STR/__PARAGRAPH__/')"
 
 # Get the aligned sentence pairs back from the non-tokenized input
 r "select-lines.py -a 1 $WD/s.scores $WD/l1.s | sed -e 's/^ *//' -e 's/ *\$//' >> $WD/l1.s.al"
