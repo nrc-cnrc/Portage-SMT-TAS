@@ -124,7 +124,7 @@ for a in sorted(vars(args).keys()):
 elid, unk, bos, eos, beg = 0, 1, 2, 3, 4 # special indexes
 special_names = '<ELID>', '<UNK>', '<BOS>', '<EOS>'
 vocs = svoc, tvoc, ovoc = {}, {}, {}
-voc_files = svoc_file, tvoc_file, ovoc_file = [args.voc + x for x in '.src', '.tgt', '.out']
+voc_files = svoc_file, tvoc_file, ovoc_file = [args.voc + x for x in ('.src', '.tgt', '.out')]
 if args.r:
    log("reading vocabulary files")
    for n,v in zip(voc_files, vocs):
@@ -225,7 +225,7 @@ if args.v:
 
 if not args.r:
    log("writing vocabulary files")
-   for n,v in (args.voc+'.src',svoc), (args.voc+'.tgt',tvoc), (args.voc+'.out',ovoc):
+   for n,v in ((args.voc+'.src',svoc), (args.voc+'.tgt',tvoc), (args.voc+'.out',ovoc)):
       with open(n, 'wb') as f:
          for i,t in enumerate(special_names):
             print >> f, i, t
