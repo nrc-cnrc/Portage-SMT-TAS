@@ -48,7 +48,7 @@ en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
            es.* da.* xtags.* smart-apos.* paragraph.* \
            brackets.utf8.detok-?? ch-punc-utf8.* \
-           with_tags.in with_tags.out
+           with_tags.in with_tags.out empty.paragraph*
 include ../Makefile.incl
 
 accent.utf8: accent
@@ -397,4 +397,16 @@ paragraph.noss-p: paragraph
 
 paragraph.noss-pp: paragraph
 	! utokenize.pl -lang=en -noss -paraline -p < $< > $@
+
+################################################################################
+# Empty paragraph with -ss -notok -p -paraline used to cause error
+test: empty.paragraph empty.paragraph.utf8
+
+empty.paragraph:
+	echo " " | ${TOKENIZE} -lang=en -ss -notok -p -paraline >& $@
+	echo $$'\n' | diff - $@
+
+empty.paragraph.utf8:
+	echo " " | ${UTOKENIZE} -lang=en -ss -notok -p -paraline >& $@
+	echo $$'\n' | diff - $@
 
