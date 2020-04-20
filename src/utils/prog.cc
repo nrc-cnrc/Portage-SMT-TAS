@@ -7,8 +7,8 @@
  * Traitement multilingue de textes / Multilingual Text Processing
  * Centre de recherche en technologies numériques / Digital Technologies Research Centre
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2019, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2019, Her Majesty in Right of Canada
+ * Copyright 2020, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2020, Her Majesty in Right of Canada
  */
 
 #include <iostream>
