@@ -1,0 +1,43 @@
+#Template ssal-pipeline.sh config file. Set the variables below according
+# to your language pair and corpus processing requirements.
+# Each command must read from STDIN and output to STDOUT, and can pipe as many
+# program calls as needed.
+
+# Two digit language codes. These variables are optional but make some commands
+# below usable as is.
+L1=en
+L2=fr
+
+# L[12]_CLEAN: how to clean up the corpus data.
+L1_CLEAN="clean-utf8-text.pl"
+L2_CLEAN="clean-utf8-text.pl"
+
+# L[12]_SS: how to split paragraphs into sentences. Must read one paragraph per
+# line, output one sentence per line, and insert an extra black line after
+# each paragraph. An empty paragraph is represented by two blank lines.
+# Must *not* tokenize.
+L1_SS="utokenize.pl -lang=$L1 -notok -ss -paraline -p"
+L2_SS="utokenize.pl -lang=$L2 -notok -ss -paraline -p"
+
+# L[12]_TOK: how to tokenize text. Must *not* split sentences.  If the IBM
+# models (see below) are trained on BPE and/or lowercase data, L[12]_TOK should
+# reproduce that processing. Keep only one of the examples below.
+# Simplest example:
+L1_TOK="utokenize.pl -lang=$L1 -noss"
+L2_TOK="utokenize.pl -lang=$L2 -noss"
+# Example with lowercasing and pre-trained BPE:
+#MODELS=<path-to-models> # another optional variable for better reusability
+#L1_BPE=$MODELS/<l1-bpe-file>
+#L2_BPE=$MODELS/<l2-bpe-file>
+#L1_TOK="utokenize.pl -lang=$L1 -noss | utf8_casemap | subword-nmt apply-bpe -c $L1_BPE"
+#L2_TOK="utokenize.pl -lang=$L2 -noss | utf8_casemap | subword-nmt apply-bpe -c $L2_BPE"
+
+# If defined, IBM_L[12]_GIVEN_L[21] will trigger the use of IBM models by ssal.
+# Recommended process: run once without IBM models, train the IBM (HMM) models
+# on the results, run again with the IBM models. This replicates the full
+# multi-pass approach documented in "ssal -H", and the 4-pass approach used in
+# the LREC 2020 paper on the Nunavut Hansard corpus 3.0.
+MODELS=models
+IBM_L1_GIVEN_L2=$MODELS/ibm2.train.${L1}_given_$L2.gz
+IBM_L2_GIVEN_L1=$MODELS/ibm2.train.${L2}_given_$L1.gz
+

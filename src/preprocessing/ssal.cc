@@ -29,8 +29,8 @@ using namespace Portage;
 
 /// Program ssal (Simple sentence aligner) usage
 static char help_message[] = "\n\
-ssal [-vH][-hm mark][-m1 m][-m2 m][-w w][-ibm_1g2 model][-ibm_2g1 model]\n\
-     [-l][-lc locale][-f][-fm][-a alfile][-i idfile]\n\
+ssal [-vH][-hm mark][-p][-m1 m][-m2 m][-w w][-ibm_1g2 model][-ibm_2g1 model]\n\
+     [-l][-lc locale][-f][-fm][-a alfile][-rel_a][-i idfile]\n\
      file1 file2\n\
 \n\
 Sentence-align file1 with file2, writing the results to file1.al and file2.al.\n\
@@ -51,6 +51,10 @@ Options:\n\
     pairs between consecutive marks, never across them. It is an error for one\n\
     input file to contain more hard marks than the other. By default, <mark>\n\
     pairs are written to all output files, but this can be changed with -fm.\n\
+    WARNING: mind your whitespace: -hm __MARK__ will *not* match \"__MARK__ \"\n\
+-p  Paragraph mode: two consecutive newlines form a hard markup. Intended to\n\
+    process the output of utokenize.pl -ss -p. Different from -hm \"\" in that\n\
+    an empty paragraph is still treated as just one paragraph, not two.\n\
 -m1 Set maximum number of file1 segments per alignment to m [3].\n\
 -m2 Set maximum number of file2 segments per alignment to m [3].\n\
 -w  Set weight on segment match feature to w [0.4 if -ibm* given, 10 else].\n\
@@ -64,10 +68,13 @@ Options:\n\
     and last non-white characters are < and > respectively). This does not\n\
     affect hard markup specified by -hm.\n\
 -fm Filter out hard markup if -hm is given [include <mark> pairs from input].\n\
+    (With -p, remove the second newline marking the paragraph boundary.)\n\
 -a  Write alignment info to <alfile>. Format is: b1-e1 b2-e2 n1-n2 s,\n\
     indicating that line numbers [b1,e1) from file1 align to lines [b2,e2)\n\
     from file2, with alignment pattern n1-n2, and score s (the total alignment\n\
     score is the sum over all sentences).\n\
+-rel_a In <alfile>, by default, b1, e1, b2, e2 are lines numbers in the file.\n\
+    With -rel_a, make them relative to the last hard marker.\n\
 -i  Read one id line from <idfile> for each region identified by hard markup,\n\
     and write one copy of the line to <idfile>.al for each sentence pair in the\n\
     region after alignment (<idfile>.al will be line-aligned to the other .al\n\
@@ -104,9 +111,10 @@ Here is a suggested multi-pass procedure for aligning raw text:\n\
    utokenize.pl -ss -paraline -p -lang=fr fr.para.al | head -n -1 > fr.sent\n\
 \n\
 4) Align sentences using ssal in length-based mode, treating paragraph\n\
-   boundaries as hard constraints, eg:\n\
+   boundaries as hard constraints. Note: use -p rather than -hm \"\", in order\n\
+   to process empty paragraphs correctly (eg: 0-1 alignments from step 2), eg:\n\
 \n\
-   ssal -hm \"\" -fm -a al.len en.sent fr.sent \n\
+   ssal -p -fm -a al.len en.sent fr.sent\n\
 \n\
 5) Train HMM models on the sentence alignments mapped to lowercase, eg:\n\
 \n\
@@ -119,9 +127,11 @@ Here is a suggested multi-pass procedure for aligning raw text:\n\
 \n\
    mv en.sent.al{,.len}\n\
    mv fr.sent.al{,.len}\n\
-   ssal -hm \"\" -fm -l -a al.ibm \\\n\
+   ssal -p -fm -l -a al.ibm \\\n\
         -ibm_1g2 hmm.en_given_fr.bin -ibm_2g1 hmm.fr_given_en.bin \\\n\
         en.sent fr.sent\n\
+\n\
+   (Or, even better, redo steps 2-4 using -ibm_*, to realign paragraphs too.)\n\
 \n\
 7) Optionally, compare length-based and ibm-based alignments, eg:\n\
 \n\
@@ -132,6 +142,16 @@ factors, such as the size of the corpus. For large corpora, the HMM model\n\
 training should be done in parallel using cat.sh.  Variants on this procedure\n\
 involve tuning ssal's -w parameter using al-diff.py, and training the HMM on\n\
 only high-confidence len-based alignments from step 4.\n\
+\n\
+8) Optionally, you can reconstruct the original, non-tokenized parallel corpus:\n\
+\n\
+   At step 3, sentence split and tokenize the corpus in two separate steps:\n\
+      utokenize.pl -notok -ss -paraline -p -lang=LL LL.para.al | head -n -1 > LL.sent\n\
+      utokenize.pl -noss -lang=LL LL.sent > LL.sent.tok\n\
+   Run steps 4, 5 and 6 on LL.sent.tok instead of LL.sent.\n\
+   Apply the alignments from al.ibm on the original sentences:\n\
+      select-lines.py -a 1 al.ibm en.sent > en.sent.al\n\
+      select-lines.py -a 2 al.ibm fr.sent > fr.sent.al\n\
 ";
 
 /**
@@ -179,6 +199,7 @@ static bool filt_mark = false;
 static string filename1, filename2;
 static string ofilename1, ofilename2;
 static string alfilename;
+static bool al_relative = false;
 static string idfilename;
 static string oidfilename;
 static Uint maxsegs1 = 3;      ///< max # file1 segs that can participate in an alignment
@@ -186,6 +207,7 @@ static Uint maxsegs2 = 3;      ///< max # file2 segs that can participate in an 
 static bool len_mismatch_set = false;
 static double len_mismatch_wt = 10.0;
 static const char* mark = NULL; // optional hard marker
+static bool paragraph = false;
 static string ibm_1g2_filename;
 static string ibm_2g1_filename;
 static bool lowercase = false;
@@ -215,6 +237,7 @@ static bool align(const vector<string>& lines1, const vector<string>& lines2,
                   vector<Coord>& connections, bool reversed);
 static void write(Uint region_num,
                   const vector<string>& lines1, const vector<string>& lines2,
+                  Uint s1_offset, Uint s2_offset,
                   const ScoreMatrix& score_matrix,
                   vector<Coord>& connections,
                   ostream& file1, ostream& file2, ostream* alfile,
@@ -256,13 +279,18 @@ int main(int argc, char* argv[])
    vector<string> lines1, lines2;
    string idline;
    Uint region_num = 0;
+
+   // lines processed before current block, when using hard markers
+   Uint s1_offset = 0;
+   Uint s2_offset = 0;
+
    while (true) {
       bool s1 = read(file1, lines1);
       bool s2 = read(file2, lines2);
       bool si = idfile ? getline(*idfile, idline) : true;
       if (s1 && s2 && si) {
          ++region_num;
-         if (verbose) cerr << "aligning region " << region_num << endl;
+         if (verbose) cerr << "\naligning region " << region_num << endl;
 
          // We need the bigger set of segments to be the rows for the BandedMatrix.
          const bool reversed = lines1.size() < lines2.size();
@@ -295,8 +323,11 @@ int main(int argc, char* argv[])
             ++numGrowth;
          } while (!align(rlines1, rlines2, score_matrix, backlink_matrix, connections, reversed));
 
-         write(region_num, lines1, lines2, score_matrix,
+         write(region_num, lines1, lines2, s1_offset, s2_offset, score_matrix,
                connections, ofile1, ofile2, alfile, idline, oidfile, reversed);
+
+         s1_offset += lines1.size()+1;
+         s2_offset += lines2.size()+1;
       }
       else if (s1 == false && s2 == false && (idfile == NULL || si == false)) {
          break;  // end of file
@@ -310,6 +341,10 @@ int main(int argc, char* argv[])
          break;
       }
    }
+
+   if (mark)
+      cerr << "Aligned " << region_num << " regions totalling "
+           << (s1_offset-1) << "/" << (s2_offset-1) << " lines." << endl;
 
    // cleanup (safe as is, without guard, even when pointers are NULL)
    delete alfile;
@@ -338,7 +373,7 @@ string getAlignFilename(const string& file) {
  */
 static void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"d", "v", "f", "fm", "hm:", "a:", "i:", "m1:", "m2:",
+   const char* switches[] = {"d", "v", "f", "fm", "hm:", "p", "a:", "rel_a", "i:", "m1:", "m2:",
                              "w:", "ibm_1g2:", "ibm_2g1:", "l", "lc:",
                              "o1:", "o2:", "oid:", "ne", "x",
                              "b:", "g:", "c:", "mw:"};
@@ -371,14 +406,22 @@ static void getArgs(int argc, char* argv[])
    if (closeness >= minimumWidth)
       error(ETFatal, "Beam's minimum width (%d) must be greater than the closeness factor (%d)\n 0 < %d < %d", minimumWidth, closeness, closeness, minimumWidth);
    // 1.0 < growthFactor
-   if (growthFactor <= 1.0) 
+   if (growthFactor <= 1.0)
       error(ETFatal, "The growth factor (%f) must always be greater than 1!", growthFactor);
 
    static string markstring;
    if (arg_reader.getSwitch("hm", &markstring))
       mark = markstring.c_str();
+   arg_reader.testAndSet("p", paragraph);
+   if (paragraph) {
+      if (mark)
+         error(ETFatal, "Conflicting -p and -hm both specified. Remove one of them.");
+      static const char empty[] = "";
+      mark = empty;
+   }
 
    arg_reader.testAndSet("a", alfilename);
+   arg_reader.testAndSet("rel_a", al_relative);
    arg_reader.testAndSet("i", idfilename);
    arg_reader.testAndSet("m1", maxsegs1);
    arg_reader.testAndSet("m2", maxsegs2);
@@ -522,7 +565,7 @@ bool read(istream& file, vector<string>& lines)
    lines.clear();
    string line;
    while (getline(file, line))
-      if (mark && line == mark)
+      if (mark && line == mark && (!paragraph || !lines.empty()))
          break;
       else
          lines.push_back(line);
@@ -680,12 +723,15 @@ bool align(const vector<string>& lines1, const vector<string>& lines2,
  * connections list is emptied as alignments are written.
  * @param ofile1 destination for aligned lines1
  * @param ofile2 destination for aligned lines2
+ * @param s1_offset offset for lines1 line numbers in their file
+ * @param s2_offset offset for lines2 line numbers in their file
  * @param alfile destination for alignment info
  * @param idline id line for this region
  * @param oidfile sentence-aligned output id file
  */
 void write(Uint region_num,
            const vector<string>& lines1, const vector<string>& lines2,
+           Uint s1_offset, Uint s2_offset,
            const ScoreMatrix& score_matrix,
            vector<Coord>& connections,
            ostream& ofile1, ostream& ofile2, ostream* alfile,
@@ -701,6 +747,11 @@ void write(Uint region_num,
          (*oidfile) << mark << endl;
    }
 
+   // Zero-out the file offsets when using -rel_a, so line numbers are printed
+   // with respect to the current block rather than the whole file
+   if (al_relative)
+      s1_offset = s2_offset = 0;
+
    Uint ibeg = 0, jbeg = 0;
    double begscore = 0.0;
    while (!connections.empty()) {
@@ -709,7 +760,8 @@ void write(Uint region_num,
       const double score = reversed ? score_matrix.get(j, i) : score_matrix.get(i, j);
       if (!filt || keep(lines1, lines2, ibeg, i, jbeg, j)) {
          if (alfile)
-            (*alfile) << ibeg << "-" << i << " " << jbeg << "-" << j << " "
+            (*alfile) << ibeg+s1_offset << "-" << i+s1_offset << " "
+                      << jbeg+s2_offset << "-" << j+s2_offset << " "
                       << i-ibeg << "-" << j-jbeg << " "
                       << score - begscore << endl;
          if (oidfile)
