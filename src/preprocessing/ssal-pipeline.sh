@@ -18,6 +18,8 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
    BIN="$BIN/../utils"
 fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
+print_nrc_copyright ssal-pipeline.sh 2020
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
