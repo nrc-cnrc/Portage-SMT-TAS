@@ -308,3 +308,49 @@ workdir.test.rolling: context.main
 	echo 'MAX_INCR_CORPUS_SIZE=5' >> $@/incremental.config
 	for i in `seq 1 9`; do echo -e "`date +"%F %T"`\tsrc$$i\ttgt$$i\t." >> $@/corpora; done
 	cd $@ && time incr-update.sh -c ../$</canoe.ini.cow -v corpora >& log.update-rolling-2
+
+
+#################################################################
+# Test processing blocks in the block queue
+.PHONY: test.1block test.5blocks
+
+all: test.1block
+test.1block: %: check.%
+
+check.test.1block: check.%: workdir.%
+	grep -q $$'<srclang en>\t<srclang en>' $</corpora
+	grep -q $$'I question the.*\tJe me demande' $</corpora
+	test ! -s $</src_block_corpus
+	test ! -s $</tgt_block_corpus
+	[[ `wc -l < $</corpora` -ge 10 ]]
+	[[ `wc -l < $</corpora` -le 13 ]]
+
+workdir.test.1block: context.main
+	mkdir -p $@
+	cat /dev/null > $@/corpora
+	cat blocks/block1.en > $@/src_block_corpus
+	echo __BLOCK_END__ >> $@/src_block_corpus
+	cat blocks/block1.fr > $@/tgt_block_corpus
+	echo __BLOCK_END__ >> $@/tgt_block_corpus
+	cd $@ && time incr-update.sh -debug -c ../$</canoe.ini.cow -v corpora src_block_corpus tgt_block_corpus
+
+
+all: test.5blocks
+test.5blocks: %: check.%
+
+check.test.5blocks: check.%: workdir.%
+	grep -q $$'such as the Sea Kings.*\t.*appareil comme le Sea King' $</corpora
+	grep -q $$'Nevertheless, that has happened.\tPourtant, cela est arrivé.' $</corpora
+	grep -q $$'British Columbia right now is reeling.\tActuellement, la Colombie-Britannique est chancelante.' $</corpora
+	test ! -s $</src_block_corpus
+	test ! -s $</tgt_block_corpus
+	[[ `wc -l < $</corpora` -ge 50 ]]
+	[[ `wc -l < $</corpora` -le 62 ]]
+
+workdir.test.5blocks: context.main
+	mkdir -p $@
+	cat /dev/null > $@/corpora
+	for x in blocks/block*.en; do cat $$x; echo __BLOCK_END__; done  > $@/src_block_corpus
+	for x in blocks/block*.fr; do cat $$x; echo __BLOCK_END__; done  > $@/tgt_block_corpus
+	cd $@ && time incr-update.sh -debug -c ../$</canoe.ini.cow -v corpora src_block_corpus tgt_block_corpus
+
