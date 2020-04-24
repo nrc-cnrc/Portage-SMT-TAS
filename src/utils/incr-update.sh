@@ -8,8 +8,8 @@
 # Technologies de l'information et des communications /
 #    Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2017, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2017, Her Majesty in Right of Canada
+# Copyright 2017, 2020, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2017, 2020, Her Majesty in Right of Canada
 
 set -o errexit
 
@@ -54,13 +54,13 @@ function usage() {
    [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS
+Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS [SRC_BLOCK_CORPUS TGT_BLOCK_CORPUS]
 
-  Retrain the incremental corpus for a PortageLive module, given the
+  Retrain the incremental model for a PortageLive module, given the
   incremental corpus INCREMENTAL_CORPUS which must contain one sentence pair
   per line in the format:
      DATE <tab> SOURCE SENTENCE <tab> TARGET SENTENCE [<tab> EXTRA-DATA ]
-  
+
   The directory containing CANOE_INI is also expected to contain an incremental
   config file, incremental.config, with the following contents:
     Format: bash variable definitions
@@ -71,12 +71,13 @@ Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS
       INCREMENTAL_LM_BASE  [$INCREMENTAL_LM_BASE]
       ALIGNMENT_MODEL_BASE [$ALIGNMENT_MODEL_BASE]
       {SRC,TGT}_PREPROCESS_CMD [preprocess_plugin]
-      {SRC,TGT}_TOKENIZE_CMD [utokenize.pl or tokenize_plugin]
+      {SRC,TGT}_TOKENIZE_CMD [utokenize.pl -noss, or tokenize_plugin]
       {SRC,TGT}_LOWERCASE_CMD [utf8_casemap -c l]
+      {SRC,TGT}_SENTSPLIT_CMD [utokenize.pl -notok -ss -paraline -p, or sentsplit_plugin]
 
   SRC_LANG and TGT_LANG are used to determine how to tokenize the corpus and
   must be specified in incremental.config.
-  
+
   If CANOE_INI is not specified, then the incremental model must already be
   initialized in the current directory, and the name of the incremental
   canoe.ini is assumed to be canoe.ini.cow.
@@ -84,6 +85,15 @@ Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS
   If CANOE_INI is specified and the incremental model has already been
   initialized in the current directory, then it is not re-initialized and the
   name of the incremental canoe.ini is assumed to be the basename of CANOE_INI.
+
+  Block-mode update:
+  If SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS are specified, blocks of parallel
+  text contained in that file pair, separated by __BLOCK_END__, will be aligned
+  using ssal-pipeline.sh and added to INCREMENTAL_CORPUS before updating the
+  models. The two files will be deleted once processed. If they are empty or
+  non-existent, the update will simply proceed with the text in
+  INCREMENTAL_CORPUS. SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS must both contain
+  exactly the same number of lines containing just __BLOCK_END__.
 
 Options:
 
@@ -98,13 +108,15 @@ Options:
    exit 1
 }
 
+DEBUG=
+DEBUG_OPT=
 VERBOSE=1
 while [ $# -gt 0 ]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; readonly base_canoe_ini=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -q|-quiet)           VERBOSE=0;;
-   -d|-debug)           DEBUG=1;;
+   -d|-debug)           DEBUG=1; DEBUG_OPT="-debug";;
    -h|-help)            usage;;
    --)                  shift; break;;
    -*)                  error_exit "Unknown option $1.";;
@@ -115,6 +127,11 @@ done
 
 [[ $# -eq 0 ]]  && error_exit "Missing INCREMENTAL_CORPUS argument"
 readonly INCREMENTAL_CORPUS=$1; shift
+if [[ $# -eq 2 ]]; then
+   SRC_BLOCK_CORPUS=$1
+   TGT_BLOCK_CORPUS=$2
+   shift; shift
+fi
 [[ $# -gt 0 ]]  && error_exit "Superfluous arguments $*"
 
 # Initialize the incremental model, if needed.
@@ -141,12 +158,42 @@ fi
 [[ $TGT_PREPROCESS_CMD ]] || TGT_PREPROCESS_CMD="preprocess_plugin $TGT_LANG"
 [[ $SRC_LOWERCASE_CMD ]] || SRC_LOWERCASE_CMD="utf8_casemap -c l"
 [[ $TGT_LOWERCASE_CMD ]] || TGT_LOWERCASE_CMD="utf8_casemap -c l"
+if [[ ! $SRC_SENTSPLIT_CMD ]]; then
+   if utokenize.pl -notok -ss -paraline -p -lang=$SRC_LANG /dev/null >& /dev/null; then
+      SRC_SENTSPLIT_CMD="utokenize.pl -notok -ss -paraline -p -lang=$SRC_LANG"
+   else
+      SRC_SENTSPLIT_CMD="sentsplit_plugin $SRC_LANG"
+   fi
+fi
+if [[ ! $TGT_SENTSPLIT_CMD ]]; then
+   if utokenize.pl -notok -ss -paraline -p -lang=$TGT_LANG /dev/null >& /dev/null; then
+      TGT_SENTSPLIT_CMD="utokenize.pl -notok -ss -paraline -p -lang=$TGT_LANG"
+   else
+      TGT_SENTSPLIT_CMD="sentsplit_plugin $TGT_LANG"
+   fi
+fi
+if [[ ! $SRC_TOKENIZE_CMD ]]; then
+   if utokenize.pl -noss -lang $SRC_LANG /dev/null >& /dev/null; then
+      SRC_TOKENIZE_CMD="utokenize.pl -noss -lang $SRC_LANG"
+   else
+      SRC_TOKENIZE_CMD="tokenize_plugin $SRC_LANG"
+   fi
+fi
+if [[ ! $TGT_TOKENIZE_CMD ]]; then
+   if utokenize.pl -noss -lang $TGT_LANG /dev/null >& /dev/null; then
+      TGT_TOKENIZE_CMD="utokenize.pl -noss -lang $TGT_LANG"
+   else
+      TGT_TOKENIZE_CMD="tokenize_plugin $TGT_LANG"
+   fi
+fi
 
 [[ $MAX_INCR_CORPUS_SIZE ]] || MAX_INCR_CORPUS_SIZE=2000
 
 # Don't try to make any models if there is nothing in the corpora.
-CORPUS_SIZE=`wc -l < $INCREMENTAL_CORPUS`
-[[ $CORPUS_SIZE -gt 0 ]] || exit 0
+if ! [[ -s $INCREMENTAL_CORPUS || -s $SRC_BLOCK_CORPUS || -s $TGT_BLOCK_CORPUS ]]; then
+   warn "No corpora, nothing to do."
+   exit 0
+fi
 
 INCREMENTAL_TM=$INCREMENTAL_TM_BASE.${SRC_LANG}2$TGT_LANG
 INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
@@ -154,6 +201,42 @@ INCREMENTAL_LM=${INCREMENTAL_LM_BASE}_$TGT_LANG
 WD=`mktemp -d incremental-tmp.XXX` ||
    error_exit "Cannot create temporary working directory"
 verbose 1 Created working directory $WD
+
+if [[ -s $SRC_BLOCK_CORPUS && -s $TGT_BLOCK_CORPUS ]]; then
+   # Sentence align the incremental blocks before using the corpus
+   # Instead of creating an ssal config file, export the configuration variables it needs
+   pushd $WD
+   echo "
+L1_CLEAN=\"$SRC_PREPROCESS_CMD\"
+L2_CLEAN=\"$TGT_PREPROCESS_CMD\"
+L1_SS=\"$SRC_SENTSPLIT_CMD\"
+L2_SS=\"$TGT_SENTSPLIT_CMD\"
+L1_TOK=\"$SRC_TOKENIZE_CMD\"
+L2_TOK=\"$TGT_TOKENIZE_CMD\"
+IBM_L1_GIVEN_L2=\"../$ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz\"
+IBM_L2_GIVEN_L1=\"../$ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz\"
+" > ssal-config
+   SRC_AL_OUT=src-blocks.al
+   TGT_AL_OUT=tgt-blocks.al
+   VERBOSE_FLAGS=$(for x in $(seq 1 $VERBOSE); do echo -n " -v"; done)
+   run_cmd "ssal-pipeline.sh $VERBOSE_FLAGS -c ssal-config $DEBUG_OPT -hm __BLOCK_END__ \
+            ../$SRC_BLOCK_CORPUS ../$TGT_BLOCK_CORPUS \
+            $SRC_AL_OUT $TGT_AL_OUT"
+   popd
+   verbose 1 "Appending aligned block corpus to $INCREMENTAL_CORPUS."
+   paste /dev/null $WD/$SRC_AL_OUT $WD/$TGT_AL_OUT /dev/null |
+      grep -v $'\t\t' | # remove sentence pairs where either side is empty
+      sed "s/^/$(date)/" | # add the date we're adding the sentence pairs
+      cat >> $INCREMENTAL_CORPUS
+   verbose 1 "Removing block corpus now that it is in sentence pair corpus."
+   run_cmd "rm $SRC_BLOCK_CORPUS $TGT_BLOCK_CORPUS"
+fi
+
+CORPUS_SIZE=`wc -l < $INCREMENTAL_CORPUS`
+if [[ $CORPUS_SIZE -eq 0 ]]; then
+   warn "Empty incremental corpus, nothing to do."
+   exit 0
+fi
 
 # Apply the rolling window
 if [[ $CORPUS_SIZE -gt $MAX_INCR_CORPUS_SIZE ]]; then
@@ -170,23 +253,9 @@ run_cmd "cut -f 2 $INCREMENTAL_CORPUS | $SRC_PREPROCESS_CMD > $WD/source.raw"
 run_cmd "cut -f 3 $INCREMENTAL_CORPUS | $TGT_PREPROCESS_CMD > $WD/target.raw"
 
 # Tokenize
-verbose 1 Tokenize the source
-if [[ $SRC_TOKENIZE_CMD ]]; then
-   run_cmd "$SRC_TOKENIZE_CMD < $WD/source.raw > $WD/source.tok"
-else
-   run_cmd "utokenize.pl -noss -lang $SRC_LANG < $WD/source.raw > $WD/source.tok" ||
-      run_cmd "tokenize_plugin $SRC_LANG < $WD/source.raw > $WD/source.tok" ||
-      error_exit "Cannot tokenize source corpus."
-fi
-
-verbose 1 Tokenize the target
-if [[ $TGT_TOKENIZE_CMD ]]; then
-   run_cmd "$TGT_TOKENIZE_CMD < $WD/target.raw > $WD/target.tok"
-else
-   run_cmd "utokenize.pl -noss -lang $TGT_LANG < $WD/target.raw > $WD/target.tok" ||
-      run_cmd "tokenize_plugin $TGT_LANG < $WD/target.raw > $WD/target.tok" ||
-      error_exit "Cannot tokenize target corpus."
-fi
+verbose 1 Tokenize the source and target
+run_cmd "$SRC_TOKENIZE_CMD < $WD/source.raw > $WD/source.tok"
+run_cmd "$TGT_TOKENIZE_CMD < $WD/target.raw > $WD/target.tok"
 
 # Lowercase
 verbose 1 Lowercase source and target
@@ -270,4 +339,4 @@ run_cmd "(cd $WD; textpt2tppt.sh $INCREMENTAL_TM)" ||
 ) 202<$incr_canoe_ini
 
 # Everything worked fine, clean up
-rm -rf $WD
+[[ $DEBUG ]] || rm -rf $WD
