@@ -53,6 +53,7 @@ Options:
   -c CONFIG    Config file to read (required)
   -n(otreally) Show what will happen but don't run anything [do the work]
   -header N    Assume the first N lines of the files are fixed headers [none]
+  -hm MARK     Interpret MARK on its own line as a hard document boundary [none]
   -ibm         Use IBM models [automatic if IBM_L1_GIVEN_L2 and IBM_L2_GIVEN_L1 are defined]
   -no-ibm      Don't use IBM models
   -t(emplate)  Output a template config file and exit
@@ -71,12 +72,14 @@ NOTREALLY=
 HEADER=
 DEBUG=
 USE_IBM=
+HARD_MARK=
 TEMPLATE=
 while [[ $# -gt 0 ]]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
    -n|-notreally)       NOTREALLY=1;;
    -header)             arg_check 1 $# $1; HEADER=$2; shift;;
+   -hm)                 arg_check 1 $# $1; HARD_MARK=$2; shift;;
    -ibm)                USE_IBM=1;;
    -no-ibm)             USE_IBM=0;;
    -t|-template)        TEMPLATE=1;;
@@ -146,6 +149,11 @@ L2_FILE_OUT=$4
 
 source $CONFIG_FILE || or error_exit "Error reading config file $CONFIG_FILE."
 
+for var in L1_CLEAN L2_CLEAN L1_SS L2_SS L1_TOK L2_TOK; do
+   [[ $(eval "echo \$$var") ]] ||
+      error_exit "Definition for $var missing in config file $CONFIG_FILE. Aborting."
+done
+
 if [[ ! $USE_IBM && $IBM_L2_GIVEN_L1 && $IBM_L1_GIVEN_L2 ]]; then
    USE_IBM=1
 fi
@@ -188,9 +196,17 @@ fi
 #r "cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' > $WD/l1.p.tok"
 #r "cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' > $WD/l2.p.tok"
 #r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null $WD/l1.p.tok $WD/l2.p.tok"
-r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
-   <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//') \
-   <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//')"
+if [[ $HARD_MARK ]]; then
+   L1_HM_STR=$(echo $HARD_MARK | $L1_TOK | sed 's/  *$//')
+   L2_HM_STR=$(echo $HARD_MARK | $L2_TOK | sed 's/  *$//')
+   r "ssal $SSAL_IBM_OPTS -hm $HARD_MARK -fm -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
+      <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' | sed 's/$L1_HM_STR/$HARD_MARK/') \
+      <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' | sed 's/$L2_HM_STR/$HARD_MARK/')"
+else
+   r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
+      <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//') \
+      <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//')"
+fi
 
 r "select-lines.py -a 1 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l1.$CLEAN_IN | \
    $L1_SS > $WD/l1.s"
