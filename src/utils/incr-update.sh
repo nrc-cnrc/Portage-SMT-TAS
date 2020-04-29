@@ -23,16 +23,28 @@ print_nrc_copyright incremental-update.sh 2017
 export PORTAGE_INTERNAL_CALL=1
 
 run_cmd() {
-   echo "=======> START [`date`]: $*" >&2
+   if [[ $1 == -notime ]]; then
+      shift
+      SHOWTIME=
+   else
+      SHOWTIME=1
+   fi
+   [[ $SHOWTIME ]] &&  echo "=======> START [`date`]: $*" >&2 || echo "$*" >&2
    if [[ ! $NOTREALLY ]]; then
       # Turn off the errexit option temporarily, to facilitate echoing the
       # completion time/exit status of the command.
       local errexit=$(set -o | grep errexit | cut -f2)
       set +o errexit
-      eval time $*
-      rc=$?
-      echo "== DONE (rc=$rc) [`date`]: $*" >&2
-      echo >&2
+      if [[ $SHOWTIME ]]; then
+         eval time $*
+         rc=$?
+         echo "== DONE (rc=$rc) [`date`]: $*" >&2
+         echo >&2
+      else
+         eval $*
+         rc=$?
+         [[ $rc == 0 ]] || echo "Error code (rc=$rc) from $*" >&2
+      fi
       [[ $errexit = off ]] || set -o errexit
       return $rc
    fi
@@ -81,19 +93,19 @@ Usage: $PROG [options] [-c CANOE_INI] INCREMENTAL_CORPUS [SRC_BLOCK_CORPUS TGT_B
   If CANOE_INI is not specified, then the incremental model must already be
   initialized in the current directory, and the name of the incremental
   canoe.ini is assumed to be canoe.ini.cow.
-  
+
   If CANOE_INI is specified and the incremental model has already been
   initialized in the current directory, then it is not re-initialized and the
   name of the incremental canoe.ini is assumed to be the basename of CANOE_INI.
 
   Block-mode update:
-  If SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS are specified, blocks of parallel
-  text contained in that file pair, separated by __BLOCK_END__, will be aligned
-  using ssal-pipeline.sh and added to INCREMENTAL_CORPUS before updating the
-  models. The two files will be deleted once processed. If they are empty or
-  non-existent, the update will simply proceed with the text in
-  INCREMENTAL_CORPUS. SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS must both contain
-  exactly the same number of lines containing just __BLOCK_END__.
+  If SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS are specified, their blocks of
+  parallel text, separated by __BLOCK_END__, will be aligned using
+  ssal-pipeline.sh and added to INCREMENTAL_CORPUS before updating the models.
+  If they are empty or non-existent, the update will simply proceed with the
+  text in INCREMENTAL_CORPUS. SRC_BLOCK_CORPUS and TGT_BLOCK_CORPUS must each
+  contain the same number of marker lines consisting of just __BLOCK_END__ .
+  WARNING: *** The two block files will be deleted once processed. ***
 
 Options:
 
@@ -109,14 +121,13 @@ Options:
 }
 
 DEBUG=
-DEBUG_OPT=
 VERBOSE=1
 while [ $# -gt 0 ]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; readonly base_canoe_ini=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -q|-quiet)           VERBOSE=0;;
-   -d|-debug)           DEBUG=1; DEBUG_OPT="-debug";;
+   -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
    --)                  shift; break;;
    -*)                  error_exit "Unknown option $1.";;
@@ -202,10 +213,9 @@ WD=`mktemp -d incremental-tmp.XXX` ||
    error_exit "Cannot create temporary working directory"
 verbose 1 Created working directory $WD
 
-if [[ -s $SRC_BLOCK_CORPUS && -s $TGT_BLOCK_CORPUS ]]; then
+if [[ -s $SRC_BLOCK_CORPUS || -s $TGT_BLOCK_CORPUS ]]; then
    # Sentence align the incremental blocks before using the corpus
    # Instead of creating an ssal config file, export the configuration variables it needs
-   pushd $WD
    echo "
 L1_CLEAN=\"$SRC_PREPROCESS_CMD\"
 L2_CLEAN=\"$TGT_PREPROCESS_CMD\"
@@ -213,23 +223,25 @@ L1_SS=\"$SRC_SENTSPLIT_CMD\"
 L2_SS=\"$TGT_SENTSPLIT_CMD\"
 L1_TOK=\"$SRC_TOKENIZE_CMD\"
 L2_TOK=\"$TGT_TOKENIZE_CMD\"
-IBM_L1_GIVEN_L2=\"../$ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz\"
-IBM_L2_GIVEN_L1=\"../$ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz\"
+IBM_L1_GIVEN_L2=\"$ALIGNMENT_MODEL_BASE${SRC_LANG}_given_$TGT_LANG.gz\"
+IBM_L2_GIVEN_L1=\"$ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz\"
 " > ssal-config
    SRC_AL_OUT=src-blocks.al
    TGT_AL_OUT=tgt-blocks.al
    VERBOSE_FLAGS=$(for x in $(seq 1 $VERBOSE); do echo -n " -v"; done)
-   run_cmd "ssal-pipeline.sh $VERBOSE_FLAGS -c ssal-config $DEBUG_OPT -hm __BLOCK_END__ \
-            ../$SRC_BLOCK_CORPUS ../$TGT_BLOCK_CORPUS \
-            $SRC_AL_OUT $TGT_AL_OUT"
-   popd
-   verbose 1 "Appending aligned block corpus to $INCREMENTAL_CORPUS."
-   paste /dev/null $WD/$SRC_AL_OUT $WD/$TGT_AL_OUT /dev/null |
-      grep -v $'\t\t' | # remove sentence pairs where either side is empty
-      sed "s/^/$(date)/" | # add the date we're adding the sentence pairs
-      cat >> $INCREMENTAL_CORPUS
-   verbose 1 "Removing block corpus now that it is in sentence pair corpus."
-   run_cmd "rm $SRC_BLOCK_CORPUS $TGT_BLOCK_CORPUS"
+   if run_cmd "ssal-pipeline.sh $VERBOSE_FLAGS -c ssal-config -hm __BLOCK_END__ -wd $WD \
+               $SRC_BLOCK_CORPUS $TGT_BLOCK_CORPUS $WD/$SRC_AL_OUT $WD/$TGT_AL_OUT"
+   then
+      verbose 1 "Appending aligned block corpus to $INCREMENTAL_CORPUS."
+      paste /dev/null $WD/$SRC_AL_OUT $WD/$TGT_AL_OUT /dev/null |
+         grep -v $'\t\t' | # remove sentence pairs where either side is empty
+         sed "s/^/$(date)/" | # add the date we're adding the sentence pairs
+         cat >> $INCREMENTAL_CORPUS
+      verbose 1 "Removing block corpus now that it is in sentence pair corpus."
+   else
+      warn "Block corpus files $SRC_BLOCK_CORPUS / $TGT_BLOCK_CORPUS cannot be aligned. Discarding."
+   fi
+   run_cmd -notime "rm $SRC_BLOCK_CORPUS $TGT_BLOCK_CORPUS"
 fi
 
 CORPUS_SIZE=`wc -l < $INCREMENTAL_CORPUS`
@@ -242,8 +254,8 @@ fi
 if [[ $CORPUS_SIZE -gt $MAX_INCR_CORPUS_SIZE ]]; then
    TMP_CORPUS=`mktemp $INCREMENTAL_CORPUS.truncated.XXX`
    verbose 1 Truncating corpus via $TMP_CORPUS to max size $MAX_INCR_CORPUS_SIZE
-   run_cmd "tail -$MAX_INCR_CORPUS_SIZE < $INCREMENTAL_CORPUS > $TMP_CORPUS"
-   run_cmd "mv $TMP_CORPUS $INCREMENTAL_CORPUS"
+   run_cmd -notime "tail -$MAX_INCR_CORPUS_SIZE < $INCREMENTAL_CORPUS > $TMP_CORPUS"
+   run_cmd -notime "mv $TMP_CORPUS $INCREMENTAL_CORPUS"
 fi
 
 # Separate the tab-separated corpus file into clean OSPL source and target files
@@ -315,21 +327,21 @@ run_cmd "(cd $WD; textpt2tppt.sh $INCREMENTAL_TM)" ||
    #ls -l $WD $BK .
    time for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
       if [[ -e $model ]]; then
-         run_cmd "mv $model $BK"
+         run_cmd -notime "mv $model $BK"
       fi
-      run_cmd "mv $WD/$model ."
+      run_cmd -notime "mv $WD/$model ."
    done
    #ls -l $WD $BK .
 
    # validation
    verbose 1 "Checking the final config"
-   if run_cmd "configtool check $incr_canoe_ini"; then
+   if run_cmd -notime "configtool check $incr_canoe_ini"; then
       verbose 1 "All good"
    else
       verbose 1 "Problem with final canoe config, rolling back update"
       for model in $INCREMENTAL_TM $INCREMENTAL_TM.tppt $INCREMENTAL_LM $INCREMENTAL_LM.tplm; do
-         run_cmd "mv $model $WD" || true
-         run_cmd "mv $BK/$model ." || true
+         run_cmd -notime "mv $model $WD" || true
+         run_cmd -notime "mv $BK/$model ." || true
       done
       exit 1
    fi

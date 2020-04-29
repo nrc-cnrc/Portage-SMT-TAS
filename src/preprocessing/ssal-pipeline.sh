@@ -56,10 +56,11 @@ Options:
   -hm MARK     Interpret MARK on its own line as a hard document boundary [none]
   -ibm         Use IBM models [automatic if IBM_L1_GIVEN_L2 and IBM_L2_GIVEN_L1 are defined]
   -no-ibm      Don't use IBM models
+  -wd WORKDIR  Use WORKDIR as working directory instead of making and deleting a temp one.
   -t(emplate)  Output a template config file and exit
   -h(elp)      print this help message
   -v(erbose)   increment the verbosity level by 1 (may be repeated)
-  -d(ebug)     print debugging information
+  -d(ebug)     print debugging information and preserve working directory.
 
 ==EOF==
 
@@ -74,6 +75,7 @@ DEBUG=
 USE_IBM=
 HARD_MARK=
 TEMPLATE=
+USER_WD=
 while [[ $# -gt 0 ]]; do
    case "$1" in
    -c)                  arg_check 1 $# $1; CONFIG_FILE=$2; shift;;
@@ -82,6 +84,7 @@ while [[ $# -gt 0 ]]; do
    -hm)                 arg_check 1 $# $1; HARD_MARK=$2; shift;;
    -ibm)                USE_IBM=1;;
    -no-ibm)             USE_IBM=0;;
+   -wd)                 arg_check 1 $# $!; USER_WD=$2; shift;;
    -t|-template)        TEMPLATE=1;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
@@ -164,7 +167,14 @@ else
    SSAL_IBM_OPTS=
 fi
 
-WD=`mktemp -d ssal-pipeline.tmp.XXXX` || error_exit "Cannot create temporary working directory."
+if [[ $USER_WD ]]; then
+   WD=$USER_WD
+   [[ -d $WD ]] || error_exit "User-specified working directory $WD does not exist or is not a directory."
+   touch $WD/wd_writable_test || error_exit "Cannot write in user-specified working directory $WD."
+   rm $WD/wd_writable_test
+else
+   WD=`mktemp -d ssal-pipeline.tmp.XXXX` || error_exit "Cannot create temporary working directory."
+fi
 [[ $VERBOSE > 0 ]] && echo "Working Directory $WD"
 
 set -o pipefail
@@ -242,4 +252,4 @@ r "paste $WD/l1.s.al $WD/l2.s.al | \
    tee >(cut -f 1 >> $L1_FILE_OUT) | \
    cut -f 2 >> $L2_FILE_OUT"
 
-[[ $DEBUG ]] || rm -rf $WD
+[[ $DEBUG ]] || [[ $USER_WD ]] || rm -rf $WD

@@ -312,8 +312,12 @@ workdir.test.rolling: context.main
 
 #################################################################
 # Test processing blocks in the block queue
-.PHONY: test.1block test.5blocks
+.PHONY: test.1block test.5blocks test.bad.block
 
+# Intermediate target to run all block-related tests
+test.blocks: check.test.1block check.test.5blocks check.test.bad.block
+
+# basic test: just one block to align
 all: test.1block
 test.1block: %: check.%
 
@@ -324,6 +328,8 @@ check.test.1block: check.%: workdir.%
 	test ! -s $</tgt_block_corpus
 	[[ `wc -l < $</corpora` -ge 10 ]]
 	[[ `wc -l < $</corpora` -le 13 ]]
+	! [[ -e $</src_block_corpus ]]
+	! [[ -e $</tgt_block_corpus ]]
 
 workdir.test.1block: context.main
 	mkdir -p $@
@@ -335,6 +341,7 @@ workdir.test.1block: context.main
 	cd $@ && time incr-update.sh -debug -c ../$</canoe.ini.cow -v corpora src_block_corpus tgt_block_corpus
 
 
+# Test having 5 blocks to align
 all: test.5blocks
 test.5blocks: %: check.%
 
@@ -342,15 +349,37 @@ check.test.5blocks: check.%: workdir.%
 	grep -q $$'such as the Sea Kings.*\t.*appareil comme le Sea King' $</corpora
 	grep -q $$'Nevertheless, that has happened.\tPourtant, cela est arrivé.' $</corpora
 	grep -q $$'British Columbia right now is reeling.\tActuellement, la Colombie-Britannique est chancelante.' $</corpora
+	grep -q 'sea kings' $</cpt.incremental.en2fr
 	test ! -s $</src_block_corpus
 	test ! -s $</tgt_block_corpus
 	[[ `wc -l < $</corpora` -ge 50 ]]
 	[[ `wc -l < $</corpora` -le 62 ]]
+	! [[ -e $</src_block_corpus ]]
+	! [[ -e $</tgt_block_corpus ]]
 
 workdir.test.5blocks: context.main
 	mkdir -p $@
 	cat /dev/null > $@/corpora
 	for x in blocks/block*.en; do cat $$x; echo __BLOCK_END__; done  > $@/src_block_corpus
+	for x in blocks/block*.fr; do cat $$x; echo __BLOCK_END__; done  > $@/tgt_block_corpus
+	cd $@ && time incr-update.sh -debug -c ../$</canoe.ini.cow -v corpora $$(readlink -f src_block_corpus) tgt_block_corpus
+
+
+# In this test, we have 2 English blocks and 5 French ones, to test dealing with bad input
+# Failure to align should cause the block buffer to be discarded but leave the models unchanged.
+all: test.bad.block
+test.bad.block: %: check.%
+
+check.test.bad.block: check.%: workdir.%
+	! [[ -s $</corpora ]]
+	! [[ -e $</src_block_corpus ]]
+	! [[ -e $</tgt_block_corpus ]]
+	! grep -v -q __DUMMY__ $</cpt.incremental.en2fr
+
+workdir.test.bad.block: context.main
+	mkdir -p $@
+	cat /dev/null > $@/corpora
+	for x in blocks/block[12].en; do cat $$x; echo __BLOCK_END__; done  > $@/src_block_corpus
 	for x in blocks/block*.fr; do cat $$x; echo __BLOCK_END__; done  > $@/tgt_block_corpus
 	cd $@ && time incr-update.sh -debug -c ../$</canoe.ini.cow -v corpora src_block_corpus tgt_block_corpus
 
