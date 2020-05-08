@@ -39,9 +39,10 @@ CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel
            which-test.sh time-mem sum.pl process-memory-usage.pl rp-mon-totals.pl on-cluster.sh
 DECODE_BIN ?= canoe
 DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
-INCREMENTAL_SCRIPTS ?= incr-add-sentence.sh incr-update.sh incr-init-model.py arpalm2tplm.sh textpt2tppt.sh lm-order.pl
+INCREMENTAL_SCRIPTS ?= incr-add-sentence.sh incr-update.sh incr-init-model.py arpalm2tplm.sh \
+                       textpt2tppt.sh lm-order.pl ssal-pipeline.sh select-lines.py
 INCREMENTAL_BIN ?= gen_phrase_tables arpalm.encode arpalm.sng-av arpalm.assemble \
-                   ptable.encode-phrases ptable.encode-scores ptable.assemble
+                   ptable.encode-phrases ptable.encode-scores ptable.assemble ssal
 # NOTE: DO NOT add detokenize_plugin script to the TRANSLATE variable since
 # it exists only to illustrate what a detokenize_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
