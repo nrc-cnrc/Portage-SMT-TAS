@@ -3,3 +3,5 @@
 # python -m unittest tests.test_wsdl.TestGetAllContexts.testJson01
 
 from test_wsdl import TestGetAllContexts
+from test_wsdl import TestIncrAddSentence
+from test_wsdl import TestIncrAddTextBlock

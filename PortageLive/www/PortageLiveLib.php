@@ -799,13 +799,14 @@ class PortageLiveLib
       return $work_dir;
    }
 
-   public function incrAddSentence($context = NULL,
-                                   $document_model_id = NULL,
-                                   $source_sentence = NULL,
-                                   $target_sentence = NULL,
-                                   $extra_data = NULL)
+
+
+   public function incrAddTextBlock($context = NULL,
+                                    $document_model_id = NULL,
+                                    $source_block = NULL,
+                                    $target_block = NULL,
+                                    $extra_data = NULL)
    {
-      global $error_output_dir;
       if (!isset($context) || empty($context)) {
          throw new SoapFault("PortageBadArgs", "You must provide a valid context.");
       }
@@ -815,6 +816,59 @@ class PortageLiveLib
          throw new SoapFault("PortageBadArgs", "You must provide a valid document_model_id.");
       }
 
+      if (!isset($source_block) || empty($source_block)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a source sentence block.");
+      }
+
+      if (!isset($target_block) || empty($target_block)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a target sentence block.");
+      }
+
+      $i = $this->getContextInfo($context);
+      $this->validateContext($i);
+
+      global $error_output_dir;
+
+      # We need to set LC_ALL or else escapeshellarg will strip out unicode.
+      # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
+      # http://positon.org/php-escapeshellarg-function-utf8-and-locales
+      # http://markushedlund.com/dev/php-escapeshellarg-with-unicodeutf-8-support
+      setlocale(LC_ALL, 'en_US.utf8');
+      $source_block = escapeshellarg($source_block);
+      $target_block = escapeshellarg($target_block);
+      $work_dir = $this->makeDocumentModelWorkDir($context, $document_model_id);
+
+      $command = "cd $work_dir && ";
+      $command .= "incr-add-sentence.sh -block";
+
+      if (isset($extra_data) && ! empty($extra_data)) {
+         $extra_data = escapeshellarg($extra_data);
+         $command .= " -extra-data " . $extra_data;
+      }
+      $command .= " -c " . $i["canoe_ini"];
+      $command .= " -- $source_block $target_block";
+      #error_log($command . "\n", 3, "$error_output_dir/PortageLiveAPI.debug.log");
+
+      $dummy_context_info = array( 'context_dir' => '' );
+      $exit_status = False;
+      # Set $wantoutput to true for debugging and look at $error_output_dir/error-output.txt,
+      # but then updates will no longer happen in the background, the soap client
+      # will have to wait on them, so do so only for debugging!
+      $wantoutput = True;
+      $result = $this->runCommand($command, "'$source_block'\t'$target_block'",
+                                  $dummy_context_info, $exit_status, $wantoutput);
+
+      return $exit_status == 0 ? True : False;
+   }
+
+
+
+   public function incrAddSentence($context = NULL,
+                                   $document_model_id = NULL,
+                                   $source_sentence = NULL,
+                                   $target_sentence = NULL,
+                                   $extra_data = NULL)
+   {
       if (!isset($source_sentence) || empty($source_sentence)) {
          throw new SoapFault("PortageBadArgs", "You must provide a source sentence.");
       }
@@ -823,8 +877,19 @@ class PortageLiveLib
          throw new SoapFault("PortageBadArgs", "You must provide a target sentence.");
       }
 
+      if (!isset($context) || empty($context)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a valid context.");
+      }
+
+      # TODO: Validate that the document_model_id is a valid one.
+      if (!isset($document_model_id) || empty($document_model_id)) {
+         throw new SoapFault("PortageBadArgs", "You must provide a valid document_model_id.");
+      }
+
       $i = $this->getContextInfo($context);
       $this->validateContext($i);
+
+      global $error_output_dir;
 
       # We need to set LC_ALL or else escapeshellarg will strip out unicode.
       # http://stackoverflow.com/questions/8734510/escapeshellarg-with-utf-8-only-works-every-other-time
@@ -857,6 +922,8 @@ class PortageLiveLib
 
       return $exit_status == 0 ? True : False;
    }
+
+
 
    public function incrStatus($context, $document_model_id = NULL)
    {

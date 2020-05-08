@@ -19,13 +19,19 @@
 
 from __future__ import print_function
 
-import unittest
 import json
-from suds.client import Client
 import re
+import suds
+import time
+import unittest
 
-#import logging
-#logging.getLogger('suds.transport').setLevel(logging.DEBUG)
+from suds.client import Client
+
+
+import logging
+logging.basicConfig(format='%(asctime)-15s %(name)-8s %(message)s')
+logging.getLogger('suds.client').setLevel(logging.CRITICAL)  # Set it to INFO to see the SOAP envelop that is sent.
+logging.getLogger('suds.transport').setLevel(logging.CRITICAL)
 
 #####################################
 # Suds has its own cache /tmp/suds/*
@@ -116,3 +122,119 @@ class TestGetAllContexts(unittest.TestCase):
 
       # There should be no difference between json verbose and json not verbose.
       self.assertEquals(cmp(contexts, contexts_verbose), 0, 'Both json verbose or not requests should be equal.')
+
+
+
+class TestIncrAddSentence(unittest.TestCase):
+    def setUp(self):
+        self.c = Client('http://localhost/PortageLiveAPI.wsdl')
+        self.context = 'incremental'
+        self.doc_id = 'unittest_doc_id'
+        self.source = 'This is a source sentence.'
+        self.target = 'This is a target sentence.'
+        self.extra_data = 'This is some extra data for my block.'
+
+
+    def testAddSentence(self):
+        self.assertTrue(self.c.service.incrAddSentence(self.context, self.doc_id, self.source, self.target, self.extra_data))
+
+
+
+class TestIncrAddTextBlock(unittest.TestCase):
+    """
+    incrAddTextBlock() is used when we want to send multiple sentence
+    source/target to be add to an incremental systems.
+    """
+    def setUp(self):
+        self.c = Client('http://localhost/PortageLiveAPI.wsdl')
+        self.context = 'incremental'
+        self.doc_id = 'unittest_doc_id'
+        self.source = 'This is a source block.'
+        self.target = 'This is a target block.'
+        self.extra_data = 'This is some extra data for my block.'
+
+        self.big_source = """This is a bigger block.
+        It has multiple lines.
+        Three lines in total."""
+        self.big_target = """Here's a multiline translation.
+        We will make it this block longer than the source block.
+        Hopefully, the aligner will to a great job.
+        But, we are not helping it."""
+
+
+    def testEmptyContext(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock( '', self.doc_id, self.source, self.target)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid context.'")
+
+
+    def testBadContext(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock('BAD_CONTEXT', self.doc_id, self.source, self.target)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'Context \"BAD_CONTEXT\" does not exist.\n'")
+
+
+    def testNoDocumentID(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_model_id.'")
+
+
+    def testEmptyDocumentID(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context, '', self.source, self.target)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a valid document_model_id.'")
+
+
+    def testNoSource(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context, self.doc_id)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence block.'")
+
+
+    def testEmptySource(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context, self.doc_id, '')
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence block.'")
+
+
+    def testNoTarget(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context, self.doc_id, self.source)
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence block.'")
+
+
+    def testEmptyTarget(self):
+        with self.assertRaises(suds.WebFault) as cm:
+            self.c.service.incrAddTextBlock(self.context, self.doc_id, self.source, '')
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence block.'")
+
+
+    def testAddBlock(self):
+        """
+        Using `incrAddTextBlock()` with a simple sentence pair.
+        """
+        self.assertTrue(self.c.service.incrAddTextBlock(self.context, self.doc_id, self.source, self.target, self.extra_data))
+
+
+    def testAddBigBlock(self):
+        """
+        Using `incrAddTextBlock()` with multiple sentence pairs.
+        """
+        self.assertTrue(self.c.service.incrAddTextBlock(self.context, self.doc_id, self.big_source, self.big_target, self.extra_data))
+
+
+    @unittest.skip("Skipping this test as it needs to wait for the server to finish incremental training which could take some time.")
+    def testBlockEnd(self):
+        """
+	The intend of this test is to validate that `incrAddTextBlock()`
+        proctects `__BLOCK_END__`, a special token used during the corpora alignment.
+	We send a OOV `foobarbaz` with its translation `__BLOCK_END__`, wait
+	for the server to finish its incremental update and then, we expect the
+        translation of `foobarbaz` to be `__block_end_protected__`.
+        """
+        self.assertTrue(self.c.service.incrAddTextBlock(self.context, self.doc_id, 'foobarbaz', '__BLOCK_END__', 'unittest: guarding __BLOCK_END__'))
+        time.sleep(10)
+        translation = self.c.service.translate('foobarbaz', self.context + '/' + self.doc_id, 's')
+        #print(translation)
+        self.assertEqual(translation['Result'].strip(), '__block_end_protected__')

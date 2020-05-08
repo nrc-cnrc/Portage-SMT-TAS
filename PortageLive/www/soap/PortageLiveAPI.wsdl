@@ -148,6 +148,19 @@
   </message>
 
 
+  <message name="incrAddTextBlockRequest">
+    <part name="context" type="xsd:string"/>
+    <part name="document_model_id" type="xsd:string"/>
+    <part name="source_block" type="xsd:string"/>
+    <part name="target_block" type="xsd:string"/>
+    <part name="extra_data" type="xsd:string"/>
+  </message>
+
+  <message name="incrAddTextBlockResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
+
+
   <message name="incrStatusRequest">
     <part name="context" type="xsd:string"/>
     <part name="document_model_id" type="xsd:string"/>
@@ -528,6 +541,44 @@
       <output message="tns:incrAddSentenceResponse"/>
     </operation>
 
+    <operation name="incrAddTextBlock">
+      <documentation>
+        Add a text block with its translation to an incremental system defined by
+        its context and document_model_id.  Adding a block pair triggers
+        creating the document model if it doesn't already exist, then
+        training of that incremental system if no training is already underway, or
+        else buffers the sentence pair for re-training is soon as the current
+        training operation is completed.
+
+        Incremental models are specific to the document_model_id and context used and
+        are only available to translate requests using the same context /
+        document_model_id pair. Document_model_id's should be unique: if you reuse
+        the same id for two documents with the same context, they will share the same
+        incremental model.
+
+        Arguments:
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
+         - document_model_id is the id for the document model being queried.
+         - source_block source segements.
+         - target_block translation of the source segements.
+         - extra_data some additional data in json form.
+
+        Returns True if the server was successfully able to add the sentence block
+        pair to the incremental system's queue.
+
+        Throws SoapFault in case of problems.
+
+        To translate using the incremental document model, specify context + "/" +
+        document_model_id to the translate() methods. E.g., for document "mydoc_1"
+        with context "mysystem-en2fr", use context = "mysystem-en2fr/mydoc_1".
+        This syntax was introduced to avoid breaking backwards compatibility of the
+        translate() methods with previously-compiled clients of the SOAP API.
+      </documentation>
+      <input message="tns:incrAddTextBlockRequest"/>
+      <output message="tns:incrAddTextBlockResponse"/>
+    </operation>
+
     <operation name="incrStatus">
       <documentation>
         Get the status of incremental training for a document.
@@ -749,6 +800,16 @@
 
     <operation name="incrAddSentence">
       <soap:operation soapAction="incrAddSentence"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+
+    <operation name="incrAddTextBlock">
+      <soap:operation soapAction="incrAddTextBlock"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
