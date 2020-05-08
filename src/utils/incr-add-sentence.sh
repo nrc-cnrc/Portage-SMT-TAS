@@ -51,7 +51,8 @@
 
 
 
-# File names of where we store data
+# File names of where we store data - do not rename any of these file in the future, to
+# avoid breaking backwards compatibility!
 readonly corpus=corpora
 readonly queue=queue
 readonly src_block_corpus=src_block_corpus
@@ -87,16 +88,18 @@ function usage() {
 
 Usage: $prog [options] [SOURCE TRANSLATION]
 
-  When called with SOURCE AND TRANSLATION, it adds the pair to a queue and then
+  When called with SOURCE and TRANSLATION, it adds the pair to a queue and then
   tries to start an incremental update.
-  When simply called with no argument, triggers an incremental update.
+  When called with no arguments, triggers an incremental update.
 
 Options:
 
   -unittest         special flag when performing unittesting.
   -c                context's canoe.ini.cow path.
-  -block            the segments are multiple sentences.
-  -extra-data  ARG  translation pair extra data preferably a json object.
+  -block            SOURCE and TRANSLATION are blocks of text, with multiple
+                    sentences in newline-separated paragraphs, requiring
+                    alignment, instead of an individual sentence pair.
+  -extra-data  ARG  translation pair extra data, preferably a json object.
 
   -h(elp)     print this help message
   -v(erbose)  increment the verbosity level by 1 (may be repeated)
@@ -214,7 +217,7 @@ function train {
    fi
 
    # As long as there is something in the queue, let's train.
-   while [[ -s $queue || -s $src_block_queue ]]; do
+   while [[ -s $queue || -s $src_block_queue || -s $tgt_block_queue ]]; do
       verbose 1 "Moving the block queues to corpora"
       move_queue_to_corpus $src_block_queue $src_block_corpus
       move_queue_to_corpus $tgt_block_queue $tgt_block_corpus

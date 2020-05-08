@@ -817,11 +817,11 @@ class PortageLiveLib
       }
 
       if (!isset($source_block) || empty($source_block)) {
-         throw new SoapFault("PortageBadArgs", "You must provide a source sentence block.");
+         throw new SoapFault("PortageBadArgs", "You must provide a source text block.");
       }
 
       if (!isset($target_block) || empty($target_block)) {
-         throw new SoapFault("PortageBadArgs", "You must provide a target sentence block.");
+         throw new SoapFault("PortageBadArgs", "You must provide a target text block.");
       }
 
       $i = $this->getContextInfo($context);
@@ -854,7 +854,7 @@ class PortageLiveLib
       # Set $wantoutput to true for debugging and look at $error_output_dir/error-output.txt,
       # but then updates will no longer happen in the background, the soap client
       # will have to wait on them, so do so only for debugging!
-      $wantoutput = True;
+      $wantoutput = False;
       $result = $this->runCommand($command, "'$source_block'\t'$target_block'",
                                   $dummy_context_info, $exit_status, $wantoutput);
 

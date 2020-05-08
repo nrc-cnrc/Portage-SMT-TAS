@@ -509,7 +509,7 @@
         its context and document_model_id.  Adding a sentence pair triggers
         creating the document model if it doesn't already exist, then
         training of that incremental system if no training is already underway, or
-        else buffers the sentence pair for re-training is soon as the current
+        else buffers the sentence pair for re-training as soon as the current
         training operation is completed.
 
         Incremental models are specific to the document_model_id and context used and
@@ -522,8 +522,8 @@
          - context is the name of the system to use to translate the document, and
            must match one of the context names returned by getAllContexts().
          - document_model_id is the id for the document model being queried.
-         - source_sentence source segement.
-         - target_sentence translation of the source segement.
+         - source_sentence source segment.
+         - target_sentence translation of the source segment.
          - extra_data some additional data in json form.
 
         Returns True if the server was successfully able to add the sentence
@@ -544,10 +544,10 @@
     <operation name="incrAddTextBlock">
       <documentation>
         Add a text block with its translation to an incremental system defined by
-        its context and document_model_id.  Adding a block pair triggers
+        its context and document_model_id.  Adding a text block pair triggers
         creating the document model if it doesn't already exist, then
         training of that incremental system if no training is already underway, or
-        else buffers the sentence pair for re-training is soon as the current
+        else buffers the text block pair for re-training as soon as the current
         training operation is completed.
 
         Incremental models are specific to the document_model_id and context used and
@@ -560,11 +560,11 @@
          - context is the name of the system to use to translate the document, and
            must match one of the context names returned by getAllContexts().
          - document_model_id is the id for the document model being queried.
-         - source_block source segements.
-         - target_block translation of the source segements.
+         - source_block block of source-language text.
+         - target_block translation of the source block.
          - extra_data some additional data in json form.
 
-        Returns True if the server was successfully able to add the sentence block
+        Returns True if the server was successfully able to add the text block
         pair to the incremental system's queue.
 
         Throws SoapFault in case of problems.

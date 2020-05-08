@@ -236,6 +236,7 @@ IBM_L2_GIVEN_L1=\"$ALIGNMENT_MODEL_BASE${TGT_LANG}_given_$SRC_LANG.gz\"
       paste /dev/null $WD/$SRC_AL_OUT $WD/$TGT_AL_OUT /dev/null |
          grep -v $'\t\t' | # remove sentence pairs where either side is empty
          sed "s/^/$(date)/" | # add the date we're adding the sentence pairs
+         sed "s/__BLOCK_END_PROTECTED__/__BLOCK_END__/g" | # undo protective mapping
          cat >> $INCREMENTAL_CORPUS
       verbose 1 "Removing block corpus now that it is in sentence pair corpus."
    else

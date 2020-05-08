@@ -189,25 +189,25 @@ class TestIncrAddTextBlock(unittest.TestCase):
     def testNoSource(self):
         with self.assertRaises(suds.WebFault) as cm:
             self.c.service.incrAddTextBlock(self.context, self.doc_id)
-        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence block.'")
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source text block.'")
 
 
     def testEmptySource(self):
         with self.assertRaises(suds.WebFault) as cm:
             self.c.service.incrAddTextBlock(self.context, self.doc_id, '')
-        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source sentence block.'")
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a source text block.'")
 
 
     def testNoTarget(self):
         with self.assertRaises(suds.WebFault) as cm:
             self.c.service.incrAddTextBlock(self.context, self.doc_id, self.source)
-        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence block.'")
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target text block.'")
 
 
     def testEmptyTarget(self):
         with self.assertRaises(suds.WebFault) as cm:
             self.c.service.incrAddTextBlock(self.context, self.doc_id, self.source, '')
-        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target sentence block.'")
+        self.assertEqual(cm.exception.message, u"Server raised fault: 'You must provide a target text block.'")
 
 
     def testAddBlock(self):
@@ -224,7 +224,7 @@ class TestIncrAddTextBlock(unittest.TestCase):
         self.assertTrue(self.c.service.incrAddTextBlock(self.context, self.doc_id, self.big_source, self.big_target, self.extra_data))
 
 
-    @unittest.skip("Skipping this test as it needs to wait for the server to finish incremental training which could take some time.")
+    #@unittest.skip("Skipping this test as it needs to wait for the server to finish incremental training which could take some time.")
     def testBlockEnd(self):
         """
 	The intend of this test is to validate that `incrAddTextBlock()`
@@ -237,4 +237,4 @@ class TestIncrAddTextBlock(unittest.TestCase):
         time.sleep(10)
         translation = self.c.service.translate('foobarbaz', self.context + '/' + self.doc_id, 's')
         #print(translation)
-        self.assertEqual(translation['Result'].strip(), '__block_end_protected__')
+        self.assertEqual(translation['Result'].strip(), '__block_end__')
