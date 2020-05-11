@@ -132,8 +132,8 @@ done
 # TODO:
 # - error if only one sentence is provided?
 # - error if either sentence is empty?
-readonly source_sentence=`clean-utf8-text.pl <<< $1 2> /dev/null`
-readonly target_sentence=`clean-utf8-text.pl <<< $2 2> /dev/null`
+readonly source_sentence=`clean-utf8-text.pl <<< "$1" 2> /dev/null`
+readonly target_sentence=`clean-utf8-text.pl <<< "$2" 2> /dev/null`
 
 # When running in unittest mode, it should automatically trigger verbose.
 [[ $unittest ]] && VERBOSE=$(( $VERBOSE + 1 ))
@@ -142,7 +142,7 @@ readonly target_sentence=`clean-utf8-text.pl <<< $2 2> /dev/null`
 function guard_block {
    local -r block_marker='__BLOCK_END__'
    local -r text=$1
-   sed "s/$block_marker/__BLOCK_END_PROTECTED__/g" <<< $text
+   sed "s/$block_marker/__BLOCK_END_PROTECTED__/g" <<< "$text"
    echo $block_marker
 }
 
