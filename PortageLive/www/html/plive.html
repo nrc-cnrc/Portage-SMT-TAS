@@ -147,6 +147,8 @@
 
                      <incraddsentence :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddsentence>
 
+                     <incraddtextblock :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incraddtextblock>
+
                      <incrstatus :context="context" :contexts="contexts" :document_id="document_id" class="ui_incremental"></incrstatus>
                   </tab>
                </tabs>
@@ -253,26 +255,26 @@
                   <label for="incr_source_segment">
                      Source segment:
                      <input
-                     id="incr_source_segment"
-                     name="incr_source_segment"
-                     title="Source segment to add to your incremental document"
-                     type="text"
-                     class="segment"
-                     v-model="incr_source_segment"
-                     maxlength="200" />
+                        id="incr_source_segment"
+                        name="incr_source_segment"
+                        title="Source segment to add to your incremental document"
+                        type="text"
+                        class="segment"
+                        v-model="incr_source_segment"
+                        maxlength="200" />
                   </label>
                </div>
                <div>
                   <label for="incr_target_segment">
                      Target segment:
                      <input
-                     id="incr_target_segment"
-                     name="incr_target_segment"
-                     title="Target segment to add to your incremental document"
-                     type="text"
-                     class="segment"
-                     v-model="incr_target_segment"
-                     maxlength="200" />
+                        id="incr_target_segment"
+                        name="incr_target_segment"
+                        title="Target segment to add to your incremental document"
+                        type="text"
+                        class="segment"
+                        v-model="incr_target_segment"
+                        maxlength="200" />
                   </label>
                </div>
                <div>
@@ -284,6 +286,61 @@
                      style="float: right"
                      accesskey="a">
                      Add Sentence Pair
+                  </button>
+               </div>
+            </fieldset>
+         </section>
+      </script>
+
+
+
+      <script type="text/x-template" id="incraddtextblock_template">
+         <section name="incrAddTextBlock" id="incrAddTextBlock">
+            <fieldset class="round_corners">
+               <legend>Add text blocks for a document id</legend>
+
+               <div v-if="context == 'unselected'">
+                  Select a context that supports incremental <i>[incr]</i> and provide a document id.
+               </div>
+               <div v-else>
+                  Using context <em>{{context}}</em> to add text blocks to.
+               </div>
+
+               <div>
+                  <label for="incr_source_block">
+                     Source text blocks:
+                     <textarea
+                        id="incr_source_block"
+                        name="incr_source_block"
+                        title="Source Text Blocks"
+                        placeholder="Source text blocks to add to your incremental document"
+                        class="segment"
+                        v-model="incr_source_block"
+                        rows="5" />
+                  </label>
+               </div>
+               <div>
+                  <label for="incr_target_block">
+                     Target text blocks:
+                     <textarea
+                        id="incr_target_block"
+                        name="incr_target_block"
+                        title="Target Text Blocks"
+                        placeholder="Target text blocks to add to your incremental document"
+                        class="segment"
+                        v-model="incr_target_block"
+                        rows="5" />
+                  </label>
+               </div>
+               <div>
+                  <button
+                     name="incr_add_text_block"
+                     title="Given a context, add a text block pair to a document id."
+                     @click="incrAddTextBlock"
+                     :disabled="!is_incrAddTextBlock_possible()"
+                     style="float: right"
+                     accesskey="b">
+                     Add Text Block
                   </button>
                </div>
             </fieldset>

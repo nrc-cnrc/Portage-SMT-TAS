@@ -370,6 +370,62 @@ Vue.component('incraddsentence', {
 
 
 
+Vue.component('incraddtextblock', {
+   template: '#incraddtextblock_template',
+   props: ['context', 'contexts', 'document_id'],
+   data: function() {
+      return {
+         incr_source_block: '',
+         incr_target_block: '',
+      };
+   },
+   methods: {
+      _clear: function () {
+         const app = this;
+         app.incr_source_block = '';
+         app.incr_target_block = '';
+      },
+
+
+      incrAddTextBlock: function() {
+         const app = this;
+         const icon = '<i class="fa fa-send"></i>';
+
+         return app.$soap('incrAddTextBlock', {
+               context: app.context,
+               document_model_id: app.document_id,
+               source_block: app.incr_source_block,
+               target_block: app.incr_target_block,
+               extra_data: '',
+            })
+            .then(function(response) {
+               const status = response.Body.incrAddTextBlockResponse.status;
+               app._clear();
+               // TODO: There is no feedback if the status is false.
+               let incrementAddTextBlockToastSuccess = app.$toasted.global.success(`Successfully added sentence blocks!${icon}`);
+            })
+            .catch(function(err) {
+               const faultstring = response.Body.Fault.faultstring;
+               const faultcode   = response.Body.Fault.faultcode;
+               let incrementAddtextBlockToastError = app.$toasted.global.error(`Failed to add sentence blocks to ${context} ${faultstring}! ${icon}`);
+            });
+      },
+
+
+      is_incrAddTextBlock_possible: function() {
+         const app = this;
+         return app.context !== 'unselected'
+            && app.contexts.hasOwnProperty(app.context)
+            && app.contexts[app.context].is_incremental
+            && app.incr_source_block !== ''
+            && app.incr_target_block !== ''
+            && app.document_id !== '';
+      },
+   },
+});
+
+
+
 Vue.component('incrstatus', {
    template: '#incrStatus_template',
    props: ['context', 'contexts', 'document_id'],
