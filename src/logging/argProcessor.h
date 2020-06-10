@@ -34,9 +34,9 @@ namespace Portage
    //             +- outputRootLogger --+
    //                                   +- yourOLogger (output.yourOLogger)
 
-   static Logging::logger verboseLogger(Logging::getLogger("verbose.main")); ///< A global verbose logger for every application
-   static Logging::logger debugLogger(Logging::getLogger("debug.main"));     ///< A global debug logger for every application
-   static Logging::logger outputLogger(Logging::getLogger("output.main"));   ///< A global output logger for every application
+   extern Logging::logger verboseLogger; ///< A global verbose logger for every application
+   extern Logging::logger debugLogger;   ///< A global debug logger for every application
+   extern Logging::logger outputLogger;  ///< A global output logger for every application
 
    /**
     * Argument processor for parsing command line arguments.

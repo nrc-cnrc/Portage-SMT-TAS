@@ -16,6 +16,10 @@
 
 using namespace Portage;
 
+Logging::logger verboseLogger(Logging::getLogger("verbose.main")); ///< A global verbose logger for every application
+Logging::logger debugLogger(Logging::getLogger("debug.main"));     ///< A global debug logger for every application
+Logging::logger outputLogger(Logging::getLogger("output.main"));   ///< A global output logger for every application
+
 string getLevelString(const Logging::level& level);
 
 Portage::argProcessor::SWITCHES_DESC Portage::argProcessor::m_switches[] = {
