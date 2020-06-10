@@ -376,7 +376,10 @@ inline string& join_append(const vector<string>& v, string& s, const string& sep
  */
 template <class IteratorType>
 _Joiner<IteratorType>
-join(IteratorType beg, IteratorType end, const string& sep=" ", Uint precision=8);
+join(IteratorType beg, IteratorType end, const string& sep=" ", Uint precision=8)
+{
+   return _Joiner<IteratorType>(beg, end, sep, precision);
+}
 
 /**
  * Join a vector/container of arbitrary type into a string.  See
@@ -390,7 +393,10 @@ join(IteratorType beg, IteratorType end, const string& sep=" ", Uint precision=8
  */
 template <class ContainerType>
 _Joiner<typename ContainerType::const_iterator>
-join(const ContainerType& c, const string& sep=" ", Uint precision=8);
+join(const ContainerType& c, const string& sep=" ", Uint precision=8)
+{
+   return _Joiner<typename ContainerType::const_iterator>(c.begin(), c.end(), sep, precision);
+}
 
 /**
  * Pack an integer into a string.  Codes it as a base-b number and writing

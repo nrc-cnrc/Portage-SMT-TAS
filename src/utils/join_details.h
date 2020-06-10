@@ -79,6 +79,7 @@ template <> _Joiner<vector<string>::const_iterator>::operator const string () co
 template <> _Joiner<vector<string>::iterator>::operator const string () const;
 
 
+/*
 // implementation only - documentation and declaration in str_utils.h
 template <class IteratorType>
 _Joiner<IteratorType>
@@ -92,6 +93,7 @@ _Joiner<typename ContainerType::const_iterator>
 join(const ContainerType& c, const string& sep=" ", Uint precision=8) {
    return _Joiner<typename ContainerType::const_iterator>(c.begin(), c.end(), sep, precision);
 }
+*/
 
 /**
  * Output the join results to a stream efficiently, i.e., without any
