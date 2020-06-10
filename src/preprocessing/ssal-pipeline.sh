@@ -57,6 +57,8 @@ Options:
   -ibm         Use IBM models [automatic if IBM_L1_GIVEN_L2 and IBM_L2_GIVEN_L1 are defined]
   -no-ibm      Don't use IBM models
   -wd WORKDIR  Use WORKDIR as working directory instead of making and deleting a temp one.
+  -aligned-paragraphs-in|-ap-in  Input is aligned paragraphs, one paragraph per line,
+               i.e., skip step 2 above
   -t(emplate)  Output a template config file and exit
   -h(elp)      print this help message
   -v(erbose)   increment the verbosity level by 1 (may be repeated)
@@ -74,6 +76,7 @@ HEADER=
 DEBUG=
 USE_IBM=
 HARD_MARK=
+INPUT_IS_ALIGNED_PARAGRAPHS=
 TEMPLATE=
 USER_WD=
 while [[ $# -gt 0 ]]; do
@@ -83,6 +86,7 @@ while [[ $# -gt 0 ]]; do
    -header)             arg_check 1 $# $1; HEADER=$2; shift;;
    -hm)                 arg_check 1 $# $1; HARD_MARK=$2; shift;;
    -ibm)                USE_IBM=1;;
+   -ap-in|-aligned-paragraphs-in) INPUT_IS_ALIGNED_PARAGRAPHS=1;;
    -no-ibm)             USE_IBM=0;;
    -wd)                 arg_check 1 $# $!; USER_WD=$2; shift;;
    -t|-template)        TEMPLATE=1;;
@@ -202,26 +206,37 @@ else
    CLEAN_IN=clean
 fi
 
-# Step 2: align paragraphs using the IBM model
-#r "cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' > $WD/l1.p.tok"
-#r "cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' > $WD/l2.p.tok"
-#r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null $WD/l1.p.tok $WD/l2.p.tok"
-if [[ $HARD_MARK ]]; then
-   L1_HM_STR=$(echo $HARD_MARK | $L1_TOK | sed 's/  *$//')
-   L2_HM_STR=$(echo $HARD_MARK | $L2_TOK | sed 's/  *$//')
-   r "ssal $SSAL_IBM_OPTS -hm $HARD_MARK -fm -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
-      <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' | sed 's/$L1_HM_STR/$HARD_MARK/') \
-      <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' | sed 's/$L2_HM_STR/$HARD_MARK/')"
+if [[ $INPUT_IS_ALIGNED_PARAGRAPHS ]]; then
+
+   # Bypass step 2, since input already consists of aligned paragraphs.
+   r "cat $WD/l1.$CLEAN_IN | sed 's/$/\n__PARAGRAPH__/' | $L1_SS > $WD/l1.s"
+   r "cat $WD/l2.$CLEAN_IN | sed 's/$/\n__PARAGRAPH__/' | $L2_SS > $WD/l2.s"
+
 else
-   r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
-      <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//') \
-      <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//')"
+
+   # Step 2: align paragraphs using the IBM model
+   #r "cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' > $WD/l1.p.tok"
+   #r "cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' > $WD/l2.p.tok"
+   #r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null $WD/l1.p.tok $WD/l2.p.tok"
+   if [[ $HARD_MARK ]]; then
+      L1_HM_STR=$(echo $HARD_MARK | $L1_TOK | sed 's/  *$//')
+      L2_HM_STR=$(echo $HARD_MARK | $L2_TOK | sed 's/  *$//')
+      r "ssal $SSAL_IBM_OPTS -hm $HARD_MARK -fm -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
+         <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//' | sed 's/$L1_HM_STR/$HARD_MARK/') \
+         <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//' | sed 's/$L2_HM_STR/$HARD_MARK/')"
+   else
+      r "ssal $SSAL_IBM_OPTS -a $WD/p.scores -o1 /dev/null -o2 /dev/null \
+         <(cat $WD/l1.$CLEAN_IN | $L1_TOK | sed 's/  *$//') \
+         <(cat $WD/l2.$CLEAN_IN | $L2_TOK | sed 's/  *$//')"
+   fi
+
+   r "select-lines.py -a 1 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l1.$CLEAN_IN | \
+      $L1_SS > $WD/l1.s"
+   r "select-lines.py -a 2 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l2.$CLEAN_IN | \
+      $L2_SS > $WD/l2.s"
+
 fi
 
-r "select-lines.py -a 1 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l1.$CLEAN_IN | \
-   $L1_SS > $WD/l1.s"
-r "select-lines.py -a 2 --joiner=$'\\n' --separator=$'\\n__PARAGRAPH__\\n' $WD/p.scores $WD/l2.$CLEAN_IN | \
-   $L2_SS > $WD/l2.s"
 
 # Step 3: align sentences within paragraphs using the IBM model
 L1_PARAGRAPH_STR=$(echo __PARAGRAPH__ | eval $L1_TOK | sed 's/  *$//')
