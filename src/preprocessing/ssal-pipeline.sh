@@ -146,6 +146,7 @@ IBM_L2_GIVEN_L1=$MODELS/hmm.${L2}_given_$L1.bin
    exit
 fi
 
+[[ $HARD_MARK && $INPUT_IS_ALIGNED_PARAGRAPHS ]] && error_exit "-hm and -ap-in are mutually exclusive."
 [[ $CONFIG_FILE ]] || error_exit "-c CONFIG argument is required."
 [[ -r $CONFIG_FILE ]] || error_exit "Cannot read config file $CONFIG_FILE."
 [[ $# -eq 4 ]] || usage "Exactly four arguments are required: L1_FILE_IN, L2_FILE_IN, L1_FILE_OUT, L2_FILE_OUT."
