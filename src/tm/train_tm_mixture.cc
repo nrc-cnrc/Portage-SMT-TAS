@@ -144,8 +144,13 @@ static bool write_count(false);
 static string outfile = "-";
 static bool explicit_outfile = false;
 static string dynout;
-const string PHRASE_TABLE_SEP = PhraseTableBase::sep + PhraseTableBase::psep +
-                                PhraseTableBase::sep;
+//const string PHRASE_TABLE_SEP = PhraseTableBase::sep + PhraseTableBase::psep +
+//                                PhraseTableBase::sep;
+// EJJ 2020: I hate to redefine this constant in a hard-coded way, but I'm getting seg faults in
+// some circumstances with this code (probably cases where train_tm_mixture.o got initialized before
+// phrase_table.o, and we'll never change the phrase table separator, so I'm just going to fix this
+// the easy way here:
+const string PHRASE_TABLE_SEP = " ||| ";
 
 static void getArgs(int argc, const char* const argv[]);
 
