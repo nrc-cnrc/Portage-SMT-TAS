@@ -14,6 +14,9 @@
 make clean
 make gitignore
 
+# Make sure we don't get blocked due to jobs being too long
+export PSUB_OVERRIDE_DEFAULT_RUNTIME_MINUTES=60
+
 if ! on-cluster.sh; then
    echo Test IGNORED: not running on a cluster
    exit 0
