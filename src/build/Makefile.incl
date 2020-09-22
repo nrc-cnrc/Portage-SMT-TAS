@@ -194,7 +194,7 @@ else
     OPTS = $(OPT_LEVEL) -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
 endif
 # COPTS is for compilation only options
-COPTS = -Wall -Werror $(BOOST_CF) $(CFLAG_LOGGING) $(CFLAG_LZMA) $(MODULE_CF)
+COPTS = -Wall -Werror -std=gnu++98 $(BOOST_CF) $(CFLAG_LOGGING) $(CFLAG_LZMA) $(MODULE_CF)
 # LFLAGS is only for -L options: library search path for linking
 LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
 # IFLAGS is only for -I options: include search path
