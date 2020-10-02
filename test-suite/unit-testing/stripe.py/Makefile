@@ -115,7 +115,7 @@ unittest7u: $(addprefix unittest7., ${CHUNK_LIST})
 # Too many file for ulimit
 # NOTE: we need a few file handle for STDs and libs but we want less file handles than it would require to open all chunks.
 unittest7ulimit: $(addprefix unittest7., ${CHUNK_LIST})
-	ulimit -n 9; \
+	-ulimit -n 9; \
 	${STRIPE} -r $+ 2>&1 \
 	| grep -qF "You provided 11 files to merge but the os doesn't allow that many file to be opened at once."
 
