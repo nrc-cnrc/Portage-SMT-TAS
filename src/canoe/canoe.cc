@@ -93,12 +93,18 @@ class IFileInfo : private NonCopyable {
       virtual void doneSentence() {}
 
       void freeFiles() {
-         if (f_nbest) delete f_nbest; f_nbest = NULL;
-         if (f_ffvals) delete f_ffvals; f_ffvals = NULL;
-         if (f_sfvals) delete f_sfvals; f_sfvals = NULL;
-         if (f_pal) delete f_pal; f_pal = NULL;
-         if (f_lattice) delete f_lattice; f_lattice = NULL;
-         if (f_lattice_state) delete f_lattice_state; f_lattice_state = NULL;
+         if (f_nbest) delete f_nbest;
+         f_nbest = NULL;
+         if (f_ffvals) delete f_ffvals;
+         f_ffvals = NULL;
+         if (f_sfvals) delete f_sfvals;
+         f_sfvals = NULL;
+         if (f_pal) delete f_pal;
+         f_pal = NULL;
+         if (f_lattice) delete f_lattice;
+         f_lattice = NULL;
+         if (f_lattice_state) delete f_lattice_state;
+         f_lattice_state = NULL;
       }
 
       /// Did the user request a single file

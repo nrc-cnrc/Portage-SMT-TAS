@@ -54,9 +54,12 @@ PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
 
 PhraseTableFilterJoint::~PhraseTableFilterJoint()
 {
-   if (online_filter_output)   delete online_filter_output;   online_filter_output = NULL;
-   if (visitor)  delete visitor;  visitor = NULL;
-   if (tgtTable) delete tgtTable; tgtTable = NULL;
+   if (online_filter_output) delete online_filter_output;
+   online_filter_output = NULL;
+   if (visitor) delete visitor;
+   visitor = NULL;
+   if (tgtTable) delete tgtTable;
+   tgtTable = NULL;
 }
 
 

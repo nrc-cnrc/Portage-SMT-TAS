@@ -3718,7 +3718,7 @@ void PhrasePairContextMatch::addEvents(const PartialTranslation& hyp, vector<Uin
       vector_map<Uint,Uint>::iterator p = pill->events[field].find(sent_tags[sid]);
       if (p != pill->events[field].end())
          event_ids.push_back(p->second);
-         return;
+      return;
    }
 
    // calculate event if pill is new or doesn't yet contain this field,tag pair

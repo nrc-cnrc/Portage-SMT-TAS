@@ -494,7 +494,7 @@ string CanoeConfig::ParamInfo::get(bool pretty) {
       error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown",
             names[0].c_str(), tconv.c_str());
 
-      return ss.str() == "" ? ALT_EMPTY_STRING : ss.str();
+   return ss.str() == "" ? ALT_EMPTY_STRING : ss.str();
 }
 
 void CanoeConfig::setFromArgReader(ArgReader& arg_reader)

@@ -126,7 +126,7 @@ private:
          return file_to_nnjm[fullname];
       }
       else {
-         if(!native) {
+         if(native != nrc) {
             error(ETFatal, "The PyWrap version of NNJM is not in PortageII yet. -native is required.");
             /*
             NNJMAbstract* toRet = NNJMs::new_PyWrap(fullname, srcwindow, ngorder, format);
