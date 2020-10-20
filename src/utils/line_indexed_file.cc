@@ -19,7 +19,7 @@ void LineIndexedFile::open(const string& filename) {
    error_unless_exists(filename, false, "line indexed");
    try {
       file.open(filename);
-   } catch (std::exception e) {
+   } catch (const std::exception& e) {
       error(ETFatal, "Can't open file %s as memmap: %s; maybe it's not seekable?", filename.c_str(), e.what());
    }
    if (!file.is_open())
