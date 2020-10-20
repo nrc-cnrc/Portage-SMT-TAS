@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # @author Nicola Ueffing
 # @file reverse_cond_phr_tab.py 

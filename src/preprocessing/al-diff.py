@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file al-diff.py
 # @brief Compare two different sentence alignments of the same parallel text.

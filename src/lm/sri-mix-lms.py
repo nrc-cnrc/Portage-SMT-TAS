@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file sri-mix-lms.py
 # @brief Create a mixture of LMs using SRILM's ngram command.

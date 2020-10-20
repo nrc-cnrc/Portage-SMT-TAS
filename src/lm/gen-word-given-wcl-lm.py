@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file gen-word-given-wcl-lm.py
 # @brief Generate a 1-gram LM (in ARPA format) providing log probabilities

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file merge_oov_markup.py
 # @brief Merge canoe-style markup from two streams.

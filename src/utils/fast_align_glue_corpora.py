@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # @file fast_align_glue_corpora.py
 # @brief Preprocessing for fast_align => s ||| t.
 #

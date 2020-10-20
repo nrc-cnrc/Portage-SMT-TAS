@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # @file incr-init-model.py
 # @brief Initialize the incremental model, creating its canoe.ini.
 #

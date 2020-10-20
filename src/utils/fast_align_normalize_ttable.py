@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # @file fast_align_normalize_ttable.py
 # @brief Normalize fast_align's ttable.
 #

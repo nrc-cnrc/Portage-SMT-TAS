@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file tune.py
 # @brief Generic MT tuning loop.

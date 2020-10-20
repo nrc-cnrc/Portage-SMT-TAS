@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file lm-filter.py
 # @brief Filters out lm entries based on a minimum ngram counts.

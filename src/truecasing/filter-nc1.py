@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file filter-nc1.py
 # @brief Filter out words up to the first cased word inclusive (if title cased)

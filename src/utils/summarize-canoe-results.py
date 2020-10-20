@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # @file summarize-canoe-results.py
 # @brief Summarize the results of a set of Portage or PortageII training runs.
 # 

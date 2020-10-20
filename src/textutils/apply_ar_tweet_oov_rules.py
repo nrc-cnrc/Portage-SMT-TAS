@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*- 
 
 # @file apply_ar_tweet_oov_rules.py

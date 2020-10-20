@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file resecore.py
 # @brief Driver script to train, or translate with, a rescoring model.

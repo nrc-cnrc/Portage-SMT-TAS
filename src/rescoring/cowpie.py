@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # @file cowpie.py
 # @brief Analyze a cow log file for Powell and other data, and print a report.

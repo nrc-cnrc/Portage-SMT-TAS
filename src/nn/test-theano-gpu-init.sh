@@ -82,10 +82,10 @@ if [[ $VERBOSE -gt 0 ]]; then
 fi
 
 # Produce the output.
-THEANO_FLAGS=$theano_flags python -c "import theano"
+THEANO_FLAGS=$theano_flags python2 -c "import theano"
 
 # Exit with non-zero status if the GPU was not initialized correctly.
-THEANO_FLAGS="$theano_flags" python -c "import theano" \
+THEANO_FLAGS="$theano_flags" python2 -c "import theano" \
    |& grep -q "Mapped name None to device cuda"
 if [[ $? -gt 0 ]]; then
    error_exit "Failed to initialize GPU (device=cuda) correctly."
