@@ -419,7 +419,7 @@ int MAIN(argc, argv)
       if (linectr%10000000 == 0)
         cerr << "Counting tokens: " << linectr/1000000 << "M lines read (..."
              << (time(NULL) - start_time) << "s)" << endl;
-        process_line(line, tmpFile, *V, linectr);
+      process_line(line, tmpFile, *V, linectr);
     }
   tmpFile.close();
   cerr << "Read " << linectr << " lines in " << (time(NULL) - start_time) << " seconds." << endl;

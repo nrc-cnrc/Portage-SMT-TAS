@@ -43,7 +43,7 @@ Options:\n\
 -a    Use given word alignment method and arguments (gen_phrase_tables -H for\n\
       list) [IBMOchAligner]\n\
 -o    Specify output format, one of: \n\
-      "WORD_ALIGNMENT_WRITER_FORMATS" [gale]\n\
+      " WORD_ALIGNMENT_WRITER_FORMATS " [gale]\n\
       The gale format is a special case: it requires -p to be specified.\n\
 -p    Specify a postprocessed version of <nbest>, for use with gale output.\n\
 ";

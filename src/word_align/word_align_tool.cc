@@ -45,9 +45,9 @@ Options:\n\
 -c    Compute the closure of the alignments, and add missing links [don't]\n\
 -t    Transpose the output alignment, swapping the roles of text1 and text2\n\
       [don't]\n\
--fin  Format for input alignment file, one of: "WORD_ALIGNMENT_READER_FORMATS" [hwa]\n\
+-fin  Format for input alignment file, one of: " WORD_ALIGNMENT_READER_FORMATS " [hwa]\n\
 -fout Format for output alignment file, one of:\n\
-      "WORD_ALIGNMENT_WRITER_FORMATS",\n\
+      " WORD_ALIGNMENT_WRITER_FORMATS ",\n\
       or patterns [green]\n\
       Note: type \"align-words -H\" for documentation on each format.\n\
 -crp  Write Uli-style combined text file to <file>.\n\

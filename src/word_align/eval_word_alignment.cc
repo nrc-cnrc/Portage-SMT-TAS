@@ -36,7 +36,7 @@ Options:\n\
 -c    Compute the closure of the alignments, and add missing links before \n\
       evaluating [don't]\n\
 -a    Use <a> in F-measure calculation: 1 / (a/prec + (1-a)/rec) [0.6]\n\
--fin  Format for <ref> and <al>, one of: "WORD_ALIGNMENT_READER_FORMATS" [green]\n\
+-fin  Format for <ref> and <al>, one of: " WORD_ALIGNMENT_READER_FORMATS " [green]\n\
 ";
 
 // globals

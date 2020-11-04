@@ -59,7 +59,7 @@ Options:\n\
 -b b   Begin aligning at line b in input files (1st seg is 1). [1]\n\
 -e e   End aligning at line e-1 in input files. [0=last]\n\
 -o     Specify output format, one of:\n\
-       "WORD_ALIGNMENT_WRITER_FORMATS" [aachen]\n\
+       " WORD_ALIGNMENT_WRITER_FORMATS " [aachen]\n\
        Use -H for documentation of each format.\n\
 -a     Word-alignment method and optional args.  GDF and GDFA are two of many\n\
        possible values; use -H for the full list. [GDF]\n\
