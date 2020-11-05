@@ -21,6 +21,8 @@ if [[ $PORTAGE_INTERNAL_CALL ]]; then WAS_CALLED_INTERNALLY=1; fi
 print_nrc_copyright "time-mem" 2009
 export PORTAGE_INTERNAL_CALL=1
 
+export LC_ALL=C
+
 
 # Summarizes Wall/Cpu time, VMEM & RAM.
 # If there is an argument, the output will mimic grep's output => filename:line

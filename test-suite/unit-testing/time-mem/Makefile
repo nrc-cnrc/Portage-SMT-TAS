@@ -101,8 +101,8 @@ tally_dirs:
 # This unittest uses bloater and verify that the time & memory are approximately correctly reported.
 # Sometimes the mem checking happens a bit too soon, so test for > 0.30 GB instead of > 0.32 GB
 time-mem.bloater:
-	OUT=`time-mem -p 1 bloater -maxiter 32 10000000 2>&1`; \
+	OUT=`time-mem -p 1 bloater -maxiter 12 10000000 2>&1`; \
 	echo $$OUT; \
-	[[ "$$OUT" =~ "Real ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
-	&& [[ "$$OUT" =~ "VMEM ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
+	[[ $$OUT =~ Real\ ([0-9.]+) ]] && [[ $${BASH_REMATCH[1]} > 12 ]] \
+	&& [[ $$OUT =~ VMEM\ ([0-9.]+) ]] && [[ $${BASH_REMATCH[1]} > 0.10 ]]
 
