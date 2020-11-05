@@ -23,6 +23,8 @@ UDETOKENIZE := udetokenize.pl
 TOKENIZE := tokenize.pl
 DETOKENIZE := detokenize.pl
 
+SHELL = bash
+
 all: test
 
 .PHONY: test
@@ -66,7 +68,8 @@ display.%: %
 
 compare.%: %
 	@echo -n "diff $* ref/$* "
-	@(diff $* ref/$* &> /dev/null) && echo "OK" || (echo "FAILED" && false)
+	@if [[ -f ref/$*-alt ]]; then echo -n "OR diff $* ref/$*-alt "; fi
+	@(diff $* ref/$* &> /dev/null || ( if [[ -f ref/$*-alt ]]; then diff $* ref/$*-alt; else false; fi ) ) && echo "OK" || (echo "FAILED" && false)
 
 
 # hyphens specific.
@@ -351,7 +354,6 @@ with_tags:  with_tags.out
 with_tags.in:
 	echo "<cf font=\"Verdana\" size=\"8\" complexscriptssize=\"8\" asiantextfont=\"Verdana\" bold=\"on\"> Page </cf><field/><cf font=\"Verdana\" size=\"8\" complexscriptssize=\"8\" asiantextfont=\"Verdana\" bold=\"on\"> of </cf><field/>" > $@
 
-with_tags.out:  SHELL = bash
 with_tags.out:  with_tags.in
 	utokenize.pl -lang=en -noss -xtags $< $@ 2>&1 \
 	| { ! egrep 'Use of uninitialized value in addition'; }
@@ -363,7 +365,6 @@ UNITTEST_INPUT := ---. 1983.
 # Disabled since notok != tok because tok also collapses --- to --
 test: unittest1
 .PHONY: unittest1
-unittest1: SHELL=bash
 unittest1:
 	[[ `echo "${UNITTEST_INPUT}" | ${UTOKENIZE} -ss -notok | \wc -l` == `echo "${UNITTEST_INPUT}" | ${UTOKENIZE} -ss | \wc -l` ]] \
 	|| ! echo "Doing sentence splitting on a string should produce the same number of output lines in either tokenized mode or not." >&2

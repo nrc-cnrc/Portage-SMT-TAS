@@ -54,7 +54,7 @@
 
 我们预计银保规模、个险新单和个险续期分别增长<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>30%<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>、<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>20%<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>和<open_wrap content="&lt;bpt i=&quot;3&quot;>{\f2 &lt;/bpt>" id="3"/>20%<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>，银保规模保费占比接近<open_wrap content="&lt;bpt i=&quot;4&quot;>{\f2 &lt;/bpt>" id="4"/>1/2<close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/>，银保新单保费收入占寿险新单业务的<open_wrap content="&lt;bpt i=&quot;5&quot;>{\f2 &lt;/bpt>" id="5"/>60%-80%<close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/>左右。
 
-我们预计银保规模、个险新单和个险续期分别增长30%、20%和20%，银保规模保费占比接近1/2，银保新单保费收入占寿险新单业务的60%-80%左右。
+我们预计银保规模、个险新单和个险续期分别增长30% 、 20%和20%，银保规模保费占比接近1/2，银保新单保费收入占寿险新单业务的60%-80%左右。
 
 
 
