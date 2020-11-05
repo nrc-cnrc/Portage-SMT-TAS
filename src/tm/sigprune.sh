@@ -146,10 +146,10 @@ test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 if [[ $THRESHOLD == "a-e" ]]; then
    # Keeps <1,1,1>
-   FILTER="perl -nle \"BEGIN{use encoding 'UTF-8';} @a = split(/\t/); print \\\$a[8] if (\\\$a[2] == 2 or \\\$a[2] == 3)\""
+   FILTER="perl -nle \"@a = split(/\t/); print \\\$a[8] if (\\\$a[2] == 2 or \\\$a[2] == 3)\""
 elif [[ $THRESHOLD == "a+e" ]]; then
    # Filter out <1,1,1>
-   FILTER="perl -nle \"BEGIN{use encoding 'UTF-8';} @a = split(/\t/); print \\\$a[8] if (\\\$a[2] == 3)\""
+   FILTER="perl -nle \"@a = split(/\t/); print \\\$a[8] if (\\\$a[2] == 3)\""
 else
    # Validate threshold to be a real number.
    result=$(echo "scale=2; $THRESHOLD + 0" | bc -q 2>/dev/null)
@@ -159,7 +159,7 @@ else
    fi
    perl -e "exit 1 if ($THRESHOLD <= 0)" || error_exit "Your threshold should be a positive value not $THRESHOLD.";
    # Keeps only those entries that meets the threshold the user provided.
-   FILTER="perl -nle \"BEGIN{use encoding 'UTF-8';} @a = split(/\t/); print \\\$a[8] if (\\\$a[1] <= -$THRESHOLD)\""
+   FILTER="perl -nle \"@a = split(/\t/); print \\\$a[8] if (\\\$a[1] <= -$THRESHOLD)\""
 fi
 debug "FILTER=$FILTER"
 
