@@ -68,4 +68,4 @@ endif
 test:  hashtags_testsuite
 .PHONY:  hashtags_testsuite
 hashtags_testsuite:
-	perl -e 'use hashtags (testsuite); testsuite();'
+	PERL5LIB=.:${PERL5LIB} perl -e 'use hashtags (testsuite); testsuite();'
