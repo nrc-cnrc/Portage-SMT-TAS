@@ -33,7 +33,7 @@ compounds.ar:  compounds.ar.txt  ref/compounds.ar
 
 # This is acutally code taken from tokenize_plugin but since running MADA is slow, this gives us a quicker test.
 compounds.ar.txt:  src/compounds.ar  check_perl_version
-	perl -ple 'BEGIN{use 5.14.0; use encoding "UTF-8"; } s/(\p{Script=Arabic}\p{General_Category:Mark}*)([^\p{Script=Arabic}\p{General_Category:Mark}])/$$1 $$2/g; s/([^\p{Script=Arabic}\p{General_Category:Mark}])(\p{Script=Arabic}\p{General_Category:Mark}*)/$$1 $$2/g;' < $< > $@
+	perl -ple 'BEGIN{use 5.14.0; binmode STDIN, ":encoding(UTF-8)"; binmode STDOUT, ":encoding(UTF-8)"; } s/(\p{Script=Arabic}\p{General_Category:Mark}*)([^\p{Script=Arabic}\p{General_Category:Mark}])/$$1 $$2/g; s/([^\p{Script=Arabic}\p{General_Category:Mark}])(\p{Script=Arabic}\p{General_Category:Mark}*)/$$1 $$2/g;' < $< > $@
 
 
 .PHONY:  compounds.ar.bw.mada.tok.parse_tokan
