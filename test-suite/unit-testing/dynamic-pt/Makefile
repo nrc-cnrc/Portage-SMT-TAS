@@ -40,7 +40,7 @@ softdiff_%: %
 # factory and a standardized query and merge interface.
 triangdiff_%: out.%
 	@for x in ref/$**; do \
-	   if diff-round.pl -q -sort $* $$x; then \
+	   if diff-round.pl -p 4 -q -sort $* $$x; then \
 	      echo $* and $$x match; true; break; \
 	   else \
 	      false; \
@@ -106,7 +106,7 @@ cpt.%.en2fr.gz: jpt.%.en2fr.gz ibm2.en_given_fr.gz ibm2.fr_given_en.gz
 # "le" and "les", very frequent words, so that all the types of differences are
 # created. Both occur about 2K times in the 50K CPT.
 cpt.no-%.en2fr.gz: cpt.ibm2.en2fr.gz
-	zcat $< | grep -v ' $* ' | gzip > $@
+	zcat $< | grep -a -v ' $* ' | gzip > $@
 
 cpt.%.tppt: cpt.%.gz
 	textpt2tppt.sh $< >& log.$@
