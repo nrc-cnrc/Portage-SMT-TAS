@@ -608,6 +608,7 @@ Optional dependencies for source code distributions:
 
    This procedure worked for us:
       # Obtain cxxtest-4.4.tar.gz (or the current version) from http://cxxtest.com/
+      wget -O cxxtest-4.4.tar.gz https://sourceforge.net/projects/cxxtest/files/cxxtest/4.4/cxxtest-4.4.tar.gz/download
       # Installation is done by simply expanding the tarball in the
       # destination directory
       cd $PORTAGE/third-party
