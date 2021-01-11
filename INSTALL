@@ -244,6 +244,7 @@ Mandatory dependencies for all distributions:
     - YAML
     - Time::HiRes
     - SOAP::Lite    # Used by plive.cgi
+    - Env
     - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
@@ -252,8 +253,8 @@ Mandatory dependencies for all distributions:
 
    If you're using yum or another Linux package manager, installing
    perl-XML-XPath, perl-XML-Twig, perl-JSON, perl-YAML, perl-SOAP-Lite, and
-   perl-Time-HiRes, including all dependencies, should do the trick.  This has
-   to be done as root.  This is by far the easiest way to go.
+   perl-Time-HiRes, perl-Env including all dependencies, should do the trick.
+   This has to be done as root.  This is by far the easiest way to go.
 
    Failing that, you can try using cpan.  Executed as root, or if you compiled
    Perl manually following the instructions above, this might work:
@@ -266,6 +267,7 @@ Mandatory dependencies for all distributions:
          install YAML
          install Time::HiRes
          install SOAP::Lite
+         install Env
    You have to let cpan install all dependencies.  (Say y or yes to all
    questions.)  You mileage may vary because various compilation steps are
    required.
@@ -559,6 +561,8 @@ Optional dependencies for source code distributions:
    TCMalloc depends on libunwind, so you might have to install that first.  It
    is available at http://www.nongnu.org/libunwind/ if it's not already on your
    system.
+
+   On some Linux distros, yum install gperftools-devel might do the trick.
 
    This procedure worked for us:
       # Change the definition of PKG_DIR if you want to install somewhere else.
