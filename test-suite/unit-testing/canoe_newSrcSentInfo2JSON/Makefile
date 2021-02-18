@@ -12,6 +12,7 @@
 # Copyright 2015, Her Majesty in Right of Canada
 
 CANOE := canoe
+SHELL := /bin/bash
 
 ifneq ($(shell which jq &> /dev/null && echo 0),0)
 #JSON_PP := python -c "import sys, json; [sys.stdout.write(json.dumps(json.loads(d.strip()), indent=2, sort_keys=True)) for d in sys.stdin]"

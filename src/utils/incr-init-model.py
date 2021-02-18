@@ -130,6 +130,9 @@ def run_command(cmd, descriptor="", ret_output=False, ignore_error=False, *popen
       else:
          kwargs['shell'] = True
    verbose("Running", descriptor, "command:", cmd_str)
+   # We often expect bash syntax, so ask for it explicitly
+   if kwargs.get("shell", False):
+      kwargs["executable"] = "/bin/bash"
    shell = kwargs.get('shell') or len(popenargs) > 7 and popenargs[7]
    call_cmd = check_output if ret_output else check_call
    try:

@@ -1444,7 +1444,7 @@ sub call {
       print $cmd, "\n";
    }
    else {
-      system($cmd) == 0
+      system("/bin/bash", "-c", $cmd) == 0
          or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
    }
    (print STDERR "translate.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;

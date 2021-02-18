@@ -458,7 +458,7 @@ def decode(wts):
     if opts.debug: print >> sys.stderr, ' '.join(outcmd)
     cmd.append("|")
     cmd.extend(outcmd)
-    if call(' '.join(cmd), stdin=srcfile, stdout=outfile, stderr=logfile, shell=True, close_fds=True) is not 0:
+    if call(' '.join(cmd), stdin=srcfile, stdout=outfile, stderr=logfile, shell=True, close_fds=True, executable="/bin/bash") is not 0:
         error("decoder failed: {}".format(' '.join(cmd)))
 
 @print_timing

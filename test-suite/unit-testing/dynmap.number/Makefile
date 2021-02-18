@@ -11,6 +11,7 @@
 # Copyright 2006, Her Majesty in Right of Canada
 
 MAP_TYPE ?= prefixNumber
+SHELL := /bin/bash
 
 ifneq ($(shell which ngram-count &> /dev/null && echo 0),0)
 $(error Error: we need ngram-count from SRILM for this unittest!)
