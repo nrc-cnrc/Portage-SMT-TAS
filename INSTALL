@@ -190,6 +190,10 @@ or
 
 Mandatory dependencies for all distributions:
 
+ - PortageTextProcessing -- TODO: document installation
+
+ - PortageClusterUtils -- TODO: document installation
+
  - Linux - we have tested PortageII on various Linux distributions and it runs
    without problems, as long as the rest of the dependencies are installed.  We
    tested older versions on PC-BSD and Mac OS X.  It worked reasonably well on
