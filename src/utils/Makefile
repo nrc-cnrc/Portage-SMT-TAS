@@ -80,36 +80,23 @@ BINSCRIPTS = \
         incr-add-sentence.sh \
         incr-init-model.py \
         incr-update.sh \
-        jobsig.pl \
-        jobtree \
         load-balancing.pl \
         monitor-process.sh \
-        on-cluster.sh \
-        parallelize.pl \
         parse-monitor.pl \
         plive-optimize-pretrained.sh \
         plog.pl \
         prep-fixedTerms-layout.sh \
         process-bind.sh \
-        process-memory-usage.pl \
-        psub \
         randomly-choose-n-args.pl \
         randomly-choose-n-nums \
         reverseffvals.pl \
         run-after.sh \
         run-mkcls.sh \
-        run-parallel.sh \
-        r-parallel-d.pl \
-        r-parallel-worker.pl \
-        rp-mon-totals.pl \
         sh_utils.sh \
-        stripe.py \
-        sum.pl \
         summarize-canoe-results.py \
         time-mem \
         time-mem-tally.pl \
-        trans-search.pl \
-        which-test.sh
+        trans-search.pl
 
 PGM_WITH_ALTERNATIVE_HELP = plog.pl
 
