@@ -26,11 +26,11 @@ psub -j 4 -memmap 1 'run-parallel.sh -psub "-1 -memmap 1" -unit-test -d <(seq 1 
 psub -j 12 -memmap 4 'run-parallel.sh -unit-test -d <(seq 1 20) 12 >& out.14'
 
 # The following tests test -j behaviour for recursive run-parallel.sh invocations
-wkr="run-parallel.sh -unit-test -d -j 4 -psub '-cpus 1 -mem 1' <(seq 1 4) 4"
-psub -j 2 "run-parallel.sh -d -j 2 -psub '-cpus 1 -mem 1' -e \"$wkr >& out.16\" -e \"$wkr >& out.17\" 2 >& out.15"
+wkr="run-parallel.sh -unit-test -d -j 4 -psub '-cpus 1 -mem 3' <(seq 1 4) 4"
+psub -j 2 "run-parallel.sh -d -j 2 -psub '-cpus 1 -mem 3' -e \"$wkr >& out.16\" -e \"$wkr >& out.17\" 2 >& out.15"
 
-psub -j 2 "run-parallel.sh -nolocal -d -j 2 -psub '-cpus 1 -mem 1' -e \"$wkr >& out.19\" -e \"$wkr >& out.20\" 2 >& out.18"
+psub -j 2 "run-parallel.sh -nolocal -d -j 2 -psub '-cpus 1 -mem 3' -e \"$wkr >& out.19\" -e \"$wkr >& out.20\" 2 >& out.18"
 
 # Note: Explicit test starting with run-parallel.sh instead of psub tests the logic
 # without PSUB_OPT_J defined for the first run-parallel.sh
-run-parallel.sh -nolocal -d -j 2 -psub '-cpus 1 -mem 1' -e "$wkr >& out.22" -e "$wkr >& out.23" 2 >& out.21 &
+run-parallel.sh -nolocal -d -j 2 -psub '-cpus 1 -mem 3' -e "$wkr >& out.22" -e "$wkr >& out.23" 2 >& out.21 &
