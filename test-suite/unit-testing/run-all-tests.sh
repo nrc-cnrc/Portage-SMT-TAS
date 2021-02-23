@@ -43,7 +43,7 @@ echo ""
 echo Test suites to run: $TEST_SUITES
 
 if [[ $PARALLEL_MODE ]]; then
-   LOG=.log.run-all-tests-parallel.`date +%Y%m%dT%H%M%S`
+   LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
    PARALLEL_MODE=
    {
       # Launch tune.py first, since it's the longest one to run and would get
@@ -85,36 +85,42 @@ run_test() {
    { time-mem ./run-test.sh; } >& _log.run-test
 }
 
-for TEST_SUITE in $TEST_SUITES; do
-   echo ""
-   echo =======================================
-   echo Running $TEST_SUITE
-   if cd -- $TEST_SUITE; then
-      if [[ ! -x ./run-test.sh ]]; then
-         echo '***' FAILED $TEST_SUITE: can\'t find or execute ./run-test.sh
-         FAIL="$FAIL $TEST_SUITE"
-      elif run_test; then
-         echo PASSED $TEST_SUITE
-      else
-         echo '***' FAILED $TEST_SUITE: ./run-test.sh returned $?
-         FAIL="$FAIL $TEST_SUITE"
-      fi
-
-      cd ..
-   else
-      echo '***' FAILED $TEST_SUITE: could not cd into $TEST_SUITE
-      FAIL="$FAIL $TEST_SUITE"
-   fi
-done
-
-echo ""
-echo =======================================
-if [[ $FAIL ]]; then
-   echo '***' FAILED these test suites:$FAIL
-   exit 1
+if [[ $TEST_SUITES =~ \  ]]; then
+   LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
+   PIPE_LOG="tee $LOG"
 else
-   echo PASSED all test suites
+   PIPE_LOG="cat"
 fi
 
+{
+   for TEST_SUITE in $TEST_SUITES; do
+      echo ""
+      echo =======================================
+      echo Running $TEST_SUITE
+      if cd -- $TEST_SUITE; then
+         if [[ ! -x ./run-test.sh ]]; then
+            echo '***' FAILED $TEST_SUITE: can\'t find or execute ./run-test.sh
+            FAIL="$FAIL $TEST_SUITE"
+         elif run_test; then
+            echo PASSED $TEST_SUITE
+         else
+            echo '***' FAILED $TEST_SUITE: ./run-test.sh returned $?
+            FAIL="$FAIL $TEST_SUITE"
+         fi
 
+         cd ..
+      else
+         echo '***' FAILED $TEST_SUITE: could not cd into $TEST_SUITE
+         FAIL="$FAIL $TEST_SUITE"
+      fi
+   done
 
+   echo ""
+   echo =======================================
+   if [[ $FAIL ]]; then
+      echo '***' FAILED these test suites:$FAIL
+      exit 1
+   else
+      echo PASSED all test suites
+   fi
+} | $PIPE_LOG
