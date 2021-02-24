@@ -19,7 +19,6 @@ bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
 build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
 collect-plive-data.pl         EJ  Collect the temp files created by PortageLive
-diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
 errors.{cc,h}                 GF  Simple exception and error-message class.
 exception_dump.h              SL  Macro for printing a message when dying on an exception
 file_utils.{cc,h}             GF  File utility routines and classes (add to me!).

@@ -74,7 +74,6 @@ BINSCRIPTS = \
         alignment-stats.pl \
         all-best-rr-vals \
         best-rr-val \
-        diff-round.pl \
         fast_align_glue_corpora.py \
         fast_align_normalize_ttable.py \
         incr-add-sentence.sh \

@@ -25,8 +25,7 @@ BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	postprocess_plugin \
 	tokenize_plugin \
 	tokenize_plugin_ar \
-	sentsplit_plugin \
-	select-line
+	sentsplit_plugin
 
 PERL_LIBS = hashtags.pm
 
@@ -43,11 +42,6 @@ install_perl_lib:   $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm
 $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm:  tokenize/Arabic/Data.pm
 	install -d -m0750 $(dir $@)
 	install -p -m0640 $< $(dir $@)
-
-install: install_unicode_data
-
-install_unicode_data: UnicodeData-Arabic-full.txt UnicodeData-Arabic.txt
-	cp $+ $(BIN_DIR)
 
 # Some programs need extra dynamic libraries
 utf8_casemap: DYNLIBS += $(LIBICU)
