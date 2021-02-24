@@ -43,6 +43,7 @@ echo ""
 echo Test suites to run: $TEST_SUITES
 
 if [[ $PARALLEL_MODE ]]; then
+   echo Running in parallel mode
    LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
    PARALLEL_MODE=
    {
@@ -87,10 +88,12 @@ run_test() {
 
 if [[ $TEST_SUITES =~ \  ]]; then
    LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
-   PIPE_LOG="tee $LOG"
+   PIPE_LOG="tee -a $LOG"
 else
    PIPE_LOG="cat"
 fi
+
+set -o pipefail
 
 {
    for TEST_SUITE in $TEST_SUITES; do
@@ -124,3 +127,5 @@ fi
       echo PASSED all test suites
    fi
 } | $PIPE_LOG
+
+exit $?
