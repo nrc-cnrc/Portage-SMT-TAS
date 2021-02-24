@@ -2,6 +2,7 @@
 CVS/
 .#*
 _log.cvs*
+.logs
 
 # patterns for files created by a build
 .cvsignore

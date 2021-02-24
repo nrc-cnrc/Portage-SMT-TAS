@@ -42,9 +42,10 @@ fi
 echo ""
 echo Test suites to run: $TEST_SUITES
 
+mkdir -p .logs
+LOG=.logs/log.run-all-tests.`date +%Y%m%dT%H%M%S`
+
 if [[ $PARALLEL_MODE ]]; then
-   echo Running in parallel mode
-   LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
    PARALLEL_MODE=
    {
       # Launch tune.py first, since it's the longest one to run and would get
@@ -87,8 +88,7 @@ run_test() {
 }
 
 if [[ $TEST_SUITES =~ \  ]]; then
-   LOG=.log.run-all-tests.`date +%Y%m%dT%H%M%S`
-   PIPE_LOG="tee -a $LOG"
+   PIPE_LOG="tee $LOG"
 else
    PIPE_LOG="cat"
 fi
