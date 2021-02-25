@@ -190,9 +190,15 @@ or
 
 Mandatory dependencies for all distributions:
 
- - PortageTextProcessing -- TODO: document installation
-
- - PortageClusterUtils -- TODO: document installation
+ - PortageTextProcessing and PortageClusterUtils contain scripts of general
+   interest previously found in PortageII, which have now been migrated to their
+   own repos for easier reusability in other projects. Installation is done by
+   simply cloning them:
+      git clone https://github.com/nrc-cnrc/PortageTextProcessing.git
+      git clone https://github.com/nrc-cnrc/PortageClusterUtils.git
+   and adding these lines to your .profile:
+      source /path/to/PortageTextProcessing/SETUP.bash
+      source /path/to/PortageClusterUtils/SETUP.bash
 
  - Linux - we have tested PortageII on various Linux distributions and it runs
    without problems, as long as the rest of the dependencies are installed.  We
