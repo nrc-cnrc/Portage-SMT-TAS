@@ -1,0 +1,5 @@
+
+Usage: run-parallel.sh [options] FILE_OF_COMMANDS N
+       run-parallel.sh [options] -e CMD1 [-e CMD2 ...] N
+       run-parallel.sh [options] -c CMD CMD_OPTS
+       run-parallel.sh {add M,quench M,kill} JOB_ID
