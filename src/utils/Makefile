@@ -74,48 +74,36 @@ BINSCRIPTS = \
         alignment-stats.pl \
         all-best-rr-vals \
         best-rr-val \
-        diff-round.pl \
         fast_align_glue_corpora.py \
         fast_align_normalize_ttable.py \
         incr-add-sentence.sh \
         incr-init-model.py \
         incr-update.sh \
-        jobsig.pl \
-        jobtree \
         load-balancing.pl \
         monitor-process.sh \
-        on-cluster.sh \
-        parallelize.pl \
         parse-monitor.pl \
         plive-optimize-pretrained.sh \
         plog.pl \
         prep-fixedTerms-layout.sh \
         process-bind.sh \
-        process-memory-usage.pl \
-        psub \
         randomly-choose-n-args.pl \
         randomly-choose-n-nums \
         reverseffvals.pl \
         run-after.sh \
         run-mkcls.sh \
-        run-parallel.sh \
-        r-parallel-d.pl \
-        r-parallel-worker.pl \
-        rp-mon-totals.pl \
         sh_utils.sh \
-        stripe.py \
-        sum.pl \
         summarize-canoe-results.py \
         time-mem \
         time-mem-tally.pl \
-        trans-search.pl \
-        which-test.sh
+        trans-search.pl
 
 PGM_WITH_ALTERNATIVE_HELP = plog.pl
 
 PERL_LIBS=portage_utils.pm
 
-PYTHON_LIBS=portage_utils.pyc
+# Install the .py file not the .pyc to allow Python (2.7 or 3.X) being used to
+# compile the file and drop it in the appropriate place.
+PYTHON_LIBS=portage_utils.py
 
 # Tell Make to skip -lportage_utils, since we're building it here.
 NO_UTILS_LIB = true

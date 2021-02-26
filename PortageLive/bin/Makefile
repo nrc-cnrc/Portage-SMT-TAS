@@ -38,32 +38,34 @@ EXTERNAL_BIN ?= svm-predict estimate-ngram
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh \
            which-test.sh time-mem sum.pl process-memory-usage.pl rp-mon-totals.pl on-cluster.sh
 DECODE_BIN ?= canoe
-DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
+DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh
 INCREMENTAL_SCRIPTS ?= incr-add-sentence.sh incr-update.sh incr-init-model.py arpalm2tplm.sh \
-                       textpt2tppt.sh lm-order.pl ssal-pipeline.sh select-lines.py
+                       textpt2tppt.sh lm-order.pl ssal-pipeline.sh
 INCREMENTAL_BIN ?= gen_phrase_tables arpalm.encode arpalm.sng-av arpalm.assemble \
                    ptable.encode-phrases ptable.encode-scores ptable.assemble ssal
 # NOTE: DO NOT add detokenize_plugin script to the TRANSLATE variable since
 # it exists only to illustrate what a detokenize_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
              sentsplit-with-tags-combine.pl sentsplit-with-tags-split.pl tok-with-tags-combine.pl tok-with-tags-split.pl \
-             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl add-fr-nbsp.pl \
-             mark-numbers-en2fr.pl mark-numbers-fr2en.pl fixed_term2tm.pl \
-             clean-utf8-text.pl fix-slashes.pl
+             translate.pl fix-en-fr-numbers.pl add-fr-nbsp.pl \
+             mark-numbers-en2fr.pl mark-numbers-fr2en.pl fixed_term2tm.pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
 RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
-TOKENIZATION ?= udetokenize.pl utokenize.pl parse_tokan.pl madamira.py
+TOKENIZATION ?= parse_tokan.pl madamira.py
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
+EXTERNAL_SCRIPTS ?= udetokenize.pl utokenize.pl sh_utils.sh select-lines.py \
+                    clean-utf8-text.pl fix-slashes.pl crlf2lf.sh ridbom.sh
 #Define EXTRAS in Makefile.params to include extra PortageII programs
 EXTRA_BINS ?=
 EXTRA_SCRIPTS ?=
 
 # Must contain programs from PortageII only.
+
 PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING} ${INCREMENTAL_SCRIPTS} ${EXTRA_SCRIPTS}
 PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRA_BINS} ${INCREMENTAL_BIN}
 CLUSTER_BINS ?= ${CLUSTER}
-BINARIES ?= ${PORTAGE_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${EXTERNAL_BIN}
+BINARIES ?= ${PORTAGE_SCRIPTS} ${EXTERNAL_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${EXTERNAL_BIN}
 
 
 # Make sure all PortageII's binaries are from the same source build.
@@ -138,7 +140,7 @@ endif
 
 ################################################################################
 # OTHER FILES
-OTHER ?= 
+OTHER ?=
 DEST_OTHER_DIR ?= ${DEST_BASE_DIR}
 
 INSTALL_OTHER_LIST := $(addprefix ${DEST_OTHER_DIR}/, ${OTHER})

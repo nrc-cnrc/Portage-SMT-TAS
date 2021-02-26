@@ -14,28 +14,15 @@ File name             Programmer  Description
 append-uniq.pl                SL  Append parallel non duplicate lines.
 asciify (.cc)                 GF  Remap non-ascii characters.
 combine.pl                    AT  Combine files by interleaving lines.
-clean-utf8-text.pl            EJ  Clean up spaces, control chars, hyphen, etc. in utf8 text
-crlf2lf.sh                    MS  Convert CRLF (DOS-style) line endings to LF (UNIX-style).
-expand-auto.pl                EJ  Like expand, with automatically calculated tab stops.
 filter-for-giza.pl            MS  Filter training corpus for use with GIZA++.
 filter-latin.pl               GF  Filter invalid characters from an iso-latin1 encoded file.
 getcolumn.sh                  AT  Get a column from a file, similar to cut.
 get_voc (.cc)                 GF  Extract a vocabulary from a tokenized file.
 lc-latin.pl                   GF  Map iso-latin text to lowercase, in any locale (it hopes).
-lc-utf8.pl                    EJ  Map utf8 text to lowercase, regardless of your locale.
-li-sort.sh                    GF  Locale-independent sort.
-lines.py                      NU  Extract the given lines from a file.
 ngrams.pl                     GF  Write ngram tokens in tokenized text.
-normalize-unicode.pl          EJ  Normalize unicode input into canonical representations.
-parallel-uniq.pl              EJ  Like uniq, but take into consideration parallel files.
 remove_stop.pl                MA  Remove words in a given list from tokenized text.
 removewords.pl                AT  Remove words in a given list from tokenized text.
-ridbom.sh                     MS  Remove the byte-order marker (BOM) from UTF8 input.
-second-to-hms.pl              SL  Convert from seconds to HH:MM:SS or vice-versa.
-select-line                   GF  Get a given line from a text.
-sort-by-length.pl             EJ  Sort a text file by line length.
 split-listed.pl               GF  Split a file according to list of subfiles.
-stableuniq.pl                 AT  Removes duplicates without sorting.
 strip_non_printing (.cc)      SL  Remove non-printing characters.
 strip-parallel-blank-lines.pl GF  Strip parallel blank lines from two line-aligned files.
 uc-first.pl                   GF  Map line-initial character to uppercase in iso-latin text.

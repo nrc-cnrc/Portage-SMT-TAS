@@ -19,7 +19,6 @@ bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
 build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
 collect-plive-data.pl         EJ  Collect the temp files created by PortageLive
-diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
 errors.{cc,h}                 GF  Simple exception and error-message class.
 exception_dump.h              SL  Macro for printing a message when dying on an exception
 file_utils.{cc,h}             GF  File utility routines and classes (add to me!).
@@ -40,32 +39,25 @@ meanvar (.cc)                 GF  Mean & variance of a set of numbers, with conf
 monitor-process.sh            EJ  Monitor a process's memory and CPU usage.
 multi_voc.{cc,h}              EJ  List of vocabularies, stored efficiently.
 number_mapper.{cc,h}          SL  Replaces digits of a number into a token (@).
-parallelize.pl                SL  Generic parallelization tool for non-parallel commands.
 parse-monitor.pl              EJ  Summarize monitor-process.sh's output.
 parse_xmlish_markup.{cc,h}    GF  Parse XML-like markup (caveat: not true XML).
 perm_iterator.{cc,h}          AT  Iterate over permutations.
 portage_defs.{cc,h}           GF  Some idiosyncratic definitions.
 printCopyright.h              SL  Display the Crown Copyright notice.
-process-memory-usage.pl       SL  Tally the memory usage of a process tree.
 prog (.cc)                    GF  C++ program template.
 prog.gnuplot                  GF  Gnuplot program template.
 prog.pl                       EJ  Perl program template.
 prog.sh                       EJ  Bash program template.
 progress.h                    SL  Simple progress bar.
-psub                          EJ  Replacement for bsub: simple qsub wrapper.
 quick_set.{cc,h}              GF  Integer sets, with nice properties.
 randomDistribution.h          SL  Convenient wrapper for 3 random distributions.
 randomly-choose-n-args.pl     GF  Yes, that's all it does!
 randomly-choose-n-nums        GF  Does a little bit more.
 reverseffvals.pl              MA  Reverse something to do with ffvals.
 run-after.sh                  EJ  Run a job once another job has finished.
-run-parallel.sh               EJ  Run a job suite using the deamon/worker system.
-r-parallel-d.pl               PP/EJ  Deamon for run-parallel.sh.
-r-parallel-worker.pl          PP/EJ  Execute tasks obtained from r-parallel-d.pl
 simple_histogram.h            SL  Simple histogram building/displaying class.
 string_hash.h                 GF  Hash function for strings, for g++ hash_* classes.
 str_utils.{cc,h}              GF  String utility routines and classes (add to me!).
-sum.pl                        GF  Sum a column of numbers.
 testleven (.cc)               NU  Unit testing for levenshtein.h.
 test_MagicStream (.cc)        SL  Unit testing for MagicStream.{cc,h}.
 trans-search.pl               GF  Grep for an expression in parallel Hansard.
@@ -78,7 +70,6 @@ voc.{cc,h}                    GF  Map words <-> indexes.
 voc_map.h                     EJ  Mapping between two Vocabs.
 vocab_filter.{cc,h}           SL  Vocab with filtering operations (for LMs).
 wc_stats (.cc)                SL  A wc-like pgm that provides more info.
-which-test.sh                 EJ  Which-like program with reliable exit status.
 
 Memory pools:
 block_mem_pool.h              EJ  Allocates objects in large blocks to reduce malloc overhead
