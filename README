@@ -1,18 +1,21 @@
-                               PortageII_cur
+                              Portage-SMT-TAS
+          [TODO - change PortageII to Portage-SMT-TAS elsewhere?]
  
 Traitement multilingue de textes / Multilingual Text Processing
 Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2018, Sa Majesté la Reine du Chef du Canada
-Copyright 2004-2018, Her Majesty in Right of Canada
+Copyright 2004-2021, Sa Majesté la Reine du Chef du Canada
+Copyright 2004-2021, Her Majesty in Right of Canada
 
-Distributed under specific licensing terms.  Please refer to your signed
-license agreement for details.
+MIT License
+[TODO - insert MIT License text somewhere]
 
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 
                              Brief Description
+
+[TODO - insert short note about release Portage as OSS in 2021]
 
 Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
@@ -92,15 +95,15 @@ phrase-based statistical machine translation, including:
 
    bin/         executable code (if included in your distribution)
    doc/         documentation
-   framework/   framework for training PortageII and doing experiments
-   generic-model/ location to install PortageGenericModel 2.0
+   framework/   framework for training PortageII and doing experiments [TODO - this will be a separate GitHub repo]
+   generic-model/ location to install PortageGenericModel 2.0 [TODO - where will this be?]
    lib/         run-time libraries (if included in your distribution)
    logs/        place-holder for runtime logs
    PortageLive/ files needed to setup a runtime translation server
    src/         source code (if included in your distribution)
    test-suite/  various test suites
    third-party/ non-NRC software distributed with PortageII for convenience
-   tmx-prepro/  tools to extract and preprocess training corpora from TMX files
+   tmx-prepro/  tools to extract and preprocess training corpora from TMX files [TODO - this will be a separate GitHub repo]
    INSTALL      installation instructions
    NOTICE       third party Copyright notices
    README       this file
@@ -111,7 +114,7 @@ phrase-based statistical machine translation, including:
 
                               Getting started
 
-The framework subdirectory provides a PortageII training and experiment
+The framework subdirectory [TODO - fix] provides a PortageII training and experiment
 framework.  We recommend you use this framework as your starting point for real
 experiments, and as your default configuration for training PortageII systems
 for use with PortageLive.  A tutorial is included showing how to run a toy
@@ -165,5 +168,6 @@ files cached by Apache in /tmp/wsdl-*.
 
                                Contacting us
 
+[TODO - update this]
 If you have any question about PortageII, be it technical, legal or
 otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
