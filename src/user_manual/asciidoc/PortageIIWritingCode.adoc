@@ -87,11 +87,8 @@ targets in the top-level Makefile in `src`: `all`, `clean`, `new`,
 Let us know about your changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When you have made changes to the PortageII code, please let us
-(the NRC) know by sending us e-mail at `PORTAGE_shared@nrc-cnrc.gc.ca`
-so that we can arrange to incorporate your changes into the core and
-make it available to other PortageII licensees, if your PORTAGE
-shared license agreement has clauses to that effect.
+Feel free to submit a Pull Request if you would like to consider having
+your contributions added to the core of Portage-SMT-TAS.
 
 '''''
 
