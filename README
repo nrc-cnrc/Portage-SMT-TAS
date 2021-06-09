@@ -1,5 +1,4 @@
                               Portage-SMT-TAS
-          [TODO - change PortageII to Portage-SMT-TAS elsewhere?]
  
 Traitement multilingue de textes / Multilingual Text Processing
 Centre de recherche en technologies numériques / Digital Technologies Research Centre
@@ -7,15 +6,12 @@ Conseil national de recherches Canada / National Research Council Canada
 Copyright 2004-2021, Sa Majesté la Reine du Chef du Canada
 Copyright 2004-2021, Her Majesty in Right of Canada
 
-MIT License
-[TODO - insert MIT License text somewhere]
+MIT License - see LICENSE
 
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 
                              Brief Description
-
-[TODO - insert short note about release Portage as OSS in 2021]
 
 Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
@@ -45,7 +41,24 @@ out of the box, and we expect users to see and appreciate the difference.
 PortageII 4.0 brought in incremental document adaptation and training NNJMs on
 your own data, with fully updated generic models.
 
-PortageII_cur includes a complete suite of software tools required for
+Portage-SMT-TAS is the name we chose for the GitHub repo, now that we are
+releasing the code base as open source under the MIT License. Despite the rise
+of NMT, the Portage code base still includes a number of tools that can be
+useful to the world of Machine Translation and parallel text processing.  All
+the names above might be found in various parts of the documentation and code,
+and can be construed to refer to the same system, or one of its versions.  When
+you see PortageII_cur, that's a placeholder that our script for creating an
+official release replaces by the actual version name and number.
+
+Note that some of the Portage tools were previously spliced into other GitHub
+repos:
+ - https://github.com/nrc-cnrc/PortageTextProcessing contains text processing
+   tools that are still particularly relevant for NMT work.
+ - https://github.com/nrc-cnrc/PortageClusterUtils contains the multi-core and
+   high-performance cluster parallelization tools that were developped for
+   Portage, but can be used for other projects as well.
+
+Portage-SMT-TAS includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French, English, Spanish, Danish (tokenization,
    detokenization, lowercasing, aligning), Chinese (handling of dates and
@@ -164,10 +177,3 @@ Review the updated PortageLiveAPI.wsdl, doc/PortageAPIComparison.pdf and the
 php scripts in PortageLive/www/soap when updating your applications to work
 with the PortageII 3.0. When installing the updated API, remove compiled WSDL
 files cached by Apache in /tmp/wsdl-*.
-
-
-                               Contacting us
-
-[TODO - update this]
-If you have any question about PortageII, be it technical, legal or
-otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
