@@ -134,7 +134,6 @@ void bootstrapNWiseComparison(Iterator beg, Iterator end,
    typedef typename std::iterator_traits<Iterator>::value_type T;
    typedef vector<double> Vect;
    vector<T> resample(n);
-   vector<Vect> deltas(res.size());
    if (seed != 0) srand(seed);
    res.assign(res.size(), 0);
 
