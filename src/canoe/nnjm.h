@@ -126,7 +126,17 @@ private:
          return file_to_nnjm[fullname];
       }
       else {
-         if(native != nrc) {
+         // EJJ 20210923 - g++ 7.3.0 complained about this code, so I changed
+         // it (incorrectly) to `if (native != nrc)`, but both `native` and
+         // `nrc` are actually constants, set to 2 and 0, respectively, so `if
+         // (!native)` is the same as `if (false)`, while `if (native != nrc)`
+         // is the same as `if (true)`.
+         // Apparently, we always load the model with NNJMs::new_Native().
+         // I don't fully understand this code, unfortunately, so it's hard to
+         // be confident I'm doing the right thing.
+         //if (!native) {  // original code - yields compiler error with g++ >= 7.3.0
+         //if (native != nrc) {  // compiles with 7.3.0 but wrong logic
+         if (false) {  // actually equivalent to the original code since native == 2
             error(ETFatal, "The PyWrap version of NNJM is not in PortageII yet. -native is required.");
             /*
             NNJMAbstract* toRet = NNJMs::new_PyWrap(fullname, srcwindow, ngorder, format);
