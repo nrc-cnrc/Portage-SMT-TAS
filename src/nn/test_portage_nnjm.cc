@@ -55,7 +55,7 @@ static void getArgs(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
-   printCopyright(2014, "prog");
+   printCopyright(2014, "test_portage_nnjm");
    getArgs(argc, argv);
 
    //Uint fmt = 0;
