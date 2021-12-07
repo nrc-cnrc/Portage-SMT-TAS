@@ -133,6 +133,7 @@ bloater: DYNLIBS += -lpthread
 bloater_pthread: DYNLIBS += -lpthread
 tests/test_casemap_strings: DYNLIBS += $(LIBICU)
 tests/test_utf8_utils: DYNLIBS += $(LIBICU)
+wc_stats:  OPTS += -fopenmp
 
 # Additional tests to make sure programs we need are present
 test: check_make381

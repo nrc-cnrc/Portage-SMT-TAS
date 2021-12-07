@@ -13,6 +13,7 @@
  */
 #include <iostream>
 #include <fstream>
+#include <omp.h>
 #include "file_utils.h"
 #include "arg_reader.h"
 #include "gfstats.h"
@@ -263,7 +264,27 @@ const char* const countStats::default_format = "%llu\t%llu\t%llu\t%u\t%u\t%u\t%u
 int main(int argc, char* argv[])
 {
    printCopyright(2008, "wc_stats");
+
    getArgs(argc, argv);
+
+#ifdef _OPENMP
+   cerr << "Compiled openmp" << endl;
+#ifdef CYGWIN
+   // On CYGWIN, master thread may hang in GOMP_parallel_start if more than one thread.
+   omp_set_num_threads(1);
+#endif
+   if (verbose) {
+      // Disable going multithreaded if the user wants per line stats.
+      omp_set_num_threads(1);
+   }
+
+#pragma omp parallel
+#pragma omp master
+   fprintf(stderr, "Using %d threads.\n", omp_get_num_threads());
+#ifndef CYGWIN
+   fprintf(stderr, "Set OMP_NUM_THREADS=N to change to N threads.\n");
+#endif
+#endif //_OPENMP
 
    if (!infiles.empty() && !verbose) {
       cout << header << endl;
@@ -272,12 +293,23 @@ int main(int argc, char* argv[])
    const char* format = countStats::default_format;
    if (columnMarkers) format = "L:%llu\tW:%llu\tC:%llu\tminW:%u\tmaxW:%u\tminC:%u\tmaxC:%u\te:%u\tm:%2.2f\tsdev:%2.2f\t%s\n";
 
+   vector<countStats> vDocStats(infiles.size());
+   vector<const countStats*> vDocStats_done(infiles.size(), NULL);
+   unsigned int next_to_print = 0;
    countStats allDocStats;
+
+   Uint i = 0;
    string line;   // The current line.
-   countStats docStats;
    countStats::perLineStats lineStats;
-   for (Uint i(0); i<infiles.size(); ++i) {
+   countStats docStats;  // The current document's stats
+   // We WANT sched(dynamic) or else each thread get pre-assigned with some
+   // task which can be NOT optimal.  We want a free thread to pick-up the next
+   // task.
+#pragma omp parallel for private(i,line,lineStats,docStats) schedule(dynamic)
+   for (i=0; i<infiles.size(); ++i) {
       iSafeMagicStream istr(infiles[i]);
+      //countStats docStats = vDocStats[i];
+      //cerr << "thread: " << omp_get_thread_num() << endl;
 
       line.clear();
       docStats.clear();
@@ -289,16 +321,28 @@ int main(int argc, char* argv[])
             printf("%d\t%d\t%d\t%s\n", lineStats.lineNumber, lineStats.numTokens, lineStats.lineSize, line.c_str());
          }
       }
+      vDocStats[i] = docStats;
+      vDocStats_done[i] = &vDocStats[i];
+
+#pragma omp critical(displayStats)
+      {
+         // Continue printing stats for all finished documents.
+         //cerr << i << " done " << infiles[i].c_str() << endl;  // SAM DEBUGGING
+         while (next_to_print < vDocStats.size() && vDocStats_done[next_to_print] != NULL) {
+            if (!verbose) {
+               vDocStats[next_to_print].fullPrint(infiles[next_to_print].c_str(), format);
+            }
+            allDocStats += vDocStats[next_to_print++];
+         }
+      }
 
       // Print out stats for the current file.
       if (verbose) {
          cout << header << endl;
+         docStats.fullPrint(infiles[i].c_str(), format);
       }
-
-      allDocStats += docStats;
-      docStats.fullPrint(infiles[i].c_str(), format);
    }
-   
+
    printf("\n");
    allDocStats.fullPrint("TOTAL", format);
 }
