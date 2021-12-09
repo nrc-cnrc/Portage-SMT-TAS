@@ -165,7 +165,7 @@ if [[ -n "$source_sentence" && -n "$target_sentence" ]]; then
       fi
    else
       verbose 1 "Adding to the queue: $source_sentence $target_sentence"
-      [[ -z $unittest ]] && usleep 300000  # Unittest delay
+      #[[ -z $unittest ]] && usleep 300000  # Unittest delay
       {
          echo -n `date +"%F %T"`
          echo -n $'\t'

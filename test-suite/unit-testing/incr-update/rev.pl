@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 binmode(STDIN,":encoding(UTF-8)");
 binmode(STDOUT,":encoding(UTF-8)");
 
