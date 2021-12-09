@@ -1,6 +1,7 @@
 ## Dockerfile for building and running Portage on Ubuntu 20.04
 # Preliminary steps, in the Portage-SMT-TAS root directory:
-#    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Then build the image:
 #    docker build --tag portage-u20-builder -f portage-u20-builder.dockerfile .

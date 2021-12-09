@@ -1,7 +1,7 @@
 ## Dockerfile for running Portage on CentOS7
 # Preliminary steps, in the Portage-SMT-TAS root directory:
-#    cp Portage-CentOS7-Dockerfile Dockerfile
-#    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Step 1: build the builder image, which can also be used for running portage:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
@@ -9,7 +9,6 @@
 #    docker build --tag portage-c7-runner -f portage-c7-runner.dockerfile .
 
 ## TODO: configure a user-mountable volume for doing experimental work.
-## TODO: Make Portage usable by users other that portage itself
 
 FROM centos:7 as runner
 

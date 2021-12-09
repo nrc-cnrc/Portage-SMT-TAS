@@ -3,8 +3,8 @@
 Traitement multilingue de textes / Multilingual Text Processing
 Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2021, Sa Majesté la Reine du Chef du Canada
-Copyright 2004-2021, Her Majesty in Right of Canada
+Copyright 2004-2022, Sa Majesté la Reine du Chef du Canada
+Copyright 2004-2022, Her Majesty in Right of Canada
 
 MIT License - see LICENSE
 
@@ -14,7 +14,10 @@ See NOTICE for the Copyright notices of 3rd party libraries.
                           Installing PortageII_cur
 
 We don't use autoconf, so the installation is done manually. We tried to
-keep it simple, but that's not always easy...
+keep it simple, but, to be brutally honest, we failed. Sigh.
+
+However, we recently created dockerfiles with complete working recipes for
+CentOS7 and Ubuntu 20, consider using them as documentation or as such.
 
 This section describes installing PortageII itself. Please scroll down to the
 External dependencies section below for instructions on installing those.
@@ -207,13 +210,24 @@ Mandatory dependencies for all distributions:
       source /path/to/PortageTextProcessing/SETUP.bash
       source /path/to/PortageClusterUtils/SETUP.bash
 
- - Linux - we have tested PortageII on various Linux distributions and it runs
-   without problems, as long as the rest of the dependencies are installed.  We
-   tested older versions on PC-BSD and Mac OS X.  It worked reasonably well on
-   those platforms then, but these are not our regular working platforms and we
-   make no guarantees everything will work correctly.  Things also work
-   reasonably well on Cygwin, but again we make no guarantees.  We have not
-   tested on Solaris at all.
+ - Linux - We recommend CentOS.
+
+   PortageII compiles and runs best on CentOS, which has been our primary
+   platform for developping and testing PortageII for many years.  We're
+   currently using CentOS 7.  See portage-c7-*.dockerfile for a full build
+   recipe that works on CentOS 7.
+
+   RedHat is similar enough to CentOS that it's likely to work well too.
+
+   We can also run and compile on Ubuntu (18.04 or 20.04), with some
+   adjustments.  In particular, the compiler has to be downgraded to gcc-7.5.0
+   and /bin/sh has to be set to bash, not dash.  See
+   portage-u20-builder.dockerfile for a full recipe that works on Ubuntu 20.04.
+
+   We tested older versions of Portage on PC-BSD, Mac OS X, and Cygwin.  It
+   worked reasonably well on those platforms at some point, but these are not
+   our regular working platforms and we make no guarantees things still compile
+   or work on them.
 
  - A large swap file.  Your system should be configured to have twice as much
    swap space as RAM.  Yes, this is contrary to what most system administrators
@@ -265,6 +279,7 @@ Mandatory dependencies for all distributions:
     - Env
     - Normally standard packages, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
+    - Test::Doctest # Only for unit testing during compilation
 
    To find out if you have a package already, try "perldoc <module>", e.g.,
    "perldoc XML::XPath" or "perldoc JSON".
@@ -287,6 +302,7 @@ Mandatory dependencies for all distributions:
          install Time::HiRes
          install SOAP::Lite
          install Env
+         install Test::Doctest
    You have to let cpan install all dependencies.  (Say y or yes to all
    questions.)  You mileage may vary because various compilation steps are
    required.
@@ -481,18 +497,24 @@ Optional dependencies for all distributions:
    required since the library will be installed in the standard locations.
 
    If it is not available via your Linux distro, ICU can be downloaded from
-   http://icu-project.org/download/.  Any version should do; we've tested 49, 4.0
-   and 3.4.
+   http://icu-project.org/download/.  Any version up to 57 should do; we've
+   tested versions between 3.4 and 57 with success.  More recent versions of
+   ICU require C++0x or C++11, but Portage uses C++98.  Yeah, it's an old
+   project, we know!
+
    This worked for us:
-      # Download the ICU4C 49 tarball and expand it
-      wget 'http://download.icu-project.org/files/icu4c/49.1.2/icu4c-49_1_2-src.tgz'
-      tar -xzf icu4c-49_1_2-src.tgz
-      mv icu icu-49.1.2
-      cd icu-49.1.2/source
+      # Download the ICU4C 56.1 tarball and expand it
+      wget https://github.com/unicode-org/icu/releases/download/release-56-1/icu4c-56_1-src.tgz
+      tar -xzf icu4c-56_1-src.tgz
+      mv icu icu4c-56_1
+      cd icu4c-56_1/source
       # Run the configuration program
       ./runConfigureICU Linux --prefix=$PORTAGE/third-party/icu
       # Compile and install
       make -j 4 install
+
+   Note: after installing ICU, you'll need to rerun third-party/conf.d/icu.bash
+   to set the required environment variables before compiling.
 
  - If you are planning to process Chinese text, you need a Chinese segmenter.
    You can obtain and use ICTCLAS, available in various locations on the web,
