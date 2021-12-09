@@ -3,8 +3,8 @@
 Traitement multilingue de textes / Multilingual Text Processing
 Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2018, Sa Majesté la Reine du Chef du Canada
-Copyright 2004-2018, Her Majesty in Right of Canada
+Copyright 2004-2021, Sa Majesté la Reine du Chef du Canada
+Copyright 2004-2021, Her Majesty in Right of Canada
 
 MIT License - see LICENSE
 
@@ -19,6 +19,8 @@ keep it simple, but that's not always easy...
 This section describes installing PortageII itself. Please scroll down to the
 External dependencies section below for instructions on installing those.
 
+Installing from a pre-compiled distribution:
+
 Expand the tar ball to a to a directory of your choice, say $HOME/PortageII-cur
    tar xzf /path/to/PortageII-cur-bin.tar.gz
 
@@ -30,7 +32,7 @@ your own):
 or
    source $HOME/PortageII-cur/SETUP.tcsh
 
-For source code distributions :
+Installing from source:
 
    Verify that you have the compilation dependencies resolved to compile
    PortageII (see Mandatory dependencies for source code distributions):
@@ -240,9 +242,9 @@ Mandatory dependencies for all distributions:
 
    Tell PortageLive where to find Perl by creating these this symlink:
       ln -s /PATH_TO_PERL/bin/perl /opt/PortageII/bin/perl
-   If using multiple PortageLive servers, you need to perform the full Perl
-   installation procedure on each of them, unlike other third party software,
-   which automatically get installed along with PortageLive itself.
+   If using multiple PortageLive servers, you need to make sure Perl is
+   installed on each of them, unlike other third party software, which
+   automatically get installed along with PortageLive itself.
 
  - Perl packages: the following Perl packages are required to run PortageII:
     - XML::XPath
@@ -309,10 +311,11 @@ Mandatory dependencies for all distributions:
    SETUP.bash/tcsh:
       PYTHON_HOME_OVERRIDE=/path/to/python2.7-or-miniconda2
 
-   Install required Python packages: numpy mock theano
+   Install required Python packages: numpy mock theano suds
       # make sure miniconda2/bin is on your path, e.g., by starting a fresh
       # shell, and then:
       conda install numpy mock theano
+      pip install suds
 
    Once you've created a PortageLive server, tell PortageLive where to find
    Python 2.7 by creating these two symlinks:
@@ -322,6 +325,10 @@ Mandatory dependencies for all distributions:
    (For more information on setting up PortageLive, see the PortageLive/
    subdirectory as well as the "PortageLive Manual" section of the PortageII
    user manual: doc/user-manual.html / Portage Live Manual.)
+
+   PS: Yes, Python 2.7 is past its end of life, but this project started before
+   2.7 was even released, and there has not been time to convert all its python
+   scripts to more recent versions.
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,

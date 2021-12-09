@@ -70,15 +70,15 @@ perl_modules:
 
 .PHONY: python_version
 python_version:
-	@$(call check,Python version 2.7,python --version 2>&1 | grep -q 2\.7,Portage required Python 2.7)
+	@$(call check,Python version 2.7,python2 --version 2>&1 | grep -q 2\.7,Portage required Python 2.7)
 	@$(call check,Python with dynamic library,\
-		ldd $$(which python) | egrep -q libpython2\.[0-9]+\.so,\
+		ldd $$(which python2) | egrep -q libpython2\.[0-9]+\.so,\
 		"Portage requires Python 2.7 built with dynamic library support (--enabled-shared). Refer to \$$PORTAGE/INSTALL.")
 
 .PHONY: python_modules
 python_modules:
 	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string shlex shutil tempfile; do \
-		$(call check,Python module $$module,python -c "import $$module" >& /dev/null,NOT FOUND) || rc=1; \
+		$(call check,Python module $$module,python2 -c "import $$module" >& /dev/null,NOT FOUND) || rc=1; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing."
 
 .PHONY: java_version
@@ -90,7 +90,7 @@ java_version:
 .PHONY: make_version
 make_version:
 	@$(call check,make version,\
-		[[ $$( echo "`\make --version | head -n 1 | egrep -o '[0-9\.]+'` >= 3.81" | bc) == 1 ]],\
+		[[ $$( echo "`\make --version | head -n 1 | egrep -o '[0-9]\.[0-9]+'` >= 3.81" | bc) == 1 ]],\
 		Portage requires make-3.81)
 
 

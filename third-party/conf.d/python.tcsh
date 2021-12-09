@@ -38,7 +38,7 @@ if ( -d $PYTHON_HOME ) then
       setenv CPLUS_INCLUDE_PATH $PYTHON_HOME/include:$CPLUS_INCLUDE_PATH
    endif
 else
-   python --version |& grep -q '2\.7' || \
+   python2 --version |& grep -q '2\.7' || \
       echo Error: PortageII requires Python version 2.7
 endif
 

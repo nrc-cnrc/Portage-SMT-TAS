@@ -17,7 +17,7 @@ if [[ -d $PYTHON_HOME ]]; then
    export CPLUS_INCLUDE_PATH=$PYTHON_HOME/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}
    export MANPATH=$PYTHON_HOME/share/man:$MANPATH
    #export PYTHONPATH=${PYTHONPATH:+$PYTHONPATH:}$PYTHON_HOME/lib/python2.7/site-packages
-elif python --version 2>&1 | grep -q '2\.7'; then
+elif python2 --version 2>&1 | grep -q '2\.7'; then
    true
 else
    echo Error: PortageII requires Python version 2.7
