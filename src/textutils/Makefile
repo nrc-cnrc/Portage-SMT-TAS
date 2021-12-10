@@ -56,7 +56,7 @@ test:  perl_doctest
 .PHONY:  perl_doctest
 perl_doctest:  $(addsuffix .doc_test, $(wildcard *.pm))
 %.doc_test:  %
-	perl -MTest::Doctest -e run $<
+	PERL5LIB=.:${PERL5LIB} perl -MTest::Doctest -e run $<
 endif
 
 test:  hashtags_testsuite
