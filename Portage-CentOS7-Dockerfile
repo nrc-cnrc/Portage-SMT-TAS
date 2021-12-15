@@ -1,0 +1,148 @@
+FROM centos:7 as builder
+
+## Create a portage user
+RUN useradd -ms /bin/bash portage
+
+## Create portage working directory
+WORKDIR /usr/local/PortageII
+ENV PORTAGE=/usr/local/PortageII
+RUN chown portage:portage /usr/local/PortageII
+
+## Install portage source code
+COPY --chown=portage:portage . /usr/local/PortageII
+
+## epel-release is required for perl-SOAP-lite and libsvm
+RUN yum -y update && yum -y install epel-release
+
+## Install required Linux applications
+RUN yum -y install gcc-c++ wget bzip2 which make git \
+    autoconf autoconf-archive autogen automake libtool
+
+## Install Perl, Python and Java 1.7.0
+RUN yum -y install perl \
+    perl-Env \
+    perl-JSON \
+    perl-SOAP-Lite \
+    perl-Time-HiRes \
+    perl-XML-Twig \
+    perl-XML-XPath \
+    perl-YAML \
+    python-devel \
+    python3 python3-devel \
+    java-1.7.0-openjdk-headless
+
+## Install ICU
+RUN yum -y install libicu libicu-devel
+
+## Install MTILM (requires fortran)
+RUN yum -y install gcc-gfortran && \
+    cd /tmp && \
+    git clone https://github.com/mitlm/mitlm.git && \
+    cd mitlm && \
+    git checkout v0.4.2 && \
+    autoreconf -i && \
+    ./autogen.sh --prefix $PORTAGE/third-party/mitlm && \
+    make -j 4 && \
+    make -j 4 install && \
+    cd /tmp && \
+    rm -rf mitlm
+
+
+## Install word2vec
+RUN cd /tmp && \
+    git clone https://github.com/dav/word2vec.git && \
+    cd word2vec && \
+    make build && \
+    mkdir -p $PORTAGE/third-party/bin && \
+    cp bin/word2vec $PORTAGE/third-party/bin && \
+    cd /tmp && \
+    rm -rf word2vec
+
+## Install libsvm
+RUN yum -y install libsvm
+
+## Install xmllint (normally it is already installed)
+RUN yum -y install libxml2
+
+## Install Conda and required librairies
+RUN cd /tmp && \
+    wget -q "https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh" && \
+    bash Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2 && \
+    $PORTAGE/third-party/miniconda2/bin/conda install -y numpy mock theano && \
+    rm Miniconda2-latest-Linux-x86_64.sh
+
+## Install ICTCLAS (Chinese segmenter, optional)
+RUN cd /tmp && \
+    git clone https://github.com/pierrchen/ictclas_plus.git && \
+    cd ictclas_plus/Source && \
+    g++ -fpermissive -c *.cpp && \
+    ar -r ictclas.a *.o && \
+    cd ../ && \
+    g++ -o ictclas main.cpp Source/ictclas.a && \
+    mkdir -p $PORTAGE/third-party/bin && \
+    cp -pr ictclas Data $PORTAGE/third-party/bin && \
+    cd /tmp && \
+    rm -rf ictclas_plus
+
+## Install Boost Library (requires compression librairies)
+RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel && \
+    cd /tmp && \
+    wget -q https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2 && \
+    tar -xjf /tmp/boost_1_74_0.tar.bz2 && \
+    cd boost_1_74_0 && \
+    ./bootstrap.sh --prefix=$PORTAGE/third-party/boost && \
+    ./b2 -j4 && \
+    ./b2 install && \
+    cd /tmp && \
+    rm -rf boost_1_74_0.tar.bz2 boost_1_74_0
+
+## Install MGIZA++ (requires Boost and cmake)
+RUN yum install -y cmake && \
+    cd /tmp && \
+    git clone https://github.com/moses-smt/mgiza.git && \
+    export BOOST_ROOT=$PORTAGE/third-party/boost && \
+    cd mgiza/mgizapp && \
+    cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party -DBoost_NO_BOOST_CMAKE=ON . && \
+    make -j 4 && \
+    make install && \
+    cd /tmp  && \
+    rm -rf mgiza
+
+
+## Install TCMalloc and libunwind
+RUN yum -y install libunwind libunwind-devel && \
+    cd /tmp && \
+    wget -q https://github.com/gperftools/gperftools/archive/gperftools-2.8.tar.gz && \
+    tar -xzf gperftools-2.8.tar.gz && \
+    cd gperftools-gperftools-2.8 && \
+    ./autogen.sh && \
+    ./configure --prefix $PORTAGE/third-party/gperftools && \
+    make CXXFLAGS=-g -j 5 && \
+    ( make CXXFLAGS=-g -j 5 check || true ) && \
+    make CXXFLAGS=-g -j 5 install && \
+    cd /tmp && \
+    rm -rf gperftools-gperftools-2.8 gperftools-2.8.tar.gz
+
+## Install testing and debugging tools (CxxTest, Test::Doctest, log4cxx)
+RUN yum -y install \
+    log4cxx log4css-devel \
+    perl-Data-TreeDumper \
+    perl-Time-Piece \
+    perl-CPAN  && \
+    cd $PORTAGE/third-party && \
+    wget -q -P /tmp https://github.com/CxxTest/cxxtest/releases/download/4.4/cxxtest-4.4.tar.gz && \
+    tar -xzf /tmp/cxxtest-4.4.tar.gz && \
+    (echo yes ; echo sudo ; echo yes) | cpan -i Test::Doctest && \
+    cpan -i Tree::Simple && \
+    rm /tmp/cxxtest-4.4.tar.gz
+
+RUN rm -rf /tmp/*
+
+USER portage
+RUN source $PORTAGE/SETUP.bash && \
+    source $PORTAGE/third-party/miniconda2/bin/activate && \
+    cd $PORTAGE/src && \
+    make -j 5 && \
+    make -j 5 install
+
+CMD ["/bin/bash"]
