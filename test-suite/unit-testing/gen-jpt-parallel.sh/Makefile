@@ -137,6 +137,7 @@ testsuite: too_many_chunks
 too_many_chunks: output.too_many_chunks
 
 output.too_many_chunks: corpus_en1 corpus_fr1
+	ulimit -n 1000; \
 	${GJP} -o $@ \
 		-n 50000 \
 		-notreally \

@@ -1,3 +1,11 @@
+## Dockerfile for building and running Portage on CentOS7
+## Preliminary steps, in the Portage-SMT-TAS root directory:
+##    cp Portage-CentOS7-Dockerfile Dockerfile
+##    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+##    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
+## Then build the image:
+##    docker build --tag portage .
+
 FROM centos:7 as builder
 
 ## Create a portage user
@@ -7,16 +15,19 @@ RUN useradd -ms /bin/bash portage
 WORKDIR /usr/local/PortageII
 ENV PORTAGE=/usr/local/PortageII
 RUN chown portage:portage /usr/local/PortageII
-
-## Install portage source code
-COPY --chown=portage:portage . /usr/local/PortageII
+run mkdir $PORTAGE/third-party && chown portage:portage $PORTAGE/third-party
 
 ## epel-release is required for perl-SOAP-lite and libsvm
 RUN yum -y update && yum -y install epel-release
 
 ## Install required Linux applications
-RUN yum -y install gcc-c++ wget bzip2 which make git \
+RUN yum -y install gcc-c++ wget bzip2 which make git time jq vim file \
     autoconf autoconf-archive autogen automake libtool
+
+## We're working with many languages, we need to install all the locales
+## Ref: https://serverfault.com/questions/616790/how-to-add-language-support-on-centos-7-on-docker
+RUN sed -i 's/^override_install_langs/#override_install_langs/' /etc/yum.conf && \
+    yum -y reinstall glibc-common
 
 ## Install Perl, Python and Java 1.7.0
 RUN yum -y install perl \
@@ -84,30 +95,22 @@ RUN cd /tmp && \
     cd /tmp && \
     rm -rf ictclas_plus
 
-## Install Boost Library (requires compression librairies)
-RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel && \
-    cd /tmp && \
-    wget -q https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2 && \
-    tar -xjf /tmp/boost_1_74_0.tar.bz2 && \
-    cd boost_1_74_0 && \
-    ./bootstrap.sh --prefix=$PORTAGE/third-party/boost && \
-    ./b2 -j4 && \
-    ./b2 install && \
-    cd /tmp && \
-    rm -rf boost_1_74_0.tar.bz2 boost_1_74_0
+## Install compression libraries required by Boost
+RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel
+
+## Install Boost Library
+RUN yum install -y boost-devel
 
 ## Install MGIZA++ (requires Boost and cmake)
 RUN yum install -y cmake && \
     cd /tmp && \
     git clone https://github.com/moses-smt/mgiza.git && \
-    export BOOST_ROOT=$PORTAGE/third-party/boost && \
     cd mgiza/mgizapp && \
-    cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party -DBoost_NO_BOOST_CMAKE=ON . && \
+    cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party/mgiza -DBoost_NO_BOOST_CMAKE=ON . && \
     make -j 4 && \
     make install && \
     cd /tmp  && \
     rm -rf mgiza
-
 
 ## Install TCMalloc and libunwind
 RUN yum -y install libunwind libunwind-devel && \
@@ -138,11 +141,40 @@ RUN yum -y install \
 
 RUN rm -rf /tmp/*
 
+## Install portage source code -- defer this after dependencies for better caching
+COPY --chown=portage:portage . /usr/local/PortageII
+
+## The rest of the build is done by the portage user
+USER portage
+
+## Install PortageTextProcessing and PortageClusterUtils
+RUN cd $PORTAGE/third-party && \
+    git clone https://github.com/nrc-cnrc/PortageTextProcessing.git && \
+    git clone https://github.com/nrc-cnrc/PortageClusterUtils && \
+    ln -s $PORTAGE/third-party/PortageTextProcessing/SETUP.bash $PORTAGE/third-party/conf.d/PortageTextProcessing.bash && \
+    ln -s $PORTAGE/third-party/PortageClusterUtils/SETUP.bash $PORTAGE/third-party/conf.d/PortageClusterUtils.bash
+
+## Install the systems used for unit testing
+## TODO Download PortageII-4.0-test-suite-systems.tgz from GitHub ahead of time or,
+##      even better, wget it during the Docker installation process
+##      For now, we assume it was downloaded to the root of the sandbox, so it's in $PORTAGE
+RUN cd $PORTAGE/test-suite && \
+    tar --strip-components=2 -xzf $PORTAGE/PortageII-4.0-test-suite-systems.tgz && \
+
+## Compile and install Portage itself
+# TODO in Makefile.user-conf:
+#  - set BOOST_ROOT=/usr
+#  - set CXXTEST=$PORTAGE/third-party/cxxtest-4.4
+#  - remove all #At NRC lines
+# TODO??? git config core.fileMode false - for when running Docker on Windows?
+# TODO - get tmx-prepro, somehow!
+# TODO - get $PORTAGE/test-suite/systems
 USER portage
 RUN source $PORTAGE/SETUP.bash && \
-    source $PORTAGE/third-party/miniconda2/bin/activate && \
     cd $PORTAGE/src && \
-    make -j 5 && \
-    make -j 5 install
+    make -j 5 BOOST_ROOT=/usr BOOST_ROOT=/usr CXXTEST=$PORTAGE/third-party/cxxtest-4.4 && \
+    make -j 5 BOOST_ROOT=/usr BOOST_ROOT=/usr CXXTEST=$PORTAGE/third-party/cxxtest-4.4 install
+
+RUN echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc
 
 CMD ["/bin/bash"]

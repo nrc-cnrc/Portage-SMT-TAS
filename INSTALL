@@ -217,7 +217,7 @@ Mandatory dependencies for all distributions:
    there appears to be plenty available.
 
  - Standard utilities: awk, bash (3.0 or more recent), bzip2, (e)grep, gzip,
-   head, sed, sort, tail, tar, etc.
+   head, sed, sort, tail, tar, time, etc.
 
  - GNU make 3.81 or more recent - when compiling PortageII and when running the
    experimental framework, our Makefiles use GNU extensions to make, as well as
