@@ -32,6 +32,12 @@ your own):
 or
    source $HOME/PortageII-cur/SETUP.tcsh
 
+Installing using Docker
+
+   Installation of all the dependencies and Portage itself from source takes a
+   lot of patience, so we have provided sample dockerfiles for doing so.
+   See the documentation in *.dockerfile for details.
+
 Installing from source:
 
    Verify that you have the compilation dependencies resolved to compile
