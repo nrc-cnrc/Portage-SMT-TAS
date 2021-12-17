@@ -1,12 +1,18 @@
 ## Dockerfile for building and running Portage on CentOS7
-## Preliminary steps, in the Portage-SMT-TAS root directory:
-##    cp Portage-CentOS7-Dockerfile Dockerfile
-##    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
-##    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
-## Then build the image:
-##    docker build --tag portage .
+# Preliminary steps, in the Portage-SMT-TAS root directory:
+#    cp Portage-CentOS7-Dockerfile Dockerfile
+#    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
+# Then build the image:
+#    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
 
 FROM centos:7 as builder
+
+## Reuse an old yum cache
+# Potential optimization, especially useful when network is slow.
+# Given a previously built image which is running, run
+#   docker cp <imageid>:/var/cache/yum ./saved-yum-cache
+COPY saved-yum-cache? /var/cache/yum
 
 ## Create a portage user
 RUN useradd -ms /bin/bash portage
@@ -38,7 +44,6 @@ RUN yum -y install perl \
     perl-XML-Twig \
     perl-XML-XPath \
     perl-YAML \
-    python-devel \
     python3 python3-devel \
     java-1.7.0-openjdk-headless
 
@@ -57,7 +62,6 @@ RUN yum -y install gcc-gfortran && \
     make -j 4 install && \
     cd /tmp && \
     rm -rf mitlm
-
 
 ## Install word2vec
 RUN cd /tmp && \
@@ -79,8 +83,9 @@ RUN yum -y install libxml2
 RUN cd /tmp && \
     wget -q "https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh" && \
     bash Miniconda2-latest-Linux-x86_64.sh -b -p $PORTAGE/third-party/miniconda2 && \
-    $PORTAGE/third-party/miniconda2/bin/conda install -y numpy mock theano && \
-    rm Miniconda2-latest-Linux-x86_64.sh
+    $PORTAGE/third-party/miniconda2/bin/conda install -y nomkl numpy mock theano && \
+    rm Miniconda2-latest-Linux-x86_64.sh && \
+    $PORTAGE/third-party/miniconda2/bin/conda clean -afy
 
 ## Install ICTCLAS (Chinese segmenter, optional)
 RUN cd /tmp && \
@@ -95,11 +100,11 @@ RUN cd /tmp && \
     cd /tmp && \
     rm -rf ictclas_plus
 
-## Install compression libraries required by Boost
-RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel
+## Install compression libraries required by Boost, and the Boost library itself
+RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel boost-devel
 
-## Install Boost Library
-RUN yum install -y boost-devel
+## Since Boost is yum installed, set BOOST_ROOT to the empty string
+ENV BOOST_ROOT=
 
 ## Install MGIZA++ (requires Boost and cmake)
 RUN yum install -y cmake && \
@@ -138,43 +143,38 @@ RUN yum -y install \
     (echo yes ; echo sudo ; echo yes) | cpan -i Test::Doctest && \
     cpan -i Tree::Simple && \
     rm /tmp/cxxtest-4.4.tar.gz
+ENV CXXTEST_HOME=$PORTAGE/third-party/cxxtest-4.4
 
+## Most steps above clean after themselves, but do a final clean up of /tmp
 RUN rm -rf /tmp/*
 
-## Install portage source code -- defer this after dependencies for better caching
+## Install portage source code -- defer this after dependencies for better docker layer caching
 COPY --chown=portage:portage . /usr/local/PortageII
 
 ## The rest of the build is done by the portage user
 USER portage
 
-## Install PortageTextProcessing and PortageClusterUtils
+## Install PortageTextProcessing and PortageClusterUtils and config portage
 RUN cd $PORTAGE/third-party && \
     git clone https://github.com/nrc-cnrc/PortageTextProcessing.git && \
-    git clone https://github.com/nrc-cnrc/PortageClusterUtils && \
     ln -s $PORTAGE/third-party/PortageTextProcessing/SETUP.bash $PORTAGE/third-party/conf.d/PortageTextProcessing.bash && \
-    ln -s $PORTAGE/third-party/PortageClusterUtils/SETUP.bash $PORTAGE/third-party/conf.d/PortageClusterUtils.bash
+    git clone https://github.com/nrc-cnrc/PortageClusterUtils && \
+    ln -s $PORTAGE/third-party/PortageClusterUtils/SETUP.bash $PORTAGE/third-party/conf.d/PortageClusterUtils.bash && \
+    echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc
 
 ## Install the systems used for unit testing
 ## TODO Download PortageII-4.0-test-suite-systems.tgz from GitHub ahead of time or,
-##      even better, wget it during the Docker installation process
+##      even better, wget it during the Docker installation process, once it's public
 ##      For now, we assume it was downloaded to the root of the sandbox, so it's in $PORTAGE
 RUN cd $PORTAGE/test-suite && \
     tar --strip-components=2 -xzf $PORTAGE/PortageII-4.0-test-suite-systems.tgz && \
+    rm $PORTAGE/PortageII-4.0-test-suite-systems.tgz
 
 ## Compile and install Portage itself
-# TODO in Makefile.user-conf:
-#  - set BOOST_ROOT=/usr
-#  - set CXXTEST=$PORTAGE/third-party/cxxtest-4.4
-#  - remove all #At NRC lines
-# TODO??? git config core.fileMode false - for when running Docker on Windows?
 # TODO - get tmx-prepro, somehow!
-# TODO - get $PORTAGE/test-suite/systems
-USER portage
 RUN source $PORTAGE/SETUP.bash && \
     cd $PORTAGE/src && \
-    make -j 5 BOOST_ROOT=/usr BOOST_ROOT=/usr CXXTEST=$PORTAGE/third-party/cxxtest-4.4 && \
-    make -j 5 BOOST_ROOT=/usr BOOST_ROOT=/usr CXXTEST=$PORTAGE/third-party/cxxtest-4.4 install
-
-RUN echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc
+    make -j 5 && \
+    make -j 5 install
 
 CMD ["/bin/bash"]

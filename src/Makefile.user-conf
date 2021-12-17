@@ -21,12 +21,6 @@
 # SETUP.bash/tcsh and source the appropriate file for your shell before trying
 # to compile or use PortageII.
 
-# AT NRC: lines with this comment are automatically removed when creating the
-# AT NRC: PORTAGEshared CD.  If you commit changes to this file, make sure you
-# AT NRC: mark NRC-specific lines with this comment, while leaving untouched
-# AT NRC: the (sometimes redundant) lines that are intended as defaults on the
-# AT NRC: official CD.
-
 
 
 # =============================================================================
@@ -66,7 +60,6 @@ BOOST_ROOT ?= ${PORTAGE}/third-party/boost
 
 #ICU ?= NONE
 ICU ?= $(PORTAGE)/third-party/icu
-ICU ?= $(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        CXXTEST
@@ -75,10 +68,12 @@ ICU ?= $(PORTAGE)# AT NRC
 #                  compilation of PortageII will not be affected.
 #                  Set this value so that $(CXXTEST)/bin/cxxtestgen and
 #                  $(CXXTEST)/cxxtest/*.h exist.
+#                  CXXTEST_HOME is a standard altenative name for setting the
+#                  path to cxxtext via your environment.
 
 #CXXTEST ?= NONE
-CXXTEST ?= $(PORTAGE)/third-party/cxxtest
-CXXTEST:=${CXXTEST_HOME}  # AT NRC
+CXXTEST_HOME ?= $(PORTAGE)/third-party/cxxtest-4.4
+CXXTEST ?= $(CXXTEST_HOME)
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
@@ -88,8 +83,7 @@ CXXTEST:=${CXXTEST_HOME}  # AT NRC
 #                  only used by rescore_train.  (Other programs are
 #                  parallelized via our various *-parallel.sh scripts).
 
-PORTAGE_OPENMP?=-fopenmp
-PORTAGE_OPENMP=-fopenmp # AT NRC
+PORTAGE_OPENMP ?= -fopenmp
 
 # ------------------------------------
 # Variable:        LOG4CXX
@@ -105,7 +99,6 @@ PORTAGE_OPENMP=-fopenmp # AT NRC
 
 LOG4CXX ?= NONE
 #LOG4CXX = $(PORTAGE)/third-party/log4cxx
-LOG4CXX ?= $(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_CTAGS
@@ -163,4 +156,3 @@ TCMALLOC ?= $(PORTAGE)/third-party/gperftools
 
 #GOOGLE_PROFILER ?= NONE
 GOOGLE_PROFILER ?= $(PORTAGE)/third-party/gperftools
-
