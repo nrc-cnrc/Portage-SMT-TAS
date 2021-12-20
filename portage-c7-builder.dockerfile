@@ -5,6 +5,9 @@
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Then build the image:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
+# If you want to build a learner image including only the runtime software, you can
+# then also build the runner, which copies stuff from the builder image:
+#    docker build --tag portage-c7-runner -f portage-c7-runner.dockerfile .
 
 FROM centos:7 as builder
 
@@ -114,6 +117,7 @@ RUN yum install -y cmake && \
     cmake -DCMAKE_INSTALL_PREFIX=$PORTAGE/third-party/mgiza -DBoost_NO_BOOST_CMAKE=ON . && \
     make -j 4 && \
     make install && \
+    chmod -R o+rX $PORTAGE/third-party/mgiza && \
     cd /tmp  && \
     rm -rf mgiza
 
@@ -160,7 +164,8 @@ RUN cd $PORTAGE/third-party && \
     ln -s $PORTAGE/third-party/PortageTextProcessing/SETUP.bash $PORTAGE/third-party/conf.d/PortageTextProcessing.bash && \
     git clone https://github.com/nrc-cnrc/PortageClusterUtils && \
     ln -s $PORTAGE/third-party/PortageClusterUtils/SETUP.bash $PORTAGE/third-party/conf.d/PortageClusterUtils.bash && \
-    echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc
+    echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc && \
+    chmod 755 /home/portage /home/portage/.bashrc
 
 ## Install the systems used for unit testing
 ## TODO Download PortageII-4.0-test-suite-systems.tgz from GitHub ahead of time or,
@@ -168,6 +173,7 @@ RUN cd $PORTAGE/third-party && \
 ##      For now, we assume it was downloaded to the root of the sandbox, so it's in $PORTAGE
 RUN cd $PORTAGE/test-suite && \
     tar --strip-components=2 -xzf $PORTAGE/PortageII-4.0-test-suite-systems.tgz && \
+    chmod -R o+rX systems && \
     rm $PORTAGE/PortageII-4.0-test-suite-systems.tgz
 
 ## Compile and install Portage itself
@@ -175,6 +181,7 @@ RUN cd $PORTAGE/test-suite && \
 RUN source $PORTAGE/SETUP.bash && \
     cd $PORTAGE/src && \
     make -j 5 && \
-    make -j 5 install
+    make -j 5 install && \
+    chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
 
 CMD ["/bin/bash"]

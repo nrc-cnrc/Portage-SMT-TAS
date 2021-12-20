@@ -1,4 +1,8 @@
 ## Dockerfile for running Portage on CentOS7
+# Preliminary steps, in the Portage-SMT-TAS root directory:
+#    cp Portage-CentOS7-Dockerfile Dockerfile
+#    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
+#    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Step 1: build the builder image, which can also be used for running portage:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
 # Step 2: build the runner image, a leaner image with only the runtime software:
@@ -55,8 +59,10 @@ RUN useradd -ms /bin/bash portage
 ENV PORTAGE=/usr/local/PortageII
 COPY --from=portage-c7-builder:latest /usr/local/PortageII /usr/local/PortageII
 
-USER portage
+## Add Portage/SETUP.bash and portage's .bashrc and make sure other users can use it too
+RUN echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc && \
+    chmod 755 /home/portage /home/portage/.bashrc
 
-RUN echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc
+USER portage
 
 CMD ["/bin/bash"]
