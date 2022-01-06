@@ -22,13 +22,13 @@ Statistical Machine Translation code base, although it does not constitute a
 PortageII is the second generation of SMT software released by the NRC.
 
 log4j patch  2022-01-??
- We have analyzed the Portage/PortageII code base to asses its vulnerability to
- the log4shell CVE reported in December 2021. We estimate that the risk of
+ We have analyzed the Portage/PortageII code base to assess its vulnerability
+ to the log4shell CVE reported in December 2021. We estimate that the risk of
  exploiting the log4j vulnerabilities on a machine with Portage/PortageII
- running is minimal, because the code using log4j is not exposed on a
- PortageLive run-time server.  It is only used during the training of Portage
- models, and only to print statistics produced by the model-training software
- itself, and never user data.
+ is minimal, because the code using log4j is not exposed on a PortageLive
+ run-time server.  It is only used during the training of Portage models, and
+ only to print statistics produced by the model-training software itself, and
+ never user data.
 
  Furthermore, Portage uses the older version of log4j, 1.2.14, which also has
  known vulnerabilities, but much less severe than the log4shell CVE found in
