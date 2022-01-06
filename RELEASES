@@ -21,6 +21,43 @@ Statistical Machine Translation code base, although it does not constitute a
 
 PortageII is the second generation of SMT software released by the NRC.
 
+log4j patch  2022-01-??
+ We have analyzed the Portage/PortageII code base to asses its vulnerability to
+ the log4shell CVE reported in December 2021. We estimate that the risk of
+ exploiting the log4j vulnerabilities on a machine with Portage/PortageII
+ running is minimal, because the code using log4j is not exposed on a
+ PortageLive run-time server.  It is only used during the training of Portage
+ models, and only to print statistics produced by the model-training software
+ itself, and never user data.
+
+ Furthermore, Portage uses the older version of log4j, 1.2.14, which also has
+ known vulnerabilities, but much less severe than the log4shell CVE found in
+ log4j 2.* (before 2.17).
+
+ We therefore do not consider it essential to patch any deployed Portage
+ systems.
+
+ However, as of January 2022, the current main branch is patched for log4j
+ vulnerabilities.
+
+ The relevant changes are:
+  - Java >= 1.8 is now required, since log4j 2.17+ is not available for earlier
+    versions.
+  - structpred.jar has been updated to use log4j 2.17.1 instead of 1.2.14
+    (The pre-compiled code for decoder weight optimization is found in
+    structpred.jar, located in src/rescoring/ and/or installed in bin/.)
+
+ Patching instructions:
+  - if you have PortageII-3.0 or PortageII-4.0 installed, replace the file
+    structpred.jar, normally installed in $PORTAGE/bin/, by the version in the
+    current main branch under src/rescoring/.
+  - if the machine is using java 1.6 or java 1.7, update java to 1.8. On CentOS
+    7, this can be done by running:
+       sudo yum install java-1.8.0-openjdk
+    or
+       sudo yum install java-1.8.0-openjdk-headless
+
+
 PortageII 4.0  2018-07-19
  This release adds two significant new modules to PortageII:
   - Training of Neural Network Joint Models (NNJMs) on your own data

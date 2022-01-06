@@ -84,8 +84,8 @@ python_modules:
 .PHONY: java_version
 java_version:
 	@$(call check,Java version,\
-		[[ $$(echo "$$(java -Xmx1000m -version 2>&1 | egrep -o -m 1 '[0-9]+\.[0-9]+') >= 1.6" | bc) == 1 ]],\
-		"Portage requires Java 1.6 or more recent." Found `which java`: `java -Xmx1000m -version 2>&1`.)
+		[[ $$(echo "$$(java -Xmx1000m -version 2>&1 | egrep -o -m 1 '[0-9]+\.[0-9]+') >= 1.8" | bc) == 1 ]],\
+		"Portage requires Java 1.8 or more recent." Found `which java`: `java -Xmx1000m -version 2>&1`.)
 
 .PHONY: make_version
 make_version:

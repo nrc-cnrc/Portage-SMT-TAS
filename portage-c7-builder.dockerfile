@@ -38,7 +38,7 @@ RUN yum -y install gcc-c++ wget bzip2 which make git time jq vim file \
 RUN sed -i 's/^override_install_langs/#override_install_langs/' /etc/yum.conf && \
     yum -y reinstall glibc-common
 
-## Install Perl, Python and Java 1.7.0
+## Install Perl, Python and Java 1.8.0
 RUN yum -y install perl \
     perl-Env \
     perl-JSON \
@@ -48,7 +48,7 @@ RUN yum -y install perl \
     perl-XML-XPath \
     perl-YAML \
     python3 python3-devel \
-    java-1.7.0-openjdk-headless
+    java-1.8.0-openjdk-headless
 
 ## Install ICU
 RUN yum -y install libicu libicu-devel

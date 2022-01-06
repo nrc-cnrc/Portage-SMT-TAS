@@ -353,10 +353,10 @@ Mandatory dependencies for all distributions:
       make -j 5
       make -j 5 install
 
- - Java - A JRE (Java Runtime Environment) version 1.6 or more recent is
+ - Java - A JRE (Java Runtime Environment) version 1.8 or more recent is
    required to perform decoder weight tuning.  The command "java" must be on
-   your PATH.  Running "java -version" should produce something like 1.6.0_nn
-   or 1.7.0_nn if your installation is correct.  (Set JAVA_HOME_OVERRIDE in
+   your PATH.  Running "java -version" should produce something like 1.8.0_nn
+   or greater if your installation is correct.  (Set JAVA_HOME_OVERRIDE in
    SETUP.bash/tcsh if you install it in a non-standard location.)
 
  - MGIZA++ - PortageII supports combining IBM4 alignments with its own HMM and
