@@ -257,6 +257,7 @@ Mandatory dependencies for all distributions:
     - XML::Twig version 3.32 or later, including the xml_grep tool that comes
       with it, and all of XML::Twig's dependencies - used to process XML files
       such as TMX or XLIFF
+    - XML::Writer
     - JSON
     - YAML
     - Time::HiRes
@@ -269,9 +270,10 @@ Mandatory dependencies for all distributions:
    "perldoc XML::XPath" or "perldoc JSON".
 
    If you're using yum or another Linux package manager, installing
-   perl-XML-XPath, perl-XML-Twig, perl-JSON, perl-YAML, perl-SOAP-Lite, and
-   perl-Time-HiRes, perl-Env including all dependencies, should do the trick.
-   This has to be done as root.  This is by far the easiest way to go.
+   perl-XML-XPath, perl-XML-Twig, perl-XML-Writer, perl-JSON, perl-YAML,
+   perl-SOAP-Lite, and perl-Time-HiRes, perl-Env including all dependencies,
+   should do the trick.  This has to be done as root.  This is by far the
+   easiest way to go.
 
    Failing that, you can try using cpan.  Executed as root, or if you compiled
    Perl manually following the instructions above, this might work:

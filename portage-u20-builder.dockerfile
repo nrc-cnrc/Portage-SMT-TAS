@@ -22,12 +22,15 @@ RUN mkdir $PORTAGE/third-party && chown portage:portage $PORTAGE/third-party
 ## Update the OS and install required Linux utilities and compilers
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
-    apt-get install -y less wget make git time jq vim g++-7 gcc-7 gfortran libtool \
+    apt-get install -y less wget make git time jq vim bsdmainutils bc \
+                       g++-7 gcc-7 gfortran libtool \
                        autoconf autoconf-archive autogen automake && \
     ln -sf g++-7 /usr/bin/g++ && \
     ln -sf gcc-7 /usr/bin/gcc && \
     # We work with multi-lingual language data!
-    apt-get install -y locales-all
+    apt-get install -y locales-all && \
+    # Portage is not compatible wish the default /bin/sh=dash on Ubuntu - we need bash
+    ln -sf bash /bin/sh
 
 ## Perl and required modules; python3; Java 1.8
 RUN apt-get install -y \
@@ -36,7 +39,10 @@ RUN apt-get install -y \
     libsoap-lite-perl \
     libxml-twig-perl \
     libxml-xpath-perl \
+    libxml-writer-perl \
     libyaml-perl \
+    libxml2-utils \
+    xml-twig-tools \
     python3 \
     openjdk-8-jre-headless
 
@@ -101,6 +107,16 @@ RUN apt-get install -y cmake && \
     cd /tmp  && \
     rm -rf mgiza
 
+## Install libsvm
+# On Ubuntu, it's not available as a distro package, so compile it from source
+RUN cd /tmp && \
+    git clone -b v325 https://github.com/cjlin1/libsvm && \
+    cd libsvm && \
+    make -j 5 && \
+    cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin && \
+    cd /tmp && \
+    rm -rf libsvm
+
 ## Install TCMalloc and libunwind
 RUN apt-get install -y libunwind-dev && \
     cd /tmp && \
@@ -163,10 +179,10 @@ RUN cd $PORTAGE/test-suite && \
 
 ## Compile and install Portage itself
 # TODO - get tmx-prepro, somehow!
-#RUN source $PORTAGE/SETUP.bash && \
-#    cd $PORTAGE/src && \
-#    make -j 5 && \
-#    make -j 5 install && \
-#    chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
+RUN source $PORTAGE/SETUP.bash && \
+    cd $PORTAGE/src && \
+    make -j 5 && \
+    make -j 5 install && \
+    chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
 
 CMD ["/bin/bash"]

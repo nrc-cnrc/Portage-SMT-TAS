@@ -45,7 +45,9 @@ RUN yum -y install perl \
     perl-Time-HiRes \
     perl-XML-Twig \
     perl-XML-XPath \
+    perl-XML-Writer \
     perl-YAML \
+    libxml2 \
     python3 python3-devel \
     java-1.8.0-openjdk-headless
 
@@ -77,9 +79,6 @@ RUN cd /tmp && \
 
 ## Install libsvm
 RUN yum -y install libsvm
-
-## Install xmllint (normally it is already installed)
-RUN yum -y install libxml2
 
 ## Install Conda and required librairies
 RUN cd /tmp && \

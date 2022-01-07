@@ -42,6 +42,7 @@ RUN yum -y install perl \
     perl-Time-HiRes \
     perl-XML-Twig \
     perl-XML-XPath \
+    perl-XML-Writer \
     perl-YAML \
     perl-Data-TreeDumper \
     perl-Time-Piece \
