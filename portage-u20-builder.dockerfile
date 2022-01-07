@@ -1,20 +1,14 @@
-## Dockerfile for building and running Portage on CentOS7
+## Dockerfile for building and running Portage on Ubuntu 20.04
 # Preliminary steps, in the Portage-SMT-TAS root directory:
 #    git clone git@github.com:nrc-cnrc/PortageTMXPrepro.git tmx-prepro
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Then build the image:
-#    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
+#    docker build --tag portage-u20-builder -f portage-u20-builder.dockerfile .
 # If you want to build a learner image including only the runtime software, you can
 # then also build the runner, which copies stuff from the builder image:
-#    docker build --tag portage-c7-runner -f portage-c7-runner.dockerfile .
+#    docker build --tag portage-u20-runner -f portage-u20-runner.dockerfile .
 
-FROM centos:7 as builder
-
-## Reuse an old yum cache
-# Potential optimization, especially useful when network is slow.
-# Given a previously built image which is running, run
-#   docker cp <imageid>:/var/cache/yum ./saved-yum-cache
-COPY saved-yum-cache? /var/cache/yum
+FROM ubuntu:20.04 as builder
 
 ## Create a portage user
 RUN useradd -ms /bin/bash portage
@@ -25,36 +19,29 @@ ENV PORTAGE=/usr/local/PortageII
 RUN chown portage:portage /usr/local/PortageII
 RUN mkdir $PORTAGE/third-party && chown portage:portage $PORTAGE/third-party
 
-## epel-release is required for perl-SOAP-lite and libsvm
-RUN yum -y update && yum -y install epel-release
+## Update the OS and install required Linux utilities and compilers
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
+    apt-get install -y less wget make git time jq vim g++-7 gcc-7 gfortran libtool \
+                       autoconf autoconf-archive autogen automake && \
+    ln -sf g++-7 /usr/bin/g++ && \
+    ln -sf gcc-7 /usr/bin/gcc && \
+    # We work with multi-lingual language data!
+    apt-get install -y locales-all
 
-## Install required Linux applications
-RUN yum -y install gcc-c++ wget bzip2 which make git time jq vim file \
-    autoconf autoconf-archive autogen automake libtool
-
-## We're working with many languages, we need to install all the locales
-## Ref: https://serverfault.com/questions/616790/how-to-add-language-support-on-centos-7-on-docker
-RUN sed -i 's/^override_install_langs/#override_install_langs/' /etc/yum.conf && \
-    yum -y reinstall glibc-common
-
-## Install Perl, Python and Java 1.8.0
-RUN yum -y install perl \
-    perl-Env \
-    perl-JSON \
-    perl-SOAP-Lite \
-    perl-Time-HiRes \
-    perl-XML-Twig \
-    perl-XML-XPath \
-    perl-YAML \
-    python3 python3-devel \
-    java-1.8.0-openjdk-headless
-
-## Install ICU
-RUN yum -y install libicu libicu-devel
+## Perl and required modules; python3; Java 1.8
+RUN apt-get install -y \
+    perl-doc \
+    libjson-perl \
+    libsoap-lite-perl \
+    libxml-twig-perl \
+    libxml-xpath-perl \
+    libyaml-perl \
+    python3 \
+    openjdk-8-jre-headless
 
 ## Install MTILM (requires fortran)
-RUN yum -y install gcc-gfortran && \
-    cd /tmp && \
+RUN cd /tmp && \
     git clone https://github.com/mitlm/mitlm.git && \
     cd mitlm && \
     git checkout v0.4.2 && \
@@ -74,12 +61,6 @@ RUN cd /tmp && \
     cp bin/word2vec $PORTAGE/third-party/bin && \
     cd /tmp && \
     rm -rf word2vec
-
-## Install libsvm
-RUN yum -y install libsvm
-
-## Install xmllint (normally it is already installed)
-RUN yum -y install libxml2
 
 ## Install Conda and required librairies
 RUN cd /tmp && \
@@ -103,13 +84,13 @@ RUN cd /tmp && \
     rm -rf ictclas_plus
 
 ## Install compression libraries required by Boost, and the Boost library itself
-RUN yum install -y bzip2-devel zlib zlib-devel xz-devel zstd libzstd libzstd-devel boost-devel
+RUN apt-get install -y libbz2-dev libzc-dev libzstd-dev libboost-all-dev
 
 ## Since Boost is yum installed, set BOOST_ROOT to the empty string
 ENV BOOST_ROOT=
 
 ## Install MGIZA++ (requires Boost and cmake)
-RUN yum install -y cmake && \
+RUN apt-get install -y cmake && \
     cd /tmp && \
     git clone https://github.com/moses-smt/mgiza.git && \
     cd mgiza/mgizapp && \
@@ -121,7 +102,7 @@ RUN yum install -y cmake && \
     rm -rf mgiza
 
 ## Install TCMalloc and libunwind
-RUN yum -y install libunwind libunwind-devel && \
+RUN apt-get install -y libunwind-dev && \
     cd /tmp && \
     wget -q https://github.com/gperftools/gperftools/archive/gperftools-2.8.tar.gz && \
     tar -xzf gperftools-2.8.tar.gz && \
@@ -134,17 +115,22 @@ RUN yum -y install libunwind libunwind-devel && \
     cd /tmp && \
     rm -rf gperftools-gperftools-2.8 gperftools-2.8.tar.gz
 
+## Install ICU 57
+# Portage is not compatible with > 57, and the Ubuntu 20.04 distro has 66, so
+# we have to compile it from source.
+RUN cd /tmp && \
+    wget https://github.com/unicode-org/icu/releases/download/release-57-1/icu4c-57_1-src.tgz && \
+    tar -xzf icu4c-57_1-src.tgz && \
+    cd icu/source && \
+    ./runConfigureICU Linux --prefix=$PORTAGE/third-party/icu && \
+    make -j 4 install
+
 ## Install testing and debugging tools (CxxTest, Test::Doctest, log4cxx)
-RUN yum -y install \
-    log4cxx log4css-devel \
-    perl-Data-TreeDumper \
-    perl-Time-Piece \
-    perl-CPAN  && \
+RUN apt-get install -y liblog4cxx-dev libdata-treedumper-perl libtree-simple-perl && \
     cd $PORTAGE/third-party && \
     wget -q -P /tmp https://github.com/CxxTest/cxxtest/releases/download/4.4/cxxtest-4.4.tar.gz && \
     tar -xzf /tmp/cxxtest-4.4.tar.gz && \
-    (echo yes ; echo sudo ; echo yes) | cpan -i Test::Doctest && \
-    cpan -i Tree::Simple && \
+    echo yes | cpan -i Test::Doctest && \
     rm /tmp/cxxtest-4.4.tar.gz
 ENV CXXTEST_HOME=$PORTAGE/third-party/cxxtest-4.4
 
@@ -177,10 +163,10 @@ RUN cd $PORTAGE/test-suite && \
 
 ## Compile and install Portage itself
 # TODO - get tmx-prepro, somehow!
-RUN source $PORTAGE/SETUP.bash && \
-    cd $PORTAGE/src && \
-    make -j 5 && \
-    make -j 5 install && \
-    chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
+#RUN source $PORTAGE/SETUP.bash && \
+#    cd $PORTAGE/src && \
+#    make -j 5 && \
+#    make -j 5 install && \
+#    chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
 
 CMD ["/bin/bash"]
