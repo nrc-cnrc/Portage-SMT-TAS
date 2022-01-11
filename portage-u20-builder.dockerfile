@@ -47,7 +47,7 @@ RUN apt-get install -y \
     python3 \
     openjdk-8-jre-headless
 
-## Install MTILM (requires fortran)
+## Install MITLM (requires fortran)
 RUN cd /tmp && \
     git clone https://github.com/mitlm/mitlm.git && \
     cd mitlm && \

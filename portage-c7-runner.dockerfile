@@ -3,7 +3,7 @@
 #    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
 #    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
-# Step 1: build the builder image, which can also be used for running portage:
+# Step 1: build the builder image, which can also be used for running Portage:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
 # Step 2: build the runner image, a leaner image with only the runtime software:
 #    docker build --tag portage-c7-runner -f portage-c7-runner.dockerfile .
@@ -16,6 +16,7 @@ FROM centos:7 as runner
 # Potential optimization, especially useful when network is slow.
 # Given a previously built image which is running, run
 #   docker cp <imageid>:/var/cache/yum ./saved-yum-cache
+# to save its yum cache for reuse here.
 COPY saved-yum-cache? /var/cache/yum
 
 ## epel-release is required for perl-SOAP-lite and libsvm
@@ -24,7 +25,6 @@ RUN yum -y update && yum -y install epel-release
 ## Install required Linux applications for runtime use of Portage
 RUN yum -y install wget bzip2 which make git time jq vim file \
                    libicu libsvm libxml2 \
-                   gcc-g++ gcc-gfortran \
                    zlib xz zstd libzstd libzstd boost \
                    libunwind log4cxx
 

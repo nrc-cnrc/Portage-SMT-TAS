@@ -11,8 +11,8 @@ if ( -d $_JAVA_HOME ) then
    setenv MANPATH $_JAVA_HOME/share/man:$MANPATH
    setenv JAVA_HOME $_JAVA_HOME
 else
-   java -version |& egrep -q '(openjdk|java) version "1\.([6789]|\d\d)' || \
-      echo Error: PortageII requires Java version 1.6 or more recent
+   java -version |& egrep -q '(openjdk|java) version "1\.([89]|\d\d)' || \
+      echo Error: PortageII requires Java version 1.8 or more recent
 endif
 
 unset _JAVA_HOME

@@ -6,10 +6,10 @@ if [[ -d $JAVA_HOME ]]; then
    export PATH=$JAVA_HOME/bin:$PATH
    export MANPATH=$JAVA_HOME/man:$MANPATH
    export JAVA_HOME
-elif java -version 2>&1 | egrep -q '(openjdk|java) version "1\.([6789]|\d\d)'; then
+elif java -version 2>&1 | egrep -q '(openjdk|java) version "1\.([89]|\d\d)'; then
    true
 else
-   echo Error: PortageII requires Java version 1.6 or more recent
+   echo Error: PortageII requires Java version 1.8 or more recent
 fi
 
 

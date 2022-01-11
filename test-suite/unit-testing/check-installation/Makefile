@@ -96,11 +96,11 @@ make_version:
 
 # Either this is a binary distribution of Portage in which case we don't need a compiler
 # or we need to compile Portage with g++ version 4.2 or greater.
-# In a binary distro, portage_info should be under something like:
-# ~/PortageII-3.0/bin/x86_64-el5-icu/portage_info
+# If portage_info is found on the path, we'll assume we have compiled or pre-compiled
+# Portage and we don't need to check the compiler version.
 .PHONY: gcc_version
 gcc_version:
-	@[[ `which portage_info` =~ bin/[^/]+/portage_info ]] \
+	@[[ `which portage_info` =~ bin.*/portage_info ]] \
 	|| [[ $$( echo "`${CXX} --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+' | head -n 1` >= 4.2" | bc) == 1 ]] \
 	|| ! echo "*** Portage requires at least g++-4.2, unless you have a binary distribution. ***"
 

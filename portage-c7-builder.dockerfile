@@ -15,6 +15,7 @@ FROM centos:7 as builder
 # Potential optimization, especially useful when network is slow.
 # Given a previously built image which is running, run
 #   docker cp <imageid>:/var/cache/yum ./saved-yum-cache
+# to save its yum cache for reuse here.
 COPY saved-yum-cache? /var/cache/yum
 
 ## Create a portage user
@@ -31,7 +32,7 @@ RUN yum -y update && yum -y install epel-release
 
 ## Install required Linux applications
 RUN yum -y install gcc-c++ wget bzip2 which make git time jq vim file \
-    autoconf autoconf-archive autogen automake libtool
+    autoconf autoconf-archive autogen automake libtool libicu libicu-devel
 
 ## We're working with many languages, we need to install all the locales
 ## Ref: https://serverfault.com/questions/616790/how-to-add-language-support-on-centos-7-on-docker
@@ -52,10 +53,7 @@ RUN yum -y install perl \
     python3 python3-devel \
     java-1.8.0-openjdk-headless
 
-## Install ICU
-RUN yum -y install libicu libicu-devel
-
-## Install MTILM (requires fortran)
+## Install MITLM (requires fortran)
 RUN yum -y install gcc-gfortran && \
     cd /tmp && \
     git clone https://github.com/mitlm/mitlm.git && \

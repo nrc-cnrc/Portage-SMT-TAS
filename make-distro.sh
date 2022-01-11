@@ -418,6 +418,9 @@ generate_user_manual() {
 }
 
 get_user_manual_lizzy() {
+   # OBSOLETE - this is no longer how we generate the user manual, see
+   # generate_user_manual instead.
+
    # Note: the user manual snapshot is created by loading this link:
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual_lizzy
