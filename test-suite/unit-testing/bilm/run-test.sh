@@ -16,6 +16,11 @@
 # Cluster overhead dominates in this suite, so disable it.
 export PORTAGE_NOCLUSTER=1
 
+if ! which-test.sh ngram-count; then
+    echo SKIPPED: ngram-count is not installed, skipping this test suite.
+    exit 3
+fi
+
 make clean
 make gitignore
 BAD=

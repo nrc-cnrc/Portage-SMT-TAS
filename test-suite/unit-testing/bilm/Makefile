@@ -16,7 +16,7 @@
 SHELL=/bin/bash
 
 ifneq ($(shell which ngram-count &> /dev/null && echo 0),0)
-$(error Error: we need ngram-count from SRILM for this unittest!)
+$(error SKIP: we need ngram-count from SRILM for this unittest!)
 endif
 
 all: out out-tppt err_min_lmc coarseout boundary_cases

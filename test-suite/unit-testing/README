@@ -196,6 +196,11 @@ In order for a unit test to work properly in this directory, you should:
 with a 0 status on success, non-0 status on failure.  Doing so will make
 ./run-all-tests.sh run your test and report on its success or failure.
 
+If the test needs to be skipped because it relies on some optional dependency
+that is missing, it should exit with status 3.  Note: don't use this status for
+tests that rely on mandatory Portage dependencies, only tests that rely on
+optional Portage dependencies.  See bilm/run-test.sh, for example.
+
 2. Create a Makefile that contains at least this code:
    TEMP_FILES=<list of temp files that might be created when the test is run>
    TEMP_DIRS=<list of temp directories that might be created when the test is run>
