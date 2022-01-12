@@ -183,9 +183,9 @@ endif
 # FIRST_CF is useful if you want specify a custom library location:
 #    make FIRST_CF='-L/my/custom/lib -I/my/custom/include'
 
-CC = gcc
-CXX = g++
-OPT_LEVEL=-O3
+CC ?= gcc
+CXX ?= g++
+OPT_LEVEL ?= -O3
 
 # OPTS is for compilation and linking options
 ifeq ($(OSTYPE),CYGWIN)
