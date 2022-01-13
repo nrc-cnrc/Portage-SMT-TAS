@@ -11,7 +11,7 @@ MIT License - see LICENSE
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 
-                             Brief Description
+                                Description
 
 Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
@@ -50,10 +50,9 @@ and can be construed to refer to the same system, or one of its versions.  When
 you see PortageII_cur, that's a placeholder that our script for creating an
 official release replaces by the actual version name and number.
 
-Note that some of the Portage tools were previously spliced into other GitHub
-repos:
+Note that some of the Portage tools have been spliced into other GitHub repos:
  - https://github.com/nrc-cnrc/PortageTextProcessing contains text processing
-   tools that are still particularly relevant for NMT work.
+   tools that are relevant for both NMT and SMT work.
  - https://github.com/nrc-cnrc/PortageClusterUtils contains the multi-core and
    high-performance cluster parallelization tools that were developped for
    Portage, but can be used for other projects as well.
@@ -87,7 +86,7 @@ phrase-based statistical machine translation, including:
  - truecasing (restoring upper case letters in the output of the translation);
  - evaluation using BLEU, WER or PER.
  - a tightly packed representation of various model files (LMs, TMs, (H)LDMs,
-   suffix arrays) for instant loading and fast access via memory-mapped IO;
+   suffix arrays) for instant loading and fast access via memory-mapped I/O;
  - a confidence estimation module to compute a per-sentence quality
    prediction/estimation of the translations produced by Portage;
  - an API to incorporate the decoder into other applications using SOAP or cgi;
@@ -98,7 +97,8 @@ phrase-based statistical machine translation, including:
  - code to handle translation projects in the TMX and XLIFF format, with
    optional transfer of formatting tags from the source text to the output.
  - an experimental framework -- a collection of tools to automate running all
-   the components required to train a full machine translation system;
+   the components required to train a full machine translation system (see
+   https://github.com/nrc-cnrc/PortageTrainingFramework);
  - generic en->fr and fr->en models to supplement in-domain training corpora,
    for improved translation quality, especially for smaller corpora;
  - lots of general utility code needed for the above.
@@ -106,17 +106,18 @@ phrase-based statistical machine translation, including:
 
                          Contents of this directory
 
-   bin/         executable code (if included in your distribution)
-   doc/         documentation
+   bin/         executable code (once compiled)
+   doc/         documentation (once generated)
    framework/   framework for training PortageII and doing experiments [TODO - this will be a separate GitHub repo]
    generic-model/ location to install PortageGenericModel 2.0 [TODO - where will this be?]
-   lib/         run-time libraries (if included in your distribution)
+   lib/         run-time libraries (once compiled)
    logs/        place-holder for runtime logs
    PortageLive/ files needed to setup a runtime translation server
-   src/         source code (if included in your distribution)
+   src/         source code
    test-suite/  various test suites
    third-party/ non-NRC software distributed with PortageII for convenience
-   tmx-prepro/  tools to extract and preprocess training corpora from TMX files [TODO - this will be a separate GitHub repo]
+   tmx-prepro/  tools to extract and preprocess training corpora from TMX files
+                [TODO - this will be a separate GitHub repo]
    INSTALL      installation instructions
    NOTICE       third party Copyright notices
    README       this file
@@ -142,9 +143,9 @@ For further documentation, look at the contents of doc/.
 
                      Upgrading from a previous version
 
-If you have models that were created using a previous version of PortageII, we
-strongly recommend that you retrain new models with the current version, to
-take advantage of the new features.
+If you have models that were created using a version of PortageII older than
+3.0, we strongly recommend that you retrain new models with the current
+version, to take advantage of the new features.
 
 Between PortageII 2.x and PortageII 3.0, we have conducted extensive
 experiments to optimize the training procedures, and updated the framework

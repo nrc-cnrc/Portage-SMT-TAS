@@ -1,5 +1,5 @@
                               Portage-SMT-TAS
- 
+
 Traitement multilingue de textes / Multilingual Text Processing
 Centre de recherche en technologies numériques / Digital Technologies Research Centre
 Conseil national de recherches Canada / National Research Council Canada
@@ -12,34 +12,34 @@ Voir fichier NOTICE pour les avis de droit d'auteur des logiciels tiers.
 
 
                                Description
-                             
+
 Portage est un projet exploratoire sur les techniques de traduction
 automatique statistiques (TAS -- en anglais: Statistical Machine
 Translation ou SMT).  Différents systèmes de traduction automatique et
 utilitaires ont été développés dans le cadre du projet Portage. Nous
 les regroupons dans cette logithèque, sous le nom "Portage-SMT-TAS".
 
-Certains utilitaires étaient autrefois archivés dans d'autres
-logithèques GitHub: 
- - https://github.com/nrc-cnrc/PortageTextProcessing contient des
-   outils de traitement de texte particulièrement pertinent pour la
-   traduction automatique neuronale (TAN). 
+Certains utilitaires autrefois dans Portage-SMT-TAS ont été déplacés vers
+d'autres logithèques GitHub:
+ - https://github.com/nrc-cnrc/PortageTextProcessing contient des outils
+   de traitement de texte pertinents tant pour la traduction automatique
+   neuronale (TAN) que pour la TAS.
  - https://github.com/nrc-cnrc/PortageClusterUtils contient des outils
    de parallélisation développés pour Portage, mais qui peuvent servir
-   à d'autres projets. 
+   à d'autres projets.
 
 Portage-SMT-TAS contient des outils permettant:
  - le prétraitement du français, de l'anglais, de l'espagnol et du danois
    (tokenization, détokenization, réduction de casse, alignement), du chinois
-   (traitement des dates et des nombres) et de l'arabe (intégration avec le 
+   (traitement des dates et des nombres) et de l'arabe (intégration avec le
    tokenizeur MADA);
  - l'entraînement de modèles de traduction lexicaux (modèles IBM 1 et
    2, HMM, plus intégration avec MGiza++ pour IBM4) à partir de corpus
-   alignés; 
+   alignés;
  - l'entraînement de modèles de traduction par segments (phrase-based
-   MT) à partir de corpus alignés et de modèles lexicaux; 
+   MT) à partir de corpus alignés et de modèles lexicaux;
  - l'entraînement de modèles de distortion lexicalisés, et leurs
-   variantes hiérarchiques. 
+   variantes hiérarchiques.
  - l'entraînement, l'affinage et l'utilisation des "Neural Network
    Joint Models" (NNJM) pour améliorer la qualité des traductions;
  - le filtrage des modèles de traduction et de langue pour ne retenir
@@ -51,51 +51,53 @@ Portage-SMT-TAS contient des outils permettant:
    résultats ou de treillis;
  - le rescoring (choix d'une traduction dans une liste des n-meilleurs
    résultats) avec des sources d'information externes au décodeur; une
-   collection de telles sources est également disponible;
+   collection de telles sources d'information est incluse;
  - l'optimisation des poids, tant pour le décodage que pour le
    rescoring, au moyen notamment des algorithmes N-Best MERT, Lattice
-   MIRA et N-Best MIRA; 
+   MIRA et N-Best MIRA;
  - la restoration de la casse;
  - l'évaluation au moyen des métriques BLEU, WER et PER;
  - l'utilisation de formats compacts pour les modèles de langue
    (hiérarchiques ou non), les modèles de traduction et les tableaux de
    suffixes, permettant leur chargement rapide et leur accès en
-   topographie mémoire (memory-mapped IO).
+   topographie mémoire (memory-mapped I/O).
  - l'estimation de la qualité des traductions produites par Portage au
    niveau des phrases;
  - le déploiement d'un serveur PortageLive, accessible via une API
-   SOAP, un script CGI ou une interface de ligne de commande
+   SOAP, un script CGI ou une interface de ligne de commande;
  - l'adaptation des modèles à un document;
  - la manipulation de projets en formats TMX et XLIFF, incluant le
    transfert des balises XML du texte source à la traduction;
 
 En outre, Portage-SMT-TAS comprend:
  - un cadre d'expérimentation, permettant d'automatiser la création de
-   toutes les composantes d'un système Portage
+   toutes les composantes d'un système Portage (voir
+   https://github.com/nrc-cnrc/PortageTrainingFramework);
  - des systèmes de traduction génériques entre l'anglais et le
-   français, pouvant être utilisés comme point de départ pour 
-   développer des systèmes avec peu de données;
+   français, pouvant être utilisés comme point de départ pour
+   développer des systèmes avec peu de données (voir [TODO INSÉRER
+   L'URL ICI]);
  - un grand nombre de programmes utilitaires.
 
 
                          Contenu de la logithèque
 
-   bin/         programmes exécutables
-   doc/         documentation
+   bin/         programmes exécutables (une fois compilés)
+   doc/         documentation (une fois générée)
    framework/   cadre d'expérimentation
-   		[TODO - ceci sera une logithèque Github distincte]
+                [TODO - ceci sera une logithèque Github distincte]
    generic-model/ modèles génériques EN-FR et FR-EN
-   		  PortageGenericModel 2.0
-   		  [TODO - où seront ces modèles?]
-   lib/         logithèque d'exécutables
+                PortageGenericModel 2.0
+                [TODO - où seront ces modèles?]
+   lib/         logithèque d'exécutables (une fois compilés)
    logs/        fichiers journaux
    PortageLive/ fichiers requis par les serveurs de traduction
    src/         code source
    test-suite/  programmes de test
    third-party/ logiciels tiers (ne provenant pas du CNRC),
-   		fournis avec Portage pour des raisons de commodité
+                fournis avec Portage pour des raisons de commodité
    tmx-prepro/  manipulation de fichiers TMX
-   		[TODO - ceci sera une logithèque Github distincte]
+                [TODO - ceci sera une logithèque Github distincte]
    INSTALL      instructions pour l'installation
    NOTICE       avis de droit d'auteur des logiciels tiers
    README       version anglaise de ce document
@@ -107,16 +109,17 @@ En outre, Portage-SMT-TAS comprend:
 
                               Comment démarrer
 
-Le répertoire "framework" fournit un cadre d'expérimentation permettant
-d'entraîner un système PortageII. Nous recommandons que vous utilisiez
-ce cadre comme point de départ et comme configuration par défaut pour
-créer des systèmes PortageII et PortageLive. Un tutoriel est inclus
-(fichier "tutorial.pdf") qui vous guidera dans les étapes de création
-d'un système-jouet. Même si vous avez déjà utilisé PortageII 2.2 (ou
-une version antérieure), nous vous recommandons de lire ce document,
-puisqu'il contient les dernières recommandations quant à l'utilisation
-de PortageII. N'utilisez pas l'ancien example-jouet comme point de
-départ: partez plutôt du nouveau cadre d'expérimentation.
+Le répertoire "framework" [TODO à corriger] ou encore
+https://github.com/nrc-cnrc/PortageTrainingFramework, fournit un cadre
+d'expérimentation permettant d'entraîner un système PortageII. Nous
+recommandons que vous utilisiez ce cadre comme point de départ et comme
+configuration par défaut pour créer des systèmes PortageII et PortageLive.
+Un tutoriel est inclus (fichier "tutorial.pdf") qui vous guidera dans les
+étapes de création d'un système-jouet. Même si vous avez déjà utilisé
+PortageII 2.2 (ou une version antérieure), nous vous recommandons de lire
+ce document, puisqu'il contient les dernières recommandations quant à
+l'utilisation de PortageII. N'utilisez pas l'ancien example-jouet comme
+point de départ: partez plutôt du nouveau cadre d'expérimentation.
 
 Vous trouverez plus d'information dans le répertoire doc/.
 
@@ -124,7 +127,7 @@ Vous trouverez plus d'information dans le répertoire doc/.
                      Mise à jour d'une version antérieure
 
 Si vous avez des systèmes qui ont été créés à partir d'une version
-antérieure de PortageII, nous vous recommandons fortement de les
+antérieure à 3.0 de PortageII, nous vous recommandons fortement de les
 ré-entraîner avec la nouvelle version, afin de tirer profit de
 plusieurs améliorations.
 
@@ -136,16 +139,16 @@ changements dans le fichier Makefile.params du cadre d'expérimentation
 (framework), vous devriez modifier ce fichier pour refléter les
 changements dans PortageII 3.0. Si vous utilisez des modules "plugins"
 externes (pré- et post-traitement), allez voir les nouveaux plugins
-par défaut, qui répondront peut-être d'emblée à vos besoins. 
+par défaut, qui répondront peut-être d'emblée à vos besoins.
 
 Nous recommandons maintenant:
 - L'utilisation des nouveaux "sparse features"
 - L'utilisation des modèles de langue "Coarse LM"
 - les modèles d'alignement IBM4, en plus des modèles IBM2 et HMM
-  (nécéssite MGiza++). 
+  (nécéssite MGiza++).
 - Si la langue cible est le français ou l'anglais, utilisez les
   modèles de langue génériques en arrière-plan avec le mécanisme
-  "MixLM". 
+  "MixLM".
 Ces recommandations sont aussi maintenant les paramètres par défaut.
 
 Pour les modèles de langue, le cadre d'expérimentation comprend une
@@ -153,7 +156,7 @@ variable PRIMARY_LM, qui peut être utilisée à la place de TRAIN_LM ou
 MIXLM: si vous utilisez cette variable, les modèles génériques seront
 automatiquement utilisés pour l'anglais et le français, et le
 mécanisme MixLM sera activé pour peu qu'il y ait plus d'une
-composante en jeu. 
+composante en jeu.
 
 L'API SOAP de PortageLive a fait l'objet de nombreux changements lors
 du passage à la version 3.0. Ceux-ci sont résumés dans un tableau,
