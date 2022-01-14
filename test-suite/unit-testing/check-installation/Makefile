@@ -51,7 +51,8 @@ testsuite: pre_installation
 
 .PHONY: pre_installation
 pre_installation: gcc_version
-pre_installation: perl_version perl_modules python_version python_modules java_version
+pre_installation: perl_version perl_modules java_version
+pre_installation: python3_version python3_modules python2_version python2_modules
 pre_installation: make_version mgiza word2vec libsvm xml_grep xmllint ram_vs_swap
 pre_installation:
 	@echo $$'\nPrerequisites are correctly installed.\n'
@@ -63,23 +64,33 @@ perl_version:
 
 .PHONY: perl_modules
 perl_modules:
-	@rc=0; for module in XML::Twig XML::XPath JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env Time::HiRes; do \
+	@rc=0; for module in XML::Twig XML::XPath XML::Writer JSON YAML File::Spec File::Temp List::Util Time::gmtime FindBin Env Time::HiRes; do \
 		$(call check,Perl module $$module,perldoc -l $$module >& /dev/null,NOT FOUND) || rc=1; \
 	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing."
 	@$(call check,XML::Twig version,perl -e 'use XML::Twig 3.32;',Portage requires XML::Twig version 3.32 or greater.)
 
-.PHONY: python_version
-python_version:
-	@$(call check,Python version 2.7,python2 --version 2>&1 | grep -q 2\.7,Portage required Python 2.7)
-	@$(call check,Python with dynamic library,\
+.PHONY: python2_version
+python2_version:
+	@$(call check,Python 2.7,python2 --version 2>&1 | grep -q 2\.7,Portage requires Python 2.7)
+	@$(call check,Python 2.7 with dynamic library,\
 		ldd $$(which python2) | egrep -q libpython2\.[0-9]+\.so,\
 		"Portage requires Python 2.7 built with dynamic library support (--enabled-shared). Refer to \$$PORTAGE/INSTALL.")
 
-.PHONY: python_modules
-python_modules:
+.PHONY: python2_modules
+python2_modules:
 	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string shlex shutil tempfile; do \
-		$(call check,Python module $$module,python2 -c "import $$module" >& /dev/null,NOT FOUND) || rc=1; \
-	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing."
+		$(call check,Python 2.7 module $$module,python2 -c "import $$module" >& /dev/null,NOT FOUND) || rc=1; \
+	done; [[ $$rc == 0 ]] || ! echo "Some required Python 2.7 modules are missing."
+
+.PHONY: python3_version
+python3_version:
+	@$(call check,Python 3,python3 --version >& /dev/null,Portage requires Python 3 to be available)
+
+.PHONY: python3_modules
+python3_modules:
+	@rc=0; for module in click regex; do \
+		$(call check,Python 3 module $$module,python3 -c "import $$module" >& /dev/null,NOT FOUND) || rc=1; \
+	done; [[ $$rc == 0 ]] || ! echo "Some required Python 3 modules are missing."
 
 .PHONY: java_version
 java_version:
