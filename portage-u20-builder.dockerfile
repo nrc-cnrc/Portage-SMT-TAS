@@ -151,6 +151,9 @@ RUN apt-get install -y liblog4cxx-dev libdata-treedumper-perl libtree-simple-per
     rm /tmp/cxxtest-4.4.tar.gz
 ENV CXXTEST_HOME=$PORTAGE/third-party/cxxtest-4.4
 
+## We need pdflatex and other tools to compile the tutorial and other documentation
+RUN apt-get install -y texlive texlive-latex-extra fig2dev asciidoctor doxygen graphviz
+
 ## Most steps above clean after themselves, but do a final clean up of /tmp
 RUN rm -rf /tmp/*
 
@@ -185,5 +188,39 @@ RUN source $PORTAGE/SETUP.bash && \
     make -j 5 && \
     make -j 5 install && \
     chmod -R o+rX $PORTAGE/bin $PORTAGE/lib
+
+## Compile all documentation
+RUN source $PORTAGE/SETUP.bash && \
+    # Compile tutorial.pdf in framework
+    cd /tmp && \
+    git clone $PORTAGE/framework framework-for-doc && \
+    cd framework-for-doc && \
+    make doc && \
+    cp tutorial.pdf $PORTAGE/doc/. && \
+    cd /tmp && \
+    rm -rf framework-for-doc && \
+    # Compile toy.pdf in the toy test suite
+    cd $PORTAGE/test-suite/unit-testing/toy && \
+    make doc && \
+    make clean && \
+    # Compile and install the PDFs for extra documentation
+    cd $PORTAGE/src && \
+    mkdir -p ../doc/extras/confidence && \
+    make -j 5 docs && \
+    cp */*.pdf ../doc/extras && \
+    cp -p adaptation/README ../doc/extras/adaptation.README && \
+    cp -p confidence/README confidence/ce*.ini ../doc/extras/confidence/ && \
+    cp -p rescoring/README ../doc/extras/rescoring.README && \
+    cp -p canoe/sparse-features.txt ../doc/extras/sparse-features.README && \
+    # Compile the user manual
+    cd $PORTAGE/src/user_manual && \
+    make -j 5 docs >& .log.make-docs && \
+    cp -ar html ../../doc/user-manual && \
+    # Compile the source-code documentation
+    cd $PORTAGE/src && \
+    make -j 5 doxy >& .log.make-doxy && \
+    # Compile the command line usage documentation
+    cd $PORTAGE/src && \
+    make -j 5 usage >& .log.make-usage
 
 CMD ["/bin/bash"]
