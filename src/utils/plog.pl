@@ -124,6 +124,8 @@ standard output.
 
 =item -stats          Stats mode: display various statistics for the given period [default action]
 
+=item -force          plog.pl -create and -update have been disabled since it's no longer appropriate, as OSS. With -force, make them run anyway.
+
 =item -verbose        Be verbose
 
 =item -h,-help        Print a help message and exit
@@ -185,7 +187,7 @@ our($help, $h, $H, $Help, $HELP, $man,
     $create, $update, $extract, $stats,
     $comment, 
     $dir, $header, $raw,
-    $verbose);
+    $force, $verbose);
 our($debug, $wout);              # undocumented options
 
 if ($help or $h) {
@@ -224,20 +226,28 @@ die "Error: Can't access logging directory $dir\n" unless -d $dir and -r $dir;
 ## and so are fetched later on
 
 if ($create) {
-    defined(my $job_name = shift) or die "Error: Missing argument: job_name\n";
-    die "Error: Too many arguments\n" if shift;
+    if ($force) {
+        defined(my $job_name = shift) or die "Error: Missing argument: job_name\n";
+        die "Error: Too many arguments\n" if shift;
 
-    print STDOUT logCreate($dir, $job_name, $comment), "\n";
+        print STDOUT logCreate($dir, $job_name, $comment), "\n";
+    } else {
+        print STDOUT "plog-create-disabled\n"
+    }
 
 } elsif ($update) {
-    defined(my $log_file = shift) or die "Error: Missing argument: log_file\n";
-    defined(my $job_status = shift) or die "Error: Missing argument: status\n";
-    defined(my $words_in = shift) or die "Error: Missing argument: words_in\n";
-    my $words_out = shift;      # Don't care if it's undef -- handled by logUpdate()
+    if ($force) {
+        defined(my $log_file = shift) or die "Error: Missing argument: log_file\n";
+        defined(my $job_status = shift) or die "Error: Missing argument: status\n";
+        defined(my $words_in = shift) or die "Error: Missing argument: words_in\n";
+        my $words_out = shift;      # Don't care if it's undef -- handled by logUpdate()
 
-    die "Error: Too many arguments\n" if shift;
+        die "Error: Too many arguments\n" if shift;
 
-    logUpdate($dir, $log_file, $job_status, $words_in, $words_out, $comment);
+        logUpdate($dir, $log_file, $job_status, $words_in, $words_out, $comment);
+    } else {
+        print STDERR "plog-update-disabled\n"
+    }
 
 } elsif ($extract) {  
     my $period = shift || "";
