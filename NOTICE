@@ -191,6 +191,9 @@ Tightly Packed Tries, suffix arrays and related software
 Copyright 2005-2009 Ulrich Germann; all rights reserved.
 Used and distributed under licence to the National Research Council of Canada.
 
+Redistributed since 2022 with Portage-SMT-TAS under the MIT License, with
+permission from Ulrich Germann.
+
 
 -------------------------------------------------------------------------------
 google-perftools - TCMalloc and the Google profiler
