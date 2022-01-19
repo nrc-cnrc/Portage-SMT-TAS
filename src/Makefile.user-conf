@@ -18,7 +18,7 @@
 # values temporarily.
 
 # If you haven't already done so, you should set the PORTAGE variable in
-# SETUP.bash/tcsh and source the appropriate file for your shell before trying
+# SETUP.bash and source the appropriate file for your shell before trying
 # to compile or use PortageII.
 
 

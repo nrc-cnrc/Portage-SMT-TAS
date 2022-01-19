@@ -28,12 +28,9 @@ Expand the tar ball to a to a directory of your choice, say $HOME/PortageII-cur
    tar xzf /path/to/PortageII-cur-bin.tar.gz
 
 Add $HOME/PortageII-cur/{bin,lib} to the appropriate environment variables by
-sourcing $HOME/PortageII-cur/SETUP.bash or SETUP.tcsh (depending on your
-preferred shell - if you use a shell other than bash or csh/tcsh, you're on
-your own):
+sourcing $HOME/PortageII-cur/SETUP.bash (Portage is only tested with bash as the
+shell, and may not be stable with other ones):
    source $HOME/PortageII-cur/SETUP.bash
-or
-   source $HOME/PortageII-cur/SETUP.tcsh
 
 Installing using Docker
 
@@ -83,16 +80,16 @@ In that case, your will have to examine all the output to identify the errors
 that you should address.
 
 If you get "command not found" for any of the tests, your PATH is not correctly
-set or your installation failed.  Check your SETUP.bash/tcsh file and make sure
-you source it properly, ideally in your .<shell>rc file.  Your $PATH variable
+set or your installation failed.  Check your SETUP.bash file and make sure
+you source it properly, ideally in your .bashrc file.  Your $PATH variable
 should include PortageII-cur/bin.  Also check that PortageII-cur/bin contains
 utokenize.pl.  If that's not the case for a source code distribution, "make
 install" probably didn't complete successfully.
 
 If utokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
-Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
-ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
+Check your SETUP.bash file and make sure you are sourcing it properly,
+ideally in your .bashrc file.  Your $PERL5LIB variable should include
 PortageII-cur/lib.  That directory should also contain ULexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, for a
 source code distribution, "make install" probably didn't complete successfully.
@@ -104,7 +101,7 @@ files.
 
 If filter-nc1.py -h and casemark.py -h complain about "ImportError: No module
 named portage_utils", then your PYTHONPATH is not correctly set or your
-installation partially failed. Check your SETUP.bash/tcsh file and make sure
+installation partially failed. Check your SETUP.bash file and make sure
 you are sourcing it properly. Your $PYTHONPATH variable should include
 PortageII-cur/lib. That directory should also contain portage_utils.pyc. If it
 doesn't, for a source code distribution, "make install" probably didn't
@@ -120,7 +117,7 @@ with dynamic library support (see External dependencies below).
 If canoe -h says "command not found" but the other commands work:
  - with binary distributions, your $PATH variable must also include the
    architecture specific folder PortageII-cur/bin/<arch>.  Check your
-   SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
+   SETUP.bash file and make sure you have set the PRECOMP_PORTAGE_ARCH
    appropriately.  The PortageII-cur/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
@@ -183,20 +180,18 @@ following dependencies installed.
 Note that in the following, we show instructions for installing external
 packages to $PORTAGE/third-party, or to $PORTAGE/third-party/<name> in a few
 cases.  This is just a suggestion, but if you follow this pattern the default
-SETUP.bash/tcsh will pick up things installed there automatically.  We
-recommend using $PORTAGE/third-party for simple packages, so they all end up in
+SETUP.bash will pick up things installed there automatically.  We recommend
+using $PORTAGE/third-party for simple packages, so they all end up in
 $PORTAGE/third-party/{bin,lib}, but for complex packages, such as a manually
 installed Python, add <name> for better control.
 
-If you choose different destinations, adjust SETUP.bash/tcsh accordingly.  In
+If you choose different destinations, adjust SETUP.bash accordingly.  In
 any case, make sure you update the User Configurable Variables section of
-SETUP.bash/tcsh.
+SETUP.bash.
 
-After installing the third-party packages, source SETUP.bash/tcsh to enable the
+After installing the third-party packages, source SETUP.bash to enable the
 packages:
    source $HOME/PortageII-cur/SETUP.bash
-or
-   source $HOME/PortageII-cur/SETUP.tcsh
 
 Mandatory dependencies for all distributions:
 
@@ -245,7 +240,7 @@ Mandatory dependencies for all distributions:
 
  - Perl 5.14 or more recent. Older versions do not handle UTF-8 data correctly.
    If you install Perl in a non-standard location, make sure it comes first on
-   your PATH, or set PERL_HOME_OVERRIDE in SETUP.bash/tcsh.
+   your PATH, or set PERL_HOME_OVERRIDE in SETUP.bash.
 
    Using yum: if your distro's package manager has Perl >= 5.14, use it.
 
@@ -332,7 +327,7 @@ Mandatory dependencies for all distributions:
 
    If you must install Python 2.7 in a non-standard location, tell PortageII
    training software where to find it by setting PYTHON_HOME_OVERRIDE in
-   SETUP.bash/tcsh:
+   SETUP.bash:
       PYTHON_HOME_OVERRIDE=/path/to/python2.7-or-miniconda2
 
    Install required Python packages: numpy mock theano suds
@@ -375,7 +370,7 @@ Mandatory dependencies for all distributions:
    required to perform decoder weight tuning.  The command "java" must be on
    your PATH.  Running "java -version" should produce something like 1.8.0_nn
    or greater if your installation is correct.  (Set JAVA_HOME_OVERRIDE in
-   SETUP.bash/tcsh if you install it in a non-standard location.)
+   SETUP.bash if you install it in a non-standard location.)
 
  - MGIZA++ - PortageII supports combining IBM4 alignments with its own HMM and
    IBM2 alignments for improved phrase table extraction.  IBM4 alignments must

@@ -16,21 +16,15 @@ Before proceeding with this manual, you should read the `INSTALL` and
 `README` files at the root of the PortageII distribution.
 
 Once PortageII is installed on your system, you should make sure
-you source the `SETUP.bash` or `SETUP.tcsh` file before you run any
+you source the `SETUP.bash` file before you run any
 software. You need to do this in every shell you open, so we recommend
-doing it in your `.bashrc` or `.tcshrc` file:
+doing it in your `.bashrc` file:
 
 ---------------------------------------
 source /path/to/PortageII/SETUP.bash
 ---------------------------------------
 
-or, for tcsh users:
-
----------------------------------------
-source /path/to/PortageII/SETUP.tcsh
----------------------------------------
-
-These files set up the `PATH`, `PERL5LIB`, `LD_LIBRARY_PATH` and
+This file sets up the `PATH`, `PERL5LIB`, `LD_LIBRARY_PATH` and
 `PORTAGE` variables as required to run PortageII software.
 
 Where To Find Things

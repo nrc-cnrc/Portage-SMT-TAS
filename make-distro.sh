@@ -99,7 +99,7 @@ Canned options for specific licensees:
 Distro creation check list:
   - Tag the PORTAGEshared, portage.framework and tmx-prepro Git repos with the
     current version, e.g., git tag -a PortageII-4.0 master; git push --tags
-  - Change the year in src/utils/portage_info.cc, SETUP.{bash,tcsh}, the
+  - Change the year in src/utils/portage_info.cc, SETUP.bash, the
     INSTALL file, all the README files, PortageLive/www/html/portage_notices.php
   - Change the value of current_year in portage_utils.{pm,py}, sh_utils.sh,
     printCopyright.h
@@ -117,7 +117,7 @@ Old changes, obsolete with the user manual now in src/user_manual/
 Old check list items, now automated via the -cur VERSION switch:
   - Substitute PortageII-cur for PortageII-2.3
   - Substitute PortageII cur for PortageII 2.3
-  - Change the version number in src/utils/portage_info.cc, SETUP.{bash,tcsh},
+  - Change the version number in src/utils/portage_info.cc, SETUP.bash,
     the INSTALL file, all the README files
   - Change src/build/Doxyfile PROJECT_NUMBER = 2.2 for PROJECT_NUMBER = 2.3
 
@@ -637,13 +637,12 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
       make_bin
    fi
 
-   # Change SETUP.bash and SETUP.tcsh to have a default PRECOMP_PORTAGE_ARCH active
+   # Change SETUP.bash to have a default PRECOMP_PORTAGE_ARCH active
    DEFAULT_ARCH=`arch``determine_distro_level`
    if [[ $ICU != no ]]; then DEFAULT_ARCH="$DEFAULT_ARCH-icu"; fi
    r pushd ./$OUTPUT_DIR/PORTAGEshared
-      echo Setting default PRECOMP_PORTAGE_ARCH=$DEFAULT_ARCH in SETUP.bash and SETUP.tcsh.
+      echo Setting default PRECOMP_PORTAGE_ARCH=$DEFAULT_ARCH in SETUP.bash.
       perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.bash
-      perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.tcsh
    r popd
 fi
 

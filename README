@@ -24,7 +24,7 @@ was first released to Canadian universities to build and train a community of
 users.  Commercial releases of PORTAGEshared 1.1 to 1.3 were made, followed by
 Portage 1.4.
 
-PortageII marked leap forward in NRC's SMT technology.  With version 1.0, we
+PortageII marked a leap forward in NRC's SMT technology.  With version 1.0, we
 brought in significant improvements to translation engine itself that result in
 better translations, and contributed to our success at the NIST Open Machine
 Translation 2012 Evaluation (OpenMT12).  With version 2.0, we added two
@@ -124,8 +124,7 @@ phrase-based statistical machine translation, including:
    NOTICE       third party Copyright notices
    README       this file
    RELEASES     release history with change notes
-   SETUP.bash   config file for bash users
-   SETUP.tcsh   config file for tcsh users
+   SETUP.bash   config file to activate Portage-SMT-TAS
 
 
                               Getting started

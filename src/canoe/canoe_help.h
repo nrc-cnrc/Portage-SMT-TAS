@@ -662,6 +662,5 @@ Options (in command-line format):\n\
      can be overridden on the command line with this syntax.\n\
 \n\
    - If you have a hard time reading this help message in your terminal, try\n\
-     bash: canoe -h 2>&1 | less\n\
-     tcsh: canoe -h |& less\n\
+     canoe -h 2>&1 | less\n\
 ";

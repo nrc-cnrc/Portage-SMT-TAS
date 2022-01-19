@@ -105,8 +105,7 @@ En outre, Portage-SMT-TAS comprend:
    README       version anglaise de ce document
    README.fr    ce document
    RELEASES     historique des versions et révisions
-   SETUP.bash   fichier de configuration pour l'interpréteur bash
-   SETUP.tcsh   fichier de configuration pour l'interpréteur tcsh
+   SETUP.bash   fichier de configuration pour activate Portage-SMT-TAS
 
 
                               Comment démarrer
