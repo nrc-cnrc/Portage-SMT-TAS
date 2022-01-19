@@ -9,7 +9,7 @@ wc_stats.%: %
 	diff wc_stats.$* ref/
 
 tmx-prepro-%/README:
-	[[ -d ${PORTAGE}/tmx-prepro ]] && cp -ar ${PORTAGE}/tmx-prepro tmx-prepro-$* || git clone ${PORTAGE_GIT_ROOT}/tmx-prepro.git tmx-prepro-$*
+	[[ -d ${PORTAGE}/tmx-prepro ]] && cp -ar ${PORTAGE}/tmx-prepro tmx-prepro-$* || git clone ${PORTAGE_GIT_ROOT}/PortageTMXPrepro.git tmx-prepro-$*
 
 test1: %: tmx-prepro-%/README
 	cp data/{h2,h3,hyphens,train_termino}.tmx tmx-prepro-$@/template/tmx/
