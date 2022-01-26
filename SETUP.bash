@@ -23,6 +23,9 @@ echo PORTAGE=$PORTAGE >&2
 # generic model in a non-standard location.
 PORTAGE_GENERIC_MODEL=$PORTAGE/generic-model
 
+# Where Portage-related Git repos exist
+PORTAGE_GIT_ROOT=https://github.com/nrc-cnrc
+
 # Software overrides
 # Uncomment and change the following if you installed these packages in
 # a different location:
@@ -77,4 +80,4 @@ if [[ $PRECOMP_PORTAGE_ARCH ]]; then
 fi
 
 # Export all the variables we setup in this script
-export PORTAGE PORTAGE_GENERIC_MODEL PATH LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH
+export PORTAGE PORTAGE_GENERIC_MODEL PORTAGE_GIT_ROOT PATH LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH

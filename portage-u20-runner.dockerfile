@@ -1,7 +1,11 @@
 ## Dockerfile for building and running Portage on Ubuntu 20.04
-# Preliminary steps, in the Portage-SMT-TAS root directory:
+# Optional preliminary steps, in the Portage-SMT-TAS root directory (allows
+# choosing a particular branch or version - otherwise, these are automatically
+# downloaded from GitHub when needed):
 #    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
 #    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
+#    git clone https://github.com/nrc-cnrc/PortageTextProcessing.git third-party/PortageTextProcessing
+#    git clone https://github.com/nrc-cnrc/PortageClusterUtils.git third-party/PortageClusterUtils
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Step 1: build the builder image, which can also be used for running Portage:
 #    docker build --tag portage-u20-builder -f portage-u20-builder.dockerfile .
@@ -43,7 +47,10 @@ RUN apt-get install -y \
     libxml2-utils \
     xml-twig-tools \
     python3 \
-    openjdk-8-jre-headless
+    python3-pip \
+    python3-regex \
+    openjdk-8-jre-headless && \
+    pip3 install click
 
 ## Copy all the PortageII files and the installed third party software
 ## into the $PORTAGE working directory

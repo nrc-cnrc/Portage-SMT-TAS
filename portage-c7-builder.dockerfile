@@ -1,7 +1,11 @@
 ## Dockerfile for building and running Portage on CentOS7
-# Preliminary steps, in the Portage-SMT-TAS root directory:
+# Optional preliminary steps, in the Portage-SMT-TAS root directory (allows
+# choosing a particular branch or version - otherwise, these are automatically
+# downloaded from GitHub when needed):
 #    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
 #    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
+#    git clone https://github.com/nrc-cnrc/PortageTextProcessing.git third-party/PortageTextProcessing
+#    git clone https://github.com/nrc-cnrc/PortageClusterUtils.git third-party/PortageClusterUtils
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Then build the image:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
@@ -24,6 +28,7 @@ RUN useradd -ms /bin/bash portage
 ## Create portage working directory
 WORKDIR /usr/local/PortageII
 ENV PORTAGE=/usr/local/PortageII
+ENV PORTAGE_GIT_ROOT=https://github.com/nrc-cnrc
 RUN chown portage:portage /usr/local/PortageII
 RUN mkdir $PORTAGE/third-party && chown portage:portage $PORTAGE/third-party
 
@@ -50,8 +55,9 @@ RUN yum -y install perl \
     perl-XML-Writer \
     perl-YAML \
     libxml2 \
-    python3 python3-devel \
-    java-1.8.0-openjdk-headless
+    python3 python3-devel python36-regex \
+    java-1.8.0-openjdk-headless && \
+    pip3 install click
 
 ## Install MITLM (requires fortran)
 RUN yum -y install gcc-gfortran && \
@@ -159,26 +165,28 @@ COPY --chown=portage:portage . /usr/local/PortageII
 ## The rest of the build is done by the portage user
 USER portage
 
-## Install PortageTextProcessing and PortageClusterUtils and config portage
+## Install all the related Portage Git repos, and configure portage
 RUN cd $PORTAGE/third-party && \
-    git clone https://github.com/nrc-cnrc/PortageTextProcessing.git && \
+    test -d PortageTextProcessing || git clone $PORTAGE_GIT_ROOT/PortageTextProcessing.git && \
     ln -s $PORTAGE/third-party/PortageTextProcessing/SETUP.bash $PORTAGE/third-party/conf.d/PortageTextProcessing.bash && \
-    git clone https://github.com/nrc-cnrc/PortageClusterUtils && \
+    test -d PortageClusterUtils || git clone $PORTAGE_GIT_ROOT/PortageClusterUtils && \
     ln -s $PORTAGE/third-party/PortageClusterUtils/SETUP.bash $PORTAGE/third-party/conf.d/PortageClusterUtils.bash && \
+    cd $PORTAGE && \
+    test -d framework -o -d framework.git || git clone $PORTAGE_GIT_ROOT/PortageTrainingFramework.git framework && \
+    test -d tmx-prepro -o -d tmx-prepro-git || git clone $PORTAGE_GIT_ROOT/PortageTMXPrepro.git tmx-prepro && \
     echo "source $PORTAGE/SETUP.bash" >> /home/portage/.bashrc && \
+    echo "export LANG=en_CA.utf8" >> /home/portage/.bashrc && \
     chmod 755 /home/portage /home/portage/.bashrc
 
 ## Install the systems used for unit testing
-## TODO Download PortageII-4.0-test-suite-systems.tgz from GitHub ahead of time or,
-##      even better, wget it during the Docker installation process, once it's public
-##      For now, we assume it was downloaded to the root of the sandbox, so it's in $PORTAGE
-RUN cd $PORTAGE/test-suite && \
+RUN cd $PORTAGE && \
+    test -d PortageII-4.0-test-suite-systems.tgz || wget https://github.com/nrc-cnrc/Portage-SMT-TAS/releases/download/oss-pre-release/PortageII-4.0-test-suite-systems.tgz && \
+    cd test-suite && \
     tar --strip-components=2 -xzf $PORTAGE/PortageII-4.0-test-suite-systems.tgz && \
     chmod -R o+rX systems && \
     rm $PORTAGE/PortageII-4.0-test-suite-systems.tgz
 
 ## Compile and install Portage itself
-# TODO - get tmx-prepro, somehow!
 RUN source $PORTAGE/SETUP.bash && \
     cd $PORTAGE/src && \
     make -j 5 && \

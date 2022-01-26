@@ -1,7 +1,11 @@
 ## Dockerfile for running Portage on CentOS7
-# Preliminary steps, in the Portage-SMT-TAS root directory:
+# Optional preliminary steps, in the Portage-SMT-TAS root directory (allows
+# choosing a particular branch or version - otherwise, these are automatically
+# downloaded from GitHub when needed):
 #    git clone https://github.com/nrc-cnrc/PortageTMXPrepro.git tmx-prepro
 #    git clone https://github.com/nrc-cnrc/PortageTrainingFramework.git framework
+#    git clone https://github.com/nrc-cnrc/PortageTextProcessing.git third-party/PortageTextProcessing
+#    git clone https://github.com/nrc-cnrc/PortageClusterUtils.git third-party/PortageClusterUtils
 #    download PortageII-4.0-test-suite-systems.tgz from the GitHub release assets here
 # Step 1: build the builder image, which can also be used for running Portage:
 #    docker build --tag portage-c7-builder -f portage-c7-builder.dockerfile .
@@ -46,8 +50,9 @@ RUN yum -y install perl \
     perl-Data-TreeDumper \
     perl-Time-Piece \
     perl-CPAN \
-    python3 python3-devel \
+    python3 python3-devel python36-regex \
     java-1.8.0-openjdk-headless && \
+    pip3 install click && \
     (echo yes ; echo sudo ; echo yes) | cpan -i Test::Doctest && \
     cpan -i Tree::Simple
 
